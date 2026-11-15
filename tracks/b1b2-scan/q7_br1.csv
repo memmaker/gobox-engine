@@ -1,0 +1,55 @@
+game,region,offset,abs_addr,width,sites,writes,first_site,meaning,used_by_scripts
+br1,Area,128,4B80,1 (byte),3,yes,loot.go:81,"post-combat/space-fight result flag: 0 picks the StHeal stage, else StShip (loot.go:81); space fight clears it (spacefight.go:1272)",no
+br1,Area,166,4BA6,1 (byte),1,yes,eclops.go:535,"area kind picture code set by opAreaKind (eclops.go:535: 0 3D, 2 rocket, 3 ?, 4 overland); the AreaKind op writes it",no
+br1,Area,170,4BAA,1 (byte),1,yes,loot.go:335,loot gate: monster-side items only when 0 (loot.go:335),yes
+br1,Area,180,4BB4,1 (byte),1,no,eclops.go:45,"cleared by op 29 (13C3, with Area[181]); no other reader found",no
+br1,Area,181,4BB5,1 (byte),1,yes,eclops.go:45,"cleared by op 29 (13C3, with Area[180])",no
+br1,Area,182,4BB6,1 (byte),5,yes,adv.go:141,"difficulty (0..4): monster HP scale, to-hit modifier, rest menu default (monster.go:49, combat.go:699, rest.go:185)",yes
+br1,Area,183,4BB7,1 (byte),1,no,cmap.go:374,read in cmap.go:374 (travel/step helper); written with Area[230] on the overland (BR1 only),yes
+br1,Area,184,4BB8,1 (byte),2,yes,eclops.go:817,"items-stashed flag (opStash: 1 = items put away, eclops.go:817)",no
+br1,Area,186,4BBA,1 (byte),4,yes,spacefight.go:383,"space fight: 0 foe ship, 1 own ship (spacefight.go:383,388)",no
+br1,Area,197,4BC5,1 (byte),6,yes,adv.go:565,"current 3D map (GEO) block number, 127 none (eclops.go:430, savegame.go:172)",no
+br1,Area,229,4BE5,1 (byte),1,yes,ecl.go:329,cleared on script load (ecl.go:329),no
+br1,Area,230,4BE6,1 (byte),15,yes,adv.go:141,"area kind / travel mode byte (162,168 overland picture; &16 etc.); setVar special-cases writes (ecl.go:143), script address 4BE6 = AreaKind",yes
+br1,Area,231,4BE7,1 (byte),1,no,eclops.go:444,"wall-set selector flag (eclops.go:444, with Area[232])",yes
+br1,Area,232,4BE8,1 (byte),1,no,eclops.go:444,"wall-set selector flag (eclops.go:444, with Area[231])",yes
+br1,Area,240,4BF0,1 (byte),2,no,adv.go:417,party x saved on entering a step (adv.go:417),yes
+br1,Area,241,4BF1,1 (byte),2,yes,adv.go:417,party y saved on entering a step (adv.go:417),yes
+br1,Area,242,4BF2,1 (byte),7,yes,adv.go:124,"current ECL block number (m.Block; adv.go:124, 363)",yes
+br1,Area,252,4BFC,1 (byte),6,yes,eclops.go:63,"game speed setting (text pause = value*100 ms; rest.go:172-284, eclops.go:63)",no
+br1,Area,255,4BFF,1 (byte),3,yes,savegame.go:41,"save flags b3BEC*2+b3BEE (savegame.go:41,125); also the first byte of the 32-byte scratch zone cleared at a fresh script load (ecl.go:335: Area[255..286])",no
+br1,Area,355,4C63,1 (byte),1,no,spacefight.go:1031,own ship medical supplies (spacefight.go:1031),yes
+br1,Area,502,4CF6,1 (byte),3,yes,eclops.go:90,FOR/NEXT loop counter (eclops.go:90-96),yes
+br1,Area,503,4CF7,1 (byte),2,yes,eclops.go:90,FOR/NEXT loop limit,no
+br1,Area,512:620,4D00,108 struct,1,no,ship.go:21,"the ship record, 108 bytes, as a struct overlay (ship.go:21)",no
+br1,Area,620:632,4D6C,slice,2,yes,spacefight.go:1277,"space-fight foe summary: copy of foe record bytes 22..33, cleared when no foe (spacefight.go:1277-1280)",yes
+br1,Area,632,4D78,1 (byte),1,yes,spacefight.go:1281,space-fight foe byte (foe[57]),no
+br1,Area,633,4D79,1 (byte),1,yes,spacefight.go:1283,space-fight foe byte (foe[48]),yes
+br1,Area,634,4D7A,1 (byte),1,yes,spacefight.go:1282,space-fight foe byte (foe[49]),no
+br1,Area,635,4D7B,1 (byte),1,yes,spacefight.go:1284,space-fight foe byte (foe[53]),no
+br1,Area,636,4D7C,1 (byte),7,yes,loot.go:79,"space-fight/combat outcome state (0, 1 end, 2; loot.go:79,111,119)",yes
+br1,Area,637:643,4D7D,slice,1,yes,spacefight.go:1278,cleared with the foe summary (spacefight.go:1278),no
+br1,Area,641,4D81,1 (byte),2,yes,spacefight.go:1285,space-fight foe weapons sum (spacefight.go:1285-1287),yes
+br1,Area,642,4D82,1 (byte),1,yes,spacefight.go:1289,"space-fight foe, cleared (spacefight.go:1289)",no
+br1,Party,680,7EA8,1 (byte),2,yes,rules.go:206,"training hall flag (rules.go:206, 404) [BR1 only]",yes
+br1,Party,704,7EC0,1 (byte),3,yes,eclops.go:209,"SetupMonster: arg2, the monster approach limit (eclops.go:209)",yes
+br1,Party,705,7EC1,1 (byte),11,yes,adv.go:591,"distance to the wall/monster ahead, capped by Party[704] (eclops.go:212-231); WallDistance",no
+br1,Party,710,7EC6,1 (byte),2,no,ai.go:334,"combat: chance threshold / monster control default (ai.go:334, cmap.go:567)",yes
+br1,Party,711,7EC7,1 (byte),7,yes,loot.go:57,"post-combat stage (0, 1, 128, 129; loot.go:57-341)",yes
+br1,Party,712,7EC8,1 (byte),2,yes,loot.go:332,loot: count of members picked (loot.go:332-338),yes
+br1,Party,713,7EC9,1 (byte),7,yes,adv.go:170,forward key held (255) flag (adv.go:418),yes
+br1,Party,714,7ECA,1 (byte),7,yes,adv.go:341,"bit0 searching, bit1 looking (adv.go:341-378)",yes
+br1,Party,715,7ECB,1 (byte),2,yes,combat.go:105,"combat initiative side bits (combat.go:105,145)",yes
+br1,Party,722,7ED2,1 (byte),1,no,ecl.go:329,cleared on script load (ecl.go:329),no
+br1,Party,723,7ED3,1 (byte),1,no,ecl.go:329,cleared on script load (ecl.go:329),no
+br1,Party,725,7ED5,1 (byte),3,yes,adv.go:162,"off-the-map flag (adv.go:162,357)",yes
+br1,Party,739,7EE3,1 (byte),2,no,loot.go:138,"loot flag (loot.go:138,292)",no
+br1,Party,742,7EE6,1 (byte),3,yes,loot.go:138,"loot flag (loot.go:138,241); BR2 script 7EE6 RevivesParty",no
+br1,Party,786,7F12,1 (byte),2,yes,savegame.go:42,"disk number (savegame.go:42,167; charVar o==786 reads e.disk)",yes
+br1,Party,819,7F33,1 (byte),2,yes,cmap.go:831,"combat in-progress flag (cmap.go:831, combatturn.go:436)",no
+br1,Party,830,7F3E,1 (byte),11,yes,adv.go:142,"party size counted by the party menu (adv.go:142, loot.go:41)",yes
+br1,Party,831:,7F3F,4 (PutN),1,yes,eclops.go:142,"DIVIDE remainder, 4 bytes (eclops.go:142)",yes
+br1,Party,877,7F6D,1 (byte),1,no,shop.go:42,shop price multiplier in sixteenths (shop.go:42); script address 7F6D PriceMultiplier,yes
+br1,Party,880,7F70,1 (byte),2,no,combat.go:710,"combat to-hit modifier, monster side, signed byte (combat.go:710)",no
+br1,Party,881,7F71,1 (byte),2,no,combat.go:698,"combat to-hit modifier, party side, signed byte (combat.go:698)",no
+br1,Party,882,7F72,1 (byte),2,no,items.go:259,experience value added for the party (items.go:259),no

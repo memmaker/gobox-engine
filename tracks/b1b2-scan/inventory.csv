@@ -1,0 +1,800 @@
+game,addr,hex,region,widths,plain_reads,plain_writes,table_base_reads,table_base_writes,write_cmds,areas
+br1,19333,4B85,area,byte,1,0,0,0,,1
+br1,19334,4B86,area,byte,1,0,0,0,,1
+br1,19335,4B87,area,byte,1,0,0,0,,1
+br1,19336,4B88,area,byte,1,0,0,0,,1
+br1,19337,4B89,area,byte,3,0,0,0,,3
+br1,19338,4B8A,area,byte,3,0,0,0,,3
+br1,19339,4B8B,area,byte,1,0,0,0,,1
+br1,19340,4B8C,area,byte,1,0,0,0,,1
+br1,19341,4B8D,area,byte,1,0,0,0,,1
+br1,19342,4B8E,area,byte,1,0,0,0,,1
+br1,19343,4B8F,area,byte,1,0,0,0,,1
+br1,19344,4B90,area,byte,1,0,0,0,,1
+br1,19345,4B91,area,byte,1,0,0,0,,1
+br1,19346,4B92,area,byte,1,0,0,0,,1
+br1,19347,4B93,area,byte,1,0,0,0,,1
+br1,19348,4B94,area,byte,1,0,0,0,,1
+br1,19349,4B95,area,byte,1,0,0,0,,1
+br1,19350,4B96,area,byte,1,0,0,0,,1
+br1,19351,4B97,area,byte,1,0,0,0,,1
+br1,19352,4B98,area,byte,1,0,0,0,,1
+br1,19353,4B99,area,byte,1,0,0,0,,1
+br1,19354,4B9A,area,byte,1,0,0,0,,1
+br1,19355,4B9B,area,byte,1,0,0,0,,1
+br1,19356,4B9C,area,byte,1,0,0,0,,1
+br1,19357,4B9D,area,byte,1,0,0,0,,1
+br1,19358,4B9E,area,byte,1,0,0,0,,1
+br1,19365,4BA5,area,byte,14,4,0,0,Save:4,3
+br1,19370,4BAA,area,byte,0,2,0,0,Save:2,2
+br1,19371,4BAB,area,byte,0,20,0,0,Save:20,17
+br1,19382,4BB6,area,byte,4,0,0,0,,4
+br1,19383,4BB7,area,byte,13,32,0,0,GetTable:30 Save:2,2
+br1,19390,4BBE,area,byte,7,6,0,0,Add:2 Save:2 Sub:2,3
+br1,19391,4BBF,area,byte,7,6,0,0,Add:2 Save:2 Sub:2,3
+br1,19395,4BC3,area,byte,47,14,0,0,Add:1 Save:13,2
+br1,19396,4BC4,area,byte,7,13,0,0,Save:13,2
+br1,19398,4BC6,area,byte,4,0,0,0,,3
+br1,19401,4BC9,area,byte,1,0,0,0,,1
+br1,19430,4BE6,area,byte,0,32,0,0,Save:32,22
+br1,19431,4BE7,area,byte,0,15,0,0,Save:15,15
+br1,19432,4BE8,area,byte,0,15,0,0,Save:15,15
+br1,19433,4BE9,area,byte,0,15,0,0,Save:15,15
+br1,19440,4BF0,area,byte,3,3,0,0,Save:3,3
+br1,19441,4BF1,area,byte,3,3,0,0,Save:3,3
+br1,19442,4BF2,area,byte,38,6,0,0,Save:6,22
+br1,19451,4BFB,area,byte,0,17,0,0,Save:17,17
+br1,19453,4BFD,area,byte,0,12,0,0,Save:12,6
+br1,19454,4BFE,area,byte,0,36,0,0,Save:36,19
+br1,19457,4C01,area,byte,137,124,0,0,Add:5 HMenu:45 MenuKeys:38 Or:8 Save:25 Sub:3,19
+br1,19458,4C02,area,byte,41,31,0,0,Add:6 Or:8 Save:16 Sub:1,13
+br1,19459,4C03,area,byte,29,41,0,0,Add:5 Or:1 Random:4 Save:31,14
+br1,19460,4C04,area,byte,25,20,0,0,Add:4 Save:15 Sub:1,13
+br1,19461,4C05,area,byte,44,28,0,0,Add:5 Or:8 Save:14 Sub:1,15
+br1,19462,4C06,area,byte,57,40,0,0,Add:4 Or:16 Random:2 Save:18,17
+br1,19463,4C07,area,byte,37,30,0,0,Add:6 Or:10 Save:14,14
+br1,19464,4C08,area,byte,10,19,0,0,Save:19,9
+br1,19465,4C09,area,byte,24,14,0,0,Add:7 Save:7,11
+br1,19466,4C0A,area,byte,17,17,0,0,Add:4 GetTable:1 Save:12,10
+br1,19467,4C0B,area,byte,17,15,0,0,Add:2 Save:13,8
+br1,19468,4C0C,area,byte,16,19,0,0,Add:5 Save:14,9
+br1,19469,4C0D,area,byte,23,16,0,0,Add:1 Mul:3 Or:6 Save:6,9
+br1,19470,4C0E,area,byte/word,16,11,0,0,Add:2 Random:3 Save:5 WallDistance:1,9
+br1,19471,4C0F,area,byte,10,10,0,0,Save:10,6
+br1,19472,4C10,area,byte/word,45,30,0,0,Add:4 Or:7 Save:18 Sub:1,13
+br1,19473,4C11,area,byte,49,16,0,0,Add:4 Save:12,9
+br1,19474,4C12,area,byte/word,25,15,0,0,Add:3 Save:11 Sub:1,8
+br1,19475,4C13,area,byte,14,13,0,0,Add:2 Save:10 Sub:1,6
+br1,19476,4C14,area,byte/word,13,10,0,0,HMenu:1 Save:8 Sub:1,5
+br1,19477,4C15,area,byte,6,8,0,0,Add:2 Save:5 Sub:1,4
+br1,19478,4C16,area,byte,5,4,0,0,Add:1 Save:3,3
+br1,19479,4C17,area,byte,6,4,0,0,Add:1 Save:3,3
+br1,19480,4C18,area,byte/word,14,6,0,0,Add:2 GetTable:1 Save:3,4
+br1,19481,4C19,area,byte,4,2,0,0,HMenu:1 Random:1,2
+br1,19482,4C1A,area,byte/word,10,6,0,0,Add:1 Save:5,3
+br1,19483,4C1B,area,byte,7,7,0,0,Add:1 Save:6,2
+br1,19484,4C1C,area,byte/word,5,4,0,0,Save:4,2
+br1,19485,4C1D,area,byte,7,2,0,0,Save:1 Sub:1,1
+br1,19486,4C1E,area,byte/word,5,4,0,0,Save:4,2
+br1,19487,4C1F,area,byte,1,2,0,0,Save:2,1
+br1,19494,4C26,area,byte,1,2,0,0,Save:2,1
+br1,19500,4C2C,area,byte,1,1,0,0,Save:1,1
+br1,19502,4C2E,area,byte,2,2,0,0,Save:2,2
+br1,19503,4C2F,area,byte,10,15,0,0,Save:15,4
+br1,19504,4C30,area,byte,0,1,0,0,Save:1,1
+br1,19505,4C31,area,byte,74,13,0,0,Save:13,2
+br1,19506,4C32,area,byte,16,8,0,0,Or:8,1
+br1,19511,4C37,area,byte,2,2,0,0,Add:1 Save:1,2
+br1,19512,4C38,area,byte,17,8,0,0,Or:8,1
+br1,19513,4C39,area,byte,15,8,0,0,Or:8,1
+br1,19518,4C3E,area,byte,2,13,0,0,Save:13,2
+br1,19520,4C40,area,byte,12,6,0,0,Or:6,1
+br1,19521,4C41,area,byte,12,6,0,0,Or:6,1
+br1,19522,4C42,area,byte,6,3,0,0,Or:3,2
+br1,19530,4C4A,area,byte,36,14,0,0,Add:4 Save:6 Sub:4,2
+br1,19531,4C4B,area,byte,19,7,0,0,Or:7,2
+br1,19532,4C4C,area,byte,21,8,0,0,Or:8,2
+br1,19533,4C4D,area,byte,14,7,0,0,Or:7,2
+br1,19534,4C4E,area,byte,24,9,0,0,Or:9,2
+br1,19535,4C4F,area,byte,2,6,0,0,Save:6,2
+br1,19536,4C50,area,byte,10,6,0,0,Add:2 Save:4,2
+br1,19537,4C51,area,byte,18,9,0,0,Or:9,2
+br1,19538,4C52,area,byte,27,7,0,0,Or:7,2
+br1,19539,4C53,area,byte,2,2,0,0,Add:1 Save:1,1
+br1,19540,4C54,area,byte,10,3,0,0,Save:1 Sub:2,2
+br1,19542,4C56,area,byte,4,1,0,0,Add:1,1
+br1,19544,4C58,area,byte,12,6,0,0,Or:6,1
+br1,19545,4C59,area,byte,9,4,0,0,Or:4,1
+br1,19546,4C5A,area,byte,9,5,0,0,InputNumber:1 Save:3 Sub:1,2
+br1,19547,4C5B,area,byte,16,8,0,0,Or:8,1
+br1,19548,4C5C,area,byte,17,8,0,0,Or:8,1
+br1,19549,4C5D,area,byte,17,8,0,0,Or:8,1
+br1,19550,4C5E,area,byte,4,3,0,0,Or:3,2
+br1,19551,4C5F,area,byte,17,1,0,0,Save:1,5
+br1,19552,4C60,area,byte,2,3,0,0,Save:3,1
+br1,19553,4C61,area,byte,18,4,0,0,Add:1 Random:1 Save:1 Sub:1,2
+br1,19554,4C62,area,byte,1,3,0,0,Save:3,2
+br1,19555,4C63,area,byte,5,4,0,0,Add:1 Save:2 Sub:1,3
+br1,19556,4C64,area,byte,16,8,0,0,Or:8,3
+br1,19557,4C65,area,byte,19,8,0,0,Or:8,3
+br1,19558,4C66,area,byte,13,5,0,0,Or:5,3
+br1,19559,4C67,area,byte,3,1,0,0,Add:1,2
+br1,19560,4C68,area,byte,31,8,0,0,Save:7 Sub:1,3
+br1,19561,4C69,area,byte,7,11,0,0,Save:11,5
+br1,19562,4C6A,area,byte,6,6,0,0,Add:3 Save:3,3
+br1,19563,4C6B,area,byte,14,7,0,0,Or:7,1
+br1,19564,4C6C,area,byte,14,7,0,0,Or:7,1
+br1,19565,4C6D,area,byte,16,8,0,0,Or:8,1
+br1,19566,4C6E,area,byte,16,8,0,0,Or:8,1
+br1,19567,4C6F,area,byte,14,7,0,0,Or:7,1
+br1,19568,4C70,area,byte,6,3,0,0,Or:3,1
+br1,19569,4C71,area,byte,17,8,0,0,Or:8,1
+br1,19570,4C72,area,byte,19,8,0,0,Or:8,2
+br1,19573,4C75,area,byte,61,8,0,0,Or:8,2
+br1,19574,4C76,area,byte,10,5,0,0,Or:5,1
+br1,19575,4C77,area,byte,10,4,0,0,Or:4,2
+br1,19576,4C78,area,byte,2,1,0,0,Or:1,1
+br1,19577,4C79,area,byte,15,6,0,0,Or:6,1
+br1,19578,4C7A,area,byte,17,7,0,0,Or:7,1
+br1,19579,4C7B,area,byte,4,2,0,0,Or:2,1
+br1,19582,4C7E,area,byte,7,3,0,0,Or:3,1
+br1,19583,4C7F,area,byte,5,3,0,0,Save:3,3
+br1,19584,4C80,area,byte,9,2,0,0,Save:2,7
+br1,19585,4C81,area,byte,3,1,0,0,Save:1,4
+br1,19587,4C83,area,byte,5,10,0,0,Save:10,1
+br1,19588,4C84,area,byte,1,1,0,0,Save:1,1
+br1,19589,4C85,area,byte,12,3,0,0,Save:3,2
+br1,19590,4C86,area,byte,16,8,0,0,Add:2 Save:6,2
+br1,19591,4C87,area,byte,6,3,0,0,Save:3,3
+br1,19592,4C88,area,byte,9,2,0,0,Save:2,2
+br1,19593,4C89,area,byte,1,1,0,0,Save:1,2
+br1,19594,4C8A,area,byte,2,2,0,0,Save:2,1
+br1,19595,4C8B,area,byte,4,3,0,0,Add:2 Save:1,2
+br1,19596,4C8C,area,byte,3,1,0,0,Add:1,1
+br1,19597,4C8D,area,byte,4,1,0,0,Add:1,1
+br1,19598,4C8E,area,byte,1,4,0,0,Save:4,1
+br1,19599,4C8F,area,byte,30,14,0,0,Add:3 Save:10 Sub:1,3
+br1,19600,4C90,area,byte,5,2,0,0,Save:2,2
+br1,19601,4C91,area,byte,2,3,0,0,Add:2 Save:1,2
+br1,19603,4C93,area,byte,3,6,0,0,Save:6,1
+br1,19604,4C94,area,byte,6,4,0,0,Save:4,3
+br1,19605,4C95,area,byte,24,16,0,0,Add:4 Save:10 Sub:2,2
+br1,19606,4C96,area,byte,1,1,0,0,Save:1,1
+br1,19607,4C97,area,byte,1,1,0,0,Save:1,1
+br1,19608,4C98,area,byte,1,4,0,0,Save:4,1
+br1,19609,4C99,area,byte,5,1,0,0,Add:1,2
+br1,19610,4C9A,area,byte,4,3,0,0,Add:2 Save:1,1
+br1,19611,4C9B,area,byte,6,3,0,0,Add:2 Save:1,1
+br1,19612,4C9C,area,byte,4,5,0,0,Random:2 Save:3,2
+br1,19613,4C9D,area,byte,4,3,0,0,Add:1 Save:2,3
+br1,19614,4C9E,area,byte,1,2,0,0,Save:2,3
+br1,19615,4C9F,area,byte,7,4,0,0,Save:4,2
+br1,19616,4CA0,area,byte,2,6,0,0,Save:6,2
+br1,19617,4CA1,area,byte,4,1,0,0,Add:1,1
+br1,19618,4CA2,area,byte,2,3,0,0,Add:1 Save:2,1
+br1,19619,4CA3,area,byte,5,4,0,0,Add:1 Save:3,3
+br1,19620,4CA4,area,byte,4,1,0,0,Save:1,2
+br1,19621,4CA5,area,byte,4,1,0,0,Save:1,1
+br1,19622,4CA6,area,byte,6,2,0,0,Save:2,2
+br1,19623,4CA7,area,byte,4,1,0,0,Save:1,2
+br1,19624,4CA8,area,byte,5,3,0,0,Save:3,1
+br1,19625,4CA9,area,byte,1,1,0,0,Save:1,1
+br1,19626,4CAA,area,byte,3,2,0,0,Save:2,1
+br1,19627,4CAB,area,byte,3,1,0,0,Save:1,1
+br1,19628,4CAC,area,byte,14,1,0,0,Save:1,3
+br1,19629,4CAD,area,byte,2,2,0,0,Save:2,1
+br1,19630,4CAE,area,byte,2,1,0,0,Save:1,1
+br1,19631,4CAF,area,byte,2,4,0,0,Save:4,2
+br1,19632,4CB0,area,byte,5,1,0,0,Save:1,3
+br1,19633,4CB1,area,byte,13,2,0,0,Save:2,2
+br1,19634,4CB2,area,byte,2,2,0,0,Save:2,1
+br1,19635,4CB3,area,byte,1,2,0,0,Save:2,1
+br1,19636,4CB4,area,byte,4,1,0,0,Save:1,1
+br1,19637,4CB5,area,byte,8,3,0,0,Save:3,1
+br1,19638,4CB6,area,byte,2,2,0,0,Save:2,2
+br1,19639,4CB7,area,byte,7,2,0,0,Save:2,2
+br1,19640,4CB8,area,byte,17,6,0,0,Save:6,1
+br1,19641,4CB9,area,byte,12,6,0,0,Save:6,2
+br1,19642,4CBA,area,byte,8,1,0,0,Save:1,5
+br1,19643,4CBB,area,byte,1,1,0,0,Save:1,1
+br1,19644,4CBC,area,byte,1,1,0,0,Save:1,1
+br1,19645,4CBD,area,byte,1,2,0,0,Save:2,1
+br1,19646,4CBE,area,byte,2,2,0,0,Save:2,1
+br1,19647,4CBF,area,byte,1,2,0,0,Save:2,1
+br1,19648,4CC0,area,byte,4,1,0,0,Save:1,2
+br1,19649,4CC1,area,byte,1,1,0,0,Save:1,1
+br1,19651,4CC3,area,byte,2,1,0,0,Add:1,1
+br1,19660,4CCC,area,byte,14,4,0,0,Save:2 Sub:2,2
+br1,19661,4CCD,area,byte,13,1,0,0,Save:1,3
+br1,19662,4CCE,area,byte,8,1,0,0,Save:1,2
+br1,19663,4CCF,area,byte,6,2,0,0,Save:1 Sub:1,1
+br1,19664,4CD0,area,byte,2,4,0,0,Save:4,1
+br1,19665,4CD1,area,byte,15,4,0,0,Save:4,2
+br1,19666,4CD2,area,byte,3,1,0,0,Save:1,2
+br1,19667,4CD3,area,byte,1,2,0,0,Save:2,1
+br1,19668,4CD4,area,byte,2,1,0,0,Save:1,1
+br1,19680,4CE0,area,byte,7,2,0,0,HMenu:1 Save:1,1
+br1,19681,4CE1,area,byte,8,3,0,0,Save:3,2
+br1,19682,4CE2,area,long,10,4,0,0,Add:1 Sub:3,1
+br1,19686,4CE6,area,long,31,15,0,0,Add:2 Save:1 Sub:12,3
+br1,19690,4CEA,area,byte,0,1,0,0,Save:1,1
+br1,19691,4CEB,area,byte,1,3,0,0,Save:3,1
+br1,19692,4CEC,area,byte,1,1,0,0,Save:1,1
+br1,19693,4CED,area,byte,1,1,0,0,Save:1,1
+br1,19695,4CEF,area,byte,3,2,0,0,Add:1 Save:1,1
+br1,19696,4CF0,area,byte,3,3,0,0,Add:1 Save:2,1
+br1,19697,4CF1,area,byte,1,1,0,0,Save:1,1
+br1,19698,4CF2,area,byte,3,1,0,0,Add:1,1
+br1,19699,4CF3,area,byte,1,3,0,0,Save:3,1
+br1,19702,4CF6,area,byte,18,0,0,0,,12
+br1,19709,4CFD,area,byte,34,94,0,0,Add:15 GetTable:1 Mul:4 Save:60 Sub:14,18
+br1,19710,4CFE,area,byte,33,86,0,0,Add:15 GetTable:1 Mul:4 Save:53 Sub:13,12
+br1,19734,4D16,area,word,1,2,0,0,Save:2,2
+br1,19736,4D18,area,word,3,2,0,0,Save:2,3
+br1,19738,4D1A,area,word,4,4,0,0,Save:4,3
+br1,19740,4D1C,area,word,3,4,0,0,Save:4,3
+br1,19742,4D1E,area,word,10,5,0,0,Add:1 Save:3 Sub:1,3
+br1,19744,4D20,area,word,4,4,0,0,Save:4,3
+br1,19774,4D3E,area,byte,1,2,0,0,Save:2,2
+br1,19776,4D40,area,byte,0,1,0,0,Save:1,1
+br1,19777,4D41,area,byte,3,2,0,0,Add:1 Save:1,2
+br1,19780,4D44,area,byte,1,2,0,0,Save:2,2
+br1,19782,4D46,area,byte,0,1,0,0,Save:1,1
+br1,19783,4D47,area,byte,3,2,0,0,Add:1 Save:1,2
+br1,19786,4D4A,area,byte,1,2,0,0,Save:2,2
+br1,19820,4D6C,area,word,1,0,0,0,,1
+br1,19822,4D6E,area,word,1,0,0,0,,1
+br1,19824,4D70,area,word,3,0,0,0,,2
+br1,19826,4D72,area,word,1,0,0,0,,1
+br1,19830,4D76,area,word,3,0,0,0,,2
+br1,19833,4D79,area,byte,8,3,0,0,Save:1 Sub:2,1
+br1,19836,4D7C,area,byte,3,2,0,0,Or:1 Save:1,2
+br1,19841,4D81,area,byte,1,0,0,0,,1
+br1,31492,7B04,aux,text,2,9,0,0,InputString:1 Save:8,2
+br1,31499,7B0B,aux,text,3,1,0,0,Save:1,1
+br1,31512,7B18,aux,text,1,2,0,0,Save:2,1
+br1,31515,7B1B,aux,text,20,3,0,0,Save:3,2
+br1,31522,7B22,aux,text,9,1,0,0,Save:1,1
+br1,31532,7B2C,aux,text,14,21,0,0,InputString:1 Save:20,4
+br1,31542,7B36,aux,text,6,6,0,0,InputString:1 Save:5,2
+br1,31582,7B5E,aux,text,3,1,0,0,InputString:1,1
+br1,31632,7B90,aux,text,7,20,0,0,InputString:2 Save:18,6
+br1,31652,7BA4,aux,text,21,4,0,0,Save:4,2
+br1,31672,7BB8,aux,text,2,4,0,0,Save:4,1
+br1,31692,7BCC,aux,text,4,1,0,0,Save:1,1
+br1,31744,7C00,party,text,53,0,0,0,,16
+br1,31782,7C26,party,byte,2,0,0,0,,1
+br1,31784,7C28,party,byte,1,0,0,0,,1
+br1,31787,7C2B,party,long,9,5,0,0,Add:2 Sub:3,2
+br1,31813,7C45,party,word,11,0,0,0,,7
+br1,31820,7C4C,party,byte,8,0,0,0,,5
+br1,31905,7CA1,party,byte,6,3,0,0,Save:3,2
+br1,31906,7CA2,party,byte,1,1,0,0,Save:1,2
+br1,31907,7CA3,party,byte,0,1,0,0,Save:1,1
+br1,32000,7D00,party,byte,42,14,0,0,Save:14,15
+br1,32012,7D0C,party,byte,1,5,0,0,Save:5,3
+br1,32025,7D19,party,word,4,7,0,0,Save:7,7
+br1,32424,7EA8,party,byte,0,2,0,0,Save:2,2
+br1,32433,7EB1,party,byte,10,0,0,0,,7
+br1,32448,7EC0,party,byte,0,2,0,0,Save:2,2
+br1,32450,7EC2,party,byte,0,2,0,0,Save:2,2
+br1,32451,7EC3,party,byte,0,2,0,0,Save:2,2
+br1,32454,7EC6,party,byte,0,38,0,0,Save:38,19
+br1,32455,7EC7,party,byte,34,0,0,0,,12
+br1,32456,7EC8,party,byte,4,0,0,0,,2
+br1,32457,7EC9,party,byte,0,55,0,0,Save:55,17
+br1,32458,7ECA,party,byte,6,0,0,0,,3
+br1,32459,7ECB,party,byte,0,19,0,0,Save:19,10
+br1,32469,7ED5,party,byte,3,0,0,0,,3
+br1,32530,7F12,party,byte,0,29,0,0,Save:29,14
+br1,32574,7F3E,party,byte,5,0,0,0,,3
+br1,32575,7F3F,party,byte,6,0,0,0,,5
+br1,32621,7F6D,party,byte,2,16,0,0,Save:16,2
+br1,32633,7F79,party,byte/word,445,715,0,0,Add:33 And:422 Div:6 GetTable:10 HMenu:51 InputNumber:2 MenuKeys:29 Mul:2 Random:77 Save:69 Sub:12 WallDistance:2,23
+br1,32634,7F7A,party,byte/long,322,161,0,0,Add:19 And:21 GetTable:15 HMenu:3 InputNumber:3 Random:22 Save:75 Sub:1 WallDistance:2,21
+br1,32635,7F7B,party,byte/word,92,87,0,0,Add:11 And:6 GetTable:8 HMenu:1 InputNumber:1 Mul:2 Random:10 Save:46 Sub:2,18
+br1,32636,7F7C,party,byte,25,17,0,0,Add:5 And:1 GetTable:2 Random:2 Save:7,9
+br1,32637,7F7D,party,byte,24,21,0,0,Add:3 Div:1 GetTable:5 Random:2 Save:10,8
+br1,32638,7F7E,party,byte,31,38,0,0,Add:3 And:1 Div:1 GetTable:4 Mul:1 Random:3 Save:22 Sub:3,8
+br1,32639,7F7F,party,byte/word,17,26,0,0,Add:2 GetTable:1 Random:2 Save:16 Sub:5,7
+br1,32640,7F80,party,byte,9,8,0,0,Add:1 GetTable:6 Save:1,3
+br1,32641,7F81,party,byte/word,18,16,0,0,Add:1 Mul:1 Save:13 Sub:1,4
+br1,32642,7F82,party,byte,9,2,0,0,And:1 Save:1,2
+br1,32758,7FF6,party,byte,0,15,0,0,Save:15,2
+br1,33249,81E1,code,,0,0,1,0,,1
+br1,33287,8207,code,,0,0,1,0,,1
+br1,33325,822D,code,,0,0,1,0,,1
+br1,33363,8253,code,,0,0,1,0,,1
+br1,33401,8279,code,,0,0,1,0,,1
+br1,33439,829F,code,,0,0,1,0,,1
+br1,33477,82C5,code,,0,0,1,0,,1
+br1,33515,82EB,code,,0,0,1,0,,1
+br1,33553,8311,code,,0,0,1,0,,1
+br1,33591,8337,code,,0,0,1,0,,1
+br1,33629,835D,code,,0,0,1,0,,1
+br1,33667,8383,code,,0,0,1,0,,1
+br1,33705,83A9,code,,0,0,1,0,,1
+br1,33743,83CF,code,,0,0,1,0,,1
+br1,33781,83F5,code,,0,0,1,0,,1
+br1,35565,8AED,code,,0,0,2,0,,1
+br1,35591,8B07,code,,0,0,2,0,,1
+br1,35617,8B21,code,,0,0,1,0,,1
+br1,35643,8B3B,code,,0,0,1,0,,1
+br1,35669,8B55,code,,0,0,6,0,,1
+br1,35695,8B6F,code,,0,0,1,0,,1
+br1,35701,8B75,code,,0,0,1,0,,1
+br1,35707,8B7B,code,,0,0,1,0,,1
+br1,37705,9349,code,,0,0,1,0,,1
+br1,37710,934E,code,,0,0,1,0,,1
+br1,40577,9E81,code,,0,0,1,0,,1
+br1,40586,9E8A,code,,0,0,1,0,,1
+br1,41013,A035,code,,0,0,1,0,,1
+br1,41323,A16B,code,,0,0,1,0,,1
+br1,41347,A183,code,,0,0,1,0,,1
+br1,41355,A18B,code,,0,0,1,0,,1
+br1,41363,A193,code,,0,0,1,0,,1
+br1,41406,A1BE,code,,0,0,1,0,,1
+br1,41419,A1CB,code,,0,0,1,0,,1
+br1,41427,A1D3,code,,0,0,1,0,,1
+br1,41428,A1D4,code,,0,0,1,0,,1
+br1,41444,A1E4,code,,0,0,1,0,,1
+br1,41475,A203,code,,0,0,1,0,,1
+br1,41481,A209,code,,0,0,1,0,,1
+br1,41482,A20A,code,,0,0,1,0,,1
+br1,41520,A230,code,,0,0,1,0,,1
+br1,41530,A23A,code,,0,0,1,0,,1
+br1,41535,A23F,code,,0,0,1,0,,1
+br1,41558,A256,code,,0,0,1,0,,1
+br1,41585,A271,code,,0,0,1,0,,1
+br1,41588,A274,code,,0,0,1,0,,1
+br1,41596,A27C,code,,0,0,1,0,,1
+br1,41634,A2A2,code,,0,0,1,0,,1
+br1,41640,A2A8,code,,0,0,1,0,,1
+br1,41641,A2A9,code,,0,0,1,0,,1
+br1,41671,A2C7,code,,0,0,1,0,,1
+br1,41672,A2C8,code,,0,0,1,0,,1
+br1,41694,A2DE,code,,0,0,1,0,,1
+br1,41695,A2DF,code,,0,0,1,0,,1
+br1,41710,A2EE,code,,0,0,1,0,,1
+br1,41747,A313,code,,0,0,1,0,,1
+br1,41748,A314,code,,0,0,1,0,,1
+br1,41750,A316,code,,0,0,1,0,,1
+br1,41786,A33A,code,,0,0,1,0,,1
+br1,41800,A348,code,,0,0,1,0,,1
+br1,41805,A34D,code,,0,0,1,0,,1
+br1,41824,A360,code,,0,0,1,0,,1
+br1,41853,A37D,code,,0,0,1,0,,1
+br1,41855,A37F,code,,0,0,1,0,,1
+br1,41860,A384,code,,0,0,2,0,,2
+br1,41862,A386,code,,0,0,1,0,,1
+br1,41867,A38B,code,,0,0,2,0,,1
+br1,41869,A38D,code,,0,0,1,0,,1
+br1,41875,A393,code,,0,0,2,0,,1
+br1,41883,A39B,code,,0,0,1,0,,1
+br1,41898,A3AA,code,,0,0,1,0,,1
+br1,41900,A3AC,code,,0,0,1,0,,1
+br1,41906,A3B2,code,,0,0,1,0,,1
+br1,41913,A3B9,code,,0,0,1,0,,1
+br1,41938,A3D2,code,,0,0,1,0,,1
+br1,41944,A3D8,code,,0,0,1,0,,1
+br1,41949,A3DD,code,,0,0,1,0,,1
+br1,41954,A3E2,code,,0,0,2,0,,2
+br1,41957,A3E5,code,,0,0,2,0,,1
+br1,41959,A3E7,code,,0,0,1,0,,1
+br1,41961,A3E9,code,,0,0,1,0,,1
+br1,41964,A3EC,code,,0,0,3,0,,2
+br1,41965,A3ED,code,,0,0,1,0,,1
+br1,41969,A3F1,code,,0,0,2,0,,2
+br1,41971,A3F3,code,,0,0,1,0,,1
+br1,41973,A3F5,code,,0,0,1,0,,1
+br1,41974,A3F6,code,,0,0,1,0,,1
+br1,49227,C04B,other,byte,53,126,0,0,Add:14 GetTable:8 Save:94 Sub:10,21
+br1,49228,C04C,other,byte,38,124,0,0,Add:7 GetTable:9 Save:95 Sub:13,20
+br1,49229,C04D,other,byte,106,94,0,0,Add:2 Save:92,20
+br1,49230,C04E,other,byte,48,0,0,0,,13
+br1,49231,C04F,other,byte,63,0,0,0,,17
+br1,49241,C059,other,byte,0,24,0,0,Save:24,18
+br1,49242,C05A,other,byte,0,24,0,0,Save:24,18
+br2,19200,4B00,area,,0,0,0,1,,1
+br2,19333,4B85,area,byte,1,0,0,0,,1
+br2,19334,4B86,area,byte,1,0,0,0,,1
+br2,19335,4B87,area,byte,1,0,0,0,,1
+br2,19336,4B88,area,byte,1,0,0,0,,1
+br2,19337,4B89,area,byte,1,0,0,0,,1
+br2,19338,4B8A,area,byte,1,0,0,0,,1
+br2,19339,4B8B,area,byte,1,0,0,0,,1
+br2,19340,4B8C,area,byte,1,0,0,0,,1
+br2,19341,4B8D,area,byte,1,0,0,0,,1
+br2,19342,4B8E,area,byte,1,0,0,0,,1
+br2,19343,4B8F,area,byte,1,0,0,0,,1
+br2,19344,4B90,area,byte,1,0,0,0,,1
+br2,19345,4B91,area,byte,1,0,0,0,,1
+br2,19346,4B92,area,byte,1,0,0,0,,1
+br2,19347,4B93,area,byte,1,0,0,0,,1
+br2,19348,4B94,area,byte,1,0,0,0,,1
+br2,19349,4B95,area,byte,1,0,0,0,,1
+br2,19350,4B96,area,byte,1,0,0,0,,1
+br2,19351,4B97,area,byte,1,0,0,0,,1
+br2,19352,4B98,area,byte,1,0,0,0,,1
+br2,19353,4B99,area,byte,1,0,0,0,,1
+br2,19354,4B9A,area,byte,1,0,0,0,,1
+br2,19355,4B9B,area,byte,1,0,0,0,,1
+br2,19356,4B9C,area,byte,1,0,0,0,,1
+br2,19357,4B9D,area,byte,1,0,0,0,,1
+br2,19358,4B9E,area,byte,1,0,0,0,,1
+br2,19365,4BA5,area,byte,7,7,0,0,Save:7,2
+br2,19371,4BAB,area,byte,0,7,0,0,Save:7,7
+br2,19383,4BB7,area,byte,30,36,0,0,GetTable:30 InputNumber:1 Save:5,3
+br2,19386,4BBA,area,byte,4,6,0,0,Save:6,2
+br2,19390,4BBE,area,byte,7,4,0,0,Add:2 Sub:2,1
+br2,19391,4BBF,area,byte,7,4,0,0,Add:2 Sub:2,1
+br2,19395,4BC3,area,byte,27,9,0,0,Save:9,2
+br2,19396,4BC4,area,byte,12,9,0,0,Save:9,2
+br2,19397,4BC5,area,byte,2,0,0,0,,1
+br2,19399,4BC7,area,byte,1,1,0,0,Add:1,1
+br2,19400,4BC8,area,byte,1,1,0,0,Add:1,1
+br2,19401,4BC9,area,byte,2,1,0,0,Add:1,2
+br2,19404,4BCC,area,byte,0,2,0,0,Save:2,1
+br2,19405,4BCD,area,byte,2,2,0,0,Add:2,1
+br2,19430,4BE6,area,byte,1,45,0,0,Save:45,25
+br2,19431,4BE7,area,byte,0,28,0,0,Save:28,27
+br2,19432,4BE8,area,byte,0,28,0,0,Save:28,27
+br2,19433,4BE9,area,byte,0,28,0,0,Save:28,27
+br2,19440,4BF0,area,byte,24,5,0,0,Save:5,17
+br2,19441,4BF1,area,byte,25,5,0,0,Save:5,17
+br2,19442,4BF2,area,byte,50,36,0,0,Save:36,30
+br2,19451,4BFB,area,byte,0,26,0,0,Save:26,21
+br2,19452,4BFC,area,byte,0,2,0,0,Save:2,2
+br2,19453,4BFD,area,byte,0,2,0,0,Save:2,1
+br2,19454,4BFE,area,byte,0,1,0,0,Save:1,1
+br2,19456,4C00,area,byte,45,16,0,0,Or:16,2
+br2,19457,4C01,area,byte,166,129,0,0,Add:3 HMenu:63 MenuKeys:38 Or:7 Save:16 VMenu:2,22
+br2,19458,4C02,area,byte,83,58,0,0,Add:14 And:2 Or:6 Save:35 Sub:1,19
+br2,19459,4C03,area,byte,62,39,0,0,Add:8 And:4 GetTable:1 InputNumber:1 Or:1 Save:22 Sub:2,20
+br2,19460,4C04,area,byte,92,71,0,0,Add:4 And:1 GetTable:1 Or:15 Save:50,22
+br2,19461,4C05,area,byte,85,70,0,0,Add:7 And:2 GetTable:2 HMenu:1 MenuKeys:11 Or:18 Save:28 VMenu:1,20
+br2,19462,4C06,area,byte,94,51,0,0,Add:9 GetTable:2 MenuKeys:4 Or:4 Random:1 Save:29 Sub:2,20
+br2,19463,4C07,area,byte,54,44,0,0,Add:8 GetTable:2 Random:2 Save:31 Sub:1,14
+br2,19464,4C08,area,byte,32,37,0,0,Add:3 GetTable:2 Save:32,13
+br2,19465,4C09,area,byte,52,31,0,0,Add:7 GetTable:1 Or:5 Save:18,12
+br2,19466,4C0A,area,byte,46,22,0,0,Add:4 GetTable:2 Or:4 Random:2 Save:10,13
+br2,19467,4C0B,area,byte,34,19,0,0,Add:1 GetTable:1 Or:3 Save:14,13
+br2,19468,4C0C,area,byte,32,24,0,0,Add:5 Or:4 Save:14 Sub:1,11
+br2,19469,4C0D,area,byte,31,31,0,0,Add:2 Or:4 Random:1 Save:24,10
+br2,19470,4C0E,area,byte/word,35,17,0,0,Add:2 Or:5 Random:1 Save:8 Sub:1,9
+br2,19471,4C0F,area,byte,31,19,0,0,Add:3 Random:1 Save:15,7
+br2,19472,4C10,area,byte/word,21,29,0,0,Add:2 GetTable:15 Save:11 Sub:1,7
+br2,19473,4C11,area,byte,8,8,0,0,Add:1 GetTable:1 Save:6,5
+br2,19474,4C12,area,byte/word,13,9,0,0,Add:2 Save:7,5
+br2,19475,4C13,area,byte,24,21,0,0,Add:3 And:1 Or:5 Save:12,5
+br2,19476,4C14,area,byte/word,19,17,0,0,Add:4 Save:12 Sub:1,7
+br2,19477,4C15,area,text/byte,8,22,0,0,Add:2 Save:20,5
+br2,19478,4C16,area,byte,9,10,0,0,Add:1 Save:9,5
+br2,19479,4C17,area,byte,13,17,0,0,Or:1 Save:16,5
+br2,19480,4C18,area,byte/word,8,14,0,0,Save:14,5
+br2,19481,4C19,area,byte,6,7,0,0,Add:1 Save:5 Sub:1,3
+br2,19482,4C1A,area,byte/word,12,6,0,0,Add:1 Save:5,3
+br2,19483,4C1B,area,byte,3,3,0,0,Save:3,1
+br2,19484,4C1C,area,byte/word,5,3,0,0,GetTable:1 Save:2,2
+br2,19485,4C1D,area,byte,3,4,0,0,GetTable:1 Save:3,2
+br2,19486,4C1E,area,byte/word,6,3,0,0,Save:2 Sub:1,2
+br2,19488,4C20,area,byte,18,8,0,0,Or:8,2
+br2,19489,4C21,area,byte,20,9,0,0,Or:9,2
+br2,19490,4C22,area,byte,21,6,0,0,Or:5 Save:1,2
+br2,19491,4C23,area,byte,10,4,0,0,Or:4,3
+br2,19492,4C24,area,byte,12,6,0,0,Or:6,3
+br2,19493,4C25,area,byte,15,7,0,0,Or:7,3
+br2,19494,4C26,area,byte,9,4,0,0,Or:4,2
+br2,19496,4C28,area,byte,10,3,0,0,Save:3,2
+br2,19497,4C29,area,byte,4,22,0,0,Save:22,2
+br2,19498,4C2A,area,byte,4,1,0,0,Add:1,2
+br2,19499,4C2B,area,byte,3,1,0,0,Add:1,2
+br2,19500,4C2C,area,byte,9,8,0,0,Save:8,2
+br2,19501,4C2D,area,byte,21,12,0,0,Or:8 Save:4,4
+br2,19502,4C2E,area,byte,22,13,0,0,Or:9 Save:4,4
+br2,19503,4C2F,area,byte,22,7,0,0,Or:7,1
+br2,19504,4C30,area,byte,1,1,0,0,Save:1,1
+br2,19505,4C31,area,byte,12,9,0,0,Add:2 And:2 Or:4 Save:1,2
+br2,19506,4C32,area,byte,10,5,0,0,Or:5,4
+br2,19507,4C33,area,byte,4,2,0,0,Or:2,2
+br2,19508,4C34,area,byte,1,3,0,0,Save:3,1
+br2,19509,4C35,area,byte,16,10,0,0,Or:10,3
+br2,19510,4C36,area,byte,4,2,0,0,Add:2,1
+br2,19511,4C37,area,byte,14,3,0,0,Save:3,5
+br2,19512,4C38,area,byte,11,5,0,0,Or:5,2
+br2,19515,4C3B,area,byte,2,1,0,0,Save:1,1
+br2,19520,4C40,area,byte,10,5,0,0,Or:5,1
+br2,19521,4C41,area,byte,12,6,0,0,Or:6,1
+br2,19522,4C42,area,byte,6,2,0,0,And:1 Or:1,1
+br2,19523,4C43,area,byte,4,2,0,0,And:1 Or:1,1
+br2,19524,4C44,area,byte,19,7,0,0,Or:7,2
+br2,19525,4C45,area,byte,33,21,0,0,Save:21,4
+br2,19527,4C47,area,byte,70,13,0,0,Save:13,3
+br2,19528,4C48,area,byte,10,5,0,0,Or:5,2
+br2,19529,4C49,area,byte,4,1,0,0,Add:1,2
+br2,19530,4C4A,area,byte,6,6,0,0,Save:6,2
+br2,19531,4C4B,area,byte,17,8,0,0,Or:8,2
+br2,19532,4C4C,area,byte,17,7,0,0,Or:7,2
+br2,19533,4C4D,area,byte,12,5,0,0,Or:5,2
+br2,19534,4C4E,area,byte,3,1,0,0,Add:1,1
+br2,19540,4C54,area,byte,14,6,0,0,Or:6,2
+br2,19541,4C55,area,byte,22,10,0,0,Or:10,2
+br2,19542,4C56,area,byte,4,4,0,0,Save:4,1
+br2,19543,4C57,area,byte,11,12,0,0,Save:12,2
+br2,19544,4C58,area,byte,26,9,0,0,Or:9,2
+br2,19545,4C59,area,byte,25,10,0,0,And:1 Or:9,2
+br2,19546,4C5A,area,byte,12,6,0,0,Or:6,2
+br2,19547,4C5B,area,byte,21,9,0,0,Or:9,2
+br2,19548,4C5C,area,byte,22,9,0,0,And:1 Or:8,3
+br2,19549,4C5D,area,byte,16,8,0,0,Or:8,2
+br2,19550,4C5E,area,byte,4,3,0,0,Add:2 Save:1,2
+br2,19551,4C5F,area,byte,21,8,0,0,Or:8,1
+br2,19552,4C60,area,byte,17,7,0,0,Or:7,1
+br2,19553,4C61,area,byte,20,7,0,0,Or:7,2
+br2,19554,4C62,area,byte,23,11,0,0,And:3 Or:8,2
+br2,19555,4C63,area,byte,5,5,0,0,Add:1 Save:3 Sub:1,3
+br2,19556,4C64,area,byte,26,13,0,0,And:1 Or:12,2
+br2,19557,4C65,area,byte,30,10,0,0,Or:10,2
+br2,19558,4C66,area,byte,12,6,0,0,Or:6,2
+br2,19559,4C67,area,byte,9,3,0,0,Save:3,5
+br2,19560,4C68,area,byte,2,1,0,0,Save:1,1
+br2,19561,4C69,area,byte,17,8,0,0,Or:8,1
+br2,19562,4C6A,area,byte,1,1,0,0,Save:1,1
+br2,19563,4C6B,area,byte,1,1,0,0,Save:1,1
+br2,19564,4C6C,area,byte,2,3,0,0,Save:3,1
+br2,19565,4C6D,area,byte,2,1,0,0,Add:1,1
+br2,19566,4C6E,area,byte,2,1,0,0,Add:1,1
+br2,19567,4C6F,area,byte,2,1,0,0,Add:1,1
+br2,19569,4C71,area,byte,2,1,0,0,Save:1,1
+br2,19570,4C72,area,byte,14,6,0,0,Or:6,1
+br2,19571,4C73,area,byte,18,7,0,0,Or:7,1
+br2,19572,4C74,area,byte,7,2,0,0,Or:2,1
+br2,19573,4C75,area,byte,2,1,0,0,Or:1,1
+br2,19574,4C76,area,byte,3,2,0,0,Add:2,1
+br2,19575,4C77,area,byte,3,1,0,0,Save:1,1
+br2,19576,4C78,area,byte,2,1,0,0,Add:1,1
+br2,19577,4C79,area,byte,2,2,0,0,Save:2,1
+br2,19578,4C7A,area,byte,1,0,0,0,,1
+br2,19580,4C7C,area,byte,0,1,0,0,Save:1,1
+br2,19581,4C7D,area,byte,5,4,0,0,Save:4,2
+br2,19582,4C7E,area,byte,25,1,0,0,Save:1,4
+br2,19583,4C7F,area,byte,19,8,0,0,Or:8,2
+br2,19584,4C80,area,byte,5,1,0,0,Save:1,1
+br2,19585,4C81,area,byte,3,2,0,0,Add:1 Sub:1,1
+br2,19586,4C82,area,byte,2,1,0,0,Add:1,1
+br2,19587,4C83,area,byte,15,8,0,0,Or:8,1
+br2,19588,4C84,area,byte,9,3,0,0,Or:3,1
+br2,19590,4C86,area,byte,2,1,0,0,HMenu:1,2
+br2,19591,4C87,area,byte,18,9,0,0,Or:9,1
+br2,19592,4C88,area,byte,20,11,0,0,Or:11,1
+br2,19593,4C89,area,byte,6,4,0,0,Save:4,2
+br2,19594,4C8A,area,byte,15,5,0,0,Or:5,4
+br2,19595,4C8B,area,byte,6,3,0,0,Add:3,2
+br2,19596,4C8C,area,byte,6,1,0,0,Save:1,1
+br2,19597,4C8D,area,byte,1,1,0,0,Save:1,1
+br2,19598,4C8E,area,byte,19,9,0,0,Or:9,2
+br2,19599,4C8F,area,byte,22,1,0,0,Save:1,5
+br2,19603,4C93,area,byte,17,5,0,0,Add:2 Random:1 Save:1 Sub:1,2
+br2,19605,4C95,area,byte,6,3,0,0,Or:3,2
+br2,19620,4CA4,area,byte,14,5,0,0,Or:5,1
+br2,19621,4CA5,area,byte,18,7,0,0,Or:7,1
+br2,19622,4CA6,area,byte,19,7,0,0,And:1 Or:6,1
+br2,19623,4CA7,area,byte,23,10,0,0,And:1 Or:9,1
+br2,19624,4CA8,area,byte,7,4,0,0,Save:4,1
+br2,19625,4CA9,area,byte,7,1,0,0,Save:1,1
+br2,19626,4CAA,area,byte,4,1,0,0,Save:1,4
+br2,19627,4CAB,area,byte,5,2,0,0,Or:2,1
+br2,19640,4CB8,area,byte,21,8,0,0,Or:8,1
+br2,19641,4CB9,area,byte,28,3,0,0,Save:3,1
+br2,19642,4CBA,area,byte,2,1,0,0,Add:1,1
+br2,19643,4CBB,area,byte,18,9,0,0,Or:9,1
+br2,19650,4CC2,area,byte,25,8,0,0,Or:8,1
+br2,19651,4CC3,area,byte,27,9,0,0,Or:9,1
+br2,19653,4CC5,area,byte,4,2,0,0,Or:2,1
+br2,19654,4CC6,area,byte,2,1,0,0,Or:1,1
+br2,19660,4CCC,area,byte,9,3,0,0,MenuKeys:1 Save:2,5
+br2,19661,4CCD,area,byte,5,1,0,0,Save:1,4
+br2,19670,4CD6,area,byte,15,7,0,0,Or:7,1
+br2,19671,4CD7,area,byte,9,5,0,0,Or:4 Sub:1,1
+br2,19672,4CD8,area,byte,31,9,0,0,And:1 Or:8,2
+br2,19673,4CD9,area,byte,2,2,0,0,Save:1 Sub:1,1
+br2,19674,4CDA,area,byte,2,1,0,0,Save:1,3
+br2,19675,4CDB,area,byte,11,5,0,0,Or:5,1
+br2,19680,4CE0,area,byte,11,2,0,0,Save:2,2
+br2,19682,4CE2,area,long,14,6,0,0,Add:1 Sub:5,2
+br2,19686,4CE6,area,long,36,17,0,0,Add:2 Save:1 Sub:14,4
+br2,19694,4CEE,area,byte,19,9,0,0,Or:9,3
+br2,19695,4CEF,area,byte,14,12,0,0,Add:9 Save:1 Sub:2,3
+br2,19696,4CF0,area,byte,14,12,0,0,Save:12,3
+br2,19697,4CF1,area,byte,19,8,0,0,Save:8,3
+br2,19698,4CF2,area,byte,19,5,0,0,Or:4 Save:1,2
+br2,19699,4CF3,area,byte,27,11,0,0,Or:11,3
+br2,19702,4CF6,area,byte,31,0,0,0,,14
+br2,19709,4CFD,area,byte,2,30,0,0,Add:1 Save:28 Sub:1,23
+br2,19710,4CFE,area,byte,2,15,0,0,Add:1 Save:13 Sub:1,9
+br2,19734,4D16,area,word,13,12,0,0,Save:7 Sub:5,3
+br2,19736,4D18,area,word,9,6,0,0,Save:4 Sub:2,3
+br2,19738,4D1A,area,word,10,8,0,0,Save:6 Sub:2,3
+br2,19740,4D1C,area,word,6,6,0,0,Save:5 Sub:1,3
+br2,19742,4D1E,area,word,12,7,0,0,Add:1 Save:4 Sub:2,3
+br2,19744,4D20,area,word,8,6,0,0,Save:5 Sub:1,3
+br2,19774,4D3E,area,byte,1,2,0,0,Save:2,2
+br2,19776,4D40,area,byte,0,1,0,0,Save:1,1
+br2,19777,4D41,area,byte,3,2,0,0,Add:1 Save:1,2
+br2,19780,4D44,area,byte,1,2,0,0,Save:2,2
+br2,19782,4D46,area,byte,0,1,0,0,Save:1,1
+br2,19783,4D47,area,byte,3,2,0,0,Add:1 Save:1,2
+br2,19786,4D4A,area,byte,1,2,0,0,Save:2,2
+br2,19820,4D6C,area,word,1,0,0,0,,1
+br2,19822,4D6E,area,word,1,0,0,0,,1
+br2,19824,4D70,area,word,1,0,0,0,,1
+br2,19826,4D72,area,word,1,0,0,0,,1
+br2,19830,4D76,area,word,1,0,0,0,,1
+br2,19836,4D7C,area,byte,4,8,0,0,Save:8,6
+br2,19841,4D81,area,byte,1,0,0,0,,1
+br2,31232,7A00,aux,text/byte,11,23,0,0,Save:23,7
+br2,31233,7A01,aux,byte,9,9,0,0,Add:3 Save:6,3
+br2,31234,7A02,aux,byte,13,11,0,0,Add:7 Save:4,3
+br2,31235,7A03,aux,byte,8,8,0,0,Add:4 Save:4,3
+br2,31236,7A04,aux,byte,8,9,0,0,Add:4 Save:5,3
+br2,31237,7A05,aux,byte,4,5,0,0,Add:1 Save:4,3
+br2,31238,7A06,aux,byte,5,5,0,0,Add:1 Save:4,3
+br2,31239,7A07,aux,byte,5,10,0,0,Save:10,3
+br2,31240,7A08,aux,byte,6,6,0,0,Add:2 Save:4,3
+br2,31492,7B04,aux,text/byte,19,36,0,0,Add:1 InputString:1 Save:34,10
+br2,31493,7B05,aux,byte,3,3,0,0,Add:1 Save:2,2
+br2,31494,7B06,aux,byte,2,5,0,0,Save:5,3
+br2,31495,7B07,aux,byte,1,1,0,0,Save:1,2
+br2,31496,7B08,aux,byte,1,2,0,0,Save:2,3
+br2,31497,7B09,aux,byte,13,13,0,0,Add:9 Save:2 Sub:2,3
+br2,31498,7B0A,aux,byte,1,2,0,0,Save:2,2
+br2,31499,7B0B,aux,byte,2,4,0,0,Add:1 Save:3,2
+br2,31510,7B16,aux,text,2,2,0,0,Save:2,1
+br2,31532,7B2C,aux,text,3,17,0,0,Save:17,1
+br2,31544,7B38,aux,text,14,2,0,0,Save:2,2
+br2,31561,7B49,aux,text,2,1,0,0,Save:1,1
+br2,31574,7B56,aux,text,3,1,0,0,Save:1,1
+br2,31744,7C00,party,text/byte,102,0,0,0,,27
+br2,31763,7C13,party,byte,0,1,0,0,Save:1,1
+br2,31783,7C27,party,byte,1,0,0,0,,1
+br2,31787,7C2B,party,long,26,14,0,0,Add:2 Save:1 Sub:11,6
+br2,31813,7C45,party,byte/word,21,0,0,0,,11
+br2,31820,7C4C,party,byte,4,0,0,0,,2
+br2,31871,7C7F,party,byte,3,0,0,0,,1
+br2,32000,7D00,party,byte,60,17,0,0,Save:17,24
+br2,32012,7D0C,party,byte,6,0,0,0,,3
+br2,32025,7D19,party,byte/word,12,13,0,0,Add:1 Save:12,11
+br2,32424,7EA8,party,byte,0,5,0,0,Save:5,5
+br2,32433,7EB1,party,byte,4,0,0,0,,2
+br2,32454,7EC6,party,byte,0,27,0,0,Save:27,20
+br2,32455,7EC7,party,byte,111,0,0,0,,20
+br2,32457,7EC9,party,byte,0,56,0,0,Save:56,21
+br2,32458,7ECA,party,byte,2,0,0,0,,2
+br2,32459,7ECB,party,byte,0,22,0,0,Save:22,9
+br2,32469,7ED5,party,byte,9,0,0,0,,9
+br2,32486,7EE6,party,byte,0,1,0,0,Save:1,1
+br2,32530,7F12,party,byte,1,51,0,0,InputNumber:1 Save:50,17
+br2,32574,7F3E,party,byte,3,0,0,0,,3
+br2,32575,7F3F,party,byte,2,0,0,0,,2
+br2,32621,7F6D,party,byte,2,19,0,0,Save:19,6
+br2,32624,7F70,party,byte,0,1,0,0,Save:1,1
+br2,32633,7F79,party,text/byte/word,448,1149,0,0,Add:29 And:775 Div:2 GetTable:7 HMenu:48 InputNumber:4 InputString:5 MenuKeys:43 Mul:11 Random:109 Save:105 Sub:9 WallDistance:2,31
+br2,32634,7F7A,party,byte/long,190,196,0,0,Add:11 And:34 GetTable:7 InputNumber:13 Mul:1 Random:5 Save:117 Sub:7 WallDistance:1,29
+br2,32635,7F7B,party,byte/word/long,183,154,0,0,Add:17 And:7 Div:1 GetTable:6 InputNumber:3 Mul:1 Random:5 Save:110 Sub:4,25
+br2,32636,7F7C,party,byte,174,117,0,0,Add:15 And:2 GetTable:12 InputNumber:3 MenuKeys:2 Random:3 Save:77 Sub:3,20
+br2,32637,7F7D,party,byte/word,26,29,0,0,Add:1 And:1 Div:4 GetTable:7 InputNumber:3 Save:13,15
+br2,32638,7F7E,party,byte/long,30,38,0,0,Add:4 And:2 Div:1 GetTable:5 InputNumber:3 Mul:2 Random:1 Save:17 Sub:3,13
+br2,32639,7F7F,party,byte/word,14,24,0,0,GetTable:3 InputNumber:1 Save:14 Sub:6,8
+br2,32640,7F80,party,byte,12,13,0,0,And:1 GetTable:9 InputNumber:1 Save:1 Sub:1,4
+br2,32641,7F81,party,byte/word,29,14,0,0,Add:1 InputNumber:1 Mul:1 Save:9 Sub:2,5
+br2,32642,7F82,party,byte,6,4,0,0,InputNumber:1 Save:3,3
+br2,32758,7FF6,party,byte,0,18,0,0,Save:18,5
+br2,33710,83AE,code,,0,0,1,0,,1
+br2,33748,83D4,code,,0,0,1,0,,1
+br2,33786,83FA,code,,0,0,1,0,,1
+br2,33824,8420,code,,0,0,1,0,,1
+br2,33862,8446,code,,0,0,1,0,,1
+br2,33900,846C,code,,0,0,1,0,,1
+br2,33938,8492,code,,0,0,1,0,,1
+br2,33976,84B8,code,,0,0,1,0,,1
+br2,34014,84DE,code,,0,0,1,0,,1
+br2,34052,8504,code,,0,0,1,0,,1
+br2,34090,852A,code,,0,0,1,0,,1
+br2,34128,8550,code,,0,0,1,0,,1
+br2,34166,8576,code,,0,0,1,0,,1
+br2,34204,859C,code,,0,0,1,0,,1
+br2,34242,85C2,code,,0,0,1,0,,1
+br2,36709,8F65,code,,0,0,1,0,,1
+br2,36735,8F7F,code,,0,0,1,0,,1
+br2,36761,8F99,code,,0,0,1,0,,1
+br2,36787,8FB3,code,,0,0,1,0,,1
+br2,36813,8FCD,code,,0,0,9,0,,1
+br2,36839,8FE7,code,,0,0,1,0,,1
+br2,36854,8FF6,code,,0,0,1,0,,1
+br2,36869,9005,code,,0,0,1,0,,1
+br2,36884,9014,code,,0,0,1,0,,1
+br2,36899,9023,code,,0,0,1,0,,1
+br2,36910,902E,code,,0,0,1,0,,1
+br2,36921,9039,code,,0,0,1,0,,1
+br2,36953,9059,code,,0,0,1,0,,1
+br2,36985,9079,code,,0,0,1,0,,1
+br2,36989,907D,code,,0,0,1,0,,1
+br2,36993,9081,code,,0,0,1,0,,1
+br2,36998,9086,code,,0,0,1,0,,1
+br2,37003,908B,code,,0,0,1,0,,1
+br2,37009,9091,code,,0,0,1,0,,1
+br2,37016,9098,code,,0,0,1,0,,1
+br2,37024,90A0,code,,0,0,1,0,,1
+br2,37034,90AA,code,,0,0,1,0,,1
+br2,37042,90B2,code,,0,0,1,0,,1
+br2,37047,90B7,code,,0,0,1,0,,1
+br2,37053,90BD,code,,0,0,1,0,,1
+br2,37061,90C5,code,,0,0,1,0,,1
+br2,37066,90CA,code,,0,0,1,0,,1
+br2,37071,90CF,code,,0,0,1,0,,1
+br2,38779,977B,code,,0,0,2,0,,1
+br2,40121,9CB9,code,,0,0,3,0,,1
+br2,40500,9E34,code,,0,0,1,0,,1
+br2,40518,9E46,code,,0,0,1,0,,1
+br2,40522,9E4A,code,,0,0,1,0,,1
+br2,40526,9E4E,code,,0,0,1,0,,1
+br2,40530,9E52,code,,0,0,1,0,,1
+br2,40534,9E56,code,,0,0,1,0,,1
+br2,40538,9E5A,code,,0,0,1,0,,1
+br2,40602,9E9A,code,,0,0,1,0,,1
+br2,40640,9EC0,code,,0,0,1,0,,1
+br2,40678,9EE6,code,,0,0,1,0,,1
+br2,40716,9F0C,code,,0,0,1,0,,1
+br2,40754,9F32,code,,0,0,1,0,,1
+br2,40792,9F58,code,,0,0,1,0,,1
+br2,40830,9F7E,code,,0,0,1,0,,1
+br2,40868,9FA4,code,,0,0,1,0,,1
+br2,40906,9FCA,code,,0,0,1,0,,1
+br2,40944,9FF0,code,,0,0,1,0,,1
+br2,40982,A016,code,,0,0,1,0,,1
+br2,41020,A03C,code,,0,0,1,0,,1
+br2,41058,A062,code,,0,0,1,0,,1
+br2,41096,A088,code,,0,0,1,0,,1
+br2,41134,A0AE,code,,0,0,1,0,,1
+br2,41533,A23D,code,,0,0,1,0,,1
+br2,41703,A2E7,code,,0,0,1,0,,1
+br2,41707,A2EB,code,,0,0,1,0,,1
+br2,41708,A2EC,code,,0,0,1,0,,1
+br2,41711,A2EF,code,,0,0,1,0,,1
+br2,41712,A2F0,code,,0,0,1,0,,1
+br2,41715,A2F3,code,,0,0,1,0,,1
+br2,41716,A2F4,code,,0,0,1,0,,1
+br2,41720,A2F8,code,,0,0,1,0,,1
+br2,41724,A2FC,code,,0,0,1,0,,1
+br2,41725,A2FD,code,,0,0,1,0,,1
+br2,41728,A300,code,,0,0,1,0,,1
+br2,41731,A303,code,,0,0,1,0,,1
+br2,41737,A309,code,,0,0,1,0,,1
+br2,41816,A358,code,,0,0,1,0,,1
+br2,41840,A370,code,,0,0,1,0,,1
+br2,41848,A378,code,,0,0,1,0,,1
+br2,41917,A3BD,code,,0,0,2,0,,1
+br2,41921,A3C1,code,,0,0,1,0,,1
+br2,41925,A3C5,code,,0,0,1,0,,1
+br2,41929,A3C9,code,,0,0,1,0,,1
+br2,41931,A3CB,code,,0,0,1,0,,1
+br2,41933,A3CD,code,,0,0,1,0,,1
+br2,41937,A3D1,code,,0,0,1,0,,1
+br2,41939,A3D3,code,,0,0,1,1,,1
+br2,41944,A3D8,code,,0,0,1,0,,1
+br2,41951,A3DF,code,,0,0,1,0,,1
+br2,41953,A3E1,code,,0,0,1,0,,1
+br2,41954,A3E2,code,,0,0,1,0,,1
+br2,41958,A3E6,code,,0,0,1,0,,1
+br2,41961,A3E9,code,,0,0,1,0,,1
+br2,41962,A3EA,code,,0,0,1,0,,1
+br2,41965,A3ED,code,,0,0,3,0,,1
+br2,41966,A3EE,code,,0,0,1,0,,1
+br2,41969,A3F1,code,,0,0,1,0,,1
+br2,41970,A3F2,code,,0,0,3,0,,1
+br2,41973,A3F5,code,,0,0,2,0,,1
+br2,49227,C04B,other,byte,112,124,0,0,Add:2 GetTable:1 InputNumber:1 Save:114 Sub:6,30
+br2,49228,C04C,other,byte,105,140,0,0,Add:7 GetTable:1 InputNumber:1 Save:126 Sub:5,30
+br2,49229,C04D,other,byte,247,81,0,0,Add:1 GetTable:1 InputNumber:1 Save:76 Sub:2,31
+br2,49230,C04E,other,byte,80,0,0,0,,14
+br2,49231,C04F,other,byte,33,0,0,0,,23

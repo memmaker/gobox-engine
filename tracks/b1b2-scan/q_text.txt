@@ -1,0 +1,25 @@
+== br1 text variable addresses 13
+  $V_7B04 aux maxlit=21 inputstring=3 bytes-needed=22 next-used-address=7B0B gap=7 OVERLAPS used addresses 7B0B,7B18
+  $V_7B0B aux maxlit=0 inputstring=0 bytes-needed=1 next-used-address=7B18 gap=13 
+  $V_7B18 aux maxlit=7 inputstring=0 bytes-needed=8 next-used-address=7B1B gap=3 OVERLAPS used addresses 7B1B
+  $V_7B1B aux maxlit=0 inputstring=0 bytes-needed=1 next-used-address=7B22 gap=7 
+  $V_7B22 aux maxlit=0 inputstring=0 bytes-needed=1 next-used-address=7B2C gap=10 
+  $V_7B2C aux maxlit=14 inputstring=6 bytes-needed=15 next-used-address=7B36 gap=10 OVERLAPS used addresses 7B36
+  $V_7B36 aux maxlit=17 inputstring=8 bytes-needed=18 next-used-address=7B5E gap=40 
+  $V_7B5E aux maxlit=0 inputstring=8 bytes-needed=9 next-used-address=7B90 gap=50 
+  $V_7B90 aux maxlit=26 inputstring=15 bytes-needed=27 next-used-address=7BA4 gap=20 OVERLAPS used addresses 7BA4
+  $V_7BA4 aux maxlit=0 inputstring=0 bytes-needed=1 next-used-address=7BB8 gap=20 
+  $V_7BB8 aux maxlit=4 inputstring=0 bytes-needed=5 next-used-address=7BCC gap=20 
+  $V_7BCC aux maxlit=0 inputstring=0 bytes-needed=1 next-used-address=7C00 gap=52 
+  $V_7C00 party maxlit=0 inputstring=0 bytes-needed=1 next-used-address=7C26 gap=38 
+== br2 text variable addresses 10
+  $V_4C15 area maxlit=1 inputstring=0 bytes-needed=2 next-used-address=4C16 gap=1 OVERLAPS used addresses 4C16
+  $V_7A00 aux maxlit=31 inputstring=0 bytes-needed=32 next-used-address=7A01 gap=1 OVERLAPS used addresses 7A01,7A02,7A03,7A04,7A05,7A06,7A07,7A08
+  $V_7B04 aux maxlit=48 inputstring=20 bytes-needed=49 next-used-address=7B05 gap=1 OVERLAPS used addresses 7B05,7B06,7B07,7B08,7B09,7B0A,7B0B,7B16,7B2C
+  $V_7B16 aux maxlit=0 inputstring=0 bytes-needed=1 next-used-address=7B2C gap=22 
+  $V_7B2C aux maxlit=28 inputstring=0 bytes-needed=29 next-used-address=7B38 gap=12 OVERLAPS used addresses 7B38
+  $V_7B38 aux maxlit=0 inputstring=0 bytes-needed=1 next-used-address=7B49 gap=17 
+  $V_7B49 aux maxlit=11 inputstring=0 bytes-needed=12 next-used-address=7B56 gap=13 
+  $V_7B56 aux maxlit=11 inputstring=0 bytes-needed=12 next-used-address=7C00 gap=170 
+  $V_7C00 party maxlit=0 inputstring=0 bytes-needed=1 next-used-address=7C13 gap=19 
+  $V_7F79 party maxlit=0 inputstring=8 bytes-needed=9 next-used-address=7F7A gap=1 OVERLAPS used addresses 7F7A,7F7B,7F7C,7F7D,7F7E,7F7F,7F80,7F81

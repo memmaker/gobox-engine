@@ -154,10 +154,16 @@ only shrink), `game/noui_test.go` (no drawing package, no screen position), `ui`
       (45571 the sound, 26627 the picture's animation are BR's own, named only);
       `Behaviour.ReturnEndsScript`. Tests on hand-assembled code (ecl/v4_test.go); no real BR
       script run yet. Open for the engine's side: BR's Return also restores the selected member
-    - [ ] B1b2 BR's memory as a layout: a scan of BR1's (and BR2's, once imported) scripts for
-      what the one-cell model cannot hold (a word and its second byte both used, a byte destination
-      given more than 255); from it either a generated full layout (unnamed cells as `WordXXXX`,
-      the engine's 59 fixed indices named) or a ruling on byte memory (CLAUDE.md: no raw memory)
+    - [~] B1b2 BR's memory as a layout. Scan done (tracks/b1b2-scan, both games, static): BR1's
+      scripts use 396 addresses, BR2's 403; a full BR1 layout is drafted (333 fields). One cell
+      per address fails in: the two scratch zones the original clears at each script load
+      (4C00..4C1F, 7F79..7F82), used as bytes, words and longs over each other (BR1 13 addresses
+      at two widths, 17 overlapping pairs, 9 of them written through one cell and read through
+      the other in one area script; BR2 21, 30, 12); text longer than the gap to the next address
+      (BR1 4, BR2 3); byte destinations that must keep 8 bits (BR1 2 typed numbers, 77 possible
+      wraps); BR2's two SaveTables (a debug poke of any Area byte; a write into a code table).
+      The BR engines also lay a ship record over 4D00..4D6B and a foe summary over 4D6C..4D82.
+      RULING NEEDED (Felix): how the scratch zones are held (see the session's question)
     - [ ] B1b3 the store by dialect (16-bit cell, or the operand's width) as data of the Version
     - [ ] B1b4 BR's waits and frames as engine continuations; with B1f
     - [ ] B1b5 one random generator (`rules.RNG`); BR's seeded expectations derived again
