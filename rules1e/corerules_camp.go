@@ -15,6 +15,8 @@ func (r *Rules) checkCamp(k rules.Check) (rules.Answer, bool) {
 		return rules.Answer{Value: int32(s.HealMinutes())}, true
 	case rules.PartyStudy:
 		return rules.Answer{Value: int32(s.PartyStudy())}, true
+	case rules.StudyNeeded:
+		return rules.Answer{Value: int32(s.StudyNeeded())}, true
 	case rules.HealClerics:
 		return rules.Answer{Value: int32(len(s.HealClerics()))}, true
 	case rules.SpellsAllowed:

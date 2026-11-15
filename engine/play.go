@@ -132,7 +132,7 @@ func (e *Engine) stateOf(mode game.Mode, pending *game.Question, pg *textPage, d
 	case game.ModeLoot:
 		return e.lootState(cm)
 	case game.ModeCamp:
-		return game.Camping{Common: cm, Study: time.Duration(e.partyStudy()) * time.Minute, Heals: e.healMinutes() > 0} // what a rest would do: Fix is offered by them
+		return game.Camping{Common: cm, Study: time.Duration(e.studyNeeded()) * time.Minute, Heals: e.healMinutes() > 0} // what a rest would do: Fix is offered by them
 	}
 	cm.Ask = nil // a Scene's own question (below) carries it
 	// the pane and its layers are Common's (Text, Layers): the Scene adds only its own
@@ -732,7 +732,7 @@ func allows(al game.Allowed, a game.Action) bool {
 	case game.Speak: // the page gobox shows: speak knows the recordings
 		return true
 	case game.UsePower, game.SetStat, game.Adjust, game.PointBuy, game.Order, game.AddNote, game.RemoveNote, game.Give,
-		game.Memorize, game.Forget, game.Scribe, game.LayOnHands, game.SetDifficulty: // Halve, Join, PoolCoins, LootShare: only offered without the shared inventory and purse (never today), so by Allowed
+		game.Memorize, game.Plan, game.Forget, game.Scribe, game.LayOnHands, game.SetDifficulty: // Halve, Join, PoolCoins, LootShare: only offered without the shared inventory and purse (never today), so by Allowed
 		return true
 	}
 	if c, ok := base.(game.Cast); ok && c.Spell != 0 { // camp offers a caster's Cast{Member}, the spell the rules' check

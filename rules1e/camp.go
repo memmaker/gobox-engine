@@ -44,9 +44,19 @@ func (e *RuleState) SpellClass(sp SpellID) SpellClass {
 // to be memorised (+0x80) or scribed; +0x2C gets the base hours (4, or 6
 // for spells above 2nd level).
 func (e *RuleState) StudyTime(c *Character) int {
+	mins, base := e.studyNeeded(c, c.Memorized[:])
+	c.Study = base
+	return mins
+}
+
+// studyNeeded is StudyTime's sum with nothing set: the minutes, and the
+// base hours the study begins with, for c holding the spells memorized
+// (its own, or what planning would leave it). Asked at any time (the
+// state's Study), it leaves a study under way as it is.
+func (e *RuleState) studyNeeded(c *Character, memorized []SpellID) (mins int, hours byte) {
 	maxMem, maxScr, sumMem, sumScr := SpellProp(0), SpellProp(0), 0, 0
 	for i := 0; i <= 0x14; i++ {
-		if s := c.Memorized[i]; s.Pending() {
+		if s := memorized[i]; s.Pending() {
 			l := e.SpellLevel(s)
 			if l > maxMem {
 				maxMem = l
@@ -75,8 +85,22 @@ func (e *RuleState) StudyTime(c *Character) int {
 	if maxMem > 2 || maxScr > 2 {
 		base = 6
 	}
-	c.Study = byte(base)
-	return base*60 + sumMem*15 + sumScr*15
+	return base*60 + sumMem*15 + sumScr*15, byte(base)
+}
+
+// StudyNeeded is the longest study a member still has to do, in minutes,
+// its planned spells counted as a rest takes them up (PlanSpells, worked
+// out on a copy); unlike PartyStudy it sets nothing: no study going, no
+// spell pending.
+func (e *RuleState) StudyNeeded() int {
+	most := 0
+	for _, c := range e.Party {
+		planned := *c
+		e.PlanSpells(&planned)
+		mins, _ := e.studyNeeded(c, planned.Memorized[:])
+		most = max(most, mins)
+	}
+	return most
 }
 
 // clearMemorize = ovr16:0159 (char): forget the spells still to be memorised.

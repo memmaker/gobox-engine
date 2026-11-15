@@ -267,7 +267,7 @@ func (e *Engine) fixAtOnce(out *game.Outcome) error {
 		return refusal(rules.ErrNotNow)
 	}
 	e.must(rules.PlanParty{}) // as campRest: the planned spells are learned on any rest
-	done := game.Refreshed{Healed: e.healMinutes() > 0, Studied: e.partyStudy() > 0}
+	done := game.Refreshed{Healed: e.healMinutes() > 0, Studied: e.studyNeeded() > 0}
 	var unseen game.Outcome
 	e.unheard = true
 	r := e.runNative(func() error { return e.campRest(adventure.RestFix) })
@@ -433,6 +433,12 @@ func (e *Engine) castCures() {
 
 func (e *Engine) healMinutes() int {
 	return int(e.ruleset().Check(rules.HealMinutes{}, nil).Value)
+}
+
+// studyNeeded is the study still to do, in minutes, with nothing set going
+// (the state's: asked on every build, a rest's study clocks stay as they are).
+func (e *Engine) studyNeeded() int {
+	return int(e.ruleset().Check(rules.StudyNeeded{}, nil).Value)
 }
 
 func (e *Engine) partyStudy() int {

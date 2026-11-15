@@ -10,6 +10,10 @@ type HealMinutes struct{}
 // (Answer.Value), the study hours of each member set on the way.
 type PartyStudy struct{}
 
+// StudyNeeded asks the longest study a member still has to do, in minutes
+// (Answer.Value); it sets nothing, so it may be asked while a rest runs.
+type StudyNeeded struct{}
+
 // HealClerics asks how many members cast Cure Light Wounds (Answer.Value).
 type HealClerics struct{}
 
@@ -62,7 +66,8 @@ type StopRest struct{}
 
 func (HealMinutes) check() {}
 
-func (PartyStudy) check() {}
+func (PartyStudy) check()  {}
+func (StudyNeeded) check() {}
 
 func (HealClerics) check() {}
 

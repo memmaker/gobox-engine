@@ -5,6 +5,8 @@ import (
 
 	"gobox/adventure"
 	"gobox/game"
+	"gobox/rules1e"
+	"slices"
 )
 
 // TestCampDayIsClock: in camp the published Day is the clock's, the one Rest
@@ -100,4 +102,45 @@ func TestSaveLevel(t *testing.T) {
 		t.Fatalf("SaveLevel of no save: %d, %v", got, err)
 	}
 	var _ game.SaveLevels = e
+}
+
+// TestFixMemorizesPlannedSpells: camp's Fix learns the spells the casters
+// planned: after it they are memorized and no study is left. The state is
+// built on every step of the rest: asking it for the study still to do
+// must not set the casters' study going anew (it did: nothing was learned).
+func TestFixMemorizesPlannedSpells(t *testing.T) {
+	e := quickStarted(t)
+	e.CampMenu()
+	s := e.state()
+	planned := map[int]rules1e.SpellID{}
+	for n, c := range s.Party {
+		if book, _ := s.SpellLists(c); len(book) > 0 {
+			if _, err := e.doNow(game.Plan{Member: n, Spell: book[0].ID, Count: 1}); err != nil {
+				t.Fatalf("%s plans a spell: %v", c.Name(), err)
+			}
+			planned[n] = rules1e.SpellID(book[0].ID)
+		}
+	}
+	if len(planned) == 0 {
+		t.Skip("no caster in the quick party")
+	}
+	if c := e.build().(game.Camping); c.Study == 0 {
+		t.Fatal("spells planned, but the state says no study is needed: Fix is not offered")
+	}
+	out, err := e.doNow(game.CampRest{Kind: adventure.RestFix})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for n, sp := range planned {
+		c := s.Party[n]
+		if !slices.ContainsFunc(c.Memorized[:], func(m rules1e.SpellID) bool { return m.Spell() == sp && !m.Pending() }) {
+			t.Errorf("%s has not memorized spell %d: %v", c.Name(), sp, c.Memorized[:6])
+		}
+	}
+	if c := e.build().(game.Camping); c.Study != 0 {
+		t.Errorf("after Fix %v of study is still needed", c.Study)
+	}
+	if !slices.ContainsFunc(out.Events, func(ev game.Event) bool { r, ok := ev.(game.Refreshed); return ok && r.Studied }) {
+		t.Errorf("Fix did not say the spells were memorized: %+v", out.Events)
+	}
 }
