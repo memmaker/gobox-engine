@@ -261,10 +261,10 @@ func (e *Engine) common(mode game.Mode, pending *game.Question, pg *textPage, do
 }
 
 // readyAct is member n's item it (from State's Items, its card already
-// read) as Ready, or Unready when it is readied (a fight's item menu
-// toggles, so Ready only).
+// read) as Ready, or Unready when it is readied (in a fight too: the
+// front sends Unready for a readied item).
 func (e *Engine) readyAct(n int, it game.Item) game.Action {
-	if it.Readied && !e.battleUp() {
+	if it.Readied {
 		return game.Unready{Member: n, Item: it.Handle}
 	}
 	return game.Ready{Member: n, Item: it.Handle}

@@ -392,8 +392,8 @@ func testReadyInFight(t *testing.T, mk func(*testing.T) *Engine) {
 	if n := weapon(); n != e.invItem(e.charID(c), e.itemHandle(w)).Name {
 		t.Errorf("Field.Weapon %q after Ready, want %q", n, e.invItem(e.charID(c), e.itemHandle(w)).Name)
 	}
-	if _, err := e.doNow(ready); err != nil || w.Readied != 0 {
-		t.Fatalf("Ready again: %v, readied %d", err, w.Readied)
+	if _, err := e.doNow(game.Unready{Member: m, Item: ready.Item}); err != nil || w.Readied != 0 { // what the front sends for a readied item
+		t.Fatalf("Unready: %v, readied %d", err, w.Readied)
 	}
 	if n := weapon(); n != "" {
 		t.Errorf("Field.Weapon %q after unreadying", n)
