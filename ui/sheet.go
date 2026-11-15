@@ -20,10 +20,17 @@ func (p *Presenter) sheetItems() []MenuRow {
 	var it []MenuRow // the powers, then the reactions' policies (each pick turns to the next): Tab is the inventory, Esc leaves
 	s := p.state()
 	r := p.eng.r
-	if _, ok := r.lookMember(s); ok { // the look-only sheet: no powers
+	c := game.CommonOf(s)
+	if n, ok := r.lookMember(s); ok { // a fight's look-only sheet: the powers a fight takes, the spell effects and the turn's member's Cast
+		b := r.combatOf(s)
+		casts := b.Turn != nil && len(b.Spells) > 0 && slices.ContainsFunc(b.Units, func(u game.Unit) bool { return u.ID == b.Turn.Unit && u.Member == n })
+		for _, pw := range c.Party[n].Powers {
+			if k := powerActs[pw.Kind]; pw.Label != "" && (k == ActMagic || k == ActSpells && casts) {
+				it = append(it, MenuRow{Text: pw.Label, Key: pw.Label[0], Do: func() { p.send(k, -1) }})
+			}
+		}
 		return it
 	}
-	c := game.CommonOf(s)
 	if n := r.selectedOf(s); n >= 0 && n < len(c.Party) {
 		for _, pw := range c.Party[n].Powers { // the member's powers, as the inventory and the card offer them
 			if k, ok := powerActs[pw.Kind]; ok && pw.Label != "" {
