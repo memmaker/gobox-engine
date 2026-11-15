@@ -3,6 +3,7 @@ package ui
 import (
 	"slices"
 	"testing"
+	"time"
 
 	"gobox/engine"
 	"gobox/game"
@@ -29,6 +30,8 @@ func hallFront(t *testing.T) (*Front, *engine.Engine) {
 	for i := 0; g.Mode() == game.ModeTitle && i < 5; i++ {
 		g.TitleDone()
 	}
+	clock := time.Now() // each WalkStep is a square: the walk's pace by a clock of its own, not the wall's
+	g.r.now = func() time.Time { clock = clock.Add(walkPace); return clock }
 	for y := range 16 {
 		for x := range 16 {
 			if !g.WalkTo(x, y) {
