@@ -6,39 +6,32 @@ import (
 	"path/filepath"
 )
 
-// Rules1e builds the first engine's ruleset, rules1e, from the Engine's
-// sources (pool.Ruleset): monster, items and treasure are the game data's
-// monster records, base item table and treasure blocks; host is the
-// Engine's side of the creation. The one builder of rules1e for the Engine:
-// games and tests hand it to pool.New. rules is the adventure's rules.json ("": it
-// has none, as POR): the game plays on those tables laid out by the layout.json
+// Rules1e builds the first engine's ruleset, rules1e, on the Engine's source
+// (rules.Builder): its monster records, base item table and treasure blocks
+// are read from src; host is the Engine's side of the creation. The one
+// builder of rules1e for the Engine: the host and tests hand it to
+// engine.New. The adventure's rules.json ("": it has none, as POR) holds
+// the tables the game plays on, laid out by the layout.json
 // (rules1e.LayoutFile) beside it, which it must then carry too (a missing one
 // panics: run the game's import); else on rules1e.POR.
-func Rules1e(
-	rulesFile string,
-	monster func(rules.MonsterID) (Sheet, []AffectRecord, []Item, bool),
-	items func() []ItemBase,
-	treasure func(block int) []Item,
-	host rules.CreationHost,
-) (rules.Rules, rules.CreationRules) {
+func Rules1e(src rules.Source, host rules.CreationHost) (rules.Rules, rules.CreationRules) {
 	r := &Rules{S: &RuleState{}}
-	if rulesFile != "" {
+	t := newTables(src)
+	if rulesFile := src.RulesFile(); rulesFile != "" {
 		l, err := ReadLayout(filepath.Join(filepath.Dir(rulesFile), LayoutFile))
 		if err != nil {
 			panic(fmt.Sprintf("rules1e: %s needs its layout: %v", rulesFile, err))
 		}
-		t, err := POR.LoadRules(rulesFile, l)
+		tabs, err := POR.LoadRules(rulesFile, l)
 		if err != nil {
 			panic(fmt.Sprintf("rules1e: %v", err))
 		}
-		r.S.Tables = t
+		r.S.Tables = tabs
 	}
-	r.Monsters = func(id rules.MonsterID) (Monster, bool) {
-		rec, affects, its, ok := monster(id)
-		return Monster{Sheet: rec, Affects: affects, Items: its}, ok
-	}
-	r.ItemTable = items
-	r.TreasureBlock = treasure
+	r.Monsters = t.monster
+	r.FirstMonster = t.firstMonster
+	r.ItemTable = t.itemTable
+	r.TreasureBlock = t.itemBlock
 	r.ItemRecords = func(items []Item) rules.ItemRecords { return WriteItems(items) }
 	r.Host = host
 	return r, r.Creation()

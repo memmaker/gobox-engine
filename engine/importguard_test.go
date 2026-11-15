@@ -12,14 +12,7 @@ import (
 // rulesetFiles are the non-test files that still import a ruleset
 // (REFACTOR.md R2). The list only shrinks: a file not on it may not import
 // one, and a file that no longer does must leave it.
-var rulesetFiles = []string{
-	"combatrules_engine.go",
-	"dataimport.go",
-	"init.go",
-	"newpool.go",
-	"rulesetseam.go",
-	"vault_engine.go",
-}
+var rulesetFiles = []string{}
 
 // TestPoolImportsNoRuleset: the engine reaches the rules only through
 // package rules: no non-test file imports a ruleset (rules1e, rules4e,

@@ -30,7 +30,7 @@ type Engine struct {
 	tiles              map[tileKey]Picture    // the combat ground tiles converted (tilePix)
 	tileGen            int                    // counts the in-place writes to the tile and icon frames (tilesChanged): a cache keyed by those images keys it too
 	grounds            map[*asset.Image]uint8 // each combat tile set's ground colour (groundOf)
-	newRules           Ruleset                // builds rules (New; bareRuleset when nil)
+	newRules           rules.Builder          // builds rules (New; bareRuleset when nil)
 	sequence           string                 // the full-screen animation playing (adventure.SeqEnding; "": none)
 	vault              *vault                 // the open vault (Vault)
 	given              *adventure.GameTables  // the game's GameTables (New; bareData when nil)
@@ -169,7 +169,7 @@ type Engine struct {
 // under AssetsDir, the Amiga sound and title under AmigaDir, the saves). It
 // reads no original file: the config is the original's POOL.CFG defaults.
 // rules builds the ruleset and d is the game's GameTables.
-func New(ruleset Ruleset, d adventure.GameTables, adv, data string) (*Engine, error) {
+func New(ruleset rules.Builder, d adventure.GameTables, adv, data string) (*Engine, error) {
 	e := &Engine{newRules: ruleset, given: &d, adv: adv, data: data, pal: asset.EGAIdentity, set: 1, start: time.Now()}
 	var err error
 	e.initVM()

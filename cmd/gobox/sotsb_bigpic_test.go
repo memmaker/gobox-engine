@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/engine"
 	"gobox/game"
 	"gobox/importer"
+	"gobox/pool"
 	"gobox/ui"
 )
 
@@ -14,7 +14,7 @@ import (
 // opening's first page (area17 Picture(119), "YOU HAVE GROWN BORED WITH
 // PEACE...") is over BIGPIC block 119, whole-screen (it showed no picture).
 func TestSotsbOpeningBigPicture(t *testing.T) {
-	eng, err := engine.NewPool("../../data/sotsb", "../../data/sotsb/sources")
+	eng, err := pool.New("../../data/sotsb", "../../data/sotsb/sources")
 	if err != nil {
 		t.Skip(err)
 	}

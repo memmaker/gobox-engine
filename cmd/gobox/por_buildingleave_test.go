@@ -1,6 +1,7 @@
 package main
 
 import (
+	"gobox/pool"
 	"gobox/ui"
 	"testing"
 
@@ -50,7 +51,7 @@ func TestBuildingLeaveStays(t *testing.T) {
 
 // porWalker is POR started in New Phlan for a scripted walk.
 func porWalker(t *testing.T) (*ui.Game, *engine.Engine) {
-	eng, err := engine.NewPool("../../data/por", "../../data/por/sources")
+	eng, err := pool.New("../../data/por", "../../data/por/sources")
 	if err != nil {
 		t.Skip(err)
 	}

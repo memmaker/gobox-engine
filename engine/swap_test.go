@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"gobox/adventure"
 	"gobox/rules"
 	"gobox/rules1e"
 	"testing"
@@ -10,7 +9,7 @@ import (
 // Readying an item whose slot is taken swaps the two.
 func TestSwapReady(t *testing.T) {
 	e := &Engine{}
-	e.state().Items = make([]rules1e.ItemBase, adventure.ItemTypes)
+	e.state().Items = make([]rules1e.ItemBase, rules1e.ItemTypes)
 	e.initVM()
 	e.state().Items[rules1e.ItemLongSword] = rules1e.ItemBase{Hands: 1, Classes: 0xFF}
 	e.state().Items[rules1e.ItemDagger] = rules1e.ItemBase{Hands: 1, Classes: 0xFF}
@@ -33,7 +32,7 @@ func TestSwapReady(t *testing.T) {
 // an older save with both readied keeps the armour.
 func TestBracersSwapArmor(t *testing.T) {
 	e := &Engine{}
-	e.state().Items = make([]rules1e.ItemBase, adventure.ItemTypes)
+	e.state().Items = make([]rules1e.ItemBase, rules1e.ItemTypes)
 	e.initVM()
 	e.state().Items[rules1e.ItemPlateMail] = rules1e.ItemBase{Slot: rules1e.SlotArmor, Protection: rules1e.AcGiven | (rules1e.AcTen + 7), Classes: 0xFF}
 	e.state().Items[rules1e.ItemBracers] = rules1e.ItemBase{Slot: byte(rules1e.ItemBracers), Protection: rules1e.AcGiven | rules1e.AcTen, Classes: 0xFF}
@@ -65,7 +64,7 @@ func TestBracersSwapArmor(t *testing.T) {
 // Readying a two-handed weapon takes the weapon and the shield off.
 func TestSwapReadyTwoHanded(t *testing.T) {
 	e := &Engine{}
-	e.state().Items = make([]rules1e.ItemBase, adventure.ItemTypes)
+	e.state().Items = make([]rules1e.ItemBase, rules1e.ItemTypes)
 	e.initVM()
 	e.state().Items[rules1e.ItemLongSword] = rules1e.ItemBase{Hands: 1, Classes: 0xFF}
 	e.state().Items[rules1e.ItemShield] = rules1e.ItemBase{Slot: rules1e.SlotShield, Hands: 1, Classes: 0xFF}

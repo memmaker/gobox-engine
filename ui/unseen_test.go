@@ -4,7 +4,7 @@ import (
 	"slices"
 	"testing"
 
-	"gobox/engine"
+	"gobox/pool"
 )
 
 // devScenes are the engine's dev scenes (engine.DevScene) the invariant walks.
@@ -33,7 +33,7 @@ func noUnseenQuestion(t *testing.T, g string) {
 			continue
 		}
 		for _, key := range []uint16{13, 27} {
-			eng, err := engine.NewPool("../data/"+g, "../data/"+g+"/sources")
+			eng, err := pool.New("../data/"+g, "../data/"+g+"/sources")
 			if err != nil {
 				t.Skip(err)
 			}

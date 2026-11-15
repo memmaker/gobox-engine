@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"gobox/audio"
-	"gobox/engine"
+	"gobox/pool"
 	"gobox/ui"
 )
 
@@ -18,7 +18,7 @@ func TestStartupTiming(t *testing.T) {
 		}
 	}()
 	lap := func(what string) { t.Logf("%-16s %v", what, time.Since(t0)); t0 = time.Now() }
-	eng, err := engine.NewPool("../../data/por", "../../data/por/sources")
+	eng, err := pool.New("../../data/por", "../../data/por/sources")
 	if err != nil {
 		t.Skip(err)
 	}

@@ -38,7 +38,7 @@ func TestPodOriginals(t *testing.T) {
 		t.Fatal(err)
 	}
 	var items []rules1e.ItemBase // the base item table as pool reads it
-	if ok, err := adventure.ReadJSON(filepath.Join(dst, "data"), adventure.ItemTableFile, &items); !ok || err != nil || len(items) != adventure.ItemTypes {
+	if ok, err := adventure.ReadJSON(filepath.Join(dst, "data"), adventure.ItemTableFile, &items); !ok || err != nil || len(items) != rules1e.ItemTypes {
 		t.Fatalf("%s.json: %d items, %v %v", adventure.ItemTableFile, len(items), ok, err)
 	}
 	ld, err := orig.NewLoader(dos)

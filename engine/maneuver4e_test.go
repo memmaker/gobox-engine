@@ -7,13 +7,14 @@ import (
 	"gobox/game"
 	"gobox/rules"
 	"gobox/rules1e"
+	"gobox/rules4e"
 )
 
 // partyTurn4e is partyTurnScene with "4e Combat" handed in.
 func partyTurn4e(t *testing.T) *Engine {
 	t.Helper()
 	e := testEngine(t)
-	e.HandIn(Settings{Combat4e: true})
+	e.HandIn(rules1e.Settings{Combat: rules4e.New()})
 	return partyTurnSceneOn(t, e)
 }
 
@@ -97,7 +98,7 @@ func TestManeuvers4e(t *testing.T) {
 // up, published Aimed, and Shoot at a foe takes it.
 func TestWeaponManeuver4e(t *testing.T) {
 	e := testEngine(t)
-	e.HandIn(Settings{Combat4e: true})
+	e.HandIn(rules1e.Settings{Combat: rules4e.New()})
 	e = devFirstTurnOn(t, e, "meleefight", false) // a foe next to every member
 	const cleave = 2                              // rules4e: a fighter's AimWeapon at-will
 	for _, c := range e.state().Party {           // Quick Start members have picked no powers

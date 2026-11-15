@@ -53,7 +53,7 @@ func TestImportedTablesLoad(t *testing.T) {
 	if tb.SlotLevels != CotabLayout1e.SlotLevels {
 		t.Errorf("slot levels %d", tb.SlotLevels)
 	}
-	if r, _ := rules1e.Rules1e("", nil, nil, nil, nil); r == nil {
+	if r, _ := rules1e.Rules1e(noSource{}, nil); r == nil {
 		t.Error("char.Rules1e builds no rules")
 	}
 

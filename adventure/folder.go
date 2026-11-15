@@ -45,9 +45,6 @@ const (
 // DungeonTiles is how many tiles DungCom puts at the start of the set.
 const DungeonTiles = 0x18 + 1
 
-// ItemTypes is the size of the base item table (0x810 bytes).
-const ItemTypes = 0x81
-
 // IconParts are the parts in IconColour order (the hair and the face
 // share a part).
 var IconParts = [6]string{"Body", "Arm", "Leg", "Hair/Face", "Shield", "Weapon"}

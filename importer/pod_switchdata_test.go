@@ -75,7 +75,7 @@ func TestSwitchData(t *testing.T) {
 	if err != nil || !reflect.DeepEqual(l, PodLayout1e()) {
 		t.Errorf("layout %+v (%v), want %+v", l, err, PodLayout1e())
 	}
-	rules1e.Rules1e("", nil, nil, nil, nil) // the ruleset the layout and the tables go to builds
+	rules1e.Rules1e(noSource{}, nil) // the ruleset the layout and the tables go to builds
 
 	es, err := ecl.ReadEntries(podScriptData()) // the entries are the script import's (ImportScripts), not writeSwitchData's
 	if err != nil {

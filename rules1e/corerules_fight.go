@@ -97,6 +97,8 @@ func (r *Rules) resolveFight(sit rules.Situation, a rules.Action) (rules.Outcome
 			return rules.Outcome{}, true, err
 		}
 		s.AddTreasureBlock(b)
+	case rules.AddTreasureRecords:
+		return rules.Outcome{}, true, r.addTreasureRecords(a)
 	case rules.SetSpeed:
 		c := r.chars[a.Who]
 		if c == nil {

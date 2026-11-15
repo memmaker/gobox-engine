@@ -2,6 +2,7 @@ package main
 
 import (
 	"gobox/engine"
+	"gobox/pool"
 	"testing"
 
 	"gobox/game"
@@ -17,7 +18,7 @@ func frameFront(b testing.TB, dev string) *ui.Front {
 
 // frontAndEngine is frameFront with its engine, for a test that reads the State.
 func frontAndEngine(b testing.TB, dev string) (*ui.Front, *engine.Engine) {
-	eng, err := engine.NewPool("../../data/por", "../../data/por/sources")
+	eng, err := pool.New("../../data/por", "../../data/por/sources")
 	if err != nil {
 		b.Skip(err)
 	}

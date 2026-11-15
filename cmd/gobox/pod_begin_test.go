@@ -4,15 +4,15 @@ import (
 	"testing"
 
 	"gobox/asset"
-	"gobox/engine"
 	"gobox/game"
 	"gobox/importer"
+	"gobox/pool"
 	"gobox/ui"
 )
 
 // TestPodBegin: Quick Start, then Begin Adventuring, reaches exploring among remastered walls (it panicked: scripts keyed without pod's ScriptFixes; then set 2 read the missing GEO2: no walls).
 func TestPodBegin(t *testing.T) {
-	eng, err := engine.NewPool("../../data/pod", "../../data/pod/sources")
+	eng, err := pool.New("../../data/pod", "../../data/pod/sources")
 	if err != nil {
 		t.Skip(err)
 	}

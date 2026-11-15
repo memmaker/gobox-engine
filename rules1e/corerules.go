@@ -26,6 +26,8 @@ type Rules struct {
 	// Monsters is the current data set's monster records (por LoadMonster's
 	// MON<n>CHA/SPC/ITM), filled by whoever holds the adventure's files.
 	Monsters func(rules.MonsterID) (Monster, bool)
+	// FirstMonster is the lowest monster id of the current data set (false: none).
+	FirstMonster func() (int, bool)
 	// ItemTable is the base item records (por's ITEMS file), read by core.LoadItemTable.
 	ItemTable func() []ItemBase
 	// TreasureBlock is the data set's item block n (empty: none), read by core.AddTreasureBlock.
@@ -423,6 +425,9 @@ func (r *Rules) Check(k rules.Check, _ *rules.RNG) rules.Answer {
 		return a
 	}
 	if a, ok := r.checkParty(k); ok {
+		return a
+	}
+	if a, ok := r.checkMonsters(k); ok {
 		return a
 	}
 	if a, ok := r.checkFight(k); ok {

@@ -11,6 +11,7 @@ import (
 	"gobox/engine"
 	"gobox/game"
 	"gobox/importer"
+	"gobox/pool"
 	"gobox/ui/input"
 )
 
@@ -25,7 +26,7 @@ func flowFront(t *testing.T, roster string) (*Front, *engine.Engine) {
 	if err != nil {
 		t.Skipf("cotab: not imported: %v", err)
 	}
-	eng, err := engine.NewPool(adv, adv+"/sources")
+	eng, err := pool.New(adv, adv+"/sources")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -26,7 +26,7 @@ func PodImportDataTo(dos, dst string) error {
 	if !l.Exists("ITEMS") {
 		return nil
 	}
-	items, err := orig.Table[rules1e.ItemBase](l.Path("ITEMS"), adventure.ItemTypes, orig.Bare)
+	items, err := orig.Table[rules1e.ItemBase](l.Path("ITEMS"), rules1e.ItemTypes, orig.Bare)
 	if err != nil {
 		return err
 	}

@@ -68,8 +68,8 @@ func (e *Engine) DevScene(name string) func() {
 			// Block 1 exists only in MON2CHA; take the first monster of
 			// the current set (DS:5376) so any save can start a fight.
 			idx := 1
-			if id, ok := e.gdata().firstMonster(e.monsterSet().File("MON")); ok {
-				idx = id
+			if first := e.ruleset().Check(rules.FirstMonster{}, nil); first.Yes {
+				idx = int(first.Value)
 			}
 			if e.DevMonster > 0 { // -fight N
 				idx = e.DevMonster
@@ -371,18 +371,6 @@ func (e *Engine) firstOkay() int {
 		}
 	}
 	return -1
-}
-
-// firstMonster is the lowest monster id of file; false: none.
-func (d *gameData) firstMonster(file string) (int, bool) {
-	d.monster(file, 0)
-	first, ok := 0, false
-	for id := range d.monsters[file] {
-		if !ok || id < first {
-			first, ok = id, true
-		}
-	}
-	return first, ok
 }
 
 // blockedRet goes on with what follows unless something waits.

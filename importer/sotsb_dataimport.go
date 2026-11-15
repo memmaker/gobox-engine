@@ -25,7 +25,7 @@ func SotsbImportDataTo(dos, dst string) error {
 	if err := orig.ImportData[sotsbCharRecord, affectRecord, itemRecord](l, dst, rules1e.SheetOfRecord[sotsbCharRecord], rules1e.ItemOfRecord[itemRecord]); err != nil {
 		return err
 	}
-	return orig.ImportItemTable[rules1e.ItemBase](l, dst, adventure.ItemTypes, orig.Counted)
+	return orig.ImportItemTable[rules1e.ItemBase](l, dst, rules1e.ItemTypes, orig.Counted)
 }
 
 // ImportTo writes the adventure folder dst from the DOS originals in dos

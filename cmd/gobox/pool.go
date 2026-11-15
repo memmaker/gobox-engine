@@ -16,6 +16,7 @@ import (
 	"gobox/engine"
 	"gobox/game"
 	"gobox/importer"
+	"gobox/pool"
 	"gobox/rules"
 	"gobox/ui"
 )
@@ -37,7 +38,7 @@ func playPool(s start) (ui.Launch, error) {
 		return ui.Launch{}, fmt.Errorf("adventure %s: manifest has no character record layout: re-import it", f.Dir)
 	}
 	host.FullIntro = f.Manifest.Start != nil && f.Manifest.Start.Full // the adventure's default
-	eng, err := engine.NewPool(s.Adventure, s.Data)
+	eng, err := pool.New(s.Adventure, s.Data)
 	if err != nil {
 		return ui.Launch{}, err
 	}
@@ -65,7 +66,7 @@ func playPool(s start) (ui.Launch, error) {
 		eng.QuickSearch.Store(h.QuickSearch)
 		eng.DaySky.Store(h.DaySky)
 		eng.FullIntro.Store(h.FullIntro && !s.Explore)
-		eng.HandIn(engine.Settings{PathSearch: h.PathSearch, Combat4e: h.Combat4e && f.Combat4e})
+		eng.HandIn(pool.Settings{PathSearch: h.PathSearch, Combat4e: h.Combat4e && f.Combat4e}.Rules())
 		eng.Dasp.Store(h.Dasp)
 		if !ui.TwoMusics() { // else the Music option picks a release's music (HostOptions.DOSMusic), and there are no recordings
 			eng.SetSoundtrack(h.Soundtrack)
@@ -170,7 +171,7 @@ func homeRosters(root string, names []string) func(string) ([]rules.CharacterFil
 		if err != nil {
 			return nil, err
 		}
-		return engine.ReadRoster(other.Record, filepath.Join(cfg, "gobox", from))
+		return pool.ReadRoster(other.Record, filepath.Join(cfg, "gobox", from))
 	}
 }
 

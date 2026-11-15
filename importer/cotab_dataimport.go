@@ -69,7 +69,7 @@ func CotabImportDataTo(dos, dst string) error {
 	if err := orig.ImportData[cotabCharRecord, affectRecord, CotabItem](l, dst, rules1e.SheetOfRecord[cotabCharRecord], rules1e.ItemOfRecord[CotabItem]); err != nil {
 		return err
 	}
-	return orig.ImportItemTable[rules1e.ItemBase](l, dst, adventure.ItemTypes, orig.Counted)
+	return orig.ImportItemTable[rules1e.ItemBase](l, dst, rules1e.ItemTypes, orig.Counted)
 }
 
 // SoundFile is the sound tables in the data dir (gobox audio's JSON,

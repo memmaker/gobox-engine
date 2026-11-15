@@ -17,7 +17,7 @@ func TestRules1eLoadsGameTables(t *testing.T) {
 	}
 	build := func(path string) (r *Rules, panicked any) {
 		defer func() { panicked = recover() }()
-		c, _ := Rules1e(path, nil, nil, nil, nil)
+		c, _ := Rules1e(testSource{rules: path}, nil)
 		return c.(*Rules), nil
 	}
 	if _, p := build(rules); p == nil {

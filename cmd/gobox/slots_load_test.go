@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gobox/engine"
 	"gobox/game"
+	"gobox/pool"
 	"gobox/ui"
 )
 
@@ -21,7 +21,7 @@ func TestShippedSlotsLoad(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			eng, err := engine.NewPool(adv, adv+"/sources")
+			eng, err := pool.New(adv, adv+"/sources")
 			if err != nil {
 				t.Fatal(err)
 			}

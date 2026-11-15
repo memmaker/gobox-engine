@@ -69,8 +69,8 @@ func TestDataEqualsDAX(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := make([]rules1e.ItemBase, adventure.ItemTypes)
-	binary.Decode(append(raw[2:], make([]byte, adventure.ItemTypes*16)...), binary.LittleEndian, want)
+	want := make([]rules1e.ItemBase, rules1e.ItemTypes)
+	binary.Decode(append(raw[2:], make([]byte, rules1e.ItemTypes*16)...), binary.LittleEndian, want)
 	if !reflect.DeepEqual(want, d.itemTable()) {
 		t.Fatal("ITEMS differs")
 	}

@@ -5,9 +5,8 @@ import (
 	"gobox/rules1e"
 )
 
-// NewPool is the Engine of a rules1e game (POR, COTAB, SotSB, POD) on the
-// adventure folder adv, with the tables its import wrote, and the host data
-// directory data.
+// NewPool is the Engine of a rules1e game on the adventure folder adv and the
+// host data directory data (pool.New, which the engine's tests cannot import).
 func NewPool(adv, data string) (*Engine, error) {
 	tables, err := adventure.ReadGameTables(adv)
 	if err != nil {

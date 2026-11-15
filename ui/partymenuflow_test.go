@@ -7,12 +7,13 @@ import (
 
 	"gobox/engine"
 	"gobox/game"
+	"gobox/pool"
 )
 
 // hallFront is POR's Front walked into New Phlan's training hall: its party
 // menu up over the 3D view (skipped when POR is not imported).
 func hallFront(t *testing.T) (*Front, *engine.Engine) {
-	eng, err := engine.NewPool("../data/por", "../data/por/sources")
+	eng, err := pool.New("../data/por", "../data/por/sources")
 	if err != nil {
 		t.Skip(err)
 	}

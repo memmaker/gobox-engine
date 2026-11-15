@@ -58,7 +58,7 @@ func PorImportDataTo(dos, dst string) error {
 	if err := orig.ImportData[adventure.CharRecord, rules1e.AffectFile, rules1e.ItemFile](l, dst, rules1e.SheetOfRecord[adventure.CharRecord], rules1e.ItemOfRecord[rules1e.ItemFile]); err != nil {
 		return err
 	}
-	if err := orig.ImportItemTable[rules1e.ItemBase](l, dst, adventure.ItemTypes, orig.Counted); err != nil {
+	if err := orig.ImportItemTable[rules1e.ItemBase](l, dst, rules1e.ItemTypes, orig.Counted); err != nil {
 		return err
 	}
 	exe, err := os.ReadFile(l.Path("START.EXE"))

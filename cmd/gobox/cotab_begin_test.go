@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"gobox/asset"
-	"gobox/engine"
 	"gobox/game"
 	"gobox/importer"
+	"gobox/pool"
 	"gobox/ui"
 )
 
@@ -14,7 +14,7 @@ import (
 // its own start set with a 3D view of remastered walls (it began in POR's
 // set 3, no walls loaded, and showed a black screen).
 func TestCotabBeginWalls(t *testing.T) {
-	eng, err := engine.NewPool("../../data/cotab", "../../data/cotab/sources")
+	eng, err := pool.New("../../data/cotab", "../../data/cotab/sources")
 	if err != nil {
 		t.Skip(err)
 	}

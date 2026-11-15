@@ -6,13 +6,14 @@ import (
 	"gobox/engine"
 	"gobox/game"
 	"gobox/importer"
+	"gobox/pool"
 )
 
 // TestArtPixels: the cotab opening's hand, with F12's either art, is drawn
 // from the game's pixels: the archive's decode stood in for them (its raw
 // delta frames, the other art's colours).
 func TestArtPixels(t *testing.T) {
-	eng, err := engine.NewPool("../data/cotab", "../data/cotab/sources")
+	eng, err := pool.New("../data/cotab", "../data/cotab/sources")
 	if err != nil {
 		t.Skip(err)
 	}

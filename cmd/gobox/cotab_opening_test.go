@@ -3,9 +3,9 @@ package main
 import (
 	"testing"
 
-	"gobox/engine"
 	"gobox/game"
 	"gobox/importer"
+	"gobox/pool"
 	"gobox/ui"
 	"slices"
 )
@@ -14,7 +14,7 @@ import (
 // 10) cycles its 3 frames while the menu waits (cotab's Picture marks the
 // view drawn), and F12's DOS art shows the DOS frames on the waiting page.
 func TestCotabArm(t *testing.T) {
-	eng, err := engine.NewPool("../../data/cotab", "../../data/cotab/sources")
+	eng, err := pool.New("../../data/cotab", "../../data/cotab/sources")
 	if err != nil {
 		t.Skip(err)
 	}

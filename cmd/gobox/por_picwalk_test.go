@@ -9,8 +9,7 @@ import (
 	"gobox/asset"
 	"gobox/asset/orig"
 	"gobox/game"
-
-	"gobox/engine"
+	"gobox/pool"
 )
 
 // pictures calls f on every game.Picture reachable from v.
@@ -50,7 +49,7 @@ func TestFightPicturesResolve(t *testing.T) {
 		if _, err := os.Stat("../../data/por/sources/dos/TITLE.DAX"); err != nil {
 			t.Skip("no game files")
 		}
-		e, err := engine.NewPool("../../data/por", "../../data/por/sources")
+		e, err := pool.New("../../data/por", "../../data/por/sources")
 		if err != nil {
 			t.Fatal(err)
 		}

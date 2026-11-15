@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"gobox/rules"
-	"gobox/rules1e"
 	"math"
 	"os"
 	"slices"
@@ -22,24 +21,23 @@ import (
 const (
 	vaultFile = "vault.dat"
 	// (pod's own file held platinum; this engine writes its own, never the original's)
-	vaultBlock = -1 // treasure's block number for the vault's items (AddTreasureBlock)
-	vaultCoins = 4  // the file's longints: gold, copper, gems, jewelry
+	vaultCoins = 4 // the file's longints: gold, copper, gems, jewelry
 )
 
-// vault is the open vault: its item records, which the treasure reads (vaultBlock).
-type vault struct{ items []rules1e.Item }
+// vault marks the open vault.
+type vault struct{}
 
 // Vault = pod's vault screen: the treasure screen over vault.dat until the party leaves.
 func (e *Engine) Vault() {
-	coins, items, err := readVault(e.savePath(vaultFile))
+	coins, records, err := readVault(e.savePath(vaultFile))
 	if err != nil {
 		panic(fmt.Sprintf("vault: %v", err))
 	}
-	e.vault = &vault{items: items}
+	e.vault = &vault{}
 	e.do(rules.ClearLoot{})
 	e.do(rules.AddLoot{Loot: rules.Purse{Gold: coins[0], Copper: coins[1], Gems: coins[2], Jewelry: coins[3]}})
-	if len(items) > 0 {
-		e.do(rules.AddTreasureBlock{Block: vaultBlock})
+	if len(records) > 0 {
+		e.do(rules.AddTreasureRecords{Records: records})
 	}
 	e.push(cont{kind: kVaultDone})
 	e.lootMenu()
@@ -57,8 +55,8 @@ func (e *Engine) vaultDone() {
 	e.afterEnd()
 }
 
-// readVault is vault.dat's pool and items; a missing file is an empty vault.
-func readVault(path string) ([vaultCoins]uint64, []rules1e.Item, error) {
+// readVault is vault.dat's pool and item records; a missing file is an empty vault.
+func readVault(path string) ([vaultCoins]uint64, rules.ItemRecords, error) {
 	var coins [vaultCoins]uint64
 	b, err := os.ReadFile(path)
 	if os.IsNotExist(err) {
@@ -75,7 +73,7 @@ func readVault(path string) ([vaultCoins]uint64, []rules1e.Item, error) {
 		coins[i] = uint64(max(int32(binary.LittleEndian.Uint32(b[i*4:])), 0))
 	}
 	rest := b[head:]
-	return coins, rules1e.ReadItems(rest[:len(rest)/rules1e.ItemSize*rules1e.ItemSize]), nil
+	return coins, rest, nil
 }
 
 // writeVault writes vault.dat: the pool's gold, copper, gems and jewelry, then the item records.

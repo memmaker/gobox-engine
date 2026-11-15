@@ -3,7 +3,7 @@ package parity
 import (
 	"encoding/json"
 	"gobox/asset"
-	"gobox/engine"
+	"gobox/pool"
 	"gobox/ui"
 	"image"
 	"image/color"
@@ -24,7 +24,7 @@ func TestMapImage(t *testing.T) {
 	for i := range ink {
 		ink[i] = color.RGBA{asset.EGAPalette[i][0], asset.EGAPalette[i][1], asset.EGAPalette[i][2], 255}
 	}
-	e, err := engine.NewPool(filepath.Dir(porSources), porSources)
+	e, err := pool.New(filepath.Dir(porSources), porSources)
 	if err != nil {
 		t.Skip("no game files")
 	}

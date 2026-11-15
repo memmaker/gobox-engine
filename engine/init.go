@@ -5,9 +5,6 @@ import (
 	"gobox/asset"
 	"gobox/game"
 	"gobox/rules"
-	"gobox/rules1e"
-	"log"
-	"slices"
 )
 
 // Init = ovr12:002D: allocate the global records, set the start state and
@@ -64,16 +61,4 @@ func (e *Engine) resetAdventure() {
 	e.mapPairA, e.mapPairB = [3]int{0, -1, -1}, [3]int{0, -1, -1}                                                                                                        // DS:6AAE+4i / 6AB0+4i, i = 2..3
 	e.es.skyShade, e.es.groundShade = 0xE8, 0xDB                                                                                                                         // DS:6F69/6F68
 	e.ext.seen, e.ext.voiced, e.ext.met, e.ext.beasts, e.ext.labels, e.ext.quests, e.ext.notes, e.ext.doors, e.ext.secrets = nil, nil, nil, nil, nil, nil, nil, nil, nil // extra: kept with the save, not the party menu
-}
-
-// readItems reads the base item table: skips the 2-byte count and takes up
-// to itemTypes records (a short or missing file leaves blank ones).
-func (e *Engine) readItems() []rules1e.ItemBase {
-	items := e.gdata().itemTable()
-	if items == nil {
-		// extra: without the table no class may use any item and nothing has stats
-		log.Println("ITEMS (the base item table) is missing from the game data: import the game again")
-		return make([]rules1e.ItemBase, adventure.ItemTypes)
-	}
-	return slices.Clone(items)
 }

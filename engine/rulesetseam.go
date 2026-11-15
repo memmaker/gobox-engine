@@ -4,24 +4,10 @@ import (
 	"fmt"
 	"gobox/adventure"
 	"gobox/rules"
-	"gobox/rules1e"
 	"os"
 	"path/filepath"
 	"slices"
 )
-
-// Ruleset builds the Engine's ruleset (the one injection point of the rules,
-// fold step E2): monster, items and treasure are the game data's monster
-// records, base item table and treasure blocks; rules is the adventure's
-// rules.json ("": it has none); host is the Engine's side of the creation. The game hands it to New; the types are unnamed so a builder
-// needs nothing of this package.
-type Ruleset func(
-	rules string,
-	monster func(rules.MonsterID) (rules1e.Sheet, []rules1e.AffectRecord, []rules1e.Item, bool),
-	items func() []rules1e.ItemBase,
-	treasure func(block int) []rules1e.Item,
-	host rules.CreationHost,
-) (rules.Rules, rules.CreationRules)
 
 // monsterSet is the set the monsters' MON and CPIC archives are read from.
 func (e *Engine) monsterSet() rules.Set {
@@ -42,7 +28,7 @@ func (e *Engine) artNames() adventure.ArtNames {
 // bareRuleset and bareData are what an Engine made without New (a test's
 // &Engine{}) builds from; the tests set them (r1e_test.go).
 var (
-	bareRuleset Ruleset
+	bareRuleset rules.Builder
 	bareData    adventure.GameTables
 )
 
@@ -54,17 +40,7 @@ func (e *Engine) ruleset() rules.Rules {
 		if build == nil {
 			build = bareRuleset
 		}
-		monster := func(id rules.MonsterID) (rules1e.Sheet, []rules1e.AffectRecord, []rules1e.Item, bool) {
-			m, ok := e.gdata().monster(e.monsterSet().File("MON"), int(id))
-			return m.Record, m.Affects, m.Items, ok
-		}
-		treasure := func(n int) []rules1e.Item {
-			if n == vaultBlock {
-				return e.vault.items
-			}
-			return e.gdata().itemBlock(e.set.File("ITEM"), n)
-		}
-		e.rules, e.create = build(e.rulesFile(), monster, e.readItems, treasure, creationHost{e})
+		e.rules, e.create = build(source{e}, creationHost{e})
 	}
 	return e.rules
 }

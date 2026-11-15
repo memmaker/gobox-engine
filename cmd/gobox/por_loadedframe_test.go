@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gobox/engine"
+	"gobox/pool"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -20,7 +20,7 @@ func TestLoadedExploreStateBuilds(t *testing.T) {
 	if _, err := os.Stat(src); err != nil {
 		t.Skip(err)
 	}
-	eng, err := engine.NewPool("../../data/por", "../../data/por/sources")
+	eng, err := pool.New("../../data/por", "../../data/por/sources")
 	if err != nil {
 		t.Skip(err)
 	}
