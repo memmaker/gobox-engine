@@ -46,10 +46,18 @@ func (r *Rules) Fact(id rules.CharID, f rules.Fact) (rules.Value, error) {
 		if f.Coin == xxvc.Credits {
 			return rules.Number(r.Purse(id)), nil
 		}
+	case rules.FlagFact:
+		if f.Slot >= 0 && f.Slot < ScriptFlagSlots {
+			return rules.Number(c.ScriptFlags[f.Slot]), nil
+		}
 	case rules.PlainFact:
 		switch f {
 		case rules.FactName:
 			return rules.Text(c.Name), nil
+		case rules.FactSex:
+			return c.Sex, nil
+		case rules.FactCompanion:
+			return rules.Yes(c.Companion), nil
 		case rules.FactRace:
 			return c.Race, nil
 		case rules.FactClasses:
@@ -92,8 +100,18 @@ func (r *Rules) SetFact(id rules.CharID, f rules.Fact, v rules.Value) error {
 			c.Saves[i] = int(n)
 			return nil
 		}
+	case rules.FlagFact:
+		if f.Slot >= 0 && f.Slot < ScriptFlagSlots && isNumber {
+			c.ScriptFlags[f.Slot] = int(uint8(n)) // a byte in the record
+			return nil
+		}
 	case rules.PlainFact:
 		switch f {
+		case rules.FactCompanion:
+			if y, ok := v.(rules.Yes); ok {
+				c.Companion = bool(y)
+				return nil
+			}
 		case rules.FactName:
 			if t, ok := v.(rules.Text); ok {
 				c.Name = string(t)
@@ -103,6 +121,7 @@ func (r *Rules) SetFact(id rules.CharID, f rules.Fact, v rules.Value) error {
 			if st, ok := v.(rules.Status); ok {
 				if b, ok := fromCore[st]; ok {
 					c.Status = b
+					c.Enabled = b == StOkay // isEnabled is kept beside status: 1 only for StOkay (types.pas; BR setChar r[213])
 					return nil
 				}
 			}

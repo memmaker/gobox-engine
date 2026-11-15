@@ -111,6 +111,39 @@ func (e *Engine) newEngineFields() map[string]engineField {
 				}
 			}
 		}},
+		// Buck Rogers' member fields (ecl.go charVar/setChar): the typed facts, no record bytes
+		"SelSex": {get: func(int) (int64, bool) { return int64(selIndex(e, rules.FactSex, adventure.SexOrder)), true }},
+		"SelCareer": {get: func(int) (int64, bool) { // the career's place in the catalog, 1 on (0: none)
+			return int64(slices.Index(e.ruleset().Catalog().Classes, e.selValue(rules.FactClasses).(rules.ClassSet)[0]) + 1), true
+		}},
+		"SelHitPoints":    e.selNumber(rules.FactHP),
+		"SelHitPointsMax": e.selNumber(rules.FactMaxHP),
+		"SelCompanion": {get: func(int) (int64, bool) { return yesNumber(e.selValue(rules.FactCompanion).(rules.Yes)), true },
+			set: func(_ int, v int64) { e.setSelValue(rules.FactCompanion, rules.Yes(v != 0)) }},
+		// the side word with the companion bit: BR's 0, 0x80, 0x81 and $40 for a companion
+		"SelSideFlags": {get: func(int) (int64, bool) {
+			v := int64(adventure.ScriptSide[e.selValue(rules.FactSide).(rules.Side)])
+			if e.selValue(rules.FactCompanion).(rules.Yes) {
+				v |= adventure.ScriptCompanion
+			}
+			return v, true
+		}, set: func(_ int, v int64) {
+			side, ok := sideOfScript(v &^ adventure.ScriptCompanion)
+			if !ok {
+				panic(fmt.Sprintf("script: SelSideFlags %#x", v))
+			}
+			e.setSelValue(rules.FactSide, side)
+			e.setSelValue(rules.FactCompanion, rules.Yes(v&adventure.ScriptCompanion != 0))
+		}},
+		// the status as the rules' typed one, in the encoding's numbers (adventure.StatusKinds)
+		"SelStatusKind": {get: func(int) (int64, bool) {
+			st := e.selValue(rules.FactStatus).(rules.Status)
+			n := slices.Index(adventure.StatusKinds, st)
+			if n < 0 {
+				panic(fmt.Sprintf("script: SelStatusKind: no kind for %s", st))
+			}
+			return int64(n), true
+		}, set: func(_ int, v int64) { e.setSelValue(rules.FactStatus, adventure.StatusKinds[v]) }},
 		fieldSelMove:     reads(func() uint16 { return uint16(e.selFact(rules.FactMove)) }),
 		"SelPartyIndex":  reads(func() uint16 { return uint16(e.partyIndex(e.selected())) }),
 		"SelPartyIndex2": reads(func() uint16 { return uint16(e.partyIndex(e.selected())) }),
@@ -161,6 +194,11 @@ func (e *Engine) newEngineFields() map[string]engineField {
 		// area 2's well: the party's affects (the Pascal's fix, effectTable)
 		fieldEffectTable: {stored: true, get: func(i int) (int64, bool) { v, ok := e.effect(i); return int64(v), ok }},
 	}
+	for i, name := range selFlagFields {
+		f := rules.FlagFact{Slot: i}
+		m[name] = engineField{get: func(int) (int64, bool) { return e.selFact(f), true },
+			set: func(_ int, v int64) { e.setSelFact(f, v) }}
+	}
 	m["TenMinutes"] = e.clockField(rules.ClockTenMinutes)
 	m["Hours"] = e.clockField(rules.ClockHours)
 	for name, cell := range e.world.Cells() { // the engine's own words; the special ones above (SymbolSet) keep their field
@@ -175,6 +213,32 @@ func (e *Engine) newEngineFields() map[string]engineField {
 		m[name] = f
 	}
 	return m
+}
+
+// selFlagFields are the fields of the script flag bytes a character keeps (rules.FlagFact slot i).
+var selFlagFields = [...]string{"SelFlag1", "SelFlag2", "SelFlag3"}
+
+// selNumber is a field of the selected member's number fact f, written as it is read.
+func (e *Engine) selNumber(f rules.Fact) engineField {
+	return engineField{get: func(int) (int64, bool) { return e.selFact(f), true },
+		set: func(_ int, v int64) { e.setSelFact(f, v) }}
+}
+
+func yesNumber(y rules.Yes) int64 {
+	if y {
+		return 1
+	}
+	return 0
+}
+
+// sideOfScript is the side a script's side word n is (adventure.ScriptSide).
+func sideOfScript(n int64) (rules.Side, bool) {
+	for side, w := range adventure.ScriptSide {
+		if int64(w) == n {
+			return side, true
+		}
+	}
+	return "", false
 }
 
 // wallSlot is game word WallSlot<slot>: a value above 0x80 loads that

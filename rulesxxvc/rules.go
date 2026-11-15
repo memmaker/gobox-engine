@@ -13,6 +13,7 @@ import (
 // fields; the byte record stays in the BR repos).
 type Character struct {
 	Name       string
+	Sex        rules.Sex
 	Race       rules.Race
 	Career     rules.Class
 	Level      int
@@ -57,10 +58,17 @@ type Character struct {
 
 	Pilot bool // isPilot: picked to fly the party's ship
 
+	// ScriptFlags are the bytes the scripts keep on the character (Party[161..163], the record's
+	// unused skillLevelsTail $A1..$A3): ECL reads and writes them, nothing else does.
+	ScriptFlags [ScriptFlagSlots]int
+
 	// Roster is the number of the character's roster file (rules.RosterID):
 	// the engine numbers a saved character once; 0 (NoRoster): not numbered yet.
 	Roster rules.RosterID `json:",omitempty"`
 }
+
+// ScriptFlagSlots is the count of script flag bytes (BR1's scripts use Party[161], [162], [163]).
+const ScriptFlagSlots = 3
 
 // team is C_Side.TEAM: the party's side, steered or not.
 func (c *Character) team() bool { return c.Side != rules.SideMonsters }

@@ -150,6 +150,7 @@ var notAnswered = map[string]bool{
 	"TakeMoney":     true,
 	"SkillRoll":     true,
 	"KnownFact":     true,
+	"FlagFact":      true, // XXVc's script flag bytes on a character
 	"LevelFact":     true,
 	"MemoFact":      true,
 }

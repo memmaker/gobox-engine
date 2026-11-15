@@ -254,20 +254,20 @@
 7BA4 1 text game Word7BA4 # scripts: text r21/w4
 7BB8 1 text game Word7BB8 # scripts: text r2/w4
 7BCC 1 text game Word7BCC # scripts: text r4/w1
-7C00 1 text member Word7C00 # scripts: text r53/w0
-7C26 1 byte member Word7C26 # scripts: byte r2/w0
-7C28 1 byte member Word7C28 # scripts: byte r1/w0
+7C00 1 text member SelName # Party[0] the name (ecl.go charVar o<=15); scripts: text r53/w0
+7C26 1 byte member SelSex # Party[38] gender (charVar r[38]): 0 male, 1 female (types.pas TGender); scripts: byte r2/w0
+7C28 1 byte member SelCareer # Party[40] career (charVar r[40]): TCareer, 0 none; scripts: byte r1/w0
 7C2B 1 dword game Purse # Party[43] OffMoney: the party purse, longint (ecl.go:104 charVar, setChar pays across members); scripts: dword r9/w5
-7C45 1 word member Word7C45 # scripts: word r11/w0
-7C4C 1 byte member Word7C4C # scripts: byte r8/w0
-7CA1 1 byte member Word7CA1 # scripts: byte r6/w3
-7CA2 1 byte member Word7CA2 # scripts: byte r1/w1
-7CA3 1 byte member Word7CA3 # scripts: byte r0/w1
-7D00 1 byte member Word7D00 # scripts: byte r42/w14
-7D0C 1 byte member Word7D0C # scripts: byte r1/w5
-7D19 1 word member Word7D19 # scripts: word r4/w7
+7C45 1 word member SelHitPointsMax # Party[69] hitPointMaximum (charVar r[69], setChar raw); scripts: word r11/w0
+7C4C 1 byte member SelCompanion enc=BrSelCompanion # Party[76] isCompanion (charVar r[76], any value reads 128; setChar raw); scripts: byte r8/w0
+7CA1 1 byte member SelFlag1 # Party[161] a script's flag byte on the character (skillLevelsTail, charVar/setChar raw); scripts: byte r6/w3
+7CA2 1 byte member SelFlag2 # Party[162], as SelFlag1; scripts: byte r1/w1
+7CA3 1 byte member SelFlag3 # Party[163], as SelFlag1; scripts: byte r0/w1
+7D00 1 byte member SelStatusKind enc=BrSelStatus # Party[256] r[212] the status, TStatus (charVar: 0 with no character; setChar r[212] = v&127, r[213] = v==1); scripts: byte r42/w14
+7D0C 1 byte member SelSideFlags # Party[268] side r[214] bit 0, isCompanion r[76] bit 6, isQuickfight r[215] bit 7 (charVar/setChar); scripts: byte r1/w5
+7D19 1 word member SelHitPoints # Party[281] hitPoints (charVar r[227], setChar); scripts: word r4/w7
 7EA8 1 byte game TrainingHall # Party[680]: training hall flag (rules.go:206,404); scripts: byte r0/w2
-7EB1 1 byte fact Word7EB1 readonly # Party[689]: the selected member (ecl.go charVar o==689); engine SelPartyIndex answers the party size for a non-member: to bind later
+7EB1 1 byte member SelPartyIndex # Party[689]: the selected member's index (ecl.go charVar o==689)
 7EC0 1 byte game MonsterLimit # Party[704]: SetupMonster arg2 (eclops.go:209); scripts: byte r0/w2
 7EC1 1 byte game MonsterDistance # Party[705]: distance to wall/monster ahead (eclops.go:212-231); engine only (not in BR1 scripts)
 7EC2 1 byte game Word7EC2 # scripts: byte r0/w2

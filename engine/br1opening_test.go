@@ -10,6 +10,7 @@ import (
 	"gobox/adventure"
 	"gobox/game"
 	"gobox/importer"
+	"gobox/rules"
 	"gobox/rulesxxvc"
 )
 
@@ -147,16 +148,21 @@ func br1Begun(t *testing.T) *Engine {
 	return e
 }
 
-// TestBR1NewBlock: a new block's start (buckrogers-go TestNewBlock): block 17, Salvation base, has no map and no
-// walking; its script greets the party and then asks where to go, again after every answer that ends its run.
-func TestBR1NewBlock(t *testing.T) {
-	e := br1Begun(t)
+// br1AtBaseMenu is whether the base's menu (block 17, Salvation) is up.
+func br1AtBaseMenu(e *Engine) bool {
+	c := commonOf(e.build())
+	return c.Ask != nil && slices.Equal(c.Ask.Replies, []string{"Bar", "Clinic", "Depot", "Hq", "Port"}) && strings.HasPrefix(paneText(c), "WHERE DO YOU WISH TO GO?")
+}
+
+// br1ToBaseMenu enters block 17 and answers its greeting's pages up to the base's menu; it says whether
+// HIS SPEECH was read in the pager (Log Book entry 41).
+func br1ToBaseMenu(t *testing.T, e *Engine) (read bool) {
+	t.Helper()
 	e.DevAt(17, 0, 0)
 	c := commonOf(e.build())
 	if e.gs.areaKind != 17 || e.world.Scripted == 0 || c.Ask == nil || paneText(c) != "THE MAN FROM THE HOLOGRAM GREETS YOU." {
 		t.Fatalf("block %d scripted %d ask %+v text %q", e.gs.areaKind, e.world.Scripted, c.Ask, paneText(c))
 	}
-	read := false       // HIS SPEECH, entry 41 of the Log Book, in the pager
 	for n := 0; ; n++ { // the greeting's pages, up to the base's menu
 		sc, ok := e.build().(game.Scene)
 		if ok && sc.Kind == game.SceneHandout {
@@ -169,15 +175,19 @@ func TestBR1NewBlock(t *testing.T) {
 		}
 		br1Answer(t, e)
 	}
+	if !br1AtBaseMenu(e) {
+		t.Fatalf("menu %+v text %q", commonOf(e.build()).Ask, paneText(commonOf(e.build())))
+	}
+	return read
+}
+
+// TestBR1NewBlock: a new block's start (buckrogers-go TestNewBlock): block 17, Salvation base, has no map and no
+// walking; its script greets the party and then asks where to go, again after every answer that ends its run.
+func TestBR1NewBlock(t *testing.T) {
+	e := br1Begun(t)
+	read := br1ToBaseMenu(t, e)
 	if !read || !slices.ContainsFunc(e.ext.notes, func(n noteRec) bool { return n.Title == "Log Entry 41" }) {
 		t.Fatalf("log entry 41: read %v, notes %+v", read, e.ext.notes)
-	}
-	atMenu := func() bool {
-		c := commonOf(e.build())
-		return c.Ask != nil && slices.Equal(c.Ask.Replies, []string{"Bar", "Clinic", "Depot", "Hq", "Port"}) && strings.HasPrefix(paneText(c), "WHERE DO YOU WISH TO GO?")
-	}
-	if !atMenu() {
-		t.Fatalf("menu %+v text %q", commonOf(e.build()).Ask, paneText(commonOf(e.build())))
 	}
 	if _, ok := e.build().(game.Exploring); ok {
 		t.Fatal("a scripted place waits for a move")
@@ -187,7 +197,7 @@ func TestBR1NewBlock(t *testing.T) {
 		t.Fatal(err)
 	}
 	team := false // HQ ends in the team menu (Program 0), left as it is begun
-	for n := 0; !atMenu(); n++ {
+	for n := 0; !br1AtBaseMenu(e); n++ {
 		if n > 20 {
 			t.Fatalf("no menu after HQ: %q %+v", paneText(commonOf(e.build())), commonOf(e.build()).Ask)
 		}
@@ -324,4 +334,96 @@ func br1North(e *Engine) error {
 // paneText is the text pane's words, the wrapping's spaces aside.
 func paneText(c game.Common) string {
 	return strings.Join(strings.Fields(strings.Join(c.Text, " ")), " ")
+}
+
+// br1Clinic walks the base's CLINIC (reply 1) from the menu and returns the text up to the menu again.
+func br1Clinic(t *testing.T, e *Engine) string {
+	t.Helper()
+	if _, err := e.doNow(game.Reply{N: 1}); err != nil {
+		t.Fatal(err)
+	}
+	var text []string
+	for n := 0; !br1AtBaseMenu(e); n++ {
+		if n > 40 {
+			t.Fatalf("no menu after the clinic: %q", paneText(commonOf(e.build())))
+		}
+		text = append(text, paneText(commonOf(e.build())))
+		br1Answer(t, e)
+	}
+	return strings.Join(text, "\n")
+}
+
+// TestBR1Clinic: block 17's CLINIC reads and writes the selected member through the typed facts (status, hit
+// points, maximum, name) and walks SelectMember past the party (status 0, as BR's noChar).
+func TestBR1Clinic(t *testing.T) {
+	member := func(e *Engine) rules.CharID { return e.partyIDs()[0] }
+	fact := func(e *Engine, f rules.Fact) rules.Value {
+		v, err := e.ruleset().Fact(member(e), f)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return v
+	}
+	hurt := func(e *Engine) {
+		if err := e.ruleset().SetFact(member(e), rules.FactHP, rules.Number(1)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	t.Run("heals", func(t *testing.T) {
+		e := br1Begun(t)
+		hurt(e)
+		name := string(fact(e, rules.FactName).(rules.Text))
+		max := fact(e, rules.FactMaxHP).(rules.Number)
+		if max <= 1 {
+			t.Fatalf("maximum %d", max)
+		}
+		br1ToBaseMenu(t, e)
+		if got := br1Clinic(t, e); !strings.Contains(got, name+" IS HEALED...") {
+			t.Fatalf("first visit: %q", got)
+		}
+		if hp := fact(e, rules.FactHP); hp != max || fact(e, rules.FactStatus) != rules.StatusOkay {
+			t.Fatalf("hp %v of %d, status %v", hp, max, fact(e, rules.FactStatus))
+		}
+		if got := br1Clinic(t, e); strings.Contains(got, "HEALED") {
+			t.Fatalf("second visit heals again: %q", got)
+		}
+		if hp := fact(e, rules.FactHP); hp != max {
+			t.Fatalf("hp %v after the second visit", hp)
+		}
+	})
+	t.Run("dead", func(t *testing.T) {
+		e := br1Begun(t)
+		name := string(fact(e, rules.FactName).(rules.Text))
+		if err := e.ruleset().SetFact(member(e), rules.FactStatus, rules.StatusDead); err != nil {
+			t.Fatal(err)
+		}
+		br1ToBaseMenu(t, e)
+		if got := br1Clinic(t, e); !strings.Contains(got, name+" IS DEAD. SORRY.") {
+			t.Fatalf("dead member: %q", got)
+		}
+		if fact(e, rules.FactStatus) != rules.StatusDead {
+			t.Fatalf("status %v", fact(e, rules.FactStatus))
+		}
+	})
+}
+
+// TestBR1NoMember: the status word reads 0 while the last SELECT MEMBER matched nobody (BR's noChar), and
+// the member's own status (1: okay) again after one that matched.
+func TestBR1NoMember(t *testing.T) {
+	e := br1Begun(t)
+	r, ok := e.layoutField("SelStatusKind")
+	if !ok {
+		t.Fatal("no SelStatusKind in the layout")
+	}
+	status := func() int64 { return e.host.Get(r) }
+	if got := status(); got != 1 {
+		t.Fatalf("member 0: status %d", got)
+	}
+	e.es.memberMissing = true // SelectMember(1) with a party of one
+	if got := status(); got != 0 {
+		t.Fatalf("no member: status %d", got)
+	}
+	if got := status(); got != 0 {
+		t.Fatalf("no member, read again: status %d", got)
+	}
 }

@@ -14,6 +14,7 @@ type (
 	KnownFact   struct{ Skill Skill }     // has the skill at all: BR 76 reads 128 or 0
 	MemoFact    struct{ Slot int }        // por 0x1F..0x70: Knock in area 14
 	PlainFact   int                       // the rest, one each
+	FlagFact    struct{ Slot int }        // BR 161+Slot: a script's flag byte kept on the character (rulesxxvc ScriptFlags)
 	HitFact     struct{ Target CharID }   // a's chance in percent to hit Target with one blow of the readied attack (por hover text)
 )
 
@@ -42,6 +43,7 @@ const (
 	FactHarmed      // a sheet word only: the harmful effects on it, ", " between (por's after-fight list)
 	FactSideOnly    // por opAddNPC: 268 bit 0 written alone (SideParty or SideMonsters), the auto flag kept
 	FactLevelReady  // por (extra): it may train a level (Yes)
+	FactCompanion   // BR 76 (isCompanion): a party member the player does not command (Yes)
 )
 
 func (AbilityFact) fact() {}
@@ -53,6 +55,7 @@ func (PiecesFact) fact()  {}
 func (MemoFact) fact()    {}
 func (KnownFact) fact()   {}
 func (PlainFact) fact()   {}
+func (FlagFact) fact()    {}
 func (HitFact) fact()     {}
 
 // Value is what a Fact holds.

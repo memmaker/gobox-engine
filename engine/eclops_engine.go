@@ -828,7 +828,7 @@ func init() {
 		ecl.OpDelay: (*Engine).opDelay, ecl.OpProtection: (*Engine).opProtection,
 		ecl.OpClearBox: (*Engine).opClearBox,
 		// the later dialects' (fold S2): SpriteOff is the first engine's 0x31
-		ecl.OpSpriteOff: (*Engine).opRedrawView, ecl.OpNoOp: (*Engine).opNoOp, ecl.OpPressKey: (*Engine).opPressKey,
+		ecl.OpSpriteOff: (*Engine).opRedrawView, ecl.OpNoOp: (*Engine).opNoOp, ecl.OpNothing: (*Engine).opNoOp, ecl.OpPressKey: (*Engine).opPressKey,
 		ecl.OpYesNo: (*Engine).opYesNo, ecl.OpClearExit: (*Engine).opClearExit, ecl.OpGainExp: (*Engine).opGainExperience,
 		ecl.OpSpell: (*Engine).opSpell, ecl.OpDestroy: (*Engine).opDestroyItems, ecl.OpDump: (*Engine).opDump,
 		ecl.OpFindNPC: (*Engine).opFindNPC, ecl.OpAreaKind: (*Engine).opAreaKind, ecl.OpLogbook: (*Engine).opLogbook, ecl.OpSound: (*Engine).opSound, ecl.OpMenuKeys: (*Engine).opMenuKeys,

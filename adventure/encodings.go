@@ -45,6 +45,32 @@ var SotsbStatus = map[rules.Status]int64{
 	rules.StatusUnconscious: 5, rules.StatusRunning: 6, rules.StatusStoned: 7,
 }
 
+// StatusKinds is the canonical SelStatusKind: a status is its place in this list (the
+// engine's binding turns it back into the typed rules.Status at once); a game's
+// encoding maps its own numbers to and from it.
+var StatusKinds = []rules.Status{rules.StatusOkay, rules.StatusAnimated, rules.StatusRunning, rules.StatusUnconscious,
+	rules.StatusDying, rules.StatusDead, rules.StatusStoned, rules.StatusGone, rules.StatusTempGone, rules.StatusReserve}
+
+// BRStatus is types.pas TStatus's number for each rules status BR has one for (StNoStatus 0, StPoisoned 7,
+// StComatose 8, StNotHere 9 and the fight's own states 10..14 have none: rules has no such status).
+var BRStatus = map[rules.Status]int64{
+	rules.StatusOkay: 1, rules.StatusGone: 2, rules.StatusDead: 3, rules.StatusDying: 4,
+	rules.StatusUnconscious: 5, rules.StatusRunning: 6,
+}
+
+// BRStatusMask is what setChar keeps of a status write (ecl.go: r[212] = v & 127).
+const BRStatusMask = 127
+
+// BRCompanionRead is what a read of byte $4C answers while isCompanion is non-zero
+// (types.pas: SpecialReadZ1 answers $80); ScriptCompanion is the bit $40 of the side word.
+const (
+	BRCompanionRead = 0x80
+	ScriptCompanion = 0x40
+)
+
+// SexOrder is a sex's number for the scripts: its place here (types.pas TGender: male 0, female 1).
+var SexOrder = []rules.Sex{rules.Male, rules.Female}
+
 // toCanon is each encoding's decoding that changes the value; set is the
 // symbol set in play.
 var toCanon = map[ecl.Encoding]func(game int64, set rules.Set) int64{
@@ -86,6 +112,22 @@ var toCanon = map[ecl.Encoding]func(game int64, set rules.Set) int64{
 			return CanonStatusOkay
 		}
 		return CanonStatusStore
+	},
+	// setChar: r[212] = v & 127, a status BR has a rules status for.
+	"BrSelStatus": func(g int64, _ rules.Set) int64 {
+		for n, st := range StatusKinds {
+			if b, ok := BRStatus[st]; ok && b == g&BRStatusMask {
+				return int64(n)
+			}
+		}
+		panic(fmt.Sprintf("br: SelStatusKind %d: no rules status", g&BRStatusMask))
+	},
+	// setChar: r[76] = v, read back as 128 while non-zero; canonical: 0 or 1.
+	"BrSelCompanion": func(g int64, _ rules.Set) int64 {
+		if g != 0 {
+			return 1
+		}
+		return 0
 	},
 	// SpecialWriteZ1 $312: DaxIo.PushState(v) keeps disk (v+1) div 2, which $312 reads back.
 	"SotsbSymbolSet": func(v int64, _ rules.Set) int64 { return (v + 1) / 2 },

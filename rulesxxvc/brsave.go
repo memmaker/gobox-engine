@@ -18,6 +18,7 @@ type BRSave struct {
 	Abilities             [7]int // STR DEX CON INT WIS CHA TCH: the ones the rules read (charhlp.pas StrToHitAdjust..., combatai.pas)
 	CurrentAbilities      [7]int // as they stand; only CharGen writes them
 	Saves                 [8]int
+	Gender                int // TGender: 0 male, 1 female
 	Race                  int // TRace: RaceMonster, then xxvc.Races
 	Career                int // TCareer: CareerNone, then xxvc.Careers
 	Level                 int
@@ -33,6 +34,7 @@ type BRSave struct {
 	SkillLevels           [84]int
 	XPAward               int64
 	WeaponSpecializations [SpecializationSlots]int
+	ScriptFlags           [ScriptFlagSlots]int // skillLevelsTail $A1..$A3, the bytes ECL keeps on the character
 	Status                Status
 	IsEnabled             bool
 	Hostile               bool // side = C_Side.HOSTILE
@@ -67,6 +69,9 @@ const (
 	armorBreathingBit = 0x80
 )
 
+// brGenders is TGender's order (types.pas: GenderMale, GenderFemale).
+var brGenders = [...]rules.Sex{rules.Male, rules.Female}
+
 // brStatOrder is TCharacter.abilities' order: STR DEX CON INT WIS CHA TCH.
 var brStatOrder = [7]rules.Ability{rules.Strength, rules.Dexterity, rules.Constitution, rules.Intelligence,
 	rules.Wisdom, rules.Charisma, xxvc.Tech}
@@ -86,6 +91,13 @@ func ConvertBRCharacter(t xxvc.Tables, b BRSave) (Character, error) {
 		BaseArmorClass: b.BaseArmorClass, BaseMovement: b.BaseMovement, Encumbrance: b.Encumbrance,
 		Armor: armorFlagsOf(b.ArmorFlags), Side: rules.SideParty, Unarmed: b.Unarmed, Damage: b.Current,
 		Effects: slices.Clone(b.Effects),
+	}
+	if b.Gender < 0 || b.Gender >= len(brGenders) {
+		return Character{}, fmt.Errorf("ConvertBRCharacter: gender %d", b.Gender)
+	}
+	c.Sex = brGenders[b.Gender]
+	for i, v := range b.ScriptFlags {
+		c.ScriptFlags[i] = v
 	}
 	if b.Race > 0 && b.Race <= len(xxvc.Races) {
 		c.Race = xxvc.Races[b.Race-1]
