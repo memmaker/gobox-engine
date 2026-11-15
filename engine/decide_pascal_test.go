@@ -96,6 +96,7 @@ func TestDecideAgainstPascal(t *testing.T) {
 	}
 	defer f.Close()
 	cases, diffs := 0, 0
+	plainBow := map[int]string{} // aibow: the plain bow's vector by seed
 	sc := bufio.NewScanner(f)
 	for sc.Scan() {
 		if strings.HasPrefix(sc.Text(), "#") {
@@ -184,6 +185,14 @@ func TestDecideAgainstPascal(t *testing.T) {
 			e.state().CursedAlignment(c, &rules1e.Affect{Item: it}, 0)
 			got = fmt.Sprintf("%d %d", c.HP, it.Readied)
 		case "aibow":
+			// extra (365b9eb4, CHANGES-FROM-ORIGINAL.md): a bow is readied in the
+			// Launcher slot and takes no hand, so a cursed one no longer holds the
+			// weapon hand: its turn is the plain bow's, not the Pascal's
+			if k[1] == 0 {
+				plainBow[k[0]] = want
+			} else {
+				want = plainBow[k[0]]
+			}
 			items := e.state().Items
 			e.state().Items = append(slices.Clone(items), rules1e.ItemBase{Range: 5, Usage: 9}) // vecai BOW_BASE: range 5, fires arrows
 			rest := aiTurnVector(e, aiVaried{aHP: 10, aInt: 10, dMove: 12, startY: 10, bow: 1 + byte(k[1])}, k[0], 1, 40, 0, 0)

@@ -5,7 +5,6 @@ import (
 	"gobox/ui"
 	"image/color"
 	"os"
-	"strings"
 	"testing"
 )
 
@@ -47,13 +46,9 @@ func TestPhlanHistory(t *testing.T) {
 		if len(texts) != 1 || len(texts[0].Paras) < 2 || len(c) > 0x24 {
 			t.Fatalf("%q: missing or its title is too long", c)
 		}
-		for n := 0; ; n++ { // a page with no blank line holds a paragraph longer than it
+		for n := 0; ; n++ { // a page where no paragraph starts goes on with one longer than a page
 			pg, _ := ui.JournalPage(c, texts, n, 0, 40, 25, [16]color.RGBA{}, nil)
-			blank := false
-			for _, l := range pg.Lines {
-				blank = blank || len(l) == 0 || strings.TrimSpace(l[0].Text) == ""
-			}
-			if !blank {
+			if len(ui.SpeakKeys(texts, nil, n, 40, 25)) == 0 {
 				t.Errorf("%q: paragraph longer than a page on page %d", c, n)
 			}
 			if n >= pg.Pages-1 {

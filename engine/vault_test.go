@@ -35,6 +35,7 @@ func TestVault(t *testing.T) {
 	if st.Purse.Gold != gold {
 		t.Errorf("the vault's money was banked on opening: gold %d, was %d", st.Purse.Gold, gold)
 	}
+	taken, kept := e.heldOf(e.goods()[0]).Type, e.heldOf(e.goods()[1]).Type // by the handle: the screen lists them in its own order
 	if _, err := e.doNow(game.Take{Item: e.goods()[0]}); err != nil {
 		t.Fatal(err)
 	}
@@ -75,8 +76,8 @@ func TestVault(t *testing.T) {
 	}
 	// the taken item was the member's first, so it is the one deposited, last in the file
 	left := rules1e.ReadItems(b[vaultCoins*4:]) // the shown name is not the record's: compare types
-	if len(left) != 2 || left[0].Type != items[1].Type || left[1].Type != items[0].Type {
-		t.Errorf("vault.dat holds %v, want the arrow not taken, then the javelin deposited", left)
+	if len(left) != 2 || left[0].Type != kept || left[1].Type != taken {
+		t.Errorf("vault.dat holds %v, want the item not taken (type %d), then the taken one deposited (type %d)", left, kept, taken)
 	}
 	e.push(cont{kind: kNop})
 	e.Start(e.Vault) // reopened: the money is still there, and Take banks it

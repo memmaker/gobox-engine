@@ -64,10 +64,8 @@ func TestCotabArm(t *testing.T) {
 	if len(arm.Frames) != 3 || len(arm.Delays) != 3 || slices.Equal(arm.Frames[0].Pixels, arm.Frames[1].Pixels) {
 		t.Fatalf("arm frames %d, delays %v: want 3 different frames", len(arm.Frames), arm.Delays)
 	}
-	engine.DOSArt.Store(!engine.DOSArt.Load())
-	defer engine.DOSArt.Store(!engine.DOSArt.Load())
-	x, _ := eng.State().(game.Scene)
-	if x.Picture == nil || slices.Equal(x.Picture.Pixels, arm.Picture.Pixels) {
-		t.Error("the other art (F12) leaves the waiting page's picture as it was")
+	// State is art-independent: the picture carries the other art (F12) as its twin, the front picks
+	if alt := arm.Picture.Alt; alt == nil || slices.Equal(alt.Pixels, arm.Picture.Pixels) {
+		t.Error("the waiting page's picture has no twin in the other art (F12)")
 	}
 }

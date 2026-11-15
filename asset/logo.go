@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"image/draw"
 )
 
 // LogoCut says how a menu's lettering is cut out of a title picture (EGA
@@ -62,6 +61,10 @@ func CutLogo(pix []uint8, w int, lc LogoCut) (image.Image, error) {
 		return nil, fmt.Errorf("logo cut %+v finds no lettering in the %d-wide picture", lc, w)
 	}
 	cut := image.NewRGBA(image.Rect(0, 0, r.Dx(), r.Dy()))
-	draw.Draw(cut, cut.Bounds(), out, r.Min, draw.Src)
+	for y := range r.Dy() { // copied by hand: the engine side imports no drawing package (game's TestEngineDrawsNothing)
+		for x := range r.Dx() {
+			cut.SetRGBA(x, y, out.RGBAAt(r.Min.X+x, r.Min.Y+y))
+		}
+	}
 	return cut, nil
 }

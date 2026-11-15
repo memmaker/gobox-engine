@@ -162,18 +162,12 @@ func TestFleeOffEdge(t *testing.T) {
 	t.Skip("never reached the edge")
 }
 
-// TestVerbOrder: the fight bar shows the original's verbs without View and
-// Aim (removed at Felix's request); Aim keeps its A key.
+// TestVerbOrder: POR sets no VerbOrder, so the fight bar keeps gobox's menu
+// order (Move Attack Ranged Guard Cast Items Maneuver Turn Bandage Wait
+// Quick Flee End); a trimmed order left Attack, Guard and Wait behind End.
 func TestVerbOrder(t *testing.T) {
-	d := testEngine(t).gameData
-	want := []string{"Move", "Use", "Cast", "Turn", "Quick", "Done"}
-	if !slices.Equal(d.VerbOrder, want) {
-		t.Errorf("VerbOrder %v, want %v", d.VerbOrder, want)
-	}
-	for _, v := range turnBar { // every shown bar verb has its place
-		if v.o.Label != "Aim" && !slices.Contains(want, v.o.Label) {
-			t.Errorf("%s not in VerbOrder", v.o.Label)
-		}
+	if d := testEngine(t).gameData; len(d.VerbOrder) != 0 {
+		t.Errorf("VerbOrder %v, want none", d.VerbOrder)
 	}
 }
 
