@@ -17,8 +17,8 @@ its own; else the generic question window). Drawing and answering both go by it.
 - [x] B: an answer (ActOK, ActChoose, ActYes, ActNo, ActText) is dropped while the
       game's question is unseen (`Presenter.unseen`), in `Presenter.send`
 - [x] D: invariant test over every dev scene: no state with an unseen question
-- [ ] C: `askOf` draws every question no screen claims (no mode whitelist)
-- [ ] Full suites (engine, ui, cmd/gobox) once at the end
+- [x] C: `askOf` draws every question no screen claims (no mode whitelist)
+- [x] Full suites: ui, cmd/gobox pass after C; engine last run before B (B, D, C touch ui only). gate.sh not usable: "games[@]: unbound variable" (finds no game repo)
 
 ## Detect the class elsewhere
 `go test ./ui -run TestNoUnseenQuestion` (D). By hand: a state whose pending ask is

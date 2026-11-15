@@ -253,17 +253,31 @@ func (r *frontState) askOf(ps game.State) *FrontAsk {
 	return nil
 }
 
-// claimed: a screen of its own shows ps's question pending (the party
-// menu, camp, the temple, the shop, the items, the treasure, training), so
-// the question window does not. One say for drawing (askOf) and answering
-// (Presenter.unseen): a question neither claimed nor drawn takes no answer.
+// claimed: a screen of its own shows ps's question pending, so the
+// question window does not. Every screen that does is named here; any
+// other question is the window's, whatever the mode (no list of modes to
+// keep). One say for drawing (askOf) and answering (Presenter.unseen): a
+// question neither claimed nor drawn takes no answer.
 func (r *frontState) claimed(ps game.State, mode game.Mode, pending *game.Ask) bool {
 	services, _ := templeOf(ps)
 	menu, _ := PartyMenu(mode, trainingOf(ps), pending, false)
-	if menu != nil || mode == game.ModeCamp || services != nil || shopOf(ps) != nil || r.inventoryKind(ps) != invNone || lootOf(ps) != nil || trainingOf(ps) != nil {
+	sc, _ := ps.(game.Scene)
+	_, fight := ps.(game.Fighting)
+	switch {
+	case menu != nil, mode == game.ModeCamp, services != nil, shopOf(ps) != nil, trainingOf(ps) != nil: // the party menu, camp, the temple, the shop, training
 		return true
+	case r.inventoryKind(ps) != invNone, lootOf(ps) != nil: // the items, the treasure
+		return true
+	case mode == game.ModeCreate: // the creation sheet asks its step's (draftAsk)
+		return true
+	case fight && pending.Kind == game.Square: // the board takes the square
+		return true
+	case sc.Kind == game.SceneScreen && sc.Screen != nil: // a typed screen answers by its own keys
+		return true
+	case pending.Kind == game.Continue: // nothing to choose: a message only where a place has no screen of its own, else the view under it goes on
+		return mode != game.ModeParty && (mode < game.ModeCamp || mode > game.ModeLoot)
 	}
-	return mode != game.ModeParty && (mode < game.ModeCamp || mode > game.ModeLoot) // the other modes' screens (the view, the fight, the creation sheet, a scene) show theirs
+	return false
 }
 
 // unseen: the game asks a question that is on no screen, not even the
