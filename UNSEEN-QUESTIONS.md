@@ -23,7 +23,7 @@ its own; else the generic question window). Drawing and answering both go by it.
 ## Round 2: close the gaps
 - [x] 1: Enter / "any key" (ActOK) never chooses: Game.Answer drops it on a yes/no or
       a choice of several (TestOKNeverChooses). No exemption for "press a key" needed.
-- [ ] 2: "seen" is a fact, not a promise: drawing a menu records the question it
+- [x] 2: "seen" is a fact, not a promise: drawing a menu records the question it
       showed this frame; `unseen` compares the game's question with the one recorded
 - [ ] 3: the invariant on every frame of every headless test (hook in Front.Frame),
       and TestNoUnseenQuestion over cotab, pod, sotsb too

@@ -56,6 +56,7 @@ type layouts struct {
 	page      memo[laidKey, *laidPage]        // the text page laid out (shown.go)
 	music     memo[uiKey, string]             // the own music's trigger playing, wanted on the state up (Front.Draw)
 	ask       memo[uiKey, *FrontAsk]          // the state's question, or the door's menu
+	asks      memo[uiKey, string]             // the game's question that wants an answer, named (asksID)
 	training  memo[uiKey, *FrontTraining]
 	flags     memo[flagsKey, *game.Flags]
 }

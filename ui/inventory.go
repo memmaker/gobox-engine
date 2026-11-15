@@ -212,10 +212,15 @@ func (p *Presenter) Actions() []Action {
 		p.sendA(a)
 	}
 	var as []Action
+	unseen := p.unseen()
 	for _, a := range p.inv.acts { // the screens' own (the inventory's, a list's) meet the presenter's questions and rule calls too
-		if !p.slotAct(a) {
-			as = append(as, a)
+		if p.slotAct(a) {
+			continue
 		}
+		if unseen && (a.Kind == ActOK || a.Kind == ActChoose || a.Kind == ActYes || a.Kind == ActNo) { // no answer to a question of the game's that the last frame did not show
+			continue
+		}
+		as = append(as, a)
 	}
 	p.inv.acts = nil
 	return as

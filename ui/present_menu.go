@@ -47,6 +47,7 @@ func (p *Presenter) drawMenuIcons(dst *gpu.Image, glyph func(byte) [8]byte, titl
 	if p.menuGrey {
 		st.Tiles = p.border.val.grey
 	}
+	p.asksDrawn = true
 	p.menuRects = p.mc.Draw(dst, st, title, items, keys, off, icons, sel, k, cx, top, p.menuRects[:0])
 }
 

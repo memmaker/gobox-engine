@@ -94,6 +94,8 @@ type Presenter struct {
 	noMenu      bool                               // nothing to pick: any click answers
 	pointer     image.Point                        // the mouse, as Hover last saw it (keys move the highlight while it rests)
 	mc          MenuCanvas                         // the vertical menu's images (ui.MenuCanvas.Draw)
+	asksDrawn   bool                               // this frame drew choices: a menu, a question, a screen's rows, the fight's board
+	seenAsk     string                             // the game's question the last frame showed (asksID; "": none), markSeen
 	battle      combat.Presenter                   // the combat map in 3D
 	mapBottom   int                                // screen rows above this are the 3D map
 	fight       bool                               // the last frame was the 3D combat map
@@ -195,6 +197,8 @@ type Presenter struct {
 // (zero when it is not on screen: the mouse then points at nothing).
 func (p *Presenter) Draw(dst *gpu.Image, note Note) Rect {
 	p.sync()
+	p.asksDrawn = false
+	defer p.markSeen()
 	p.scr.at, p.scr.pw, p.scr.ph = Rect{}, 0, 0                                                 // drawPage sets them: no page drawn, none to map the pointer on
 	if d, ok := p.Snd.(*audio.Driver); ok && p.AdLib != nil && p.AdLib.SID() != Host.SIDMusic { // the Music card option
 		d.Do(func() { p.AdLib.SetSID(Host.SIDMusic) })
@@ -315,6 +319,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 		p.battle.Glyph, p.battle.K = note.Glyph, int(scale(dst))
 		p.syncBattle()
 		p.battle.Draw(dst, p.fightBoard)
+		p.asksDrawn = true // the board and its bar show the fight's question (a square to take)
 		p.drawFight(dst, note)
 		if p.view != nil {
 			p.drawOptions(dst) // the Esc menu over the battle
@@ -517,7 +522,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 			names = append(names, m.Name)
 		}
 		p.drawMenu(dst, note.Glyph, strings.TrimSpace(p.askMenu().Prompt), names, nil, nil, p.selectedIndex(), mk, cx, b.Dy()/2-int(mk*float64(len(names)+4)*4))
-	} else if ask { // the question over the line being typed, its cursor blinking
+	} else if p.typingAsk() != nil { // the question over the line being typed, its cursor blinking; a line whose question is the text box's own (a script's password): the line alone under it, never typed unseen
 		p.drawTyping(dst, note, mk, cx, picBottom+int(pk*4))
 	} else if p.askList() != nil && p.askMenu() != nil { // a list and its question (list.go)
 		p.menu = false
@@ -854,7 +859,7 @@ func (p *Presenter) seqMusic(cues []Cue) {
 // drawTyping draws the question over the line being typed, its cursor
 // blinking, in the middle of dst, never above floor (under a picture).
 func (p *Presenter) drawTyping(dst *gpu.Image, note Note, mk float64, cx, floor int) {
-	p.menu = false
+	p.menu, p.asksDrawn = false, true
 	t, w := p.typingAsk().Text, min(p.typingAsk().Max, 24)
 	c := len(t)
 	if p.typing {

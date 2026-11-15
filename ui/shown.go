@@ -6,6 +6,7 @@
 package ui
 
 import (
+	"fmt"
 	"image/color"
 	"slices"
 	"time"
@@ -280,16 +281,52 @@ func (r *frontState) claimed(ps game.State, mode game.Mode, pending *game.Ask) b
 	return false
 }
 
-// unseen: the game asks a question that is on no screen, not even the
-// question window's (bug class: any key answered the hall's undrawn "Pick
-// New Class:"). A Continue is nothing to choose and needs no window.
+// unseen: the game asks a question the last frame did not show (bug class:
+// any key answered the hall's undrawn "Pick New Class:"). Shown is a fact
+// the drawing left (markSeen), not a screen's promise to draw. Where there
+// is nothing to choose (a Continue, one way on) nothing need be shown.
 func (p *Presenter) unseen() bool {
+	id := p.asksID()
+	return id != "" && id != p.seenAsk
+}
+
+// stuck: a dead screen. The game's question is unseen and nothing of
+// gobox's own is over it to act on instead (a sheet, the items, a page, a
+// picker, a question of the presenter's), nor is anything playing. Every
+// headless frame is checked for it (OnStuck).
+func (p *Presenter) stuck() bool {
+	own := p.sheetShown() || p.inventoryUp() || p.pageScreen() || p.pickerOver() || p.creating || p.q != nil ||
+		p.overview || p.pager != nil || p.fullMap != nil || p.clue != nil || p.journal.open
+	playing := p.Playing() || p.sequenceUp() != "" || p.introUp() != nil || p.backdrop
+	return p.unseen() && !own && !playing
+}
+
+// asksID names the game's question that wants an answer chosen ("": none):
+// a new question has a new name.
+func (p *Presenter) asksID() string {
 	if p.eng == nil {
-		return false
+		return ""
 	}
-	r, ps := p.eng.r, p.state()
-	a := r.asking(ps)
-	return a != nil && a.Kind != game.Continue && !r.claimed(ps, r.modeOf(ps), a) && p.askUp() == nil
+	return p.lay.asks.get(p.uiKey(), func() string {
+		a := p.eng.r.asking(p.state())
+		if a == nil || a.Kind == game.Continue || a.Kind == game.Choice && len(a.Options) <= 1 {
+			return ""
+		}
+		id := fmt.Sprint(a.Kind, "|", a.Prompt)
+		for _, o := range a.Options {
+			id += "|" + o.Label
+		}
+		return id
+	})
+}
+
+// markSeen ends a frame: the game's question is seen when the frame drew
+// choices (asksDrawn: a menu, a question, a screen's own rows, the board).
+func (p *Presenter) markSeen() {
+	p.seenAsk = ""
+	if p.asksDrawn {
+		p.seenAsk = p.asksID()
+	}
 }
 
 // door is the locked door the party stands at (nil: none).

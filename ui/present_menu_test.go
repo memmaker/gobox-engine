@@ -129,6 +129,8 @@ func TestMemberKey(t *testing.T) {
 func askedOn(a *game.Ask) *Presenter {
 	p, _ := presenterOn(game.Scene{})
 	p.eng.r.refusalAsk = a
+	p.asksDrawn = true // as a frame that showed it leaves it: an unseen question takes no answer
+	p.markSeen()
 	return p
 }
 

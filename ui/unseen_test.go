@@ -42,7 +42,7 @@ func TestNoUnseenQuestion(t *testing.T) {
 					f.Frame(flowW, flowH)
 					f.Tick()
 				}
-				if f.P.unseen() {
+				if f.P.stuck() {
 					st := eng.State()
 					t.Errorf("%s, %d keys %#x in: %T asks %+v on no screen", name, step, key, st, f.Game.r.asking(st))
 					break
