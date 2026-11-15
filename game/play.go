@@ -39,6 +39,13 @@ type Slots interface {
 	LoadSlot(n int) error
 }
 
+// SaveLevels is what a game may also implement to tell, of a save of its
+// own (Save's bytes), the highest level of a member of its party (0: not
+// known): gobox shows it in the slot list.
+type SaveLevels interface {
+	SaveLevel(save []byte) int
+}
+
 // State is one situation the party is in. The set is closed: gobox handles
 // every type, and a new situation means a new type here first.
 type State interface{ state() }

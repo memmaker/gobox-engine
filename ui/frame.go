@@ -17,29 +17,30 @@ import (
 // the pacing and the toasts. Only the front writes it; game facts never
 // go here (they are game.State's).
 type UI struct {
-	grid       image.Point    // the page's size in cells (ActResize); 40x25 at least
-	items      game.ItemsUp   // the inventory screen up, gobox's (OpenItems)
-	itemsOf    int            // the member whose items are up (OpenItems), -1: the acting or selected one
-	ask        *game.Ask      // gobox's own question up (a maneuver pick), nil none
-	moves      []game.Action  // the actions ask's options stand for
-	refusalAsk *game.Ask      // a Refusal's question put instead (answered by its options' Do)
-	aim        *squareAim     // an Aimed action's squares being picked
-	cursor     rules.BoardPos // the free cursor's square
-	read       *game.Read     // the handout up, kept so the pointer holds while it does
-	sheet      int            // the member whose sheet is up, -1 none
-	lookSheet  int            // the look-only sheet up (a fight's View): member+1, 0 none
-	tiles      bool           // the weapon picker up is the pool bodies by original ref (TilePicker)
-	speedUp    bool           // the Speed menu is up (SpeedMenu)
-	speed      int            // the game speed (SetSpeed, 0-9): a fight's moment holds speed × 100 ms
-	rest       time.Duration  // camp's rest still to go, a chunk per Step (PaceRest)
-	walk       *walking       // the auto-walk under way, a square per walkPace (PaceWalk)
-	seq        uint64         // counts the changes: the front redraws on a new one
-	log        []string       // the fight's message log, from the outcomes' text
-	note       game.Note      // the status line's toast: the last refusal
-	refreshed  *refreshed     // camp's Fix just done: the fade to black and its words (drawRefreshed)
-	toast      FrontNote      // the front's own toast (Added to journal, a refusal over the items)
-	lore       int            // journal notes seen (State.Lore), +1; 0: none counted yet
-	title      titleStep      // the title as gobox steps it
+	grid       image.Point           // the page's size in cells (ActResize); 40x25 at least
+	items      game.ItemsUp          // the inventory screen up, gobox's (OpenItems)
+	itemsOf    int                   // the member whose items are up (OpenItems), -1: the acting or selected one
+	ask        *game.Ask             // gobox's own question up (a maneuver pick), nil none
+	moves      []game.Action         // the actions ask's options stand for
+	refusalAsk *game.Ask             // a Refusal's question put instead (answered by its options' Do)
+	aim        *squareAim            // an Aimed action's squares being picked
+	cursor     rules.BoardPos        // the free cursor's square
+	read       *game.Read            // the handout up, kept so the pointer holds while it does
+	sheet      int                   // the member whose sheet is up, -1 none
+	lookSheet  int                   // the look-only sheet up (a fight's View): member+1, 0 none
+	tiles      bool                  // the weapon picker up is the pool bodies by original ref (TilePicker)
+	speedUp    bool                  // the Speed menu is up (SpeedMenu)
+	speed      int                   // the game speed (SetSpeed, 0-9): a fight's moment holds speed × 100 ms
+	rest       time.Duration         // camp's rest still to go, a chunk per Step (PaceRest)
+	walk       *walking              // the auto-walk under way, a square per walkPace (PaceWalk)
+	seq        uint64                // counts the changes: the front redraws on a new one
+	log        []string              // the fight's message log, from the outcomes' text
+	levels     map[string]savedLevel // gobox's slot files' party levels, by file (saveLevel)
+	note       game.Note             // the status line's toast: the last refusal
+	refreshed  *refreshed            // camp's Fix just done: the fade to black and its words (drawRefreshed)
+	toast      FrontNote             // the front's own toast (Added to journal, a refusal over the items)
+	lore       int                   // journal notes seen (State.Lore), +1; 0: none counted yet
+	title      titleStep             // the title as gobox steps it
 }
 
 // titleStep is where gobox has the title: its step, the credits and their page.

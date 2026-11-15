@@ -77,3 +77,27 @@ func TestFixAtOnce(t *testing.T) {
 		t.Fatalf("after Fix: %T, want camp", e.build())
 	}
 }
+
+// TestSaveLevel: of a save as Save gives it the game tells the highest
+// level of a member of its party (gobox's slot list shows it).
+func TestSaveLevel(t *testing.T) {
+	e := quickStarted(t)
+	e.ext.inGame = true // quickStarted skips the game start; canSave needs a game in play
+	want := 0
+	for _, c := range e.state().Party {
+		for _, l := range c.Levels {
+			want = max(want, int(int8(l)))
+		}
+	}
+	b, err := e.Save()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := e.SaveLevel(b); got != want || want == 0 {
+		t.Fatalf("SaveLevel %d, the party's highest level %d", got, want)
+	}
+	if got := e.SaveLevel([]byte("no save")); got != 0 {
+		t.Fatalf("SaveLevel of no save: %d", got)
+	}
+	var _ game.SaveLevels = e
+}

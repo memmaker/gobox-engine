@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"math"
 	"slices"
+	"strconv"
 	"strings"
 
 	"gobox/gpu"
@@ -135,18 +136,14 @@ func (p *Presenter) screenItems() (string, []MenuRow) {
 			do := func() { p.typeLine("Save as", "", 20, ActSaveSlot, 0) }
 			it = append(it, MenuRow{Text: "New Slot", Key: 'N', Do: do})
 		}
-		w, lc := slotCols(max(p.cells().X, 40))
+		w, lc := slotCols(max(p.cells().X, 40), sl.Times)
 		for i, name := range sl.Names {
 			lv := ""
 			if sl.Levels[i] > 0 {
-				lv = fmt.Sprintf("%3d", sl.Levels[i])
+				lv = strconv.Itoa(sl.Levels[i])
 			}
-			right := sl.Times[i]
-			if lv != "" {
-				right = lv + " " + right // a space always: a long date ran into the level ("5NOV 6 2026")
-			}
-			nw := max(min(lc, w-len(right)-1), 1) // the name gives way to what is right of it
-			row := fmt.Sprintf("%-*s%*s", nw, upTo(name, nw-1), w-nw, right)
+			// the name, the level under its heading and right aligned with it, the date ending the row
+			row := fmt.Sprintf("%-*s%*s%*s", lc, upTo(name, lc-1), slotLevelW, lv, w-lc-slotLevelW, sl.Times[i])
 			it = append(it, MenuRow{Text: row, Key: 0, Do: func() {
 				if !sl.CanSave {
 					named(ActLoad, name)()
@@ -401,11 +398,20 @@ func (p *Presenter) screenKeys(items []MenuRow) []byte {
 	return k
 }
 
-// slotCols is the slot rows' text width on a page cols wide and the
-// level column's start (5 wide, "Level"); the date ends the row.
-func slotCols(cols int) (w, lc int) {
+// slotLevelW is the level column's width: its heading's, "Level".
+const slotLevelW = len("Level")
+
+// slotCols is the slot rows' text width on a page cols wide and the level
+// column's start (slotLevelW wide, under its heading): the middle of the
+// row, further left where the longest of the dates times, which end the
+// row, needs the room (a space between them always).
+func slotCols(cols int, times []string) (w, lc int) {
 	w = cols - 6
-	return w, w/2 - 2
+	date := 0
+	for _, t := range times {
+		date = max(date, len(t))
+	}
+	return w, max(min(w/2-2, w-slotLevelW-1-date), 1)
 }
 
 // slotList draws the save slots' list on the page itself, inside the

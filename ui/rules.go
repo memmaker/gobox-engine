@@ -1547,6 +1547,34 @@ func (r *frontState) saves() []game.SaveSlot {
 	return heldValue(&r.held, slotsKey{}, r.readSaves)
 }
 
+// saveLevel is the highest level of a member of the party in gobox's slot
+// file, as the game reads it (game.SaveLevels; 0: it does not, or not this
+// one), read once for the file as it was written at.
+func (r *frontState) saveLevel(file string, at time.Time) int {
+	gl, ok := r.g.(game.SaveLevels)
+	if !ok {
+		return 0
+	}
+	if l, ok := r.levels[file]; ok && l.at.Equal(at) {
+		return l.level
+	}
+	lv := 0
+	if b, err := os.ReadFile(filepath.Join(r.dir, file)); err == nil {
+		lv = gl.SaveLevel(b)
+	}
+	if r.levels == nil {
+		r.levels = map[string]savedLevel{}
+	}
+	r.levels[file] = savedLevel{at, lv}
+	return lv
+}
+
+// savedLevel is a slot file's level as read when the file was written at.
+type savedLevel struct {
+	at    time.Time
+	level int
+}
+
 // slotsKey is saves' value held: the slot screen lists it every frame.
 type slotsKey struct{}
 
@@ -1575,7 +1603,7 @@ func (r *frontState) ownSaves() []game.SaveSlot {
 		if err != nil {
 			continue
 		}
-		sl = append(sl, slot{game.SaveSlot{Name: n, Time: fi.ModTime().Format("2006-01-02 15:04")}, fi.ModTime()})
+		sl = append(sl, slot{game.SaveSlot{Name: n, Time: fi.ModTime().Format("2006-01-02 15:04"), Level: r.saveLevel(e.Name(), fi.ModTime())}, fi.ModTime()})
 	}
 	slices.SortFunc(sl, func(a, b slot) int { return b.t.Compare(a.t) })
 	out := make([]game.SaveSlot, len(sl))

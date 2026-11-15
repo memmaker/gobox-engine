@@ -112,19 +112,45 @@ type slotLevelAt struct {
 // slotLevel is the highest class level of a member of the slot's party
 // (0: none read).
 func (e *Engine) slotLevel(name string) (lv int) {
-	e.inSlot(name, func() {
-		f, err := e.readSlotSave()
-		if err != nil {
-			return
-		}
-		for _, nm := range f.Party {
-			if b, err := os.ReadFile(e.savePath(nm + ".sav")); err == nil {
-				for _, l := range rules1e.SheetOf(b).Levels {
-					lv = max(lv, int(int8(l)))
-				}
+	e.inSlot(name, func() { lv = e.partyLevelHere() })
+	return lv
+}
+
+// partyLevelHere is the highest class level of a member of the party saved
+// in the save directory (0: none read).
+func (e *Engine) partyLevelHere() (lv int) {
+	f, err := e.readSlotSave()
+	if err != nil {
+		return 0
+	}
+	for _, nm := range f.Party {
+		if b, err := os.ReadFile(e.savePath(nm + ".sav")); err == nil {
+			for _, l := range rules1e.SheetOf(b).Levels {
+				lv = max(lv, int(int8(l)))
 			}
 		}
-	})
+	}
+	return lv
+}
+
+// SaveLevel (game.SaveLevels) is partyLevelHere of a save as Save gave it:
+// its files laid out in a folder of their own for the reading.
+func (e *Engine) SaveLevel(save []byte) (lv int) {
+	var files map[string][]byte
+	if err := gob.NewDecoder(bytes.NewReader(save)).Decode(&files); err != nil {
+		return 0
+	}
+	dir, err := os.MkdirTemp("", "gobox-save")
+	if err != nil {
+		return 0
+	}
+	defer os.RemoveAll(dir)
+	for name, b := range files {
+		if err := os.WriteFile(filepath.Join(dir, filepath.Base(name)), b, 0o600); err != nil {
+			return 0
+		}
+	}
+	e.inDir(dir, func() { lv = e.partyLevelHere() })
 	return lv
 }
 

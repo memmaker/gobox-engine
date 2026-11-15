@@ -181,7 +181,7 @@ func (p *Presenter) screenPage() *cellPage {
 	if sl != nil {
 		c.box(1, 1, c.cols-2, c.rows-2, inkWhite, "Saved Games")
 		if len(sl.Names) > 0 { // the column heads above the rows (slotList: text from column 3)
-			w, lc := slotCols(c.cols)
+			w, lc := slotCols(c.cols, sl.Times)
 			h := inkWhite
 			c.str(3, 2, h, "Name")
 			c.str(3+lc, 2, h, "Level")
