@@ -142,5 +142,5 @@ func (e *Engine) runs(row []textCell) []PaneRun {
 // finale's pictures, or help, the journal, the maps over it).
 func (e *Engine) adventure() bool {
 	sheet := e.view.on || e.iconEd != nil // the sheet (and its pickers) and the icon editor (also opened from camp's menus) are pages of their own over the world
-	return e.phase != rules.PhaseMenu && !sheet
+	return e.phase != rules.PhaseMenu && e.phase != rules.PhaseFinale && !sheet
 }

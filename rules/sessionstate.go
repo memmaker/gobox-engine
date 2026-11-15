@@ -13,6 +13,7 @@ const (
 	PhaseAreaStart               // an area starting
 	PhaseFight                   // a fight (its setup too)
 	PhaseAfterFight              // after a fight, its results
+	PhaseFinale                  // the finale's pictures: nothing sets it here, a save of the original may hold it
 )
 
 // EnterPhase hands the ruleset the phase the game is in now.
