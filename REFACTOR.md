@@ -24,7 +24,7 @@
 
 ## Checklist
 
-### Order of work (Felix, 2026-11-15): R2, then G2 (b, c, e), then B1, then G3
+### Order of work (Felix, 2026-11-15): R2, then G2 (b, c), then B1, then G3
 
 Handover: each item below is one commit or one track (`foldwt.sh new <track>`, landed with
 `foldwt.sh land <track>`, which gates). Sonnet agents take the mechanical items, one track each, on
@@ -89,7 +89,10 @@ only shrink), `game/noui_test.go` (no drawing package, no screen position), `ui`
     `TestBuildReadsNoDisk` (party menu, hall, shop, loot, fight; not the overland),
     `TestRosterListRefreshed`. Noted, not looked into: Quick Start's per-member save leaves one
     name in charlist.txt
-  - [ ] G2e the mode is a value the engine sets where the screen changes, not derived
+  - (G2e, the mode as a stored value: dropped. `stateMode()` is a pure function of state the
+    engine owns already (what it waits on: `pending`, the top continuation, `menu.on`, the
+    question, `ext.intro`); a stored mode beside those would be a second source of the same fact.
+    Making that wait state itself one value is the engine's continuation machinery, not this item)
   - (G2d, one copy per thing inside the engine: not done on its own. The copy chains
     `members()`/`partyState()`, `sheetPage()`/`gameSheetPage()`, `battle()`/`fightState()` are
     deleted whole by G3; shortening them first is work thrown away)
