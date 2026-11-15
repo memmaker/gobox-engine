@@ -31,7 +31,9 @@ Handover: each item below is one commit or one track (`foldwt.sh new <track>`, l
 disjoint files; their work is read and gated before it lands. Guards that keep rules and UI out of
 the engine: `engine/importguard_test.go` (no ruleset import; a list of the files still to fix that may
 only shrink), `game/noui_test.go` (no drawing package, no screen position), `ui` never imports
-`engine` (T1). A new concern in the engine must fail one of them.
+`engine` (T1). A new concern in the engine must fail one of them. An agent stages the files it
+changed by name, never `git add -A` (a test's output was committed that way), and the gate fails
+when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
 
 - [x] R2 `engine` reaches the rules only through `rules` (2026-11-15): no non-test file of `engine`
   imports a ruleset; `engine/importguard_test.go` forbids it, with no list of exceptions (the guard
@@ -185,7 +187,8 @@ only shrink), `game/noui_test.go` (no drawing package, no screen position), `ui`
     from the BR engines' rule code is listed; ruling per difference (default: open, ask Felix).
     Done (track b1d1): the package is `gobox/rulesxxvc` (50 files, identical but its import
     test); the three BR repos import it; gate.sh and foldwt.sh no longer know the old repo.
-    The directory ~/Projects/rulesxxvc is unused and still there: delete only when Felix says.
+    The old repo's directory is deleted (Felix, 2026-11-15); its history (38 commits, no remote)
+    is kept as ~/Projects/rulesxxvc-history.bundle.
     Found on the way (bug class: a test writes into its repo): BR1's and BR2's import tests
     decoded the art into `asset.Dir(dos)`, the repo's own art/, which `ImportArtIfStale` empties
     first: every run deleted buckrogers-go's 46 tracked pictures (restored from git; the tests

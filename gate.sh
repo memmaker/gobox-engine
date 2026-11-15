@@ -23,7 +23,25 @@ for repo in gobox-engine ${games[@]+"${games[@]}"}; do # no game: an empty list,
   mkdir "$out/$repo"
   tree="$(git -C "$projects/$repo" write-tree)"
   git -C "$projects/$repo" archive "$tree" | tar -x -C "$out/$repo"
+  git -C "$projects/$repo" ls-tree -r --name-only "$tree" >"$out/$repo.tracked"
 done
+# A test must not write into its repo: after the tests, no tracked file of an export may be gone or
+# changed (unchanged_exports). Bug class: buckrogers-go's import test emptied the repo's art/, 46 tracked
+# pictures, on every run, and an agent committed it. The marker is older than anything a test writes.
+touch "$out/.exported"
+sleep 1
+unchanged_exports() {
+  local repo f bad=0
+  for repo in gobox-engine ${games[@]+"${games[@]}"}; do
+    while IFS= read -r f; do
+      if [ ! -e "$out/$repo/$f" ] && [ ! -L "$out/$repo/$f" ]; then echo "a test deleted $repo/$f"; bad=1; fi
+    done <"$out/$repo.tracked"
+    while IFS= read -r f; do
+      if grep -Fxq -- "${f#"$out/$repo/"}" "$out/$repo.tracked"; then echo "a test changed $repo/${f#"$out/$repo/"}"; bad=1; fi
+    done < <(find "$out/$repo" -type f -newer "$out/.exported" -not -path "$out/$repo/data/*")
+  done
+  return $bad
+}
 # Tests that look at the other games (scripts/check-game-imports.sh) see these exports.
 export PROJECTS="$out"
 # Tests that find a sibling repo through $HOME/Projects (buckrogers bugclass_test, front sequence_test) see them too.
@@ -135,4 +153,5 @@ if [ -n "${GATE_ALL:-}" ] || git -C "$projects/gobox-engine" diff --cached --nam
     test_touched "$repo"
   done
 fi
+unchanged_exports || { echo "gate failed: tests wrote into the repos (above)"; exit 1; }
 echo "gate passed in ${SECONDS}s"
