@@ -26,6 +26,13 @@ func (e *Engine) overlandArt() map[string]game.Picture {
 			art["terrain/"+strconv.Itoa(id)] = gamePicture(p)
 		}
 	}
+	// the combat tiles, here and not put in by the fight's state: a map built
+	// anew while a board is still shown (a step's events playing) has them
+	for i, p := range e.combatTiles() {
+		if p.Pix != nil {
+			art[combatTileArt(i)] = gamePicture(p)
+		}
+	}
 	if im := e.icons[9][0]; im != nil {
 		for f := 0; f < 8; f += 2 {
 			art["marker/"+strconv.Itoa(f)] = gamePicture(e.picPix(im, 0, f > 3, nil))

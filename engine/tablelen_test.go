@@ -60,6 +60,10 @@ func TestFightArtResolves(t *testing.T) {
 						t.Fatalf("%s: tile %q not in Art()", sc, c.Tiles[q.Tile])
 					}
 				}
+				e.tilesChanged() // the art built anew with no fight state read after: the tiles stay (the walls went invisible)
+				if _, ok := e.Art()[c.Tiles[c.Squares[0].Tile]]; !ok {
+					t.Fatalf("%s: a rebuilt Art() lost the combat tiles", sc)
+				}
 				for _, f := range c.Clouds {
 					if f.Art.Pixels == nil {
 						t.Fatalf("%s: an effect at %d,%d has no picture", sc, f.X, f.Y)

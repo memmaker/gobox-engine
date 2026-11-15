@@ -4,7 +4,6 @@ import (
 	"cmp"
 	"math"
 	"slices"
-	"strconv"
 
 	"gobox/game"
 	"gobox/rules"
@@ -49,12 +48,10 @@ func (e *Engine) fightState() *game.Combat {
 			c.Squares = append(c.Squares, game.Ground{At: rules.BoardPos{X: x, Y: y}, Block: q.Wall, Height: q.Height, Tile: q.Tile, Crown: q.Crown})
 		}
 	}
-	art := e.overlandArt() // the map Art() gives: the tile set joins it
-	for i, p := range b.TilePix {
+	for i, p := range b.TilePix { // their pictures are Art()'s (overlandArt)
 		n := ""
 		if p.Pix != nil {
-			n = "combat/tile/" + strconv.Itoa(i)
-			art[n] = gamePicture(p)
+			n = combatTileArt(i)
 		}
 		c.Tiles = append(c.Tiles, n)
 	}

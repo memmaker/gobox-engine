@@ -498,7 +498,8 @@ func (e *RuleState) attackSlots(a, b *Character, w int) (done bool) {
 			acb.AttackSlot--
 		}
 		e.SlotShots[acb.AttackSlot]++
-		e.attackText(a, b, 3, (int(b.HP)+5)&0xFF, 1, 1)
+		slay := (int(b.HP) + 5) & 0xFF
+		e.attackText(a, b, 3, slay, slay, 1) // fixed: the original passed shown 1 (its text never prints it); the Attacked fact showed a kill as 1 point
 		e.removeInvisibility(a)
 		for s := 1; s <= 2; s++ {
 			a.Attacks[s-1] = 0

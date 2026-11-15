@@ -3,6 +3,7 @@ package engine
 import (
 	"image"
 	"slices"
+	"strconv"
 
 	"gobox/asset"
 	"gobox/rules"
@@ -26,12 +27,7 @@ func (e *Engine) battle() *Battle {
 	}
 	g := e.fact(rules.NoChar, rules.GroundFact{}).(rules.Ground)
 	b.Ground = g.Squares
-	b.TilePix = make([]Picture, 0x100)
-	for t, im := range e.sqrpaci {
-		for f := 0; im != nil && f < min(im.Count, 0x80); f++ {
-			b.TilePix[t*0x80+f] = e.tilePix(im, f, e.sqrpaci[0]) // its ground: 0 on DOS, a grey on the Amiga
-		}
-	}
+	b.TilePix = e.combatTiles()
 	active := rules.NoChar
 	if e.sel < e.partySize() {
 		active = e.partyIDs()[e.sel]
@@ -68,6 +64,20 @@ func (e *Engine) battle() *Battle {
 	}
 	return b
 }
+
+// combatTiles are the loaded tile sets' pictures by tile number (no Pix: none).
+func (e *Engine) combatTiles() []Picture {
+	px := make([]Picture, 0x100)
+	for t, im := range e.sqrpaci {
+		for f := 0; im != nil && f < min(im.Count, 0x80); f++ {
+			px[t*0x80+f] = e.tilePix(im, f, e.sqrpaci[0]) // its ground: 0 on DOS, a grey on the Amiga
+		}
+	}
+	return px
+}
+
+// combatTileArt is tile i's name in Art().
+func combatTileArt(i int) string { return "combat/tile/" + strconv.Itoa(i) }
 
 // picPix is frame f of im (or its DOS twin) as View pixels in the screen's
 // current palette (Ink; combat swaps colours 0 and 8), mirrored with
