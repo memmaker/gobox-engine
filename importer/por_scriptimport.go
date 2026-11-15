@@ -1,6 +1,7 @@
 package importer
 
 import (
+	"bytes"
 	"errors"
 	"gobox/asset/orig"
 	"gobox/ecl"
@@ -31,6 +32,9 @@ func writeScriptData(dir string) error {
 			return err
 		}
 		dst := filepath.Join(dir, filepath.FromSlash(p))
+		if have, err := os.ReadFile(dst); err == nil && bytes.Equal(have, b) {
+			return nil // as it is: not rewritten, so a reader beside this one (another test binary) never sees it cut short
+		}
 		if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
 			return err
 		}
