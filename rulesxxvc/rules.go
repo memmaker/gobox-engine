@@ -56,6 +56,10 @@ type Character struct {
 	Morale    int
 
 	Pilot bool // isPilot: picked to fly the party's ship
+
+	// Roster is the number of the character's roster file (rules.RosterID):
+	// the engine numbers a saved character once; 0 (NoRoster): not numbered yet.
+	Roster rules.RosterID `json:",omitempty"`
 }
 
 // team is C_Side.TEAM: the party's side, steered or not.
@@ -85,6 +89,14 @@ type Rules struct {
 	ship     *xxvc.ShipRecord // zone0 partyShip; nil until the first ship fight loads record 50
 	foeSaved savedFoe         // zone0's last enemy ship
 	space    *shipFight       // the ship fight going on
+
+	// The session the engine keeps through typed kinds (session.go).
+	party       []rules.CharID // the party in marching order (JoinParty); the others in chars are the roster's or a fight's
+	memberCount int32          // the party's count as the game record has it (Party[830]), not the list's length
+	acting      int            // the member the rules act for (ActFor), an index into party
+	clock       [clockUnits]int
+	seed        rules.RNG    // the stream the engine's calls without one roll from (SetSeed)
+	empty       rules.CharID // the placeholder of an empty party (EmptyMember); NoChar until asked
 }
 
 var _ rules.Rules = (*Rules)(nil)
@@ -162,7 +174,9 @@ func (r *Rules) Sheet(id rules.CharID) rules.Sheet {
 	}
 	s := rules.Sheet{Name: c.Name, Race: c.Race, Levels: map[rules.Class]int32{c.Career: int32(c.Level)},
 		HP: int32(c.HP), MaxHP: int32(c.MaxHP), Status: coreStatus[c.Status], Exp: c.Exp, Scores: map[rules.Ability]int32{},
-		Saves: map[rules.Save]int32{}, Skills: map[rules.Skill]int32{}}
+		Saves: map[rules.Save]int32{}, Skills: map[rules.Skill]int32{},
+		Classes: rules.ClassSet{c.Career}, AC: int32(c.ArmorClass[0]), RearAC: int32(c.ArmorClass[1]), Move: int32(c.Movement),
+		Health: health(c.Status)} // no THAC0 (BR's to-hit is AttackBonus), no age, no experience still to reach: 0
 	for a, v := range c.Scores {
 		s.Scores[a] = int32(v)
 	}
@@ -224,7 +238,7 @@ func (r *Rules) Check(q rules.Check, rng *rules.RNG) rules.Answer {
 		}
 		return a
 	}
-	return rules.Answer{}
+	return r.sessionCheck(q, rng)
 }
 
 // Save and Load are the characters and the purse, JSON.
@@ -235,10 +249,18 @@ type saved struct {
 	Purse rules.Copper
 	Ship  *xxvc.ShipRecord `json:",omitempty"`
 	Foe   savedFoe
+	// The session (session.go); absent in a save from before it.
+	Party  []rules.CharID `json:",omitempty"`
+	Count  int32          `json:",omitempty"`
+	Acting int            `json:",omitempty"`
+	Clock  [clockUnits]int
+	Seed   uint32
+	Empty  rules.CharID `json:",omitempty"`
 }
 
 func (r *Rules) Save() ([]byte, error) {
-	return json.Marshal(saved{r.chars, r.order, r.next, r.purse, r.ship, r.foeSaved})
+	return json.Marshal(saved{Chars: r.chars, Order: r.order, Next: r.next, Purse: r.purse, Ship: r.ship, Foe: r.foeSaved,
+		Party: r.party, Count: r.memberCount, Acting: r.acting, Clock: r.clock, Seed: r.seed.State, Empty: r.empty})
 }
 
 func (r *Rules) Load(b []byte) error {
@@ -247,6 +269,7 @@ func (r *Rules) Load(b []byte) error {
 		return err
 	}
 	r.chars, r.order, r.next, r.purse, r.ship, r.foeSaved = s.Chars, s.Order, s.Next, s.Purse, s.Ship, s.Foe
+	r.party, r.memberCount, r.acting, r.clock, r.seed, r.empty = s.Party, s.Count, s.Acting, s.Clock, rules.RNG{State: s.Seed}, s.Empty
 	if r.chars == nil {
 		r.chars = map[rules.CharID]*Character{}
 	}

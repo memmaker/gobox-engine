@@ -15,6 +15,9 @@ var ErrNoFact = errors.New("rulesxxvc: no such fact")
 // Fact is a script's read (eclvm.pas GetCharVar). KnownFact is BR 76+s, which
 // reads 128 or 0: whether the character has the skill.
 func (r *Rules) Fact(id rules.CharID, f rules.Fact) (rules.Value, error) {
+	if v, ok, err := r.factSession(id, f); ok {
+		return v, err
+	}
 	c := r.chars[id]
 	if c == nil {
 		if f == rules.FactActive {

@@ -4,9 +4,10 @@ package rules
 type SourceTable int
 
 const (
-	SourceMonsters SourceTable = iota // the monster archive of the set in play
-	SourceTreasure                    // the treasure archive of the set in play
-	SourceItems                       // the base item table
+	SourceMonsters   SourceTable = iota // the monster archive of the set in play
+	SourceTreasure                      // the treasure archive of the set in play
+	SourceItems                         // the base item table
+	SourceRuleTables                    // the ruleset's own tables, as its import wrote them (XXVc: xxvc.Tables)
 )
 
 // Source is where a ruleset reads its own tables from: the adventure's data

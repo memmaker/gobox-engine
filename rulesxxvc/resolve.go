@@ -9,6 +9,9 @@ import (
 
 // Resolve is the rules outside the board's moves: each case names its .pas.
 func (r *Rules) Resolve(s rules.Situation, a rules.Action, rng *rules.RNG) (rules.Outcome, error) {
+	if o, ok, err := r.resolveSession(a); ok {
+		return o, err
+	}
 	switch a := a.(type) {
 	case rules.EnterPhase:
 		return rules.Outcome{}, nil // the engine's phase: no XXVc rule differs by it
