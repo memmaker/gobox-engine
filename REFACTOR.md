@@ -163,7 +163,12 @@ only shrink), `game/noui_test.go` (no drawing package, no screen position), `ui`
       (BR1 4, BR2 3); byte destinations that must keep 8 bits (BR1 2 typed numbers, 77 possible
       wraps); BR2's two SaveTables (a debug poke of any Area byte; a write into a code table).
       The BR engines also lay a ship record over 4D00..4D6B and a foe summary over 4D6C..4D82.
-      RULING NEEDED (Felix): how the scratch zones are held (see the session's question)
+      RULING (Felix, 2026-11-15): typed cells everywhere; the two scratch zones are two declared
+      byte buffers (a layout field of raw bytes, read and written at the operand's width, as the
+      original); the ship record and the foe summary are bound to typed ship state; BR2's debug
+      poke of any Area byte is refused. Not: all of BR's memory as byte arrays; not: rewriting
+      the scripts at import.
+      Still to do here: BR2's layout; the layouts wired into the importer (with B1c)
     - [ ] B1b3 the store by dialect (16-bit cell, or the operand's width) as data of the Version
     - [ ] B1b4 BR's waits and frames as engine continuations; with B1f
     - [ ] B1b5 one random generator (`rules.RNG`); BR's seeded expectations derived again
