@@ -6,7 +6,7 @@ import (
 	"gobox/rules"
 )
 
-// TestBRStatusEncoding: BR's status byte both ways through the canonical SelStatusKind (setChar keeps v&127).
+// TestBRStatusEncoding: BR's status byte both ways through the canonical SelStatus (setChar keeps v&127).
 func TestBRStatusEncoding(t *testing.T) {
 	for st, b := range BRStatus {
 		k := Canonical("BrSelStatus", b, 0)

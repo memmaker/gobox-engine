@@ -9,11 +9,6 @@ import (
 // TestPodCodecs round-trips pod's encodings on the original's values.
 func TestPodCodecs(t *testing.T) {
 	e := &Engine{}
-	for g, c := range map[int64]int64{0: 1, 6: 0, 7: 0x87, 4: 0x80, 8: 0x80} {
-		if got := adventure.Canonical("PodSelStatus", g, e.set); got != c {
-			t.Errorf("status %d: canon %#x, want %#x", g, got, c)
-		}
-	}
 	seen := map[int64]bool{}
 	for _, n := range adventure.PodStatus { // the read is the member's own status: one C_Status number each
 		if seen[n] {

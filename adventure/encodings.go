@@ -12,15 +12,6 @@ import (
 // the engine's script writes and the importer's original saves both go
 // through it. The other way (a read) needs the running game: the engine's.
 
-// The canonical SelStatus values (POR's): a read is Okay or Out.
-const (
-	CanonStatusDied   = 0    // a write: the member died
-	CanonStatusOkay   = 1    // active; a write revives the member
-	CanonStatusStore  = 2    // a write that only stores
-	CanonStatusOut    = 0x80 // inactive (a write >= 0x80 but Stoned)
-	CanonStatusStoned = 0x87 // a write: stoned
-)
-
 // ScriptSide is the Side word's number of each side (SpecialReadZ1 268);
 // writing any other number changes nothing.
 var ScriptSide = map[rules.Side]uint16{rules.SideParty: 0, rules.SideAuto: 0x80, rules.SideMonsters: 0x81}
@@ -45,7 +36,7 @@ var SotsbStatus = map[rules.Status]int64{
 	rules.StatusUnconscious: 5, rules.StatusRunning: 6, rules.StatusStoned: 7,
 }
 
-// StatusKinds is the canonical SelStatusKind: a status is its place in this list (the
+// StatusKinds is the canonical SelStatus read: a status is its place in this list (the
 // engine's binding turns it back into the typed rules.Status at once); a game's
 // encoding maps its own numbers to and from it.
 var StatusKinds = []rules.Status{rules.StatusOkay, rules.StatusAnimated, rules.StatusRunning, rules.StatusUnconscious,
@@ -75,18 +66,11 @@ var SexOrder = []rules.Sex{rules.Male, rules.Female}
 // toCanon is each encoding's decoding that changes the value; set is the
 // symbol set in play.
 var toCanon = map[ecl.Encoding]func(game int64, set rules.Set) int64{
-	// TCharRecord.status, 0..8 (OKAY 0); SpecialWriteZ1 $1ED: inPlay = status = OKAY.
-	"PodSelStatus": func(g int64, _ rules.Set) int64 {
-		switch g {
-		case PodStatus[rules.StatusOkay]:
-			return CanonStatusOkay // the revive
-		case PodStatus[rules.StatusDead]:
-			return CanonStatusDied
-		case PodStatus[rules.StatusStoned]:
-			return CanonStatusStoned
-		}
-		return CanonStatusOut
-	},
+	// TCharRecord.status, 0..9 (OKAY 0); SpecialWriteZ1 $1ED.
+	"PodSelStatus": func(g int64, _ rules.Set) int64 { return CanonStatusWrite(podStatusWrite(g)) },
+	// POR and COTAB: SpecialWriteZ1 $100.
+	"PorSelStatus":   func(g int64, _ rules.Set) int64 { return CanonStatusWrite(porStatusWrite(g)) },
+	"CotabSelStatus": func(g int64, _ rules.Set) int64 { return CanonStatusWrite(porStatusWrite(g)) },
 	// TileSet (WriteGbvm $39): 0..3 the set, 4 set 0, 5 and up no change.
 	"PodSymbolSet": func(g int64, set rules.Set) int64 {
 		switch {
@@ -107,22 +91,8 @@ var toCanon = map[ecl.Encoding]func(game int64, set rules.Set) int64{
 		}
 		panic(fmt.Sprintf("pod: SelSide %d", g))
 	},
-	// SpecialWriteZ1 $100 acts only on 1 (okay and enabled: the canonical revive); any other write only stores.
-	"SotsbSelStatus": func(g int64, _ rules.Set) int64 {
-		if g == SotsbStatus[rules.StatusOkay] {
-			return CanonStatusOkay
-		}
-		return CanonStatusStore
-	},
-	// setChar: r[212] = v & 127, a status BR has a rules status for.
-	"BrSelStatus": func(g int64, _ rules.Set) int64 {
-		for n, st := range StatusKinds {
-			if b, ok := BRStatus[st]; ok && b == g&BRStatusMask {
-				return int64(n)
-			}
-		}
-		panic(fmt.Sprintf("br: SelStatusKind %d: no rules status", g&BRStatusMask))
-	},
+	"SotsbSelStatus": func(g int64, _ rules.Set) int64 { return CanonStatusWrite(sotsbStatusWrite(g)) },
+	"BrSelStatus":    func(g int64, _ rules.Set) int64 { return CanonStatusWrite(brStatusWrite(g)) },
 	// setChar: r[76] = v, read back as 128 while non-zero; canonical: 0 or 1.
 	"BrSelCompanion": func(g int64, _ rules.Set) int64 {
 		if g != 0 {

@@ -43,11 +43,11 @@ func br1Cell(t *testing.T, e *Engine, name string) int64 {
 	return e.host.Get(r)
 }
 
-// TestBR1StatusWrite: a script's SelStatusKind = 136 stores 8 (setChar keeps v & 127): the member is comatose
+// TestBR1StatusWrite: a script's SelStatus = 136 stores 8 (setChar keeps v & 127): the member is comatose
 // and the script reads 8 back.
 func TestBR1StatusWrite(t *testing.T) {
 	e := br1Begun(t)
-	br1OwnBlock(t, e, 201, "    SelStatusKind = 136\n    NewGameBytes = 63 & SelStatusKind")
+	br1OwnBlock(t, e, 201, "    SelStatus = 136\n    NewGameBytes = 63 & SelStatus")
 	st, err := e.ruleset().Fact(e.partyIDs()[0], rules.FactStatus)
 	if err != nil || st != rules.StatusComatose {
 		t.Fatalf("status %v %v", st, err)
@@ -101,7 +101,7 @@ func TestBR1PickMember(t *testing.T) {
 	e.join(second)
 	first := e.partyIDs()[0]
 	const prompt = "WHICH TEAM MEMBER?"
-	br1OwnBlock(t, e, 203, "    SelectMember(9)\n    Who(\""+prompt+"\")\n    NewGameBytes = SelStatusKind")
+	br1OwnBlock(t, e, 203, "    SelectMember(9)\n    Who(\""+prompt+"\")\n    NewGameBytes = SelStatus")
 	c := commonOf(e.build())
 	if c.Ask == nil || e.eclWait == nil || e.eclWait.ask.Text != prompt || !c.Ask.List || len(c.Ask.Replies) != 2 || c.Ask.Esc != 0 {
 		t.Fatalf("ask %+v wait %+v", c.Ask, e.eclWait)

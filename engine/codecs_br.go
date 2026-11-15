@@ -21,7 +21,7 @@ var brCodecs = map[ecl.Encoding]codec{
 		st := adventure.StatusKinds[c]
 		n, ok := adventure.BRStatus[st]
 		if !ok {
-			panic(fmt.Sprintf("br: SelStatusKind: no TStatus for %s", st))
+			panic(fmt.Sprintf("br: SelStatus: no TStatus for %s", st))
 		}
 		return n
 	}},

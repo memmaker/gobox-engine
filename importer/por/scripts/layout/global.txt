@@ -101,7 +101,7 @@
 6BF2 1 byte member SelWindowF2  # unmapped: area 15 writes 18 on load, no script reads it, the Pascal has no case for $F2 and the window does not follow TCharRecord offsets (race $72, xpAward $F7)
 6BF7 1 word member SelExpValue  # the experience the member is worth (SpecialWriteZ1/ReadZ1 $F7); no script uses it, the Pascal reference does (por-window)
 6BF9 1 byte member SelExpPerHP  # experience per hit point ($F9); likewise
-6C00 1 byte member SelStatus  # engine off 0x100: 1 okay / 0x80 not; write 0 = died, 0x87 stoned; area7 Save 135
+6C00 1 byte member SelStatus enc=PorSelStatus  # SpecialReadZ1 $100: 1 enabled / 0x80 not; SpecialWriteZ1 $100: >= 0x80 out, 0x87 also stoned, 0 marks for removal, else nothing
 6C0C 1 byte member SelSide  # engine 0x10C: 0 party, 0x80 auto party (NPC), 0x81 monster side
 6C1B 1 byte member SelMove  # engine Move; CheckParty/area3 swim
 6DA8 1 byte game PartyExp

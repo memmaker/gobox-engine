@@ -274,7 +274,7 @@ func (r *Rules) factParty(id rules.CharID, f rules.Fact) (rules.Value, bool, err
 	}
 	switch f {
 	case rules.FactHP, rules.FactMaxHP, rules.FactSex, rules.FactClasses, rules.FactExpValue, rules.FactExpPerHP,
-		rules.FactMove, rules.FactControl, rules.FactRace, rules.FactAlignment, rules.FactActive, rules.FactLevelReady, rules.FactSide:
+		rules.FactMove, rules.FactControl, rules.FactRace, rules.FactAlignment, rules.FactActive, rules.FactStatus, rules.FactLevelReady, rules.FactSide:
 		if c == nil {
 			return nil, true, errNoChar
 		}
@@ -314,6 +314,11 @@ func (r *Rules) factParty(id rules.CharID, f rules.Fact) (rules.Value, bool, err
 		return RecordAlignment[c.Alignment], true, nil
 	case rules.FactActive:
 		return rules.Yes(c.Okay != 0), true, nil
+	case rules.FactStatus: // the record's status as the typed one (the sheet's Status)
+		if int(c.Status) >= len(PorStatus) {
+			return nil, true, errBadValue
+		}
+		return PorStatus[c.Status], true, nil
 	case rules.FactLevelReady:
 		return rules.Yes(levelReady(c)), true, nil
 	case rules.FactSide:

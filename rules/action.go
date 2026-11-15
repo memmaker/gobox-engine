@@ -306,7 +306,7 @@ type (
 		Whom []CharID
 		Trap TrapDefinition
 	}
-	// SetStatusAction: a script's status with its consequences, 0x87 stones.
+	// SetStatusAction: a script's status with its consequences: StatusInactive only (a status is Rules.SetFact(FactStatus)).
 	SetStatusAction struct {
 		Who    CharID
 		Status Status

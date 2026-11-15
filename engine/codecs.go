@@ -17,7 +17,7 @@ type codec struct {
 }
 
 // codecs are every game's encodings by name; each game's file adds its own.
-var codecs = joinCodecs(sotsbCodecs, cotabCodecs, podCodecs, brCodecs)
+var codecs = joinCodecs(porCodecs, sotsbCodecs, cotabCodecs, podCodecs, brCodecs)
 
 func joinCodecs(sets ...map[ecl.Encoding]codec) map[ecl.Encoding]codec {
 	all := map[ecl.Encoding]codec{}

@@ -411,9 +411,9 @@ func TestBR1Clinic(t *testing.T) {
 // the member's own status (1: okay) again after one that matched.
 func TestBR1NoMember(t *testing.T) {
 	e := br1Begun(t)
-	r, ok := e.layoutField("SelStatusKind")
+	r, ok := e.layoutField("SelStatus")
 	if !ok {
-		t.Fatal("no SelStatusKind in the layout")
+		t.Fatal("no SelStatus in the layout")
 	}
 	status := func() int64 { return e.host.Get(r) }
 	if got := status(); got != 1 {

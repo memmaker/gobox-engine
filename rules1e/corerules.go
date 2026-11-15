@@ -131,25 +131,28 @@ func (r *Rules) Resolve(sit rules.Situation, a rules.Action, _ *rules.RNG) (rule
 	return rules.Outcome{}, ErrNotPorted
 }
 
-// setStatus is SpecialWriteZ1 0x100: every status but okay takes the member
-// out of the active ones (Okay 0); stoned (0x87) also stones; StatusInactive
-// is the script's other numbers >= 0x80 (the record's status kept).
+// setStatus is SpecialWriteZ1 0x100's other numbers >= 0x80 (not 0x87, which is SetFact(FactStatus, Stoned)):
+// out of the active members, the record's status kept. The statuses go through SetFact(FactStatus).
 func (r *Rules) setStatus(a rules.SetStatusAction) error {
 	c := r.chars[a.Who]
 	if c == nil {
 		return errNoChar
 	}
-	switch a.Status {
-	case rules.StatusOkay: // revived: okay and in play (sotsb, pod SpecialWriteZ1 $100; no POR script writes it)
-		c.Okay, c.Status = 1, StatusOkay
-	case rules.StatusStoned:
-		c.Okay, c.Status = 0, StatusStoned
-	case rules.StatusInactive:
-		c.Okay = 0
-	default:
+	if a.Status != rules.StatusInactive {
 		return errBadValue
 	}
+	c.Okay = 0
 	return nil
+}
+
+// recordStatus is the record's status byte of the typed status st; ok false for one the record has none for.
+func recordStatus(st rules.Status) (byte, bool) {
+	for b, s := range PorStatus {
+		if s == st {
+			return byte(b), true
+		}
+	}
+	return 0, false
 }
 
 // Elapse: por stepRest (camp.go), memTick.
@@ -361,6 +364,21 @@ func (r *Rules) SetFact(id rules.CharID, f rules.Fact, v rules.Value) error {
 			c.Side, c.Auto = SideMonsters, 1
 		default:
 			return errBadValue
+		}
+		return nil
+	}
+	if f == rules.FactStatus { // the status, and in play only when okay (pod SpecialWriteZ1 $1ED, sotsb $100 with 1, POR $87)
+		st, ok := v.(rules.Status)
+		if !ok {
+			return errBadValue
+		}
+		b, ok := recordStatus(st)
+		if !ok {
+			return errBadValue
+		}
+		c.Status, c.Okay = b, 0
+		if b == StatusOkay {
+			c.Okay = 1
 		}
 		return nil
 	}

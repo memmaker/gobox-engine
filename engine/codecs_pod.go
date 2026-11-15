@@ -11,10 +11,10 @@ import (
 // podCodecs are pod's encodings of canonical fields (its layout's enc=).
 var podCodecs = map[ecl.Encoding]codec{
 	"PodSelControl": {ignoreWrites: true}, // SpecialWriteZ1 has no case for it
-	// TCharRecord.status, 0..8 (OKAY 0); SpecialWriteZ1 $1ED: inPlay = status = OKAY.
+	// TCharRecord.status, 0..9 (OKAY 0); the write is adventure.podStatusWrite (SpecialWriteZ1 $1ED).
 	"PodSelStatus": {
-		toGame: func(e *Engine, _ int64) int64 { // the member's own status, not the canonical active bit
-			st := e.ruleset().Sheet(e.selected()).Status
+		toGame: func(_ *Engine, c int64) int64 {
+			st := adventure.StatusKinds[c]
 			n, ok := adventure.PodStatus[st]
 			if !ok {
 				panic(fmt.Sprintf("pod: SelStatus: no C_Status for %s", st))

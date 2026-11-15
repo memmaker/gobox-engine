@@ -16,6 +16,6 @@ var cotabCodecs = map[ecl.Encoding]codec{
 			e.es.memberMissing = false
 			return 0
 		}
-		return v
+		return porSelStatusRead(e, v)
 	}},
 }

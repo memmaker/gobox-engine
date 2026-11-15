@@ -1,19 +1,28 @@
 package engine
 
 import (
-	"gobox/adventure"
+	"slices"
 	"testing"
+
+	"gobox/adventure"
+	"gobox/rules"
 )
 
 // TestSotsbCodecs: sotsb's codecs on the original's values (sotsb-re eclmenu.pas $1B, $100, $312).
 func TestSotsbCodecs(t *testing.T) {
 	st := sotsbCodecs["SotsbSelStatus"]
-	if got := st.toGame(nil, 1); got != 1 {
+	e, _ := selStatusEngine(selStatusState{})
+	if got := st.toGame(e, int64(slices.Index(adventure.StatusKinds, rules.StatusOkay))); got != 1 {
 		t.Errorf("SelStatus okay reads %d, want 1", got)
 	}
-	for v, want := range map[int64]int64{1: adventure.CanonStatusOkay, 0: adventure.CanonStatusStore, 2: adventure.CanonStatusStore, 7: adventure.CanonStatusStore, 0x80: adventure.CanonStatusStore, 0x87: adventure.CanonStatusStore} {
-		if got := adventure.Canonical("SotsbSelStatus", v, 0); got != want {
-			t.Errorf("SelStatus write %#x is canonical %#x, want %#x (1 revives, the rest only store)", v, got, want)
+	for _, v := range []int64{0, 1, 2, 7, 0x80, 0x87} { // 1 sets okay, the rest are ignored
+		w := adventure.DecodeStatusWrite(adventure.Canonical("SotsbSelStatus", v, 0))
+		want := adventure.StatusWrite{Kind: adventure.StatusWriteNothing}
+		if v == 1 {
+			want = adventure.StatusWrite{Kind: adventure.StatusWriteSet, Status: rules.StatusOkay}
+		}
+		if w != want {
+			t.Errorf("SelStatus write %#x is %+v, want %+v", v, w, want)
 		}
 	}
 	if got := sotsbCodecs["SotsbSelMemorized"].element(0); got != -1 { // slot 0 = canonical slot 0 (element -1 + 1)

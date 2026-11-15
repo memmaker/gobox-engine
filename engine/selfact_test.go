@@ -40,28 +40,6 @@ func TestSelMemorized(t *testing.T) {
 	}
 }
 
-// TestSelStatus: 0x87 stones and deactivates, other numbers >= 0x80 only
-// deactivate; the read is 1 active, 0x80 not.
-func TestSelStatus(t *testing.T) {
-	for _, c := range []struct {
-		v      int64
-		status byte
-	}{{0x80, rules1e.StatusOkay}, {0x87, rules1e.StatusStoned}} {
-		e := &Engine{}
-		m := &rules1e.Character{}
-		m.Okay = 1
-		e.state().Party = []*rules1e.Character{m}
-		f := e.newEngineFields()["SelStatus"]
-		if got, _ := f.get(0); got != 1 {
-			t.Errorf("active read %#x", got)
-		}
-		f.set(0, c.v)
-		if got, _ := f.get(0); got != 0x80 || m.Status != c.status {
-			t.Errorf("%#x: read %#x status %v, want 0x80 %v", c.v, got, m.Status, c.status)
-		}
-	}
-}
-
 // TestSelAlignmentWrite: a script's write sets the member's alignment.
 func TestSelAlignmentWrite(t *testing.T) {
 	e := &Engine{}

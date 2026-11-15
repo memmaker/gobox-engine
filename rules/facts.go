@@ -29,7 +29,7 @@ const (
 	FactSex
 	FactAlignment
 	FactActive      // 256: a pure read; NoChar reads inactive
-	FactStatus      // por 0x100; writing it only stores: consequences are Actions
+	FactStatus      // por 0x100, BR r[212]: the typed Status; a write sets it, active only when Okay
 	FactSide        // 268 bit 0
 	FactSideLock    // BR 268 bit 7, r[215]; meaning to confirm at migration
 	FactControl     // por 0xB8 (charmed, hired)

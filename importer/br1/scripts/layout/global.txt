@@ -263,7 +263,7 @@
 7CA1 1 byte member SelFlag1 # Party[161] a script's flag byte on the character (skillLevelsTail, charVar/setChar raw); scripts: byte r6/w3
 7CA2 1 byte member SelFlag2 # Party[162], as SelFlag1; scripts: byte r1/w1
 7CA3 1 byte member SelFlag3 # Party[163], as SelFlag1; scripts: byte r0/w1
-7D00 1 byte member SelStatusKind enc=BrSelStatus # Party[256] r[212] the status, TStatus (charVar: 0 with no character; setChar r[212] = v&127, r[213] = v==1); scripts: byte r42/w14
+7D00 1 byte member SelStatus enc=BrSelStatus # Party[256] r[212] the status, TStatus (charVar: 0 with no character; setChar r[212] = v&127, r[213] = v==1); scripts: byte r42/w14
 7D0C 1 byte member SelSideFlags # Party[268] side r[214] bit 0, isCompanion r[76] bit 6, isQuickfight r[215] bit 7 (charVar/setChar); scripts: byte r1/w5
 7D19 1 word member SelHpCur # Party[281] hitPoints (charVar r[227], setChar); scripts: word r4/w7
 7EA8 1 byte game TrainingHall # Party[680]: training hall flag (rules.go:206,404); scripts: byte r0/w2

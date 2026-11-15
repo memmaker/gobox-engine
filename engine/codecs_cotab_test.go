@@ -4,7 +4,7 @@ import "testing"
 
 // TestCodecCotabSelStatus: the read after a select that found nobody is 0, once.
 func TestCodecCotabSelStatus(t *testing.T) {
-	e := &Engine{}
+	e, _ := selStatusEngine(selStatusState{okay: 1})
 	c := cotabCodecs["CotabSelStatus"]
 	if v := c.toGame(e, 1); v != 1 {
 		t.Fatalf("found: %d", v)

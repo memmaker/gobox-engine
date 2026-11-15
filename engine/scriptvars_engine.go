@@ -80,27 +80,28 @@ func (e *Engine) newEngineFields() map[string]engineField {
 			set: func(_ int, v int64) { e.setSelFact(rules.FactExpValue, v) }},
 		"SelExpPerHP": {stored: true, get: func(int) (int64, bool) { return e.selFact(rules.FactExpPerHP), true },
 			set: func(_ int, v int64) { e.setSelFact(rules.FactExpPerHP, v) }},
+		// the member's status: read as the typed one (adventure.StatusKinds), each game's codec turns it into its
+		// number; written as adventure.StatusWrite (the games differ in rule, not just in numbers)
 		"SelStatus": {stored: true, get: func(int) (int64, bool) {
-			if e.selValue(rules.FactActive).(rules.Yes) {
-				return 1, true
+			st := e.selValue(rules.FactStatus).(rules.Status)
+			n := slices.Index(adventure.StatusKinds, st)
+			if n < 0 {
+				panic(fmt.Sprintf("script: SelStatus: no kind for %s", st))
 			}
-			return 0x80, true
+			return int64(n), true
 		}, set: func(_ int, v int64) {
-			if v >= 0x80 || v == adventure.CanonStatusOkay {
-				st := rules.StatusInactive
-				switch v {
-				case adventure.CanonStatusStoned:
-					st = rules.StatusStoned
-				case adventure.CanonStatusOkay: // Okay revives the member (sotsb, pod; POR's scripts never write it)
-					st = rules.StatusOkay
-				}
-				a := rules.SetStatusAction{Who: e.selected(), Status: st}
+			w := adventure.DecodeStatusWrite(v)
+			switch w.Kind {
+			case adventure.StatusWriteSet:
+				e.setSelValue(rules.FactStatus, w.Status)
+			case adventure.StatusWriteInactive:
+				a := rules.SetStatusAction{Who: e.selected(), Status: rules.StatusInactive}
 				if _, err := e.ruleset().Resolve(nil, a, nil); err != nil {
-					panic(fmt.Sprintf("script: SelStatus %#x: %v", v, err))
+					panic(fmt.Sprintf("script: SelStatus inactive: %v", err))
 				}
-			}
-			if v == 0 {
+			case adventure.StatusWriteMarkRemoval: // opLoadCharacter removes the member when its name is cleared too
 				e.es.memberDied = 1
+			case adventure.StatusWriteNothing:
 			}
 		}},
 		"SelSide": {stored: true, get: func(int) (int64, bool) {
@@ -148,15 +149,6 @@ func (e *Engine) newEngineFields() map[string]engineField {
 			e.setSelValue(rules.FactSide, side)
 			e.setSelValue(rules.FactCompanion, rules.Yes(v&adventure.ScriptCompanion != 0))
 		}},
-		// the status as the rules' typed one, in the encoding's numbers (adventure.StatusKinds)
-		"SelStatusKind": {get: func(int) (int64, bool) {
-			st := e.selValue(rules.FactStatus).(rules.Status)
-			n := slices.Index(adventure.StatusKinds, st)
-			if n < 0 {
-				panic(fmt.Sprintf("script: SelStatusKind: no kind for %s", st))
-			}
-			return int64(n), true
-		}, set: func(_ int, v int64) { e.setSelValue(rules.FactStatus, adventure.StatusKinds[v]) }},
 		fieldSelMove:     reads(func() uint16 { return uint16(e.selFact(rules.FactMove)) }),
 		"SelPartyIndex":  reads(func() uint16 { return uint16(e.partyIndex(e.selected())) }),
 		"SelPartyIndex2": reads(func() uint16 { return uint16(e.partyIndex(e.selected())) }),

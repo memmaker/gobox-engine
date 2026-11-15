@@ -27,15 +27,7 @@ type selStatusState struct {
 type selStatusWrite struct {
 	value int64
 	from  selStatusState
-	want  selStatusState  // the Pascal's
-	today *selStatusState // set while the code differs from the Pascal (recorded bug)
-}
-
-func (w selStatusWrite) expect() selStatusState {
-	if w.today != nil {
-		return *w.today
-	}
-	return w.want
+	want  selStatusState // the Pascal's
 }
 
 // selStatusEngine is an engine whose selected member is in state s; enc is the layout's encoding of SelStatus.
@@ -68,34 +60,34 @@ func TestSelStatusWrites(t *testing.T) {
 	marked := selStatusState{rules1e.StatusOkay, 1, 1}
 	pool := func() []selStatusWrite { // POR and COTAB, SpecialWriteZ1 $100
 		return []selStatusWrite{
-			{0, ok, marked, nil}, // dumpOnStatusClear only: the status is not changed
-			{1, dead, dead, &selStatusState{rules1e.StatusOkay, 1, 0}}, // nothing (today: revives)
-			{2, ok, ok, nil}, {0x7F, ok, ok, nil},
-			{0x80, ok, out, nil}, {0x81, ok, out, nil}, {0xFF, ok, out, nil},
-			{0x87, ok, stoned, nil},
+			{0, ok, marked}, // dumpOnStatusClear only: the status is not changed
+			{1, dead, dead}, // nothing
+			{2, ok, ok}, {0x7F, ok, ok},
+			{0x80, ok, out}, {0x81, ok, out}, {0xFF, ok, out},
+			{0x87, ok, stoned},
 		}
 	}
 	games := []struct {
 		name, enc string
 		rows      []selStatusWrite
 	}{
-		{"por", "", pool()},
+		{"por", "PorSelStatus", pool()},
 		{"cotab", "CotabSelStatus", pool()},
 		{"sotsb", "SotsbSelStatus", []selStatusWrite{
-			{1, dead, ok, nil}, // status := OKAY; enabled := 1
-			{0, ok, ok, nil}, {2, ok, ok, nil}, {3, dead, dead, nil}, {7, ok, ok, nil},
-			{0x80, ok, ok, nil}, {0x87, ok, ok, nil},
+			{1, dead, ok}, // status := OKAY; enabled := 1
+			{0, ok, ok}, {2, ok, ok}, {3, dead, dead}, {7, ok, ok},
+			{0x80, ok, ok}, {0x87, ok, ok},
 		}},
 		{"pod", "PodSelStatus", []selStatusWrite{
-			{0, dead, ok, nil}, // status := OKAY; inPlay := 1
-			{1, ok, selStatusState{rules1e.StatusAnimated, 0, 0}, &out},
-			{3, ok, selStatusState{rules1e.StatusRunning, 0, 0}, &out},
-			{4, ok, selStatusState{rules1e.StatusUnconscious, 0, 0}, &out},
-			{5, ok, selStatusState{rules1e.StatusDying, 0, 0}, &out},
-			{6, ok, dead, &selStatusState{rules1e.StatusOkay, 1, 1}}, // today: marked for removal, status kept
-			{7, ok, stoned, nil},
-			{8, ok, selStatusState{rules1e.StatusGone, 0, 0}, &out},
-			{9, ok, selStatusState{rules1e.StatusReserve, 0, 0}, &out},
+			{0, dead, ok}, // status := OKAY; inPlay := 1
+			{1, ok, selStatusState{rules1e.StatusAnimated, 0, 0}},
+			{3, ok, selStatusState{rules1e.StatusRunning, 0, 0}},
+			{4, ok, selStatusState{rules1e.StatusUnconscious, 0, 0}},
+			{5, ok, selStatusState{rules1e.StatusDying, 0, 0}},
+			{6, ok, dead},
+			{7, ok, stoned},
+			{8, ok, selStatusState{rules1e.StatusGone, 0, 0}},
+			{9, ok, selStatusState{rules1e.StatusReserve, 0, 0}},
 		}},
 	}
 	for _, g := range games {
@@ -103,13 +95,26 @@ func TestSelStatusWrites(t *testing.T) {
 			e, m := selStatusEngine(w.from)
 			selStatusSet(e, g.enc, w.value)
 			got := selStatusState{m.Status, m.Okay, e.es.memberDied}
-			if got != w.expect() {
-				t.Errorf("%s: write %#x on %+v: %+v, want %+v", g.name, w.value, w.from, got, w.expect())
-			}
-			if w.today != nil && *w.today != w.want {
-				t.Logf("%s: write %#x differs from the Pascal: today %+v, Pascal %+v", g.name, w.value, *w.today, w.want)
+			if got != w.want {
+				t.Errorf("%s: write %#x on %+v: %+v, want %+v", g.name, w.value, w.from, got, w.want)
 			}
 		}
+	}
+}
+
+// TestSelStatusPodUnnamed: a status number pod's C_Status has no name for (2, 10 up) is stored raw by the original;
+// the rules have no status for it: the write fails loudly.
+func TestSelStatusPodUnnamed(t *testing.T) {
+	for _, v := range []int64{2, 10, 0xFF} {
+		func() {
+			defer func() {
+				if recover() == nil {
+					t.Errorf("pod write %d did not fail", v)
+				}
+			}()
+			e, _ := selStatusEngine(selStatusState{})
+			selStatusSet(e, "PodSelStatus", v)
+		}()
 	}
 }
 
@@ -141,7 +146,7 @@ func TestSelStatusReads(t *testing.T) {
 	for _, g := range []struct {
 		name, enc string
 		rows      []row
-	}{{"por", "", porRows}, {"cotab", "CotabSelStatus", porRows}, {"sotsb", "SotsbSelStatus", sotsbRows}, {"pod", "PodSelStatus", podRows}} {
+	}{{"por", "PorSelStatus", porRows}, {"cotab", "CotabSelStatus", porRows}, {"sotsb", "SotsbSelStatus", sotsbRows}, {"pod", "PodSelStatus", podRows}} {
 		for _, r := range g.rows {
 			e, _ := selStatusEngine(r.from)
 			if got := selStatusRead(e, g.enc); got != r.want {
@@ -159,8 +164,10 @@ func TestSelStatusReads(t *testing.T) {
 		t.Errorf("cotab second read: %d", got)
 	}
 	e.es.memberMissing = true
-	const todaySotsbNoMember = 1 // recorded bug: the Pascal reads 0 (charNotFound)
-	if got := selStatusRead(e, "SotsbSelStatus"); got != todaySotsbNoMember {
+	if got := selStatusRead(e, "SotsbSelStatus"); got != 0 { // charNotFound; it stays until the next select that matches
 		t.Errorf("sotsb no member: %d", got)
+	}
+	if got := selStatusRead(e, "SotsbSelStatus"); got != 0 {
+		t.Errorf("sotsb no member, second read: %d", got)
 	}
 }
