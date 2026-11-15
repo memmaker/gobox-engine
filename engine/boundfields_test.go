@@ -13,7 +13,7 @@ func TestBoundFieldsPOR(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if want := []string{fieldRemainder, "FacingOrRaw", fieldLastBlock, fieldLoopCounter, fieldLoopLimit, fieldPriceScale, fieldScriptBlock, "SelCareer", "SelCompanion", "SelFlag1", "SelFlag2", "SelFlag3", "SelHitPoints", "SelHitPointsMax", "SelSex", "SelSideFlags", "SelStatusKind", fieldTravelKind, fieldVault}; !slices.Equal(got, want) {
+	if want := []string{fieldRemainder, "FacingOrRaw", fieldLastBlock, fieldLoopCounter, fieldLoopLimit, "PartyCredits", fieldPriceScale, fieldScriptBlock, "SelCareer", "SelCompanion", "SelFlag1", "SelFlag2", "SelFlag3", "SelHitPoints", "SelHitPointsMax", "SelSex", "SelSideFlags", "SelStatusKind", fieldTravelKind, fieldVault}; !slices.Equal(got, want) {
 		t.Errorf("unbound %v, want %v", got, want)
 	}
 }

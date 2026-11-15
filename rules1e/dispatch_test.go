@@ -148,6 +148,7 @@ var notAnswered = map[string]bool{
 	"Sprint":        true,
 	"TakeItem":      true,
 	"TakeMoney":     true,
+	"SetCredits":    true,
 	"SkillRoll":     true,
 	"KnownFact":     true,
 	"FlagFact":      true, // XXVc's script flag bytes on a character

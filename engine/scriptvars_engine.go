@@ -118,6 +118,24 @@ func (e *Engine) newEngineFields() map[string]engineField {
 		}},
 		"SelHitPoints":    e.selNumber(rules.FactHP),
 		"SelHitPointsMax": e.selNumber(rules.FactMaxHP),
+		// the party's credits (BR charVar/setChar OffMoney): 0 and no write while no character is selected
+		"PartyCredits": {get: func(int) (int64, bool) {
+			if e.es.memberMissing {
+				return 0, true
+			}
+			v, err := e.ruleset().Fact(e.selected(), rules.PurseFact{})
+			if err != nil {
+				panic(fmt.Sprintf("script: PartyCredits: %v", err))
+			}
+			return int64(v.(rules.Purse).Copper), true
+		}, set: func(_ int, v int64) {
+			if e.es.memberMissing {
+				return
+			}
+			if _, err := e.ruleset().Resolve(nil, rules.SetCredits{Who: e.selected(), Total: rules.Copper(v)}, nil); err != nil {
+				panic(fmt.Sprintf("script: PartyCredits = %d: %v", v, err))
+			}
+		}},
 		"SelCompanion": {get: func(int) (int64, bool) { return yesNumber(e.selValue(rules.FactCompanion).(rules.Yes)), true },
 			set: func(_ int, v int64) { e.setSelValue(rules.FactCompanion, rules.Yes(v != 0)) }},
 		// the side word with the companion bit: BR's 0, 0x80, 0x81 and $40 for a companion

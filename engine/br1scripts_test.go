@@ -53,3 +53,27 @@ func TestBR1StatusWrite(t *testing.T) {
 		t.Fatalf("read back %d", got)
 	}
 }
+
+// TestBR1Credits: a script reads the party's credits as a dword, writes a higher value (added to the selected
+// member) and a lower one (paid), and the ruleset's purse follows exactly (BR ecl.go charVar/setChar OffMoney).
+func TestBR1Credits(t *testing.T) {
+	e := br1Begun(t)
+	purse := func() rules.Copper {
+		v, err := e.ruleset().Fact(e.selected(), rules.PurseFact{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return rules.Copper(v.(rules.Purse).Copper)
+	}
+	start := purse()
+	br1OwnBlock(t, e, 202, "    D_4CE2 = D_7C2B\n    D_7C2B = 60000\n    D_7C2B += 60000\n    D_4CE6 = D_7C2B\n    D_7C2B -= 1234")
+	if got := rules.Copper(br1Cell(t, e, "Word4CE2")); got != start {
+		t.Errorf("read %d, the purse held %d", got, start)
+	}
+	if got := br1Cell(t, e, "Word4CE6"); got != 120000 { // past 16 bits: the dword is carried whole
+		t.Errorf("read back %d", got)
+	}
+	if got := purse(); got != 120000-1234 {
+		t.Errorf("purse %d", got)
+	}
+}

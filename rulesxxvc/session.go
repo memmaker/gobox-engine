@@ -135,6 +135,8 @@ func (r *Rules) resolveSession(a rules.Action) (o rules.Outcome, ok bool, err er
 		// and the party list stay, as the 1e rules keep theirs.
 		r.clock, r.memberCount, r.acting, r.purse = [clockUnits]int{}, 0, 0, 0
 		r.ship, r.foeSaved, r.space = nil, savedFoe{}, nil
+	case rules.SetCredits:
+		return rules.Outcome{}, true, r.setCredits(a)
 	case rules.ActFor:
 		r.acting = int(a.Member)
 	case rules.SetMemberCount:
@@ -317,6 +319,37 @@ func (r *Rules) partyPurse(loot bool) rules.Purse {
 		}
 	}
 	return rules.Purse{Copper: uint64(max(total, 0))}
+}
+
+// setCredits is BR ecl.go setChar OffMoney: a lower total than the party holds is paid by e.pay (the
+// selected member first, then the others in party order), a higher one is added to the selected member.
+// Under SharedPurse the one purse takes the difference.
+// ponytail: the original's pay and purse skip members that do not pool (record byte 231, hirelings); rulesxxvc has no such member, all pool.
+func (r *Rules) setCredits(a rules.SetCredits) error {
+	c := r.chars[a.Who]
+	if c == nil {
+		return fmt.Errorf("SetCredits: no character %d", a.Who)
+	}
+	if a.Total < 0 {
+		return fmt.Errorf("SetCredits: %d credits", a.Total)
+	}
+	have := rules.Copper(r.partyPurse(false).Copper)
+	switch {
+	case r.options.SharedPurse:
+		r.purse += a.Total - have
+	case a.Total > have:
+		c.Coins += a.Total - have
+	default:
+		owed := have - a.Total
+		for _, id := range slices.Concat([]rules.CharID{a.Who}, slices.DeleteFunc(slices.Clone(r.party), func(p rules.CharID) bool { return p == a.Who })) {
+			if o := r.chars[id]; o != nil {
+				t := min(o.Coins, owed)
+				o.Coins -= t
+				owed -= t
+			}
+		}
+	}
+	return nil
 }
 
 // word is the sheet word of c's fact of: what XXVc keeps. It has no sex,

@@ -7,6 +7,16 @@ type Pay struct{ Gold uint64 }
 
 func (Pay) action() {}
 
+// SetCredits is a script's write of the party's credits (BR ecl.go setChar OffMoney): Total is what the
+// party should hold. A lower Total is paid by the ruleset across the members, a higher one is added to Who;
+// which member pays first is its rule.
+type SetCredits struct {
+	Who   CharID
+	Total Copper
+}
+
+func (SetCredits) action() {}
+
 // SetPurseGold sets the party's gold pieces (the tavern game's wager).
 type SetPurseGold struct{ Gold uint64 }
 
