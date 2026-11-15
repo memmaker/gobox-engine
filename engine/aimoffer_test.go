@@ -149,7 +149,7 @@ func TestShootSquaresAreTargets(t *testing.T) {
 		}
 	}
 	e.state().ApplyItems(c)
-	j := e.state().AddItemCopy(c, e.state().RandomItem(weaponFor(t, e, c, rules1e.ItemJavelin, true)))
+	j := e.state().AddItemCopy(c, e.state().RandomItem(rules1e.ItemDart)) // thrown only: readied in the Missiles slot, the hand empty
 	if _, err := e.doNow(game.Ready{Member: e.state().PartyIndex(c), Item: e.itemHandle(j)}); err != nil {
 		t.Fatal(err)
 	}
@@ -161,6 +161,13 @@ func TestShootSquaresAreTargets(t *testing.T) {
 	sq := f.Allowed.Aimed[i].Squares
 	if len(sq) == 0 || len(sq) >= f.Field.Size.W*f.Field.Size.H {
 		t.Fatalf("%d squares to shoot at on a %v board", len(sq), f.Field.Size)
+	}
+	me := e.at(e.cs.actor)
+	if !slices.ContainsFunc(sq, func(at rules.BoardPos) bool { d := at.Sub(me); return max(d.X, -d.X, d.Y, -d.Y) > 1 }) {
+		t.Errorf("shoot offers only the squares next to the thrower: %v from %v (the reach is the dart's, not the empty hand's)", sq, me)
+	}
+	if c.Slots[rules1e.SlotWeapon] == j {
+		t.Error("the state left the dart drawn in the weapon hand")
 	}
 	for _, at := range sq {
 		on := slices.IndexFunc(f.Field.Units, func(u game.Unit) bool {

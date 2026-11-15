@@ -501,7 +501,11 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 				add(game.Attack{Target: t})
 			}
 			if e.battle().Turn.Missile != nil { // Ranged: only with a launcher and its ammunition, or a missile, readied (WeaponFact Ranged)
-				a.Aimed = append(a.Aimed, game.Aimed{Action: game.Shoot{}, Squares: e.aimSquares(b, 0xFF, 1, false, false), Targets: 1}) // attackUnit's aim
+				c := e.unitID(b.Turn.Unit)
+				e.must(rules.Draw{Who: c, Ranged: true}) // the reach is the Ranged weapon's: drawn as VerbShoot draws it, the weapon in hand again after (turnChoices)
+				sq := e.aimSquares(b, 0xFF, 1, false, false) // attackUnit's aim
+				e.must(rules.Draw{Who: c})
+				a.Aimed = append(a.Aimed, game.Aimed{Action: game.Shoot{}, Squares: sq, Targets: 1})
 			}
 		}
 		if slices.Contains(can, VerbManeuver) {
