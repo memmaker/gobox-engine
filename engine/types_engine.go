@@ -85,6 +85,7 @@ type Member struct {
 	MaxHP    int
 	AC       int         // as displayed: 10 down to negative
 	Status   string      // as the sheet names it ("Okay", "Unconscious" ...)
+	Ailment  string      // the disease or poison ailing it, "" none
 	Class    string      // as the sheet names it ("Fighter/Thief" ...)
 	Selected bool        // the selected member, or the candidate while a member is picked (SelectCharacter)
 	Colour   game.Ink    // the roster's EGA colour for the name when not Selected: red not okay, yellow a monster, magenta ready for a level, else cyan

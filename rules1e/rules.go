@@ -4,7 +4,11 @@ package rules1e
 // from ovr25 and the START helpers it leans on (00BA:16EC ... 2637).
 
 import (
+	"fmt"
 	"gobox/rules"
+	"os"
+	"path/filepath"
+	"runtime"
 	"slices"
 	"strconv"
 )
@@ -107,7 +111,18 @@ func (e *RuleState) AddAffect(c *Character, typ AffectType, time int, data, call
 	a := &Affect{AffectRecord: AffectRecord{Type: typ, Time: uint16(time), Data: data, Call: call}}
 	c.Affects = append(c.Affects, a)
 	e.Emit(rules.Sounded{Cue: rules.SoundCue(daspAffects[typ])})
+	if traceAffects {
+		_, f1, l1, _ := runtime.Caller(1)
+		_, f2, l2, _ := runtime.Caller(2)
+		fmt.Fprintf(os.Stderr, "trace affect %#x on %q (party %v, str %d) time %d sound %q by %s:%d < %s:%d\n",
+			byte(typ), c.Name(), e.partyMember(c), c.Stats[StatStr], time, daspAffects[typ], filepath.Base(f1), l1, filepath.Base(f2), l2)
+	}
 }
+
+// traceAffects (GOBOX_TRACE=1, as the engine's sound trace) logs to stderr
+// every affect a character gets, with who added it: a sound with no text
+// beside it is found by its affect.
+var traceAffects = os.Getenv("GOBOX_TRACE") != ""
 
 // auraAffects = ovr25 cs:0140: affects that also work on everyone near the
 // one who has them (prayer, chant ...).

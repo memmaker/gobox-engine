@@ -418,6 +418,8 @@ var affectNames = map[AffectType]string{
 	affHelpless:         "Helpless",
 	affPrayerBonus:      "Prayer",
 	affSick:             "Cause Disease",
+	affWeakened:         "Weakened", // extra: the original lists nothing while Strength drains
+	affRotting:          "Rotting",  // extra, as Weakened
 	affMummyDisease:     "Dreaded Mummy Disease",
 	affRepulsed:         "Repulsed",
 	AffPoisoned:         "Poisoned",
@@ -434,23 +436,38 @@ var affectNames = map[AffectType]string{
 func (e *RuleState) AffectList(c *Character) []string {
 	var names []string
 	for _, a := range c.Affects {
-		t := a.Type
-		name, known := "", true
-		if listedAffect(t) {
-			for s := 1; s <= LastSpell && name == ""; s++ {
-				if AffectType(e.T().Spells[s][10]) == t {
-					name = e.SpellName(s)
-				}
-			}
-			if name == "" {
-				name = "Funky--" + strconv.Itoa(int(t))
-			}
-		} else if name, known = affectNames[t]; !known {
-			continue
+		if name, known := e.affectName(a.Type); known {
+			names = append(names, name)
 		}
-		names = append(names, name)
 	}
 	return names
+}
+
+// affectName is the list's name of affect t; false: it lists none.
+func (e *RuleState) affectName(t AffectType) (string, bool) {
+	if !listedAffect(t) {
+		name, known := affectNames[t]
+		return name, known
+	}
+	for s := 1; s <= LastSpell; s++ {
+		if AffectType(e.T().Spells[s][10]) == t {
+			return e.SpellName(s), true
+		}
+	}
+	return "Funky--" + strconv.Itoa(int(t)), true
+}
+
+// Ailment (extra) is the name of the first affect ailing c: a disease the
+// temple cures (Diseases) or poison; "" none. The party's overview shows it.
+func (e *RuleState) Ailment(c *Character) string {
+	for _, a := range c.Affects {
+		if a.Type == AffPoisoned || slices.Contains(Diseases[:], a.Type) {
+			if name, known := e.affectName(a.Type); known {
+				return name
+			}
+		}
+	}
+	return ""
 }
 
 // SpellLists are c's spell book (how often each is memorized on a rest)
