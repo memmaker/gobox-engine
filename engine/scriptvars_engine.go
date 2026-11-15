@@ -113,12 +113,6 @@ func (e *Engine) newEngineFields() map[string]engineField {
 			}
 		}},
 		// Buck Rogers' member fields (ecl.go charVar/setChar): the typed facts, no record bytes
-		"SelSex": {get: func(int) (int64, bool) { return int64(selIndex(e, rules.FactSex, adventure.SexOrder)), true }},
-		"SelCareer": {get: func(int) (int64, bool) { // the career's place in the catalog, 1 on (0: none)
-			return int64(slices.Index(e.ruleset().Catalog().Classes, e.selValue(rules.FactClasses).(rules.ClassSet)[0]) + 1), true
-		}},
-		"SelHitPoints":    e.selNumber(rules.FactHP),
-		"SelHitPointsMax": e.selNumber(rules.FactMaxHP),
 		// the party's credits (BR charVar/setChar OffMoney): 0 and no write while no character is selected
 		"PartyCredits": {get: func(int) (int64, bool) {
 			if e.es.memberMissing {

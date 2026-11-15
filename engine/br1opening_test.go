@@ -427,3 +427,29 @@ func TestBR1NoMember(t *testing.T) {
 		t.Fatalf("no member, read again: status %d", got)
 	}
 }
+
+// TestBR1MemberFields: BR's member fields have the Pool's names: the hit points, the gender (0 male, 1 female)
+// and the class number, which BR numbers by the career's place in the catalog from 1 (BrSelCharClass).
+func TestBR1MemberFields(t *testing.T) {
+	e := br1Begun(t)
+	read := func(name string) int64 {
+		r, ok := e.layoutField(name)
+		if !ok {
+			t.Fatalf("no %s in the layout", name)
+		}
+		return e.host.Get(r)
+	}
+	if got, want := read("SelHpCur"), int64(e.selValue(rules.FactHP).(rules.Number)); got != want {
+		t.Errorf("SelHpCur %d, want %d", got, want)
+	}
+	if got, want := read("SelHpMax"), int64(e.selValue(rules.FactMaxHP).(rules.Number)); got != want {
+		t.Errorf("SelHpMax %d, want %d", got, want)
+	}
+	if got, want := read("SelGender"), int64(slices.Index(adventure.SexOrder, e.selValue(rules.FactSex).(rules.Sex))); got != want {
+		t.Errorf("SelGender %d, want %d", got, want)
+	}
+	career := e.selValue(rules.FactClasses).(rules.ClassSet)[0]
+	if got, want := read("SelCharClass"), int64(slices.Index(e.ruleset().Catalog().Classes, career)+1); got != want || want < 1 {
+		t.Errorf("SelCharClass %d, want %d", got, want)
+	}
+}

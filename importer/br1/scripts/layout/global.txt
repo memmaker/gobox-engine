@@ -255,17 +255,17 @@
 7BB8 1 text game Word7BB8 # scripts: text r2/w4
 7BCC 1 text game Word7BCC # scripts: text r4/w1
 7C00 1 text member SelName # Party[0] the name (ecl.go charVar o<=15); scripts: text r53/w0
-7C26 1 byte member SelSex # Party[38] gender (charVar r[38]): 0 male, 1 female (types.pas TGender); scripts: byte r2/w0
-7C28 1 byte member SelCareer # Party[40] career (charVar r[40]): TCareer, 0 none; scripts: byte r1/w0
+7C26 1 byte member SelGender # Party[38] gender (charVar r[38]): 0 male, 1 female (types.pas TGender); scripts: byte r2/w0
+7C28 1 byte member SelCharClass enc=BrSelCharClass # Party[40] career (charVar r[40]): TCareer, 0 none; scripts: byte r1/w0
 7C2B 1 dword member PartyCredits # Party[43] OffMoney (ecl.go charVar: the party's purse while a character is selected, else 0; setChar: a lower value is paid across the members, a higher one added to the selected); scripts: dword r9/w5
-7C45 1 word member SelHitPointsMax # Party[69] hitPointMaximum (charVar r[69], setChar raw); scripts: word r11/w0
+7C45 1 word member SelHpMax # Party[69] hitPointMaximum (charVar r[69], setChar raw); scripts: word r11/w0
 7C4C 1 byte member SelCompanion enc=BrSelCompanion # Party[76] isCompanion (charVar r[76], any value reads 128; setChar raw); scripts: byte r8/w0
 7CA1 1 byte member SelFlag1 # Party[161] a script's flag byte on the character (skillLevelsTail, charVar/setChar raw); scripts: byte r6/w3
 7CA2 1 byte member SelFlag2 # Party[162], as SelFlag1; scripts: byte r1/w1
 7CA3 1 byte member SelFlag3 # Party[163], as SelFlag1; scripts: byte r0/w1
 7D00 1 byte member SelStatusKind enc=BrSelStatus # Party[256] r[212] the status, TStatus (charVar: 0 with no character; setChar r[212] = v&127, r[213] = v==1); scripts: byte r42/w14
 7D0C 1 byte member SelSideFlags # Party[268] side r[214] bit 0, isCompanion r[76] bit 6, isQuickfight r[215] bit 7 (charVar/setChar); scripts: byte r1/w5
-7D19 1 word member SelHitPoints # Party[281] hitPoints (charVar r[227], setChar); scripts: word r4/w7
+7D19 1 word member SelHpCur # Party[281] hitPoints (charVar r[227], setChar); scripts: word r4/w7
 7EA8 1 byte game TrainingHall # Party[680]: training hall flag (rules.go:206,404); scripts: byte r0/w2
 7EB1 1 byte member SelPartyIndex # Party[689]: the selected member's index (ecl.go charVar o==689)
 7EC0 1 byte game MonsterLimit # Party[704]: SetupMonster arg2 (eclops.go:209); scripts: byte r0/w2
