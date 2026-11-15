@@ -361,12 +361,28 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
       - `PartyCredits` (7C2B) bound: read the party's purse, write `rules.SetCredits` (the
         selected member pays first, then party order; a higher total goes to the selected one)
       - V4 57 is `Who`; `Behaviour.WhoEndsNoMember` (BR only: cotab's EclWho leaves the flag)
+    - [x] B1f5 one status field (2026-11-16): `SelStatus` for all five games, `SelStatusKind` gone.
+      The read is the typed status, each game's codec gives its number (`PorSelStatus` new); the
+      write is `adventure.StatusWrite` (set, inactive, mark for removal, nothing), each game's
+      rule in `adventure/statuswrite.go` with the Pascal cited. `rules1e` answers and sets
+      `FactStatus`; `SetStatusAction` is only "inactive". Fixed against the Pascal: POR/cotab
+      write 1 does nothing (it revived); sotsb reads the status number, 0 while no member is
+      selected (an active member always read 1); pod's write stores the status (dead only set
+      the removal mark). POR import version 9 (`data/por` re-imported here). pod's write of a
+      number with no rules status (2, 10 up) panics; no shipped script writes one.
+    - [ ] B1f6 the fight: `TestBR1Fight` loads a script's monsters (`ClearLoot`, `NewGroup`,
+      `Spawn` into the party list, `SetOrder`, `BeastKindFact`) and stops at `BuildGround`:
+      the engine's fight flow has the RULESET hold the board (ground, placement, units; ruling
+      "ruleset owns fight units and ground"), `rulesxxvc` took `Fight.Board` per call and has
+      neither ground nor placement. To do: a board in `rulesxxvc` (combatst.pas
+      BuildDungeonArena, BuildWildernessArena, ScatterWallTiles, FindPlacement,
+      PlaceAllCreatures), the fight's facts on it, the turn loop on the engine's flow,
+      `OpenTurn`, `ClearCombat`, `BankLoot`, `TakeLoot`, `FightCleared`, monsters out of the party
+      at the end; `TurnUndead` is asked on a key with no neutral guard.
+    - Hazard: the worktrees share `data/`, and POR's test import writes `data/por/scripts`: a
+      track that changes POR's layout changes it for main and every other track before it lands
+      (f1's landing failed on st1's layout until st1 landed).
     - Open after B1f4:
-      - `SelStatus` and `SelStatusKind` are still two names. Blocked on a ruling: a Pool script's
-        write of 0 to `SelStatus` sets the engine's `memberDied` (the DS:84D2 cleanup), 0x80 and
-        up means inactive; BR's write of 0 is "no status". The Pascal does not show that the
-        Pool's write 0 equals a typed dead. Reads differ too (POR, cotab: active or not; pod,
-        sotsb, BR: the status, three numberings)
       - unverified: pod's heal test goes through the field's get/set, not the script file; the
         cotab and sotsb bindings were tested on a pod engine before the re-import; whether pod's
         imported records carry base scores, old levels and HP as the record's bytes
