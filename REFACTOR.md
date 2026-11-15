@@ -370,15 +370,36 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
       selected (an active member always read 1); pod's write stores the status (dead only set
       the removal mark). POR import version 9 (`data/por` re-imported here). pod's write of a
       number with no rules status (2, 10 up) panics; no shipped script writes one.
-    - [ ] B1f6 the fight: `TestBR1Fight` loads a script's monsters (`ClearLoot`, `NewGroup`,
-      `Spawn` into the party list, `SetOrder`, `BeastKindFact`) and stops at `BuildGround`:
-      the engine's fight flow has the RULESET hold the board (ground, placement, units; ruling
-      "ruleset owns fight units and ground"), `rulesxxvc` took `Fight.Board` per call and has
-      neither ground nor placement. To do: a board in `rulesxxvc` (combatst.pas
-      BuildDungeonArena, BuildWildernessArena, ScatterWallTiles, FindPlacement,
-      PlaceAllCreatures), the fight's facts on it, the turn loop on the engine's flow,
-      `OpenTurn`, `ClearCombat`, `BankLoot`, `TakeLoot`, `FightCleared`, monsters out of the party
-      at the end; `TurnUndead` is asked on a key with no neutral guard.
+    - [x] B1f6 the fight (2026-11-16): a script's fight runs on the shared engine with XXVc's
+      rules, from `Combat()` to its end and back into the script: `TestBR1Fight` (two members,
+      played through the engine's actions), `TestBR1FightSeed` (the same seed, the same per-turn
+      board trace), `TestBR1QuickFight`.
+      - the board is `rulesxxvc`'s (`Rules.ground`, one seam `board()`); ground and placement
+        ported from combatst.pas (`groundgen.go`, `dungeongen.go`, `placement.go`), the fight's
+        facts in `factsfight.go`, the end in `loot.go` (`BankLoot`, `TakeLoot`, `FightCleared`,
+        the monsters out of the party)
+      - the set-up's inputs: `BuildGround.Block`, `BuildGround.Place` (`rules.PlaceTraits`, the
+        canonical read of the layout's `TravelKind enc=BrTravelKind`), `BuildGround.Terrain` from
+        the layout's `WildTerrain` (4BB7), `FightTerms.Approach` (SetupMonster's 4th operand;
+        `Behaviour.SetupMonsterSides` for V4, pod's "outdoors 2" is `OutdoorsNear`);
+        `FightTerms.Area` filled
+      - engine: `computerTurn` asks Decide/Resolve until `TurnOver` (a ruleset deciding action
+        by action; 1000 steps panic), `Reach.Free` nil is no free attack, `TerrainSet` has no event
+      - one generator (ruling): the dungeon arena is `rules.RNG` seeded with the block
+    - Open after B1f6:
+      - RULING NEEDED, credits after a fight: the original lets the player take credits from a
+        pool ("How many credits will you take?"); the engine's `BankLoot` pays everything out at
+        once (shared purse, or an even split among the enabled members); the engine skips the
+        loot screen when there are no items
+      - not compared with the oracle: turn order, experience, loot, placement, the arenas; the
+        tests do not assert a win beyond "the monsters left the party list" (they stay after a
+        loss); the battle log was empty in the runs
+      - `AimFact`, `AimCheckFact` unanswered (ranged aim, maneuver keys unproven); a walk-up and
+        approaching monsters are not in a test; `HitFact` ignores the fight's hit bonuses and
+        recalculates the defender's armour, then restores it
+      - BR's rolls follow `rules.RNG`, not the original's sequence: goldens against the old BR
+        engine are to be regenerated with the old engine patched to this generator
+      - `TurnUndead` is asked on a key with no neutral guard (not hit by the tests)
     - [x] the shared-`data/` hazard: `foldwt.sh new` copies each game's `scripts/` into the track
       (the rest of `data/` stays linked); a track's test import rewrites only its own copy.
       After a layout change lands, main's `data/<game>/scripts` is rewritten by main's next test
