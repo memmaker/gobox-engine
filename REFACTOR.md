@@ -308,6 +308,34 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
       a roster from the imported characters; the facts the state build asks; the op AreaKind and
       BR's differences in Picture, LoadMap, LoadWalls, Delay, Sound as data of the dialect;
       TestOpening's assertions as an engine test
+      - [x] S1a `importer.ImportBREngine` (tests only until B1g): `ImportBR` plus the full layout,
+        `gametables.json` (dialect 4, first block 16, set 1, code 32768+9217, big pictures from 112,
+        symbols BORDERS 0 into 6 and 8X8D 202 into 4, COMSPR, TITLE), `gamedata.json` (series, id).
+        Not written: `sound.json`, `portraits.json`, walls (BR has no WALLDEF), BR1's PIC file per
+        picture number (105, 64: PIC7; 72, 92, 74: PIC8; 62: PIC9), border/party menu/texts of
+        `game.Data`, combat tiles by area. `GameTables.OriginalSave` is a `rules1e.SaveLayout`
+        holding only the code's base and size here: a 1e type in `adventure` (G3).
+      - [x] S1b `rulesxxvc.Builder` (tables through `rules.SourceRuleTables`), start-up actions,
+        its own seeded `rules.RNG` (B1b5: still one per ruleset, not one), `ActFor`, the member
+        count (stored: scripts write it), the clock (7 units; `AdvanceClock` not ported), party
+        and member facts (explicit none where XXVc has none), `rules.FileFormat` on the
+        character JSON (`Character.Roster` added). Creation answers `ErrNotPorted`. Open:
+        `MemberCard.Class` is the career id, not a display name; `ItemCard.Tab` unchecked against
+        the ui's tabs; `IconFact`, `MoveMember`, `StudyFact`, `ReactionsFact` not ported.
+      - [x] S1c1 `TestBR1Opening` (`engine/br1opening_test.go`): import into a temp dir, engine
+        with `rulesxxvc.Builder`, party menu, a roster character added, Begin, `game.Exploring`.
+        `rules.Pending` is optional; the sheet's saves are the catalog's count.
+      - [ ] S1c2 the script runs: V4 76 (area kind) stops it today, printed on stderr, not an error
+        (the engine prints an unported command and goes on, for every game: make it fail the test).
+        Then Picture's file by number, LoadMap, LoadWalls, Delay, Sound, the layout names
+        (`CellHere`, facing, `LastBlock`, `ForwardHeld`, area kind), and the oracle's assertions
+        (texts, pictures PIC9/62, square 5,6 facing 0, the walk north, driven back).
+      - Seen wrong in the state after Begin, to fix with the sheet/team menu slice: `AC` is BR's
+        raw value (58), `Health` 0 and `Okay` false for an okay member, `SlotsMax` lists AD&D spell
+        slots, the ui's save labels are AD&D's five, the sheet has six abilities (XXVc has Tech).
+        The test seeds the roster itself: who seeds a new save folder with the shipped characters
+        is open (the engine reads `charlist.txt` + `.cha`; `engine/roster.go` skips a file shorter
+        than the 1e record).
   - [ ] B1e what only BR has, into `engine` (space fight, ships, skills, jetpack, throw), switched
     on by adventure data and the ruleset, never by game name; `ui` parts exist (spacefight.go,
     shipsheet.go)
