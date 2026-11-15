@@ -387,10 +387,8 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
         by action; 1000 steps panic), `Reach.Free` nil is no free attack, `TerrainSet` has no event
       - one generator (ruling): the dungeon arena is `rules.RNG` seeded with the block
     - Open after B1f6:
-      - RULING NEEDED, credits after a fight: the original lets the player take credits from a
-        pool ("How many credits will you take?"); the engine's `BankLoot` pays everything out at
-        once (shared purse, or an even split among the enabled members); the engine skips the
-        loot screen when there are no items
+      - RULED (2026-11-16): credits after a fight are paid out at once, the Pool games' way
+        (`BankLoot`), for BR too; no "how many credits will you take" step
       - not compared with the oracle: turn order, experience, loot, placement, the arenas; the
         tests do not assert a win beyond "the monsters left the party list" (they stay after a
         loss); the battle log was empty in the runs
