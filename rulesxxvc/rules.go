@@ -95,7 +95,8 @@ type Rules struct {
 
 	initiative []rules.CharID // this round's order still to act
 	fight      map[rules.CharID]*combatState
-	arena      arena // the arena cells, clouds and corpses over Board.Terrain
+	arena      arena       // the arena cells, clouds and corpses over Board.Terrain
+	ground     rules.Board // the fight's board when the engine hands none (ground.go board); not saved, as rules1e's is not
 
 	ship     *xxvc.ShipRecord // zone0 partyShip; nil until the first ship fight loads record 50
 	foeSaved savedFoe         // zone0's last enemy ship

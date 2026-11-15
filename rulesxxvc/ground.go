@@ -2,6 +2,7 @@ package rulesxxvc
 
 import (
 	"fmt"
+	"image"
 	"math"
 	"slices"
 
@@ -91,9 +92,14 @@ type arena struct {
 	corpses []corpse
 }
 
-// board is b with the overlay laid over its terrain, a copy the action may
-// change.
+// board is THE seam for the fight's board: b with the overlay laid over its
+// terrain, a copy the action may change. A Board with no size is none handed
+// in (the shared engine passes none): the ruleset's own, r.ground, is the
+// board then. A Board with a size is how the unit tests hand one in.
 func (r *Rules) board(b rules.Board) rules.Board {
+	if noBoard(b) {
+		b = r.ground
+	}
 	t := make([]rules.TerrainID, b.Size.X*b.Size.Y)
 	if len(b.Terrain) == len(t) {
 		copy(t, b.Terrain)
@@ -109,6 +115,44 @@ func (r *Rules) board(b rules.Board) rules.Board {
 	}
 	b.Terrain = t
 	return b
+}
+
+// ownsBoard is whether the fight f runs on the ruleset's own board.
+func ownsBoard(f rules.Fight) bool { return noBoard(f.Board) }
+
+// noBoard is a Board nobody laid: no size, no units, not zero-g (the engine's
+// Fight carries only its Straight flag).
+func noBoard(b rules.Board) bool { return b.Size == (image.Point{}) && len(b.Units) == 0 && !b.ZeroG }
+
+// keepOnGround writes what an action's Effects did to the units back into
+// r.ground (the one place the units on it change): Walked ends on its path's
+// last square, Turned faces, Placed stands, Left and Fled are gone.
+func (r *Rules) keepOnGround(effects []rules.Effect) {
+	us := slices.Clone(r.ground.Units)
+	at := func(id rules.CharID) int {
+		return slices.IndexFunc(us, func(u rules.BoardUnit) bool { return u.ID == id })
+	}
+	for _, e := range effects {
+		switch e := e.(type) {
+		case rules.Walked:
+			if i := at(charOf(e.Unit)); i >= 0 && len(e.Path) > 0 {
+				us[i].At = e.Path[len(e.Path)-1]
+			}
+		case rules.Turned:
+			if i := at(charOf(e.Unit)); i >= 0 {
+				us[i].Facing = e.Facing
+			}
+		case rules.Placed:
+			if i := at(e.Unit); i >= 0 {
+				us[i].At = e.At
+			}
+		case rules.Left:
+			us = slices.DeleteFunc(us, func(u rules.BoardUnit) bool { return u.ID == e.Unit })
+		case rules.Fled:
+			us = slices.DeleteFunc(us, func(u rules.BoardUnit) bool { return u.ID == e.Unit })
+		}
+	}
+	r.ground.Units = us
 }
 
 func onBoard(b rules.Board, p rules.BoardPos) bool {

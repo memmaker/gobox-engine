@@ -102,10 +102,14 @@ func (r *Rules) groundAims(f rules.Fight, c *Character, at rules.BoardPos, aimed
 // resolveFight is ManualControl's keys and their cbtacts.pas rules, on the
 // arena as the rules hold it; the fallen leave corpses.
 func (r *Rules) resolveFight(f rules.Fight, act rules.Action, rng *rules.RNG) (rules.Outcome, error) {
+	own := ownsBoard(f)
 	f.Board = r.board(f.Board)
 	o, err := r.resolveAction(f, act, rng)
 	if err == nil {
 		r.layFallen(&f.Board, &o)
+		if own {
+			r.keepOnGround(o.Effects)
+		}
 	}
 	return o, err
 }
