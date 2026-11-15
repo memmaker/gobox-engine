@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"gobox/adventure"
 	"gobox/asset"
@@ -135,7 +137,9 @@ func ImportData(l *orig.Loader, e BREXE, dst string) error {
 		return err
 	}
 	t.Monsters = map[rules.MonsterID]xxvc.Monster{}
-	for id, rec := range orig.Blocks(l, "MON0CHA") {
+	mons := orig.Blocks(l, "MON0CHA")
+	for _, id := range slices.Sorted(maps.Keys(mons)) { // in MON0 id order, never the map's: addTemplates numbers the templates as they come (bug class: an import that differed from run to run)
+		rec := mons[id]
 		r := make([]byte, brCharacterSize)
 		copy(r, rec) // a short block reads as zero-padded, as dax.Monsters does
 		items := l.BlockShared("MON0ITM", id)
