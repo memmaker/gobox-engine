@@ -37,10 +37,8 @@ func (e *Engine) eclRun() {
 		if op := e.vm.Ops[e.vm.Command]; op != nil {
 			op(e.vm, e.host)
 		} else {
-			// Not ported yet: report it and end this script run.
-			fmt.Fprintf(os.Stderr, "ecl: opcode %02X on line %d not ported\n", e.vm.Command, e.vm.Script.Code[e.vm.PC].Line)
-			e.vm.PC++
-			e.vm.Stop = true
+			// A command the engine lacks is a broken game, never a script that quietly ends early.
+			panic(fmt.Sprintf("ecl: opcode %02X on line %d not ported", e.vm.Command, e.vm.Script.Code[e.vm.PC].Line))
 		}
 		if h := e.es.hold; h != holdNone { // the instruction opened camp or the party menu: the script goes on once it is closed
 			e.es.hold = holdNone
@@ -224,7 +222,34 @@ func (e *Engine) opApproach() {
 // view back.
 func (e *Engine) opPicture() {
 	e.vm.ReadArgs(1)
-	v := int(byte(e.vm.Arg(1, e.host)))
+	e.showPicture(int(byte(e.vm.Arg(1, e.host))))
+}
+
+// The view kinds the AreaKind command sets (BR1 pO035_2DCC case 76, buckrogers-go opAreaKind).
+const (
+	viewKind3D       = 0 // the 3D view
+	viewKindKeep     = 1 // the view stays as it is: only the picture changes
+	viewKindRocket   = 2
+	viewKindOverland = 4 // the overland map
+)
+
+// opAreaKind = BR1 command 76 (kind, picture): the view the area is shown in, then the picture as Picture puts it.
+func (e *Engine) opAreaKind() {
+	e.vm.ReadArgs(2)
+	switch k := int(byte(e.vm.Arg(1, e.host))); k {
+	case viewKind3D:
+		e.world.In3D = 1
+	case viewKindOverland:
+		e.world.In3D = 0
+	case viewKindKeep:
+	default: // the rocket's view (2) and kind 3: REFACTOR.md B1e
+		panic(fmt.Sprintf("ecl: view kind %d not ported", k))
+	}
+	e.showPicture(int(byte(e.vm.Arg(2, e.host))))
+}
+
+// showPicture is Picture's work for picture v (0xFF: none).
+func (e *Engine) showPicture(v int) {
 	if e.world.In3D == 0 && v != 0xFF {
 		e.clearView() // the picture frame's text
 	}
@@ -801,7 +826,7 @@ func init() {
 		ecl.OpSpriteOff: (*Engine).opRedrawView, ecl.OpNoOp: (*Engine).opNoOp, ecl.OpPressKey: (*Engine).opPressKey,
 		ecl.OpYesNo: (*Engine).opYesNo, ecl.OpClearExit: (*Engine).opClearExit, ecl.OpGainExp: (*Engine).opGainExperience,
 		ecl.OpSpell: (*Engine).opSpell, ecl.OpDestroy: (*Engine).opDestroyItems, ecl.OpDump: (*Engine).opDump,
-		ecl.OpFindNPC: (*Engine).opFindNPC, ecl.OpSound: (*Engine).opSound, ecl.OpMenuKeys: (*Engine).opMenuKeys,
+		ecl.OpFindNPC: (*Engine).opFindNPC, ecl.OpAreaKind: (*Engine).opAreaKind, ecl.OpSound: (*Engine).opSound, ecl.OpMenuKeys: (*Engine).opMenuKeys,
 	}
 }
 

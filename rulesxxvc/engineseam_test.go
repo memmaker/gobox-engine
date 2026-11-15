@@ -390,3 +390,28 @@ func TestSessionSaveLoad(t *testing.T) {
 		t.Error("the session is not saved whole")
 	}
 }
+
+// AdvanceClock carries up the units and runs the party's effects down by the minutes passed
+// (BR1 pO0E3_0388, pO0E3_0000).
+func TestAdvanceClock(t *testing.T) {
+	r, _ := seamRules(t)
+	id := seamJoin(t, r, "TICK")
+	r.chars[id].Effects = []Effect{{ID: 1, Minutes: 25}, {ID: 2, Minutes: 5}}
+	for range 12 {
+		if _, err := r.Resolve(nil, rules.AdvanceClock{Count: 1, Unit: clockMinute}, nil); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if r.clock[clockMinute] != 2 || r.clock[clockTurn] != 1 {
+		t.Errorf("clock %v after 12 minutes", r.clock)
+	}
+	if fx := r.chars[id].Effects; len(fx) != 1 || fx[0].ID != 1 || fx[0].Minutes != 13 {
+		t.Errorf("effects %+v, want effect 1 with 13 minutes", fx)
+	}
+	if _, err := r.Resolve(nil, rules.AdvanceClock{Count: 1, Unit: clockTurn}, nil); err != nil {
+		t.Fatal(err)
+	}
+	if fx := r.chars[id].Effects; r.clock[clockTurn] != 2 || len(fx) != 1 || fx[0].Minutes != 3 {
+		t.Errorf("after a turn: clock %v effects %+v", r.clock, fx)
+	}
+}

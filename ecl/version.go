@@ -71,6 +71,7 @@ type Behaviour struct {
 	// Width, GetN, PutN; buckrogers-go rules/ecl.go val, getVar, setVar); otherwise a cell is a word
 	// whatever the operand (Pool's WriteGbvm)
 	StoreByOperand  bool
+	ClearExitText   bool // ClearExit empties the text pane too (BR pO035_2DCC case 66, 2837); otherwise only the view comes back (pod O040:24AE)
 	PictureAnimates bool // Picture marks the view drawn, so a wait under it cycles the picture's frames (cotab's and sotsb's b8B7D, pod's alike); otherwise only a step or Picture(255) does (POR's picDrawn, eclvm.pas:371, 1874)
 }
 
@@ -280,7 +281,7 @@ var V4 = func() *Version {
 	// is the sound and 26627 the picture's animation, which V2 maps to
 	// CallDuelSound and CallPause: BR's own meaning, so named separately.
 	calls := map[uint16]CallFn{11723: CallRedrawView, 49182: CallStepForward, 49176: CallWallAhead, 45571: CallSound, 26627: CallPictureAnimation}
-	return &Version{ID: 4, Base: 32768, Cmds: t, Skip: skip, Calls: calls, Behaviour: Behaviour{ReturnEndsScript: true, StoreByOperand: true}}
+	return &Version{ID: 4, Base: 32768, Cmds: t, Skip: skip, Calls: calls, Behaviour: Behaviour{ReturnEndsScript: true, StoreByOperand: true, ClearExitText: true}}
 }()
 
 // Versions are the dialects by ID.

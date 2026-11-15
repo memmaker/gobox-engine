@@ -29,6 +29,18 @@ type portrait struct {
 	head, body       *asset.Image
 }
 
+// picFamily is the view window's pictures' file family (PIC<set>.DAX).
+const picFamily = "PIC"
+
+// animFile is the file of family name's block: the set in play's, or for a
+// picture the adventure keeps elsewhere (GameTables.PictureSets) that set's.
+func (e *Engine) animFile(name string, block int) string {
+	if s, ok := e.game().PictureSets[block]; ok && name == picFamily {
+		return s.File(name)
+	}
+	return e.set.File(name)
+}
+
 // LoadAnimPic = ovr29:00A2 (name, block, masked): load <name><gfx>.DAX
 // block into the view-window picture, unless it is already there. PIC and
 // FINAL frames after the first are stored XORed against the first; the
@@ -40,15 +52,16 @@ func (e *Engine) LoadAnimPic(name string, block int, masked bool) {
 	}
 	e.FreeAnimPic()
 	a.name, a.block = name, block
-	b, dos := e.artBlocks(e.set.File(name), block)
-	if b == nil || b.Kind != asset.Anim {
+	file := e.animFile(name, block)
+	b, dos := e.artBlocks(file, block)
+	if b == nil {
 		return
 	}
 	mask := asset.NoMask
 	if masked {
 		mask = 0
 	}
-	fr := b.Anim(mask)
+	fr := b.Anim(mask) // nil: no animation block (EGA's or VGA's)
 	if name == "PIC" && block == 1 && len(fr) > 4 {
 		fr = fr[:4]
 	}
@@ -57,12 +70,12 @@ func (e *Engine) LoadAnimPic(name string, block int, masked bool) {
 		alt = dos.Anim(mask)
 	}
 	for i, f := range fr {
-		named(f.Image, e.set.File(name), block).Base = i
+		named(f.Image, file, block).Base = i
 		if len(alt) > 0 { // ponytail: frame for frame, the Amiga's count and delays; the DOS one's own timing if they ever differ visibly
-			twin(f.Image, named(alt[min(i, len(alt)-1)].Image, e.set.File(name), block))
+			twin(f.Image, named(alt[min(i, len(alt)-1)].Image, file, block))
 		}
 	}
-	if masked && (e.Cfg.Graphics == 'E' || e.Cfg.Graphics == 'T') { // DS:4A1E != 0
+	if masked && b.Kind == asset.Anim && (e.Cfg.Graphics == 'E' || e.Cfg.Graphics == 'T') { // DS:4A1E != 0; EGA art's colours only (a VGA block's indices are its own palette's)
 		for _, f := range fr { // 0464:1E5C(DS:0C6C, DS:0C7C, 0, 0): colour 13 -> opaque black
 			e.recolourFrame(maskFrom[:], maskTo[:], 0, false, f.Image)
 		}

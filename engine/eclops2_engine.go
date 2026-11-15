@@ -348,6 +348,9 @@ func (e *Engine) opYesNo() {
 
 // opClearExit = pod O040:24AE: the view back, then Exit.
 func (e *Engine) opClearExit() {
+	if e.eclVersion.Behaviour.ClearExitText {
+		e.clearPane()
+	}
 	e.redrawChanged()
 	e.opExit()
 }

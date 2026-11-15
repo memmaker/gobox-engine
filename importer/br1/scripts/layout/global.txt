@@ -51,7 +51,7 @@
 4BC6 1 byte game Word4BC6 # scripts: byte r4/w0
 4BC9 1 byte game Word4BC9 # scripts: byte r1/w0
 4BE5 1 byte game Word4BE5 # cleared on script load (ecl.go:329); engine only (not in BR1 scripts)
-4BE6 1 byte game Word4BE6 # Area[230]: area kind / travel mode ($A2, $A8 wilderness big picture, $70 orbit map, bit $10 zero gravity: types.pas areaKind). NOT engine AreaKind (the area block id): to bind later
+4BE6 1 byte game TravelKind # Area[230]: area kind / travel mode ($A2, $A8 wilderness big picture, $70 orbit map, bit $10 zero gravity: types.pas areaKind). NOT engine AreaKind (the area block id)
 4BE7 1 byte game Word4BE7 # wall-set selector flag (eclops.go:444, with Area[232]); scripts: byte r0/w15
 4BE8 1 byte game Word4BE8 # wall-set selector flag (eclops.go:444, with Area[231]); scripts: byte r0/w15
 4BE9 1 byte game Word4BE9 # scripts: byte r0/w15
@@ -295,9 +295,9 @@
 7FF6 1 byte game Word7FF6 # scripts: byte r0/w15
 C04B 1 byte fact PartyX # view cell 49227: party x, read as int8, written byte(v) (ecl.go:62,166); scripts: byte r53/w126
 C04C 1 byte fact PartyY # view cell 49228: party y, read as int8 (ecl.go:64,167); scripts: byte r38/w124
-C04D 1 byte fact WordC04D # view cell 49229: facing, 0..3 north first; read raw (0..7) while areaKind is 0, halved otherwise; written (v%4)*2 (eclmenu.pas GBVM_FACING). NOT engine Facing (always 0..3): to bind later
+C04D 1 byte fact FacingOrRaw # view cell 49229: facing, 0..3 north first; read raw (0..7) while areaKind is 0, halved otherwise; written (v%4)*2 (eclmenu.pas GBVM_FACING). the engine's FacingOrRaw
 C04E 1 byte fact WallAhead readonly # view cell 49230: the wall ahead (ecl.go:72); scripts: byte r48/w0
-C04F 1 byte fact CellHere readonly # view cell 49231: the map cell (ecl.go:74); scripts: byte r63/w0
+C04F 1 byte fact Cell readonly # view cell 49231: the map cell (ecl.go:74); scripts: byte r63/w0
 C059 1 byte fact WordC059 # scripts: byte r0/w24
 C05A 1 byte fact WordC05A # scripts: byte r0/w24
 2DCB 1 byte call CallRedraw  # CALL 11723 (V4.Calls CallRedrawView): redraw the view; 136 calls in BR1's scripts

@@ -16,6 +16,7 @@ const (
 	fieldLoopCounter = "LoopCounter"     // FOR/NEXT's counter (Buck Rogers); the Pool games have none
 	fieldLoopLimit   = "LoopLimit"       // FOR/NEXT's limit (Buck Rogers); the Pool games have none
 	fieldPriceScale  = "PriceScale"      // the shops' price factor (cotab, sotsb, pod); POR has none
+	fieldTravelKind  = "TravelKind"      // the area's kind of travel, 0 while FacingOrRaw reads the eight-way facing (Buck Rogers); the Pool games have none
 	fieldVault       = "VaultRequest"    // 1: Combat with no monsters opens the vault (pod); the others have none
 )
 
@@ -50,7 +51,7 @@ func (e *Engine) setLastBlock(block int) {
 // BoundFields are the canonical script field names the engine gives a meaning: a game's
 // layout names a field so when, and only when, it has that field (each game's layout test).
 func BoundFields() []string {
-	names := []string{fieldLastBlock, fieldRemainder, fieldLoopCounter, fieldLoopLimit, fieldPriceScale, fieldVault, fieldHours, tourDone}
+	names := []string{fieldLastBlock, fieldRemainder, fieldLoopCounter, fieldLoopLimit, fieldPriceScale, fieldTravelKind, fieldVault, fieldHours, tourDone}
 	for n := range (&Engine{}).newEngineFields() {
 		names = append(names, n)
 	}

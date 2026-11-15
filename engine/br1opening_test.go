@@ -3,6 +3,8 @@ package engine
 import (
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 	"testing"
 
 	"gobox/adventure"
@@ -82,9 +84,79 @@ func TestBR1Opening(t *testing.T) {
 	if _, err := e.doNow(game.Begin{}); err != nil {
 		t.Fatal(err)
 	}
-	// As far as the engine gets today: the party is out, block 16's script started and stops at its first
-	// command the engine lacks (V4 76, the area kind). The oracle's assertions follow as the commands land.
-	if _, ok := e.build().(game.Exploring); !ok {
-		t.Fatalf("after Begin: %T, want game.Exploring", e.build())
+	sc, ok := e.build().(game.Scene)
+	if !ok || sc.Ask == nil || len(sc.Ask.Replies) != 1 || !strings.HasPrefix(paneText(sc.Common), "AFTER HEARING OF THE BRAVERY OF BUCK ROGERS") {
+		t.Fatalf("start: %T %q ask %+v", e.build(), paneText(sc.Common), sc.Ask)
 	}
+	if e.gs.areaKind != 16 {
+		t.Fatalf("block %d, want 16", e.gs.areaKind)
+	}
+	if p := sc.Picture; p == nil || p.File != "PIC9" || p.Block != 62 { // the window's PIC while its page is up (O124:02D0's PIC9 for 62)
+		t.Fatalf("start picture: %+v", p)
+	}
+	br1Pages(t, e) // the intro
+	x, ok := e.build().(game.Exploring)
+	if !ok || x.Where.X != 5 || x.Where.Y != 6 || x.Where.Facing != 0 || x.Picture != nil || paneText(x.Common) != "" {
+		t.Fatalf("after the intro: %T %+v %+v %q", e.build(), x.Where, x.Picture, paneText(x.Common))
+	}
+	if err := br1North(e); err != nil {
+		t.Fatal(err)
+	}
+	if c := commonOf(e.build()); c.Where.Y != 5 || !strings.HasPrefix(paneText(c), "AN OFFICER IS COLLAPSED") {
+		t.Fatalf("north: %+v %q", c.Where, paneText(c))
+	}
+	if err := br1North(e); err == nil {
+		t.Fatal("walked while a question waits")
+	}
+	br1Pages(t, e)
+	if err := br1North(e); err != nil {
+		t.Fatal(err)
+	}
+	br1Pages(t, e)
+	if err := br1North(e); err != nil {
+		t.Fatal(err)
+	}
+	if c := commonOf(e.build()); !strings.HasPrefix(paneText(c), "THE HEAT FROM THE EXPLOSIONS") {
+		t.Fatalf("tarmac: %+v %q", c.Where, paneText(c))
+	}
+	if _, err := e.doNow(game.Reply{}); err != nil {
+		t.Fatal(err)
+	}
+	if c := commonOf(e.build()); c.Where.Y != 4 {
+		t.Fatalf("not driven back: %+v", c.Where)
+	}
+}
+
+// br1Pages answers the pages and pauses up until the game waits for a move.
+func br1Pages(t *testing.T, e *Engine) {
+	t.Helper()
+	for n := 0; commonOf(e.build()).Ask != nil; n++ {
+		if n > 80 {
+			t.Fatalf("the pages do not end: %q", paneText(commonOf(e.build())))
+		}
+		var a game.Action = game.Reply{}
+		if slices.Contains(commonOf(e.build()).Allowed.Plain, game.Action(game.ContinueAction{})) { // a Delay's pause
+			a = game.ContinueAction{}
+		}
+		if _, err := e.doNow(a); err != nil {
+			t.Fatalf("page %d %q: %v", n, paneText(commonOf(e.build())), err)
+		}
+	}
+}
+
+// br1North is gobox's step north with the square's event run.
+func br1North(e *Engine) error {
+	if err := stepBy(e, 0); err != nil {
+		return err
+	}
+	if e.ext.owed == nil {
+		return nil
+	}
+	_, err := e.doNow(game.RunEvent{})
+	return err
+}
+
+// paneText is the text pane's words, the wrapping's spaces aside.
+func paneText(c game.Common) string {
+	return strings.Join(strings.Fields(strings.Join(c.Text, " ")), " ")
 }

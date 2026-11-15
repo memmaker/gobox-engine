@@ -139,11 +139,15 @@ func (e *Engine) newEngineFields() map[string]engineField {
 		// facing stays) the way of the step, as the originals' scripts take the
 		// facing for it (they only ever stepped ahead): an exit, a door, a guard
 		// by Facing is the one the step goes through
-		"Facing": fact(func() uint16 { return uint16(e.moveDir() >> 1) }, func(v uint16) {
-			e.facing = [4]int{0, 2, 4, 6}[v%4]
-			e.ext.back = 0 // the script chose the facing
-			e.es.posChanged = 1
-		}),
+		"Facing": fact(func() uint16 { return uint16(e.moveDir() >> 1) }, e.setFacing),
+		// Buck Rogers' facing cell (pO0B8_0DB6, view cell 49229): Facing, but read as the eight-way
+		// facing while the area's travel kind (the layout's TravelKind) is 0
+		"FacingOrRaw": fact(func() uint16 {
+			if r, ok := e.layoutField(fieldTravelKind); ok && e.host.Get(r) == 0 {
+				return uint16(e.facing)
+			}
+			return uint16(e.moveDir() >> 1)
+		}, e.setFacing),
 		"WallAhead": fact(func() uint16 { return uint16(e.es.wallAhead) }, nil),
 		"Cell":      fact(func() uint16 { return uint16(e.es.cell) }, nil),
 		"SetGroundShade": fact(nil, func(v uint16) {
@@ -608,6 +612,13 @@ func (e *Engine) inField(f *ecl.Field, i int) {
 	if i < 0 || i >= f.Len {
 		panic(fmt.Sprintf("script: %s[%d] is past the field's %d (layout too short)", f.Name, i, f.Len))
 	}
+}
+
+// setFacing is a script's write of the facing, 0..3 north first.
+func (e *Engine) setFacing(v uint16) {
+	e.facing = [4]int{0, 2, 4, 6}[v%4]
+	e.ext.back = 0 // the script chose the facing
+	e.es.posChanged = 1
 }
 
 // clockField is the script field of the clock's part.

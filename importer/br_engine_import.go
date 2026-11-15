@@ -33,13 +33,15 @@ const (
 	brSeries = "buck-rogers"
 )
 
+// br1PictureSets: pO124_02D0 reads these PIC blocks from PIC7..9 whatever the disk (buckrogers-go rules/eclops.go picOf).
+var br1PictureSets = map[int]rules.Set{105: 7, 64: 7, 72: 8, 92: 8, 74: 8, 62: 9}
+
 // ImportBREngine is ImportBR plus what the shared engine reads from an adventure folder (engine.New, Init): the game's
 // full script layout in place of ImportBR's partial one (the scripts re-imported with it), gametables.json and gamedata.json.
 // Only tests call it; it is not in the registry or `gobox import`. It replaces ImportBR when the BR engines go (REFACTOR.md B1g).
 // A game without a full layout (BR2) is an error.
 //
-// Not written yet: sound.json (no layout of BR1's sound tables), portraits.json, the walls (BR has no WALLDEF), BR1's PIC file
-// remap per picture number (picOf in buckrogers-go rules/eclops.go: 105, 64 -> PIC7; 72, 92, 74 -> PIC8; 62 -> PIC9).
+// Not written yet: sound.json (no layout of BR1's sound tables), portraits.json, the walls (BR has no WALLDEF).
 func ImportBREngine(id string, e BREXE, dos, dst string) error {
 	full, err := fs.ReadFile(embeddedScripts(id), ecl.GlobalLayout)
 	if err != nil {
@@ -74,6 +76,7 @@ func ImportBREngine(id string, e BREXE, dos, dst string) error {
 		Dialect:      rules.DialectBR,
 		FirstBlock:   brFirstBlock,
 		GameSet:      brGameSet,
+		PictureSets:  br1PictureSets, // ponytail: BR1's; BR2 has no full layout yet and returns above
 		BigPictures:  adventure.BigPictures{First: brFirstBigPicture},
 		OriginalSave: rules1e.SaveLayout{CodeBase: brCodeBase, CodeSize: brCodeSize}, // eclLayout reads only these two
 		Symbols: []adventure.SymbolLoad{

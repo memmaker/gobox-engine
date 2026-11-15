@@ -30,6 +30,7 @@ type GameTables struct {
 	Walls                      *WallTextures        // the 3D view's remastered wall textures; nil: none
 	GameSet                    rules.Set            // the set the party menu's game starts in (DS:5376: POR 3; cotab, sotsb, pod 2)
 	FirstBlock                 int                  // the ECL block a new game starts on, with no last block saved (POR 0, cotab 1, sotsb 17, pod 16)
+	PictureSets                map[int]rules.Set    // a PIC block kept in another set's file than the one in play (BR1 pO124_02D0: 62 in PIC9); nil: none
 	BigPictures                BigPictures          // the Picture command's whole-screen BIGPIC pictures; zero: none (POR)
 }
 

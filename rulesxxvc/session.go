@@ -3,6 +3,7 @@ package rulesxxvc
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 
@@ -86,6 +87,38 @@ func clockUnit(p rules.ClockPart) (int, bool) {
 	return 0, false
 }
 
+// clockUnitScale is how many of each clock unit make one of the next (gdconsts.pas clockUnitScale).
+var clockUnitScale = [clockUnits]int{10, 10, 6, 24, 30, 12, 100}
+
+// advanceClock is gametime.pas AdvanceTime (BR1 pO0E3_0388): count of unit pass, carrying up, and
+// the effects of everyone run down by the minutes that is (pO0E3_0000: the fight's, else the party's).
+// A year's carry ages the characters in the original; a Character keeps no age.
+func (r *Rules) advanceClock(count, unit int) {
+	if unit < 0 || unit >= clockUnits {
+		return // pO0E3_0388: no such unit, no time
+	}
+	for range count {
+		r.clock[unit]++
+		for i := range r.clock {
+			if r.clock[i] >= clockUnitScale[i] {
+				r.clock[i] -= clockUnitScale[i]
+				if i+1 < clockUnits {
+					r.clock[i+1]++
+				}
+			}
+		}
+	}
+	minutes := count
+	for u := clockMinute; u < unit; u++ {
+		minutes *= clockUnitScale[u]
+	}
+	who := r.party
+	if r.fight != nil {
+		who = slices.Collect(maps.Keys(r.fight))
+	}
+	r.Elapse(who, int32(minutes), nil)
+}
+
 // resolveSession resolves the session's Actions; ok false: not one of them.
 func (r *Rules) resolveSession(a rules.Action) (o rules.Outcome, ok bool, err error) {
 	switch a := a.(type) {
@@ -112,6 +145,8 @@ func (r *Rules) resolveSession(a rules.Action) (o rules.Outcome, ok bool, err er
 			return rules.Outcome{}, true, errClockReadOnly
 		}
 		r.clock[u] = int(a.Value)
+	case rules.AdvanceClock:
+		r.advanceClock(int(a.Count), int(a.Unit))
 	case rules.JoinParty:
 		if r.chars[a.Who] == nil {
 			return rules.Outcome{}, true, errNoMember
