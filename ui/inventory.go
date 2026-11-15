@@ -49,7 +49,7 @@ var green, white, cyan, gray, dark, red color.RGBA // the roles' colours (applyT
 // inventory is the screen's state between frames.
 type inventory struct {
 	doll, atlas image.Image
-	icons       map[rules.ItemID]int // items.rec: base kind → atlas cell
+	icons       map[itemIcon]int // items.rec: base kind, or one item of it by name → atlas cell
 	px          *image.RGBA          // the canvas, drawn on the CPU
 	img, tip    *gpu.Image           // the canvas and the tooltip on the GPU
 	glyph       func(byte) [8]byte

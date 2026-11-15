@@ -2,6 +2,10 @@
 # kind: internal_name is the rules.ItemID (rules1e/dnditems.go), name its
 # label in the remapper. icon is the cell of atlas.png (20x20, 24 a row; -1:
 # no picture yet, drawn red in the remapper). Seeded from POR's.
+# A kind many different things share (63 Valuable, 64 Potion, 89 Curio) has
+# a record for each of them besides its own: internal_name "<kind>/<name>",
+# the item's name as the game's data spells it; it shows that icon once it
+# is identified, the kind's until then. Seeded with the kind's icon.
 # Edit with: scripts/remap_items.sh pool (from the repo root)
 
 internal_name: 1
@@ -403,3 +407,183 @@ icon: 729
 internal_name: 100
 name: Blessed Bolt
 icon: 41
+
+internal_name: 63/Brass Dragon Figurine
+name: Brass Dragon Figurine
+icon: 231
+
+internal_name: 63/Diamond Necklace
+name: Diamond Necklace
+icon: 231
+
+internal_name: 63/Dust of Disappearance
+name: Dust of Disappearance
+icon: 231
+
+internal_name: 63/Electrum Decanter
+name: Electrum Decanter
+icon: 231
+
+internal_name: 63/Emerald Broach
+name: Emerald Broach
+icon: 231
+
+internal_name: 63/Fine Opal Pendant
+name: Fine Opal Pendant
+icon: 231
+
+internal_name: 63/Fine Tapestry
+name: Fine Tapestry
+icon: 231
+
+internal_name: 63/Gold Banded Wand
+name: Gold Banded Wand
+icon: 231
+
+internal_name: 63/Gold Chain
+name: Gold Chain
+icon: 231
+
+internal_name: 63/Gold Lightning Figurine
+name: Gold Lightning Figurine
+icon: 231
+
+internal_name: 63/Gold Scarab
+name: Gold Scarab
+icon: 231
+
+internal_name: 63/Gold Statuette
+name: Gold Statuette
+icon: 231
+
+internal_name: 63/Huge Tapestry
+name: Huge Tapestry
+icon: 231
+
+internal_name: 63/Incense
+name: Incense
+icon: 231
+
+internal_name: 63/Jewel Studded Bowl
+name: Jewel Studded Bowl
+icon: 231
+
+internal_name: 63/Jewelled Silver Wings
+name: Jewelled Silver Wings
+icon: 231
+
+internal_name: 63/Manual of Bodily Health
+name: Manual of Bodily Health
+icon: 231
+
+internal_name: 63/Pearl Necklace
+name: Pearl Necklace
+icon: 231
+
+internal_name: 63/Platinum Sphere
+name: Platinum Sphere
+icon: 231
+
+internal_name: 63/Potion Extra Healing
+name: Potion Extra Healing
+icon: 231
+
+internal_name: 63/Potion of Giant Strength
+name: Potion of Giant Strength
+icon: 231
+
+internal_name: 63/Potion of Healing
+name: Potion of Healing
+icon: 231
+
+internal_name: 63/Potion of Speed
+name: Potion of Speed
+icon: 231
+
+internal_name: 63/Sheet of Gold
+name: Sheet of Gold
+icon: 231
+
+internal_name: 63/Silver Brooch
+name: Silver Brooch
+icon: 231
+
+internal_name: 63/Silver Dragon Statuette
+name: Silver Dragon Statuette
+icon: 231
+
+internal_name: 63/Silver Ring
+name: Silver Ring
+icon: 231
+
+internal_name: 63/Silver Scarab
+name: Silver Scarab
+icon: 231
+
+internal_name: 63/Woods Holy Symbol
+name: Woods Holy Symbol
+icon: 231
+
+internal_name: 64/Brass Mirror
+name: Brass Mirror
+icon: 450
+
+internal_name: 64/Iron Holy Symbol Of Tempus
+name: Iron Holy Symbol Of Tempus
+icon: 450
+
+internal_name: 64/Jewelled Dragon Statuette
+name: Jewelled Dragon Statuette
+icon: 450
+
+internal_name: 64/Potion Extra Healing
+name: Potion Extra Healing
+icon: 450
+
+internal_name: 64/Potion of Healing
+name: Potion of Healing
+icon: 450
+
+internal_name: 64/Potion of Speed
+name: Potion of Speed
+icon: 450
+
+internal_name: 64/Silver Holy Symbol Of Sune
+name: Silver Holy Symbol Of Sune
+icon: 450
+
+internal_name: 64/Silver Mirror
+name: Silver Mirror
+icon: 450
+
+internal_name: 64/Wooden Holy Symbol Of Tyr
+name: Wooden Holy Symbol Of Tyr
+icon: 450
+
+internal_name: 89/Chain of Bone
+name: Chain of Bone
+icon: 297
+
+internal_name: 89/Copper Brazier
+name: Copper Brazier
+icon: 297
+
+internal_name: 89/Fungus Covered Tapestry
+name: Fungus Covered Tapestry
+icon: 297
+
+internal_name: 89/Rotting Leather Saddle
+name: Rotting Leather Saddle
+icon: 297
+
+internal_name: 89/Rotting Rug
+name: Rotting Rug
+icon: 297
+
+internal_name: 89/Stone Statuette
+name: Stone Statuette
+icon: 297
+
+internal_name: 89/Tapestry
+name: Tapestry
+icon: 297

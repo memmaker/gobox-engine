@@ -174,9 +174,9 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note) bool {
 		inv.carry = nil
 	}
 	if inv.dragging && inv.press != nil {
-		inv.drawIcon(inv.press.item.Base, image.Rectangle{inv.hover, inv.hover}.Inset(-rowH/2))
+		inv.drawIcon(iconOf(inv.press.item), image.Rectangle{inv.hover, inv.hover}.Inset(-rowH/2))
 	} else if c := inv.carry; c != nil {
-		inv.drawIcon(c.icon.Base, image.Rectangle{inv.hover, inv.hover}.Inset(-rowH/2))
+		inv.drawIcon(iconOf(c.icon), image.Rectangle{inv.hover, inv.hover}.Inset(-rowH/2))
 		if c.n > 1 {
 			inv.text(strconv.Itoa(c.n), inv.hover.X+rowH/2-8*len(strconv.Itoa(c.n))+2, inv.hover.Y+rowH/2-8, white)
 		}
@@ -325,7 +325,7 @@ func (p *Presenter) drawMember(lx, lw, bottom int, busy bool) {
 		}
 		box := dollBoxes[s].Add(inv.dollAt.Min)
 		if it != nil {
-			inv.drawIcon(it.Base, box.Inset(1))
+			inv.drawIcon(iconOf(*it), box.Inset(1))
 			inv.lines = append(inv.lines, hit{r: box, item: *it, doll: true})
 		}
 		if it != nil && it.Handle == inv.sel || inv.hover.In(box) && !busy {
