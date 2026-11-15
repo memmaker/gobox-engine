@@ -52,7 +52,7 @@ func (e *RuleState) SwapReady(c *Character, it *Item) {
 	if it.Readied == 0 && e.Base(it.Type).Classes&c.ClassMask != 0 {
 		for _, s := range []int{SlotWeapon, SlotShield} {
 			o := c.Slots[s]
-			if o == nil || o == it || int(e.handsFor(it.Type))+int(c.Hands) <= 2 {
+			if o == nil || o == it || int(e.itemHands(c, it))+int(c.Hands) <= 2 {
 				continue
 			}
 			e.ReadyItem(o)
@@ -110,7 +110,7 @@ func (e *RuleState) InTheWay(c *Character, it *Item) *Item {
 	if it.Readied != 0 {
 		return nil
 	}
-	slot := e.readySlot(it.Type)
+	slot := e.itemSlot(c, it)
 	switch {
 	case e.offHand(c, it):
 		slot = SlotShield
@@ -151,11 +151,12 @@ func (e *RuleState) ReadyItem(it *Item) {
 	}
 	why := 0
 	typ := it.Type
-	if int(e.handsFor(typ))+int(c.Hands) > 2 {
+	if int(e.itemHands(c, it))+int(c.Hands) > 2 {
 		why = 3
 	}
-	slot := e.readySlot(typ)
-	offHand := e.offHand(c, it) // extra: a second weapon goes into the off hand
+	slot := e.itemSlot(c, it)
+	asMissile := e.asMissile(c, it) // extra: a spear beside the weapon in hand goes into the Missiles slot
+	offHand := e.offHand(c, it)     // extra: a second weapon goes into the off hand
 	if offHand {
 		slot = SlotShield
 	}
@@ -185,6 +186,9 @@ func (e *RuleState) ReadyItem(it *Item) {
 		it.Readied = 1
 		if offHand {
 			it.Readied = ReadiedOffHand
+		}
+		if asMissile {
+			it.Readied = ReadiedMissiles
 		}
 		if effect {
 			e.itemAffect(it, c, 0)

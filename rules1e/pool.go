@@ -117,7 +117,7 @@ func (e *RuleState) takeFromPool(c *Character, it *Item) {
 // DollSlot is the doll slot a readied item of c fills, -1 for an item
 // that cannot be readied (no slot: it is used straight from the pool).
 func (e *RuleState) DollSlot(c *Character, it *Item) int {
-	switch s := e.readySlot(it.Type); {
+	switch s := e.itemSlot(c, it); {
 	case it.Readied == ReadiedOffHand || e.offHand(c, it): // the off hand (extra)
 		return SlotShield
 	case e.isKind(it.Type, ItemIDArrow, ItemIDQuarrel) || s == SlotMissiles: // the arrows' and quarrels' slots (11, 12), extra: the thrown weapon's

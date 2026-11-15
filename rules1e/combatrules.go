@@ -490,7 +490,7 @@ func (e *RuleState) StrikeOff(a, b *Character) bool {
 // with one already in hand, the shield slot free, the rule set allowing it.
 func (e *RuleState) offHand(c *Character, it *Item) bool {
 	w := c.Slots[SlotWeapon]
-	return it.Readied == 0 && w != nil && w != it && c.Slots[SlotShield] == nil && e.readySlot(it.Type) == SlotWeapon &&
+	return it.Readied == 0 && w != nil && w != it && c.Slots[SlotShield] == nil && e.itemSlot(c, it) == SlotWeapon &&
 		e.Base(it.Type).Hands == 1 && e.Base(w.Type).Hands == 1 && e.Rules().OffHand(e, c, it)
 }
 

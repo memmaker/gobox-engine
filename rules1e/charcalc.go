@@ -93,11 +93,14 @@ const (
 	SlotShield = 1
 	// ReadiedOffHand (extra) is the Readied of a weapon in the off hand: the shield slot
 	ReadiedOffHand = 4
-	SlotArmor      = 2
-	slotRing1      = 9
-	slotRing2      = 10
-	SlotArrows     = 11
-	SlotBolts      = 12
+	// ReadiedMissiles (extra) is the Readied of a weapon thrown or used in
+	// melee (a spear) readied into the Missiles slot, not the weapon hand
+	ReadiedMissiles = 5
+	SlotArmor       = 2
+	slotRing1       = 9
+	slotRing2       = 10
+	SlotArrows      = 11
+	SlotBolts       = 12
 	// extra: the Missiles slot (a thrown-only weapon: a dart, a javelin, a
 	// flask of oil) and the Launcher slot (a bow, crossbow or sling). Both
 	// take no hands; the Ranged action shoots or throws from them (Draw).
@@ -211,6 +214,37 @@ func (e *RuleState) handsFor(typ ItemType) byte {
 	return e.Base(typ).Hands
 }
 
+// meleeToo (extra): a thrown weapon also used in melee (a spear, a hand
+// axe): it goes into the weapon hand or the Missiles slot.
+func (b *ItemBase) meleeToo() bool {
+	return b.Usage&usageThrown != 0 && b.Usage&usageMeleeToo != 0
+}
+
+// asMissile (extra): it, unreadied, would go into c's Missiles slot: a
+// thrown weapon also used in melee, the weapon hand holding another and
+// the Missiles box free.
+func (e *RuleState) asMissile(c *Character, it *Item) bool {
+	w := c.Slots[SlotWeapon]
+	return it.Readied == 0 && w != nil && w != it && e.Base(it.Type).meleeToo() && e.missileReadied(c) == nil
+}
+
+// itemSlot is the slot c's item it fills, readied (or would, unreadied):
+// its type's (readySlot), the Missiles slot for a melee weapon thrown from there.
+func (e *RuleState) itemSlot(c *Character, it *Item) int {
+	if it.Readied == ReadiedMissiles || e.asMissile(c, it) {
+		return SlotMissiles
+	}
+	return e.readySlot(it.Type)
+}
+
+// itemHands is the hands c's item it takes there (handsFor; none in the Missiles slot).
+func (e *RuleState) itemHands(c *Character, it *Item) byte {
+	if e.itemSlot(c, it) == SlotMissiles {
+		return 0
+	}
+	return e.handsFor(it.Type)
+}
+
 // missileSlots (extra) are the slots behind the doll's one Missiles box:
 // one of them holds a readied stack at a time.
 var missileSlots = [3]int{SlotMissiles, SlotArrows, SlotBolts}
@@ -281,7 +315,7 @@ func (e *RuleState) ApplyItems(c *Character) {
 			c.Hands += e.Base(typ).Hands
 			continue
 		}
-		switch s := e.readySlot(typ); {
+		switch s := e.itemSlot(c, it); {
 		case s == SlotLauncher || s == SlotMissiles: // extra
 			c.Slots[s] = it
 		case s <= 8:
@@ -299,7 +333,7 @@ func (e *RuleState) ApplyItems(c *Character) {
 		if e.isKind(typ, ItemIDQuarrel) {
 			c.Slots[SlotBolts] = it
 		}
-		c.Hands += e.handsFor(typ)
+		c.Hands += e.itemHands(c, it)
 	}
 	if e.drawn == c && e.BeginFlag == 5 { // extra: the Ranged action's launcher or thrown weapon in hand
 		if r := e.rangedItem(c); r != nil {
