@@ -379,9 +379,10 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
       PlaceAllCreatures), the fight's facts on it, the turn loop on the engine's flow,
       `OpenTurn`, `ClearCombat`, `BankLoot`, `TakeLoot`, `FightCleared`, monsters out of the party
       at the end; `TurnUndead` is asked on a key with no neutral guard.
-    - Hazard: the worktrees share `data/`, and POR's test import writes `data/por/scripts`: a
-      track that changes POR's layout changes it for main and every other track before it lands
-      (f1's landing failed on st1's layout until st1 landed).
+    - [x] the shared-`data/` hazard: `foldwt.sh new` copies each game's `scripts/` into the track
+      (the rest of `data/` stays linked); a track's test import rewrites only its own copy.
+      After a layout change lands, main's `data/<game>/scripts` is rewritten by main's next test
+      import (POR) or needs the game's re-import (version bump).
     - Open after B1f4:
       - unverified: pod's heal test goes through the field's get/set, not the script file; the
         cotab and sotsb bindings were tested on a pod engine before the re-import; whether pod's

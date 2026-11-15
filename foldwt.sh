@@ -1,6 +1,6 @@
 #!/bin/bash
 # Per-track worktrees of the fold repos, replacing the shared gate lock for day-to-day work.
-#   foldwt.sh new <track>   ~/Projects/fold-wt/<track>/<repo> on branch fold/<track> from main, deps/-re/data linked
+#   foldwt.sh new <track>   ~/Projects/fold-wt/<track>/<repo> on branch fold/<track> from main, deps/-re/data linked (each game's scripts/ copied)
 #   foldwt.sh land <track>  rebase fold/<track> onto main, gate the branch's packages, fast-forward main
 # A track commits freely in its own tree (gate: GATE_PROJECTS=~/Projects/fold-wt/<track> gate.sh).
 # Land gates before taking the lock; under it only a main that moved meanwhile is gated again.
@@ -20,7 +20,13 @@ new)
     fi
   done
   for g in "$projects"/gobox-engine/data/*/; do # each game's unversioned data (sources/, the import, extras/)
-    for e in "$g"*; do x="$tree/gobox-engine/data/$(basename "$g")/$(basename "$e")"; [ -e "$x" ] || ln -s "$e" "$x"; done
+    for e in "$g"*; do
+      x="$tree/gobox-engine/data/$(basename "$g")/$(basename "$e")"
+      [ -e "$x" ] && continue
+      # scripts/ is the track's own copy: a test's import rewrites it from the track's layout (POR's ImportIfStale),
+      # and a linked one would change main's and every other track's scripts before the track lands.
+      if [ "$(basename "$e")" = scripts ]; then cp -R "$e" "$x"; else ln -s "$e" "$x"; fi
+    done
   done
   for d in gogpu-wgpu goffi goplay gameimport gogpu-naga "$(cd "$projects" && ls -d *-re)"; do
     for x in $d; do [ -e "$tree/$x" ] || ln -s "$projects/$x" "$tree/$x"; done
