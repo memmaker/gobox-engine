@@ -1010,7 +1010,7 @@ func (r *frontState) maneuvers(al game.Allowed) game.Result {
 func (r *frontState) aimOrDo(al game.Allowed, a game.Action) game.Result {
 	if len(ats(a)) == 0 {
 		for _, x := range al.Aimed {
-			if reflect.DeepEqual(withAts(x.Action, nil), withAts(a, nil)) {
+			if reflect.DeepEqual(withAts(x.Action, nil), withAts(a, nil)) || turnsCast(x.Action, a) {
 				if len(x.Squares) == 0 { // the game offers the squares its rules take: none is nothing in reach
 					return r.noTargets()
 				}
@@ -1020,6 +1020,14 @@ func (r *frontState) aimOrDo(al game.Allowed, a game.Action) game.Result {
 		}
 	}
 	return r.do(a)
+}
+
+// turnsCast: a is the turn's cast (Member -1, as the fight's menu sends it)
+// of the spell offered's Cast names.
+func turnsCast(offered, a game.Action) bool {
+	o, ok := offered.(game.Cast)
+	c, ok2 := a.(game.Cast)
+	return ok && ok2 && c.Member == -1 && c.Spell == o.Spell
 }
 
 // noTargetsText is the note for an aimed action with nothing to aim at.
@@ -1047,10 +1055,12 @@ func (r *frontState) aimAt(at rules.BoardPos) game.Result {
 		r.aim = nil
 		return r.do(game.Attack{Target: m.byUnit[at]})
 	}
-	m.ats = append(m.ats, at)
-	if len(m.ats) < max(m.Targets, 1) {
-		return game.Result{}
-	}
+	if again := slices.Contains(m.ats, at); !again {
+		m.ats = append(m.ats, at)
+		if len(m.ats) < max(m.Targets, 1) {
+			return game.Result{}
+		}
+	} // a square picked before: enough, the action goes with those picked
 	r.aim = nil
 	return r.do(withAts(m.Action, m.ats))
 }
@@ -1133,8 +1143,12 @@ func (r *frontState) do(a game.Action) game.Result {
 func (r *frontState) keep(a game.Action) game.Result {
 	out, err := r.g.Do(a)
 	res := r.outcome(a, out, err)
-	if f, ok := r.g.State().(game.Fighting); ok && err == nil && r.loneAim(f) && len(r.aim.Squares) == 0 { // the game's own aim (an item's spell) with no square its rules take: given up at once
-		if _, err := r.g.Do(game.Leave{}); err == nil {
+	if _, left := a.(game.Leave); left || err != nil {
+		return res
+	}
+	if f, ok := r.g.State().(game.Fighting); ok && r.loneAim(f) && len(r.aim.Squares) == 0 { // the game's own aim (an item's spell, a spell begun rounds ago going off) with no square its rules take: given up at once, what follows played
+		if gone := r.keep(game.Leave{}); gone.Err == nil {
+			res.Events = append(res.Events, gone.Events...)
 			r.noTargets()
 		}
 	}

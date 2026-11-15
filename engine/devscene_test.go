@@ -3,6 +3,7 @@ package engine
 import (
 	"gobox/rules"
 	"gobox/rules1e"
+	"slices"
 	"testing"
 
 	"gobox/game"
@@ -396,16 +397,22 @@ func testLootEscLeaves(t *testing.T, mk func(*testing.T) *Engine) {
 	}
 }
 
-// TestTimedCastTaken: a Cast with its square for a spell cast over rounds
-// (castfight's Cure Light Wounds "Begins Casting") is taken, not "not now"
-// for the square: the turn is over; when the spell goes off its aim is
-// offered (Aimed) and taken.
+// TestTimedCastTaken: a spell cast over rounds (castfight's Cure Light
+// Wounds "Begins Casting") is not aimed when it is begun: it is a plain
+// Cast, taken without a square, and no aim opens. When the spell goes off
+// its aim is offered (Aimed, with squares) and taken, and the cast is shown
+// (CastSpell).
 func TestTimedCastTaken(t *testing.T) {
 	e := devFirstTurn(t, "castfight", false)
 	a := e.member(e.cs.actor)
-	at := rules.BoardPos{X: e.state().CombatX(a), Y: e.state().CombatY(a)}
-	if _, err := e.doNow(game.Cast{Member: -1, Spell: 3, Ats: []rules.BoardPos{at}}); err != nil || a.Combat.Spell == 0 {
-		t.Fatalf("Cast: %v, casting %d", err, a.Combat.Spell)
+	const cure = 3
+	al := commonOf(e.build()).Allowed
+	isCure := func(x game.Action) bool { c, ok := x.(game.Cast); return ok && c.Spell == cure }
+	if !slices.ContainsFunc(al.Plain, isCure) || slices.ContainsFunc(al.Aimed, func(x game.Aimed) bool { return isCure(x.Action) }) {
+		t.Fatalf("the timed spell is aimed before it is begun: plain %+v aimed %+v", al.Plain, al.Aimed)
+	}
+	if _, err := e.doNow(game.Cast{Member: -1, Spell: cure}); err != nil || a.Combat.Spell == 0 || e.cs.aim != nil {
+		t.Fatalf("Cast: %v, casting %d, aim up %v", err, a.Combat.Spell, e.cs.aim != nil)
 	}
 	for range 200 {
 		s := e.build()
@@ -414,16 +421,17 @@ func TestTimedCastTaken(t *testing.T) {
 		case !ok:
 			t.Fatalf("the fight ended (%T) before the spell went off", s)
 		case e.cs.aim != nil:
-			if len(f.Allowed.Aimed) == 0 {
-				t.Fatalf("the spell's aim is up but nothing aimed is offered: %+v", f.Allowed)
+			if len(f.Allowed.Aimed) != 1 || !isCure(f.Allowed.Aimed[0].Action) || len(f.Allowed.Aimed[0].Squares) == 0 {
+				t.Fatalf("the spell's aim is up but its Cast is not offered with squares: %+v", f.Allowed.Aimed)
 			}
-			act := f.Allowed.Aimed[0].Action
-			if c, ok := act.(game.Cast); ok {
-				c.Ats = []rules.BoardPos{at}
-				act = c
+			c := f.Allowed.Aimed[0].Action.(game.Cast)
+			c.Ats = f.Allowed.Aimed[0].Squares[:1]
+			out, err := e.doNow(c)
+			if err != nil || e.cs.aim != nil {
+				t.Fatalf("Cast at the aim: %v, aim still up %v", err, e.cs.aim != nil)
 			}
-			if _, err := e.doNow(act); err != nil {
-				t.Fatalf("%T at the aim: %v", act, err)
+			if !slices.ContainsFunc(out.Events, func(ev game.Event) bool { c, ok := ev.(game.CastSpell); return ok && c.Spell == cure }) {
+				t.Fatalf("the cast is not shown: %+v", out.Events)
 			}
 			return
 		case f.Ask != nil:

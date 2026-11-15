@@ -32,12 +32,6 @@ type Game struct {
 	traceMode  game.Mode // the mode last traced
 }
 
-// aiming is the squares picked so far for spell, up to n.
-type aiming struct {
-	spell, n int
-	ats      []rules.BoardPos
-}
-
 // NewGame is the *classicGame over p and d.
 func NewGame(p game.Game, d game.Data) *Game {
 	GameID = d.ID
@@ -675,22 +669,6 @@ func (g *Game) Answer(a Action) error {
 		g.r.grid = image.Pt(max(40, a.X), max(25, a.Y)) // the window's grid at K: the screens the presenter lays out fill it
 		return err
 	}
-	if m := g.r.spellAim; m != nil { // up to n squares, then the cast; Enter casts on those picked, Esc gives up
-		switch {
-		case a.Kind == ActAim:
-			if m.ats = append(m.ats, rules.BoardPos{X: a.X, Y: a.Y}); len(m.ats) < m.n {
-				return nil
-			}
-		case a.Kind == ActOK && len(m.ats) > 0:
-		case a.Kind == ActClose:
-			g.r.spellAim, g.r.refusalAsk = nil, nil
-			return nil
-		default:
-			return nil
-		}
-		g.r.spellAim, g.r.refusalAsk = nil, nil
-		return g.do(game.Cast{Member: -1, Spell: m.spell, Ats: m.ats})
-	}
 	if announced(g.r.g.State()) && g.r.refusalAsk == nil {
 		if a.Kind != ActOK && a.Kind != ActClose {
 			return nil
@@ -700,14 +678,7 @@ func (g *Game) Answer(a Action) error {
 		}
 	}
 	if a.Kind == ActCast {
-		if c := g.combat(); c != nil {
-			for _, sp := range c.Aims {
-				if sp.ID == a.N {
-					g.r.spellAim = &aiming{spell: sp.ID, n: max(sp.Targets, 1)}
-					g.r.refusalAsk = &game.Ask{Kind: game.Square, Prompt: "Aim " + sp.Name}
-					return nil
-				}
-			}
+		if g.combat() != nil { // the turn's cast: an aimed spell's squares are gobox's aim (aimOrDo)
 			return g.do(game.Cast{Member: -1, Spell: a.N})
 		}
 	}

@@ -667,6 +667,9 @@ func allows(al game.Allowed, a game.Action) bool {
 					return true
 				}
 			}
+			if slices.ContainsFunc(al.Plain, func(x game.Action) bool { c, ok := x.(game.Cast); return ok && c.Spell == v.Spell }) {
+				return true
+			}
 		}
 	case game.SetChoice: // a pool pick's id: the rules check the field
 		if v.Text != "" {
@@ -957,7 +960,19 @@ func (e *Engine) combatDo(a game.Action, al game.Allowed, native func(func() err
 			for _, at := range a.Ats {
 				as = append(as, TurnAct{Verb: VerbAim, X: at.X, Y: at.Y})
 			}
-			return e.turnActs(as, false)
+			if err := e.turnActs(as, false); err != nil {
+				return err
+			}
+			for _, x := range al.Aimed { // fewer squares than the spell's targets: the rest are given up, the spell goes off at those taken
+				if c, ok := x.Action.(game.Cast); ok && c.Spell == a.Spell && len(a.Ats) > 0 {
+					for n := len(a.Ats); n < x.Targets && e.cs.aim != nil && e.cs.sa != nil; n++ {
+						if err := e.turnActs([]TurnAct{{Verb: VerbClose}}, false); err != nil {
+							return err
+						}
+					}
+				}
+			}
+			return nil
 		})
 	case game.UseItem:
 		return true, native(func() error {

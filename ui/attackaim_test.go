@@ -99,3 +99,34 @@ func TestAimTargetRules(t *testing.T) {
 }
 
 func events(es []game.Event) []game.Report { return eventsAt(es, defaultSpeed*speedStepMs, nil) }
+
+// TestTurnsCast: the fight menu's Cast (Member -1) of an aimed spell is
+// gobox's aim over the squares the game offers; one cast over rounds, which
+// the game offers plain, is sent at once with no aim: its aim comes when it
+// goes off (the game's own, alone in Allowed).
+func TestTurnsCast(t *testing.T) {
+	now, timed := game.Cast{Member: 2, Spell: 34}, game.Cast{Member: 2, Spell: 3}
+	st := game.Fighting{Common: game.Common{Allowed: game.Allowed{Plain: []game.Action{timed, game.EndTurn{}},
+		Aimed: []game.Aimed{{Action: now, Squares: []rules.BoardPos{{X: 4, Y: 3}}, Targets: 1}}}},
+		Field: game.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, At: rules.BoardPos{X: 1, Y: 1}}, {ID: 3, At: rules.BoardPos{X: 4, Y: 3}, Foe: true}}}}
+	f := &fake{st: st}
+	r := newRules(f, game.Data{})
+	if r.send(game.Cast{Member: -1, Spell: 34}); r.aim == nil || len(f.sent) != 0 {
+		t.Fatalf("the aimed spell: aim %v sent %v", r.aim, f.sent)
+	}
+	r.send(game.Aim{At: rules.BoardPos{X: 4, Y: 3}})
+	if c, ok := f.sent[len(f.sent)-1].(game.Cast); len(f.sent) != 1 || !ok || c.Spell != 34 || len(c.Ats) != 1 || r.aim != nil {
+		t.Fatalf("aimed: sent %+v aim %v", f.sent, r.aim)
+	}
+	f.sent = nil
+	if r.send(game.Cast{Member: -1, Spell: 3}); r.aim != nil || len(f.sent) != 1 {
+		t.Fatalf("the spell cast over rounds: aim %v sent %+v, want it sent with no aim", r.aim, f.sent)
+	}
+	// it goes off: the game's aim alone, with no square its rules take, is given up with the note
+	f.st = game.Fighting{Common: game.Common{Allowed: game.Allowed{Plain: []game.Action{game.Leave{}}, Aimed: []game.Aimed{{Action: timed, Targets: 1}}}}, Field: st.Field}
+	f.sent, r.note = nil, game.Note{}
+	r.send(game.EndTurn{})
+	if len(f.sent) != 2 || f.sent[1] != game.Action(game.Leave{}) || r.note.Text != noTargetsText {
+		t.Fatalf("no square to aim at: sent %+v note %q", f.sent, r.note.Text)
+	}
+}

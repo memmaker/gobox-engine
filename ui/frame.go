@@ -24,7 +24,6 @@ type UI struct {
 	moves      []game.Action  // the actions ask's options stand for
 	refusalAsk *game.Ask      // a Refusal's question put instead (answered by its options' Do)
 	aim        *squareAim     // an Aimed action's squares being picked
-	spellAim   *aiming        // a combat spell's squares being picked (Combat.Aims)
 	cursor     rules.BoardPos // the free cursor's square
 	read       *game.Read     // the handout up, kept so the pointer holds while it does
 	sheet      int            // the member whose sheet is up, -1 none

@@ -697,13 +697,12 @@ type boardKey struct {
 	fly    *flight      // a missile's square
 	queued int          // the moments still to play (keepFallen)
 	ask    AskKind      // the question over the board (-1: none): an aim or a move
-	aim    *aiming      // the spell being aimed
 }
 
 // drawnBoard makes fightView and fightBoard from p.board, when what they
 // are made from has changed.
 func (p *Presenter) drawnBoard() {
-	k := boardKey{live: p.fightSource(), board: p.board, fly: p.fly, queued: len(p.replay.q), ask: -1, aim: p.ui().spellAim}
+	k := boardKey{live: p.fightSource(), board: p.board, fly: p.fly, queued: len(p.replay.q), ask: -1}
 	if q := p.askUp(); q != nil {
 		k.ask = q.Kind
 	}
@@ -736,13 +735,11 @@ type fightDrawn struct {
 // square, while it has none of its own (the live board; a replayed one never
 // aims).
 func (p *Presenter) aimPreview(b *combat.Board) *combat.Board {
-	if p.eng == nil || p.Playing() || p.ui().spellAim == nil || len(b.AreaAt) != 0 {
+	if p.eng == nil || p.Playing() || p.eng.r.aim == nil || len(b.AreaAt) != 0 {
 		return b
 	}
-	for _, sp := range p.fightView.Aims {
-		if sp.ID == p.ui().spellAim.spell {
-			b.AimArea = sp.Area + 1
-		}
+	if _, ok := p.eng.r.aim.Action.(game.Cast); ok {
+		b.AimArea = p.eng.r.aim.Area + 1
 	}
 	return b
 }
