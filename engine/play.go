@@ -132,7 +132,7 @@ func (e *Engine) stateOf(mode game.Mode, pending *game.Question, pg *textPage, d
 	case game.ModeLoot:
 		return e.lootState(cm)
 	case game.ModeCamp:
-		return game.Camping{Common: cm}
+		return game.Camping{Common: cm, Study: time.Duration(e.partyStudy()) * time.Minute, Heals: e.healMinutes() > 0} // what a rest would do: Fix is offered by them
 	}
 	cm.Ask = nil // a Scene's own question (below) carries it
 	// the pane and its layers are Common's (Text, Layers): the Scene adds only its own
