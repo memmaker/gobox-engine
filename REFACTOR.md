@@ -51,10 +51,42 @@ only shrink), `game/noui_test.go` (no drawing package, no screen position), `ui`
     at a door, the thief skills and the petrify save of the Sel script fields) goes; the ruleset says
     which fact a script field reads, and answers the two Checks by what they ask, not by class or
     spell. With B1d at the latest: XXVc has none of these
-- [ ] G2 One state (as below). Plan first: which change events the rules emit (party, items, purse,
-  clock, position), then automap, then combat, then `build`/`stateOf`/`allowed` go.
-  - [ ] G2a plan: list every field `build()` copies and where it changes; rulings where unclear
-  - [ ] G2b..: per the plan
+- [ ] G2 One state. Inventory (G2a, 2026-11-15, an agent's read of play.go, gamestate*.go,
+  gamecombat.go, view_engine.go, present_engine.go, rules/effect.go; unread: the rules' method
+  bodies, ui):
+  - After each action `rebuild()` builds the whole `game.State`: per member about 30 ruleset reads
+    for the sheet page, one `Allowed(UsingItem)` per carried item, on the overland 1584
+    `Check(AreaTileIs)`; `StateBuilds` is the version the ui caches by.
+  - The build is not a pure read: `battle()` and `Note()` call `present()` (queued effects applied),
+    `applyItems` (creationState, offers) and `EffectsList` and `e.as` write `WordWho`, `canCastNow`
+    rewrites and restores the spell list and `e.sel`, `userLabels` creates map entries, `selected()`
+    resolves `EmptyMember`, `rebuild()` resets `lootSeen`.
+  - Disk per build: `mapName()` (names/pictures.txt), `BuildCharList()` twice (stateOf, allowed).
+  - The mode is derived, not stored: `stateMode()` reads about 12 inputs, `stateOf` overrides it by
+    5 more (ending, intro, sequence, results, handout), `build()` by `e.creation`.
+  - The rules announce almost no change: `present.apply` knows Narrated, Turned, Casting, Shot,
+    Sounded, Walked, Attacked, Struck, Fell (the fight's board). Hit points, items, money, clock,
+    position and 99 `setWorldWord` sites change with no effect; Healed, Hurt, Traded are produced and
+    not applied; Gained, Lost, Took, Fled, Left, Placed, CloudOn/Off, TerrainSet have no producer.
+  - Two copies copied again: `fightState()` builds `game.Combat`, `stateOf` copies part into
+    `game.Fighting` (and `allowed()` reads the first); `members()` builds the engine's `Member`,
+    `partyState()` a `game.Member`. `pushCombat` calls `build()` mid-step for `game.Engaged`.
+  - Never set by the engine (BR's engines may; decide with B1): `Over`, `ShipFight`,
+    `Scene.Speaker/Pictures/Screen`, `Common.NoSave/NoLoad/Mark`, `Where.Day/Month/Year/Music/Detail`,
+    `Trading.Name/Pooled/Vault`, `Looting.Status`, `Draft.MinHP/MaxHP/Step/Stats/Derived`,
+    `Unit.Dead/Gone/Pose`, `Battlefield.FloorTile/Clouds`, `Item.Cursed/Charges`.
+  - [x] G2a the inventory above
+  - [ ] G2b the build is a pure read: nothing in `build()`'s call tree writes engine or rules state;
+    a test saves the rules and the engine before and after `build()` in every dev scene and compares
+  - [ ] G2c no disk read in the build: the area's name and the character list are read where they
+    change (an area load, a roster write)
+  - [ ] G2d one copy: `game.Fighting` built once (no `game.Combat` beside it), `game.Member` once
+    (no engine `Member` beside it); `pushCombat` without a build
+  - [ ] G2e the mode is a value the engine sets where the screen changes, not derived
+  - [ ] G2f RULING NEEDED (Felix): after b to e the build is a side-effect-free projection, once per
+    action. "The engine writes each part where it changes, no rebuild" needs the rules to announce
+    every change (sheet, items, purse, clock, words), for 1e and XXVc: a notification system the
+    rules do not have. Options: keep the projection; or build the notifications
 - [ ] B1 Buck Rogers as data folders (decision above; survey 2026-11-15). BR1 and BR2 are two engines
   of ~15k lines each (near copies), `buckrogers-core` (2.6k: its own script VM, combat map, ships,
   space, the importer) and `rulesxxvc` (8k, already a `rules` ruleset, but not what runs: the BR
