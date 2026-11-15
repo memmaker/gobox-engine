@@ -35,7 +35,7 @@ const (
 	ActNo                 // no to the Ask (AskConfirm); ActClose too
 	ActFlee               // combat: step off the map's edge and try to run away (Turn offers it at the edge)
 	ActChoose             // choose option N of the Ask (X: the line of its List)
-	ActOK                 // Enter: the highlighted choice, or "press a key"
+	ActOK                 // Enter or "press a key": goes on, takes the candidate of a pick (a member, a move); never one of several options or a yes/no (Game.Answer)
 	ActText               // the line being typed (the Ask) now reads Text
 	ActInventory          // member N's items (a card's left click)
 	ActSheet              // the inventory: back to the sheet under it

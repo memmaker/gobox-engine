@@ -677,6 +677,9 @@ func (g *Game) Answer(a Action) error {
 			return err
 		}
 	}
+	if q := g.pending(); a.Kind == ActOK && q != nil && (q.Kind == game.YesNo || q.Kind == game.Choice && len(q.Options) > 1) {
+		return nil // Enter or "any key" names no option: it goes on, it never chooses (ActChoose N, ActYes, ActNo do)
+	}
 	if a.Kind == ActCast {
 		if g.combat() != nil { // the turn's cast: an aimed spell's squares are gobox's aim (aimOrDo)
 			return g.do(game.Cast{Member: -1, Spell: a.N})
