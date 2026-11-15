@@ -341,6 +341,28 @@ func (e *RuleState) Wielding(c *Character, ranged bool) Wield {
 	return e.Hand(c)
 }
 
+// TurnWield is what c strikes with this turn: its Launcher or Missiles slot
+// when that is the turn's choice (ChooseWeapon), else its hand.
+func (e *RuleState) TurnWield(c *Character) Wield { return e.Wielding(c, c.Combat.Ranged) }
+
+// ChooseWeapon (extra) is the turn's choice between the weapon in hand and
+// the Launcher or Missiles slot (ranged), the computer's and the player's
+// alike: it sets how many attacks the turn has (SetSpeed, the weapon's
+// rate). Once the turn has struck the choice stands: false for the other
+// weapon then, and for ranged with nothing to shoot or throw.
+func (e *RuleState) ChooseWeapon(c *Character, ranged bool) bool {
+	cb := c.Combat
+	if cb.Ranged == ranged {
+		return true
+	}
+	if _, ok := e.Ranged(c); cb.Attacked != 0 || ranged && !ok {
+		return false
+	}
+	cb.Ranged = ranged
+	e.SetSpeed(c, e.TurnWield(c))
+	return true
+}
+
 // blow is the figures c strikes with (attack slot 1) wielding w, at a
 // large target (attackSlots' test) the weapon's dice for one.
 type blow struct {

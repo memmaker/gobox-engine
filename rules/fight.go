@@ -135,6 +135,8 @@ type FightCardFact struct{}
 type FightCard struct {
 	Delay, Moves, Casting int
 	Auto                  bool // the computer runs it
+	Ranged                bool // this turn it fights with its Launcher or Missiles slot, not the weapon in hand
+	Attacked              bool // it has struck this turn: that choice of weapon stands until the next
 }
 
 // AimFact is what an aim of the fighter offers (por playerAim's opening):

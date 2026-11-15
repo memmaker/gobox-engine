@@ -202,6 +202,7 @@ func (r *Rules) factFight(id rules.CharID, f rules.Fact) (rules.Value, bool, err
 		card := rules.FightCard{Auto: c.Auto != 0}
 		if ci := c.Combat; ci != nil {
 			card.Delay, card.Moves, card.Casting = int(int8(ci.Delay)), int(ci.Moves), int(ci.Spell)
+			card.Ranged, card.Attacked = ci.Ranged, ci.Attacked != 0
 		}
 		return card, true, nil
 	case rules.AimFact:

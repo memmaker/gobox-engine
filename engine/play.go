@@ -506,10 +506,14 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 		}
 		add(game.Flee{}) // a step off the map, as moveAttack's; the rules refuse it where there is no edge
 		if slices.Contains(can, VerbAttack) {
+			actor := e.unitID(b.Turn.Unit)
 			for _, t := range b.Targets {
+				if e.weaponStands(actor, true) { // the turn struck with its ranged weapon: no blow in melee after
+					break
+				}
 				add(game.Attack{Target: t})
 			}
-			if e.battle().Turn.Missile != nil { // Ranged: only with a launcher and its ammunition, or a missile, readied (WeaponFact Ranged)
+			if e.battle().Turn.Missile != nil && !e.weaponStands(actor, false) { // Ranged: only with a launcher and its ammunition, or a missile, readied (WeaponFact Ranged)
 				a.Aimed = append(a.Aimed, game.Aimed{Action: game.Shoot{}, Squares: e.aimSquares(b, aimOf{rng: 0xFF, showRange: 1, ranged: true}), Targets: 1}) // attackUnit's Ranged aim
 			}
 		}

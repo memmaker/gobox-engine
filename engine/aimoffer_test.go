@@ -177,3 +177,48 @@ func TestShootSquaresAreTargets(t *testing.T) {
 		}
 	}
 }
+
+// TestTurnWeaponChoice: a turn fights with the weapon in hand or with its
+// Launcher or Missiles slot, one choice (rules1e ChooseWeapon, the
+// computer's and the player's alike): it sets the turn's attacks by the
+// weapon's rate, and once the turn has struck it stands, the other weapon
+// refused and no longer offered.
+func TestTurnWeaponChoice(t *testing.T) {
+	e := partyTurnScene(t)
+	c := e.member(e.cs.actor)
+	s := e.state()
+	for _, h := range []int{rules1e.SlotWeapon, rules1e.SlotShield, rules1e.SlotMissiles, rules1e.SlotArrows, rules1e.SlotBolts} {
+		if it := c.Slots[h]; it != nil {
+			s.ReadyItem(it)
+		}
+	}
+	s.ApplyItems(c)
+	darts := s.AddItemCopy(c, s.RandomItem(rules1e.ItemDart))
+	darts.Count = 9
+	if _, err := e.doNow(game.Ready{Member: s.PartyIndex(c), Item: e.itemHandle(darts)}); err != nil {
+		t.Fatal(err)
+	}
+	melee := c.Attacks[0]
+	if !s.ChooseWeapon(c, true) || !c.Combat.Ranged || s.TurnWield(c).Weapon != darts {
+		t.Fatalf("ranged not chosen: ranged %v", c.Combat.Ranged)
+	}
+	if c.Attacks[0] <= melee {
+		t.Errorf("the darts give %d attacks, the hand %d: want the darts' rate", c.Attacks[0], melee)
+	}
+	if !s.ChooseWeapon(c, false) || c.Attacks[0] != melee { // not struck yet: the choice may still change
+		t.Fatalf("back to the hand before a blow: ranged %v, attacks %d (hand %d)", c.Combat.Ranged, c.Attacks[0], melee)
+	}
+	s.ChooseWeapon(c, true)
+	c.Combat.Attacked = 1 // the turn has struck with the darts
+	if s.ChooseWeapon(c, false) || !c.Combat.Ranged {
+		t.Fatal("the hand taken after the turn struck with the darts")
+	}
+	e.rebuild()
+	f := fighting(e)
+	if slices.ContainsFunc(f.Allowed.Plain, func(a game.Action) bool { _, ok := a.(game.Attack); return ok }) {
+		t.Error("a melee Attack is still offered after the turn struck with the darts")
+	}
+	if e.attackUnit(e.charID(c), 0, nil, false); e.cs.aim != nil {
+		t.Error("the melee aim opened after the turn struck with the darts")
+	}
+}

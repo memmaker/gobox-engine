@@ -405,13 +405,10 @@ func (r *Rules) attack(c *Character, a rules.Attack, sure bool) (rules.Outcome, 
 	if t == nil {
 		return rules.Outcome{}, errNoChar
 	}
-	w := s.Hand(c)
-	if a.Ranged { // extra: the Ranged action, with the Launcher or Missiles slot's weapon
-		var ok bool
-		if w, ok = s.Ranged(c); !ok {
-			return rules.Outcome{}, ErrNotNow
-		}
+	if !s.ChooseWeapon(c, a.Ranged) { // extra: the turn's weapon, the hand's or (the Ranged action) the Launcher or Missiles slot's; it stands once the turn has struck
+		return rules.Outcome{}, ErrNotNow
 	}
+	w := s.TurnWield(c)
 	if s.AsksAlly(c, t) {
 		if !sure {
 			return rules.Outcome{Confirm: "Attack Ally?"}, nil

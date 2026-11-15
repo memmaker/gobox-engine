@@ -234,11 +234,22 @@ func (e *Engine) turnChoices(cID rules.CharID) map[int]rules.BoardPos {
 	return walks
 }
 
+// weaponStands: c has struck this turn with its ranged weapon (ranged) or
+// the one in hand, so the turn's attacks stay with it.
+func (e *Engine) weaponStands(cID rules.CharID, ranged bool) bool {
+	card := e.fightCard(cID)
+	return card.Attacked && card.Ranged == ranged
+}
+
 // attackUnit (extra): verbAttack. Unit 0 aims first (combatMenu's Aim),
 // ranged with the Launcher or Missiles slot's weapon;
 // a foe of the turn's targets is attacked, a melee fighter walking up to
 // it first (Allowed's Walk, pathNextTo) when it stands out of reach.
 func (e *Engine) attackUnit(cID rules.CharID, n int, walks map[int]rules.BoardPos, ranged bool) bool {
+	if e.weaponStands(cID, !ranged) { // the turn has struck with the other weapon: its choice stands (rules ChooseWeapon)
+		e.refuse(map[bool]string{false: "This turn's attacks are ranged", true: "This turn's attacks are in melee"}[ranged])
+		return false
+	}
 	if n == 0 {
 		e.playerAim(cID, 0xFF, 1, 0, aimThen{kind: atTurn, ranged: ranged}) // as the original: Tab cycles allies too, no foe needed
 		return false

@@ -30,7 +30,7 @@ type CombatInfo struct {
 	Extra      byte       // +0x13 not one of the saved party
 	Fleeing    byte       // +0x14
 	Pattern    byte       // +0x15 AI move pattern, row of DS:02AE
-	Ranged     bool       // extra: the computer chose its Launcher or Missiles slot for this turn's attacks (AiPickWeapon)
+	Ranged     bool       // extra: this turn's attacks are the Launcher or Missiles slot's, not the hand's (ChooseWeapon: the computer's pick, the player's Ranged action)
 }
 
 // Rule globals (DS:6816..682A).
