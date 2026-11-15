@@ -210,14 +210,23 @@ const (
 // weakenedPod = O07C:105C: strength drops while it lasts; at the bottom
 // the victim is helpless (again each time: PoD does not look for it).
 func (e *RuleState) weakenedPod(c *Character, a *Affect, flag byte) {
-	if flag != 0 || !e.AddAffectNow(c, affWeakened, a.Data, weakenTimePod) {
+	lost := e.strengthLost(c)
+	if flag != 0 {
+		if e.Rv.Cure != 0 { // Felix's ruling: its cure gives the Strength back
+			e.restoreStrength(c, lost)
+		}
+		return
+	}
+	if e.Rv.Cure != 0 {
 		return
 	}
 	if c.Stats[StatStr] > weakestStrengthPod {
 		e.CombatSay(c, "is weakened", true)
 		c.Stats[StatStr]--
+		e.AddAffectNow(c, affWeakened, lost+1, weakenTimePod)
 		return
 	}
+	e.AddAffectNow(c, affWeakened, lost, weakenTimePod)
 	e.AddAffect(c, affHelpless, 0, 0xFF, 0)
 }
 

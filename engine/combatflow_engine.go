@@ -343,7 +343,7 @@ func (e *Engine) members() []Member {
 		sh := e.ruleset().Sheet(id)
 		out = append(out, Member{
 			Name: sh.Name, HP: int(sh.HP), MaxHP: int(sh.MaxHP),
-			AC: int(sh.AC), Status: e.statusName(id), Ailment: sh.Ailment, Selected: i == sel, Colour: e.rosterColour(id),
+			AC: int(sh.AC), Status: e.statusName(id), Selected: i == sel, Colour: e.rosterColour(id),
 			Class: card.Class, HeadPix: e.charHead(id), Portrait: card.Portrait, Powers: e.memberPowers(id),
 		})
 		m := &out[len(out)-1]

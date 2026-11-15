@@ -120,6 +120,9 @@ func runGoldenPodChar(tb *Tables, k goldenPodCase) string {
 	var got []AffectRecord
 	for _, a := range c.Affects {
 		got = append(got, a.AffectRecord)
+		if a.Type == affWeakened { // Felix's ruling: its data counts the Strength it took; the original passes the affect's own on
+			got[len(got)-1].Data = k.Data
+		}
 	}
 	var want []AffectRecord
 	if err := json.Unmarshal(k.Want.Affects, &want); err != nil {

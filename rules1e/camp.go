@@ -457,14 +457,22 @@ func (e *RuleState) affectName(t AffectType) (string, bool) {
 	return "Funky--" + strconv.Itoa(int(t)), true
 }
 
-// Ailment (extra) is the name of the first affect ailing c: a disease the
-// temple cures (Diseases) or poison; "" none. The party's overview shows it.
+// drasticAffects are the affects a member's status names in place of "Okay",
+// the most drastic first; any other harmful one (HarmfulAffect) follows them.
+var drasticAffects = []AffectType{affHelpless, AffHeld, affAsleep, AffPoisoned, affMummyDisease, affRotting, affSick, affCauseDisease, affWeakened}
+
+// Ailment (extra) is the name of the most drastic affect ailing c, "" none.
 func (e *RuleState) Ailment(c *Character) string {
-	for _, a := range c.Affects {
-		if a.Type == AffPoisoned || slices.Contains(Diseases[:], a.Type) {
-			if name, known := e.affectName(a.Type); known {
+	for _, t := range drasticAffects {
+		if e.FindAffect(c, t) != nil {
+			if name, known := e.affectName(t); known {
 				return name
 			}
+		}
+	}
+	for _, a := range c.Affects {
+		if name := e.HarmfulAffect(a.Type); name != "" {
+			return name
 		}
 	}
 	return ""

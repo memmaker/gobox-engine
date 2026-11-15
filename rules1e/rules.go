@@ -96,7 +96,10 @@ func (e *RuleState) RemoveAffect(c *Character, typ AffectType, a *Affect) {
 		return
 	}
 	if a.Call != 0 {
+		was := e.removing
+		e.removing = a // its handler may add the affect again (a renewal): not a second one
 		e.callAffect(typ, c, a, 1)
+		e.removing = was
 	}
 	for i, x := range c.Affects {
 		if x == a {
@@ -106,7 +109,9 @@ func (e *RuleState) RemoveAffect(c *Character, typ AffectType, a *Affect) {
 	}
 }
 
-// AddAffect = ovr25:0E52 (char, type, time, data, call): append a node.
+// AddAffect = ovr25:0E52 (char, type, time, data, call): append a node. An
+// item's or the body's own affect is a node of its own beside a spell's of
+// the type; what is applied (AddAffectMsg, AddAffectNow) does not stack.
 func (e *RuleState) AddAffect(c *Character, typ AffectType, time int, data, call byte) {
 	a := &Affect{AffectRecord: AffectRecord{Type: typ, Time: uint16(time), Data: data, Call: call}}
 	c.Affects = append(c.Affects, a)

@@ -88,6 +88,9 @@ func (r *Rules) Import(b rules.CharacterFile) (rules.CharID, error) {
 		c.Items = append(c.Items, &it)
 	}
 	for _, a := range f.Affects {
+		if a.Type == affWeakened && r.S.FindAffect(c, a.Type) != nil { // the weakness does not stack (AddAffectNow): a save from before had one a touch
+			continue
+		}
 		c.Affects = append(c.Affects, &Affect{AffectRecord: a})
 	}
 	r.S.ImportCharacter(c)

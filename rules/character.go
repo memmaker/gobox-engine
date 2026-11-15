@@ -28,7 +28,6 @@ type Sheet struct {
 	Burden    Burden               // zero under Options.PartyInventory
 	Slots     map[string]SlotCount // by level group, as the ruleset words it ("cleric 1")
 	Effects   []string             // the spell effects on it, as the ruleset words them
-	Ailment   string               // the disease or poison ailing it, as the ruleset words it; "" none
 	Figures   []Figure             // what a ruleset adds to the sheet (CombatRules.Sheet)
 	CanCast   bool
 	ItemCap   int32

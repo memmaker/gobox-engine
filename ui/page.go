@@ -319,11 +319,7 @@ func (p *Presenter) drawModal(m *image.RGBA, note Note) {
 			}
 			str(oc.hp, y, hpc, strconv.Itoa(c.HP)+"/"+strconv.Itoa(c.MaxHP))
 			str(oc.ac, y, inkGreen, strconv.Itoa(c.AC))
-			if c.Ailment != "" && c.HP > 0 { // up but ailing: the ailment, not "Okay"
-				str(oc.status, y, inkYellow, c.Ailment)
-			} else {
-				str(oc.status, y, inkGreen, c.Status)
-			}
+			str(oc.status, y, inkGreen, c.Status)
 			if oc.spells > 0 {
 				str(oc.spells, y, inkGreen, c.SpellsReady)
 			}

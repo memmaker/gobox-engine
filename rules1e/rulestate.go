@@ -14,6 +14,7 @@ type RuleState struct {
 	Board                                                         // the combat board and the party's place on the map
 	Tables                          *Tables                       // the game's rule tables; nil reads POR
 	RandSeed                        uint32                        // DS:4428, Turbo Pascal RandSeed
+	removing                        *Affect                       // the affect RemoveAffect is taking off, while its handler runs (AddAffect)
 	Party                           []*Character                  // DS:5D96 list head ...
 	Pool                            []*Item                       // extra: the party inventory (pool.go)
 	Who                             int                           // DS:5D92 the acting character: set per call from the caller's argument (Engine.as) or by the fight's turn

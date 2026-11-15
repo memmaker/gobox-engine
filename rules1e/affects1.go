@@ -1,6 +1,10 @@
 package rules1e
 
-import "gobox/rules"
+import (
+	"slices"
+
+	"gobox/rules"
+)
 
 // Affect handlers of ovr13, offsets 0x0000..0x1C00. Each handler is a
 // DS:6828 table entry: handler(char, affect, flag); flag 1 = removing.
@@ -50,6 +54,12 @@ func (e *RuleState) blockAffect(typ AffectType) {
 func (e *RuleState) AddAffectNow(c *Character, typ AffectType, data byte, time int) bool {
 	if e.Rv.Cure != 0 {
 		return false
+	}
+	// Felix's ruling: no affect stacks. One c has already (but for the one
+	// being removed, which this renews) is taken up again, no second node.
+	if i := slices.IndexFunc(c.Affects, func(x *Affect) bool { return x.Type == typ && x != e.removing }); i >= 0 {
+		c.Affects[i].Time, c.Affects[i].Data, c.Affects[i].Call = uint16(time), data, 1
+		return true
 	}
 	e.AddAffect(c, typ, time, data, 1)
 	return true
@@ -574,16 +584,45 @@ func (e *RuleState) avoidUnmagicWeapon(c *Character, a *Affect, flag byte) {
 func (e *RuleState) halveAttacks(c *Character, a *Affect, flag byte) { e.turnValue >>= 1 }
 
 // isWeakened = ovr13:10DE: "is weakened": strength down while it lasts (affect 0x2B).
+// Felix's ruling: the affect's data counts the Strength it took, and its
+// cure gives that back.
 func (e *RuleState) isWeakened(c *Character, a *Affect, flag byte) {
-	if !e.AddAffectNow(c, affWeakened, a.Data, 0x3C) {
+	lost := e.strengthLost(c)
+	if e.Rv.Cure != 0 {
+		e.restoreStrength(c, lost)
 		return
 	}
-	if c.Stats[StatStr] > 3 {
+	if c.Stats[StatStr] > weakestStrength {
 		e.CombatSay(c, "is weakened", true)
 		c.Stats[StatStr]--
+		lost++
 	} else if e.FindAffect(c, affHelpless) == nil {
 		e.AddAffect(c, affHelpless, 0, 0xFF, 0)
 	}
+	e.AddAffectNow(c, affWeakened, lost, weakenTime)
+}
+
+// The weakness: the time between two drains and the Strength it stops at.
+const (
+	weakenTime      = 0x3C
+	weakestStrength = 3
+)
+
+// restoreStrength gives c the lost points back.
+// ponytail: capped at scoreUpLimit, since a weakness from a save before the
+// count carries other data; a member whose own score was lower gets too much there once.
+func (e *RuleState) restoreStrength(c *Character, lost byte) {
+	if c.Stats[StatStr] < scoreUpLimit {
+		c.Stats[StatStr] = min(c.Stats[StatStr]+Score(min(lost, byte(scoreUpLimit))), scoreUpLimit)
+	}
+}
+
+// strengthLost is the Strength c's weakness took so far (its data), 0 without one.
+func (e *RuleState) strengthLost(c *Character) byte {
+	if w := e.FindAffect(c, affWeakened); w != nil {
+		return w.Data
+	}
+	return 0
 }
 
 // sickDamage = ovr13:1168: affect 0x2C: damage while it lasts, or nausea at 1 hit point.

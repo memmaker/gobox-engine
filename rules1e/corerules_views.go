@@ -434,7 +434,6 @@ func (r *Rules) sheetView(c *Character, s *rules.Sheet) {
 	}
 	s.Move = int32(m)
 	s.Effects = r.S.AffectList(c)
-	s.Ailment = r.S.Ailment(c)
 	s.CanCast = slices.ContainsFunc(c.Memorized[:0x15], SpellID.Held) // memorized, not still to be learned
 }
 
