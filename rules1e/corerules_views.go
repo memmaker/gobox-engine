@@ -34,7 +34,7 @@ func word(c *Character, w rules.WordFact) (rules.Value, error) {
 // PorStatus is core's status of each record status (the DS:1047 order).
 var PorStatus = [...]rules.Status{StatusOkay: rules.StatusOkay, StatusAnimated: rules.StatusAnimated, statusTempGone: rules.StatusTempGone,
 	StatusRunning: rules.StatusRunning, StatusUnconscious: rules.StatusUnconscious, StatusDying: rules.StatusDying,
-	StatusDead: rules.StatusDead, StatusStoned: rules.StatusStoned, StatusGone: rules.StatusGone}
+	StatusDead: rules.StatusDead, StatusStoned: rules.StatusStoned, StatusGone: rules.StatusGone, StatusReserve: rules.StatusReserve}
 
 // levelSpan (extra): the experience c's level took and its next level
 // takes, for the class with the nearest next level; to is 0 when it can

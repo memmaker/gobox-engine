@@ -52,7 +52,7 @@ func (e *Engine) DevScene(name string) func() {
 			e.push(cont{kind: kDevBack})
 			e.Shop()
 		}
-	case "combat", "wildcombat", "castfight", "missile", "autocombat", "meleefight", "fleefight", "winfight", "losefight": // losefight: a foe of 250 hp next to every member of 1 hp (the party falls: the last blow's body, the monsters' page, the party menu); winfight: one foe of 1 hp next to the party (a hit wins, the round's end asks Continue Battle:); meleefight: a foe next to every member (a bump attack on the first turn); fleefight: every member on a square beside the map's edge (a step off it asks Flee:); castfight: every member has Cure Light Wounds memorized (the inventory's Spells in a fight); missile: items for everyone (a sling, a bow and arrows, javelins), so the bar shows Use; autocombat: the computer fights for the party against eight (measuring the battle view)
+	case "combat", "wildcombat", "castfight", "missile", "autocombat", "meleefight", "fleefight", "winfight", "losefight", "reservefight": // reservefight: the adventure's reserve joins, as a scripted fight's (addReserve; a plain fight in a game with none); losefight: a foe of 250 hp next to every member of 1 hp (the party falls: the last blow's body, the monsters' page, the party menu); winfight: one foe of 1 hp next to the party (a hit wins, the round's end asks Continue Battle:); meleefight: a foe next to every member (a bump attack on the first turn); fleefight: every member on a square beside the map's edge (a step off it asks Flee:); castfight: every member has Cure Light Wounds memorized (the inventory's Spells in a fight); missile: items for everyone (a sling, a bow and arrows, javelins), so the bar shows Use; autocombat: the computer fights for the party against eight (measuring the battle view)
 		return func() {
 			if name == "missile" {
 				e.fixture(rules.FixtureMissile, rules.NoChar)
@@ -98,6 +98,9 @@ func (e *Engine) DevScene(name string) func() {
 						e.fixture(map[string]rules.FixtureID{"winfight": rules.FixtureWinFight, "losefight": rules.FixtureLoseFight}[name], rules.NoChar)
 					}
 				}
+			}
+			if name == "reservefight" {
+				e.addReserve()
 			}
 			e.push(cont{kind: kDevFought})
 			open()

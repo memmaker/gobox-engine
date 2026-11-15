@@ -33,10 +33,10 @@ const (
 	podSymbolSets    = 5 // TileSet writes from here on are ignored
 )
 
-// PodStatus is C_Status's number for each status (pod-re includes/c_status.pas; 2 has no name).
+// PodStatus is C_Status's number for each status (pod-re includes/c_status.pas; 2 has no name, 9 is the reserve's, CharFightsAlone).
 var PodStatus = map[rules.Status]int64{
 	rules.StatusOkay: 0, rules.StatusAnimated: 1, rules.StatusRunning: 3, rules.StatusUnconscious: 4,
-	rules.StatusDying: 5, rules.StatusDead: 6, rules.StatusStoned: 7, rules.StatusGone: 8,
+	rules.StatusDying: 5, rules.StatusDead: 6, rules.StatusStoned: 7, rules.StatusGone: 8, rules.StatusReserve: 9,
 }
 
 // SotsbStatus is sotsb's SpecialReadZ1 $100 number for each status.

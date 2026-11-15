@@ -172,6 +172,7 @@ const (
 	StatusDead
 	StatusStoned
 	StatusGone
+	StatusReserve // extra to POR, pod's status 9: in the fight's reserve (reserve.go)
 )
 
 // Side values.

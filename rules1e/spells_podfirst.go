@@ -23,6 +23,8 @@ func (e *RuleState) spellEffectPodFirst(spell SpellID) bool {
 		e.fxPowerWordBlindPod()
 	case spPowerWordKill:
 		e.fxPowerWordKillPod()
+	case spMonsterSummoning:
+		e.Reinforce(e.Acting(), summonedMost) // pod-re magic.pas:2870
 	default:
 		return false
 	}

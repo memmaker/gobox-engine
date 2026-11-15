@@ -1,7 +1,8 @@
 package importer
 
-// The monsters every fight adds by area screen (DS:08D8 monster, DS:08DD
-// icon), ten of them, standing aside (status 9, hired-NPC control).
+// The reserve every fight gets by the area's tile set (DS:08D8 monster,
+// DS:08DD icon), ten of them, off the map (the original's status 9: the
+// rules' StatusReserve) with the hired-NPC control.
 var (
 	areaMonsters     = [...]byte{59, 6, 2, 8, 59}
 	areaMonsterIcons = [...]byte{59, 6, 2, 8, 59}
@@ -9,7 +10,6 @@ var (
 
 const (
 	areaMonsterCount   = 10
-	areaMonsterStatus  = 9
 	areaMonsterControl = 50
 )
 

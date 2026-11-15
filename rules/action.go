@@ -170,6 +170,11 @@ type (
 		Who CharID
 		To  Class
 	} // dual class
+	// HoldInReserve puts a monster added for the coming fight into its
+	// reserve: it takes no square and no turn, and counts for nothing (the
+	// monsters' health, the fight's end, experience, treasure) until an
+	// effect reinforces a side with it (pod's Monster Summoning).
+	HoldInReserve struct{ Who CharID }
 
 	// Camp.
 	Memorize struct {
@@ -371,6 +376,7 @@ func (Rename) action()        {}
 func (KeepDraft) action()     {}
 func (DropDraft) action()     {}
 func (ChangeClass) action()   {}
+func (HoldInReserve) action() {}
 func (Memorize) action()      {}
 func (Forget) action()        {}
 func (Scribe) action()        {}

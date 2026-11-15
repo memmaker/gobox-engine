@@ -597,9 +597,7 @@ func (e *Engine) opCombat() {
 		}
 		return
 	}
-	if e.eclVersion.Behaviour.AreaMonstersJoin {
-		e.addAreaMonsters()
-	}
+	e.addReserve()
 	d := e.FreeSteps(e.posX, e.posY, e.facing)
 	if d < e.worldWord(rules.WordMonsterDist) {
 		e.setWorldWord(rules.WordMonsterDist, int(d))
@@ -652,22 +650,24 @@ func (e *Engine) takeScreenRequest(s ecl.CombatScreen) bool {
 	return true
 }
 
-// addAreaMonsters = pod O055:1740: the area screen's own monsters join the fight, standing aside.
-func (e *Engine) addAreaMonsters() {
-	t := e.game().AreaMonsters
-	m, ok := t.For(e.worldWord(rules.WordSymbolSet)) // pod-re CharFightsAlone: mirrorMonId[zone0.tileSet], the layout's SymbolSet (a write of 4 is set 0: the table's entry 4 is entry 0's)
+// addReserve = pod O055:1740 (pod-re CharFightsAlone), any adventure's:
+// the fight's reserve joins, off the map (rules.HoldInReserve), where the
+// adventure's table (GameTables.Reserve) has a monster for the area's
+// symbol set. pod's tileSet is that set (a write of 4 is set 0, and the
+// table's entry 4 is entry 0's).
+func (e *Engine) addReserve() {
+	t := e.game().Reserve
+	m, ok := t.For(e.worldWord(rules.WordSymbolSet))
 	if !ok {
 		return
 	}
 	e.addMonsters(m.Monster, t.Count, m.Icon)
 	ids := e.partyIDs()
 	for _, id := range ids[len(ids)-t.Count:] {
-		if err := e.ruleset().SetFact(id, rules.FactStatus, rules.Number(t.Status)); err != nil {
-			panic("addAreaMonsters: " + err.Error())
-		}
+		e.do(rules.HoldInReserve{Who: id})
 		control := e.fact(id, rules.FactControl).(rules.Number)
 		if err := e.ruleset().SetFact(id, rules.FactControl, control|rules.Number(t.Control)); err != nil {
-			panic("addAreaMonsters: " + err.Error())
+			panic("addReserve: " + err.Error())
 		}
 	}
 }

@@ -179,6 +179,8 @@ func (r *Rules) resolveWorld(s rules.Situation, a rules.Action) (o rules.Outcome
 		return r.scriptDamage(a), true, nil
 	case rules.ChangeClass:
 		return o, true, r.changeClass(a)
+	case rules.HoldInReserve:
+		return o, true, r.holdInReserve(a)
 	case rules.BashDoor:
 		at, isDoor := s.(rules.AtDoor)
 		if !isDoor {

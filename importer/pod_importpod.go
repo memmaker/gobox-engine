@@ -53,10 +53,10 @@ func PodImport(dos, dst string) error {
 // and the entries the scripts' Journal n name.
 func writeSwitchData(dst string) error {
 	data := filepath.Join(dst, adventure.DataDir)
-	monsters, icons, count, status, control := AreaMonsterTable()
-	area := adventure.AreaMonsters{Count: count, Status: status, Control: control}
+	monsters, icons, count, control := ReserveTable()
+	area := adventure.Reserve{Count: count, Control: control}
 	for i := range monsters {
-		area.ByScreen = append(area.ByScreen, adventure.AreaMonster{Monster: int(monsters[i]), Icon: int(icons[i])})
+		area.BySet = append(area.BySet, adventure.ReserveUnit{Monster: int(monsters[i]), Icon: int(icons[i])})
 	}
 	sounds := map[byte]adventure.ScriptSound{}
 	for n := 0; n <= math.MaxUint8; n++ {
@@ -73,7 +73,7 @@ func writeSwitchData(dst string) error {
 		GameSet:     1,                                                    // pod has no game areas: every content file is set 1 (pod-re view3d LoadDax GEO1, WALLDEF1; eclmenu ECL1)
 		FirstBlock:  16,                                                   // firstBlock
 		BigPictures: adventure.BigPictures{First: 240, NotOverland: true}, // O040:07DB
-		Dialect:     Dialect, AddNPCIcon: true, AreaMonsters: area, ScriptSounds: sounds,
+		Dialect:     Dialect, AddNPCIcon: true, Reserve: area, ScriptSounds: sounds,
 		OriginalSave: PodOriginalSave, ScriptFixes: podScriptFixes,
 		Symbols:    []adventure.SymbolLoad{{Set: 4, File: "8X8D0", Block: 202}}, // gameinit's Load8x8Set(202, 1): POD's symbols are 8X8D0's, not the content set's file
 		MonsterSet: 1,                                                           // LoadCreatureData's MON1, LoadIconAnim's CPIC1

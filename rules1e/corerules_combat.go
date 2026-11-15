@@ -105,7 +105,7 @@ func (r *Rules) EndFight(f rules.Fight, _ *rules.RNG) rules.FightResult {
 		c := s.Party[i]
 		extra := c.Combat != nil && c.Combat.Extra == 1
 		if extra || c.Side == SideMonsters {
-			if c.Okay != 1 {
+			if c.Okay != 1 && c.Status != StatusReserve {
 				s.Game.Beaten++
 			}
 			r.remove(i, extra)
@@ -290,7 +290,7 @@ func (r *Rules) computeExp(duel bool, idle int) (exp int32, foes bool) {
 	var total int32
 	taken := 0
 	for _, c := range s.Party {
-		if c.Side != SideMonsters || c.Status == StatusRunning {
+		if c.Side != SideMonsters || c.Status == StatusRunning || c.Status == StatusReserve { // pod-re postcbt.pas:97: the reserve was not beaten
 			continue
 		}
 		foes = true

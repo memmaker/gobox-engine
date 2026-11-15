@@ -617,18 +617,22 @@ func (e *RuleState) Heal(c *Character, amount int, magical bool) bool {
 
 // Revive = ovr25:1869 (char, hp): back on its feet if its square is free.
 func (e *RuleState) Revive(c *Character, hp byte) bool {
-	if !e.combatSquareFree(c, e.CombatX(c), e.CombatY(c), true) {
+	msg := "gets back up"
+	if c.Side == SideMonsters {
+		msg = "stands up and grins"
+	}
+	return e.reviveAt(c, e.CombatX(c), e.CombatY(c), hp, msg)
+}
+
+// reviveAt is Revive on square (x, y) with the message msg (pod-re
+// ReviveDeadCreature's own): in play again there, if the square is free.
+func (e *RuleState) reviveAt(c *Character, x, y int, hp byte, msg string) bool {
+	if !e.combatSquareFree(c, x, y, true) {
 		return false
 	}
 	c.Status = StatusOkay
 	c.Okay = 1
 	c.HP = hp
-	if e.BeginFlag == 5 {
-	}
-	msg := "gets back up"
-	if c.Side == SideMonsters {
-		msg = "stands up and grins"
-	}
 	e.CombatSay(c, msg, true)
 	e.CountSides()
 	return true

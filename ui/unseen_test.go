@@ -9,7 +9,7 @@ import (
 
 // devScenes are the engine's dev scenes (engine.DevScene) the invariant walks.
 var devScenes = []string{"shop", "hall", "hallpoor", "temple", "appraise", "combat", "wildcombat", "castfight", "missile", "meleefight",
-	"fleefight", "overland", "bestiary", "parlay", "password", "portrait", "sheetcast", "cast", "castko", "who", "effects", "journal",
+	"fleefight", "reservefight", "overland", "bestiary", "parlay", "password", "portrait", "sheetcast", "cast", "castko", "who", "effects", "journal",
 	"talljournal", "runes", "inventory", "lockeddoor", "dual", "camp", "resting", "sheet", "items", "usable", "paladin", "drop", "learn",
 	"loot", "lootdetect"}
 

@@ -46,15 +46,15 @@ func TestSwitchData(t *testing.T) {
 	if g.Script != ecl.V3 || g.Dialect != Dialect || !g.AddNPCIcon {
 		t.Errorf("dialect %v script %p AddNPCIcon %v", g.Dialect, g.Script, g.AddNPCIcon)
 	}
-	if got := g.Script.Behaviour.NoMonsterCombat; !reflect.DeepEqual(got, []ecl.CombatScreen{ecl.CombatVault, ecl.CombatTemple}) || !g.Script.Behaviour.AreaMonstersJoin {
+	if got := g.Script.Behaviour.NoMonsterCombat; !reflect.DeepEqual(got, []ecl.CombatScreen{ecl.CombatVault, ecl.CombatTemple}) {
 		t.Errorf("behaviour %+v", g.Script.Behaviour)
 	}
-	monsters, icons, count, status, control := AreaMonsterTable()
-	a := g.AreaMonsters
-	if a.Count != count || a.Status != status || a.Control != control || len(a.ByScreen) != len(monsters) {
+	monsters, icons, count, control := ReserveTable()
+	a := g.Reserve
+	if a.Count != count || a.Control != control || len(a.BySet) != len(monsters) {
 		t.Fatalf("area monsters %+v", a)
 	}
-	for i, m := range a.ByScreen {
+	for i, m := range a.BySet {
 		if m.Monster != int(monsters[i]) || m.Icon != int(icons[i]) {
 			t.Errorf("screen %d: %+v", i, m)
 		}

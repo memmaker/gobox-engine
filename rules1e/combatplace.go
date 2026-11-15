@@ -132,6 +132,10 @@ func (r *Rules) placeCombatants(m rules.MapSides) []rules.Effect {
 					r.S.Cmap.Ground[y][x] = r.S.grounds().Body
 				}
 			}
+			if c.Status == StatusReserve { // pod-re combatst.pas:822: it keeps its slot, off the map and out of play
+				c.Okay = 0
+				r.S.Cpos[idx].Size = 0
+			}
 			r.S.CombatRedrawMap()
 			idx++
 			r.S.Cpos[0].Size++
@@ -150,6 +154,7 @@ func (r *Rules) placeCombatants(m rules.MapSides) []rules.Effect {
 		r.S.Cpos[0].Size++
 		r.S.Ncomb++
 	}
+	r.S.CountSides() // without the reserve, out of play now
 	return left
 }
 

@@ -23,10 +23,10 @@ func SoundKind(n byte) (song int, music, digitized bool) {
 	return 0, false, false
 }
 
-// AreaMonsterTable is the monsters a fight adds by area screen (monster, icon),
-// how many, and the status and control they get.
-func AreaMonsterTable() (monsters, icons []byte, count, status, control int) {
-	return areaMonsters[:], areaMonsterIcons[:], areaMonsterCount, areaMonsterStatus, areaMonsterControl
+// ReserveTable is the reserve a fight gets by the area's tile set (monster,
+// icon), how many, and the control they get.
+func ReserveTable() (monsters, icons []byte, count, control int) {
+	return areaMonsters[:], areaMonsterIcons[:], areaMonsterCount, areaMonsterControl
 }
 
 // Dialect is the game's script byte-code dialect.

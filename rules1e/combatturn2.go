@@ -252,7 +252,7 @@ func (e *RuleState) attackAnimation(from, to *Character, weapon *Item) {
 func (e *RuleState) FoesHealthPercent() {
 	var hp, max uint16
 	for _, c := range e.Party {
-		if c.Side == SideMonsters {
+		if c.Side == SideMonsters && c.Status != StatusReserve { // pod-re UpdateHostileHpPercent: the reserve counts for neither
 			if c.Okay != 0 {
 				hp += uint16(c.HP)
 			}

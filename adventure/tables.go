@@ -15,7 +15,7 @@ type GameTables struct {
 	ScriptSounds               map[byte]ScriptSound // the Sound command's numbers (pod: 2..14 digitized, 128+n song n); one not listed plays DefaultSound
 	DefaultSound               *ScriptSound         // what a number ScriptSounds does not list plays; nil: nothing
 	AddNPCIcon                 bool                 // AddNPC loads the NPC's combat icon (sotsb, pod; not cotab)
-	AreaMonsters               AreaMonsters         // the area's own monsters a fight adds (pod); zero: none
+	Reserve                    Reserve              // the reserve every scripted fight gets (pod); zero: none
 	Dialect                    rules.Dialect        // the game's script byte-code dialect (ReadGameTables sets Script from it)
 	TreasureSets               [][]int32            // ItemSet's sets: set number -> its library item ids (pod: 1..11; [0] unused)
 	ScriptFixes                []ecl.Fix            // the game's decompiler special cases (ecl.Library.Fixes): the import's, for the texts' key
@@ -137,16 +137,18 @@ type SymbolLoad struct {
 // DefaultSymbols are the sets the first engine's Init loads (ovr35:003B; POR, sotsb, cotab).
 var DefaultSymbols = []SymbolLoad{{Set: 4, Block: 202}, {Set: 0, Block: 203}}
 
-// AreaMonsters are the monsters a fight adds by area screen (Behaviour.AreaMonstersJoin):
-// Count of ByScreen[the area screen], standing aside with Status and Control.
-type AreaMonsters struct {
-	ByScreen        []AreaMonster
-	Count           int
-	Status, Control int
+// Reserve is a fight's reserve, any adventure's to fill: Count of the
+// monster of the area's symbol set join every scripted fight off the map
+// (rules.HoldInReserve), with Control, until an effect reinforces a side
+// with them. Empty: the adventure has none. (pod-re CharFightsAlone.)
+type Reserve struct {
+	BySet   []ReserveUnit
+	Count   int
+	Control int
 }
 
-// AreaMonster is one area screen's monster and its combat icon.
-type AreaMonster struct{ Monster, Icon int }
+// ReserveUnit is one symbol set's monster and its combat icon.
+type ReserveUnit struct{ Monster, Icon int }
 
 // ScriptSound is what one Sound command number plays: a song or a cue.
 type ScriptSound struct {
@@ -198,10 +200,10 @@ func (g GameTables) Sound(n byte) (ScriptSound, bool) {
 	return ScriptSound{}, false
 }
 
-// For is the monster the area screen adds to a fight; none past the table.
-func (t AreaMonsters) For(screen int) (AreaMonster, bool) {
-	if screen < 0 || screen >= len(t.ByScreen) {
-		return AreaMonster{}, false
+// For is the reserve's monster in an area of symbol set set; none past the table.
+func (t Reserve) For(set int) (ReserveUnit, bool) {
+	if set < 0 || set >= len(t.BySet) {
+		return ReserveUnit{}, false
 	}
-	return t.ByScreen[screen], true
+	return t.BySet[set], true
 }
