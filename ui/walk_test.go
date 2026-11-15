@@ -299,3 +299,33 @@ func TestWalkNoTextStops(t *testing.T) {
 		}
 	}
 }
+
+// markedYard is a yard whose marked squares the game names (game.MarkedMap).
+type markedYard struct {
+	yard
+	marked map[image.Point]bool
+}
+
+func (y markedYard) Marked(at image.Point) bool { return y.marked[at] }
+
+// TestWalkGoesRoundMarkedSquares: the walk's way goes round a square the
+// game marks for its own events (a building's entrance), through one only to
+// end on it or when there is no other way.
+func TestWalkGoesRoundMarkedSquares(t *testing.T) {
+	const east, south = 2, 4
+	temple := image.Pt(1, 0)
+	m := markedYard{yard{size: image.Pt(3, 2)}, map[image.Point]bool{temple: true}}
+	if side, ok := walkSide(m, image.Pt(0, 0), image.Pt(2, 0)); !ok || side != south {
+		t.Errorf("past the marked square: leaves by side %d (%v), want south and round it", side, ok)
+	}
+	if side, ok := walkSide(m, image.Pt(0, 0), temple); !ok || side != east {
+		t.Errorf("to the marked square itself: leaves by side %d (%v), want east", side, ok)
+	}
+	m.size = image.Pt(3, 1) // no way round
+	if side, ok := walkSide(m, image.Pt(0, 0), image.Pt(2, 0)); !ok || side != east {
+		t.Errorf("no other way: leaves by side %d (%v), want east through it", side, ok)
+	}
+	if side, ok := walkSide(m.yard, image.Pt(0, 0), image.Pt(2, 0)); !ok || side != east { // a map that marks none
+		t.Errorf("unmarked: leaves by side %d (%v), want east", side, ok)
+	}
+}

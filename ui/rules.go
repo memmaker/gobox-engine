@@ -1210,23 +1210,49 @@ func walkBlocked(e game.Edge) bool {
 	return e.Kind == game.EdgeWall || e.Kind == game.EdgeDoor && (e.State == game.DoorLocked || e.State == game.DoorWizardLocked)
 }
 
-// walkSide is the side of from the shortest way to goal leaves by, false: none.
+// walkRound is what a square the game marks costs the walk's search, in
+// steps: more than any way round it on a map, so the way goes through one
+// only to end on it or when there is no other.
+const walkRound = 4096
+
+// walkSide is the side of from the way to goal leaves by, false: none. The
+// way is the shortest that goes round the squares the game marks for its
+// own events (game.MarkedMap: a building's entrance, an encounter's room),
+// through one only to end on it or when there is no other.
 func walkSide(m game.Map, from, goal image.Point) (int, bool) {
-	first := map[image.Point]int{from: -1} // each square reached: the side the way to it left from by
-	for q := []image.Point{from}; len(q) > 0; q = q[1:] {
-		if q[0] == goal {
-			return first[goal], goal != from
+	marks, _ := m.(game.MarkedMap)
+	type way struct{ cost, side int } // to a square: what it costs, the side the way to it leaves from by
+	best := map[image.Point]way{from: {side: -1}}
+	for open := []image.Point{from}; len(open) > 0; {
+		i := 0
+		for j := range open {
+			if best[open[j]].cost < best[open[i]].cost {
+				i = j
+			}
+		}
+		at := open[i]
+		open = slices.Delete(open, i, i+1)
+		if at == goal {
+			return best[goal].side, goal != from
 		}
 		for _, s := range walkSides {
-			n := q[0].Add(s.d)
-			if _, seen := first[n]; seen || !n.In(image.Rectangle{Max: m.Size()}) || walkBlocked(m.Edge(q[0], s.side)) {
+			n := at.Add(s.d)
+			if !n.In(image.Rectangle{Max: m.Size()}) || walkBlocked(m.Edge(at, s.side)) {
 				continue
 			}
-			first[n] = first[q[0]]
-			if q[0] == from {
-				first[n] = s.side
+			w := way{cost: best[at].cost + 1, side: best[at].side}
+			if at == from {
+				w.side = s.side
 			}
-			q = append(q, n)
+			if marks != nil && n != goal && marks.Marked(n) {
+				w.cost += walkRound
+			}
+			if b, seen := best[n]; !seen {
+				open = append(open, n)
+			} else if w.cost >= b.cost {
+				continue
+			}
+			best[n] = w
 		}
 	}
 	return 0, false

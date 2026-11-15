@@ -97,7 +97,7 @@ func (e *Engine) partyState() (party []game.Member, selected int) {
 // whereState is where the party is and the map as it knows it.
 func (e *Engine) whereState() (game.Where, game.Automap) {
 	px, py := e.posX, e.posY
-	inside := e.MapCell(px, py) > 0x7F
+	inside := e.MapCell(px, py)&cellInside != 0
 	w := game.Where{
 		Area: strconv.Itoa(int(AreaID(e.worldWord(rules.WordGeo)))), X: px, Y: py, Facing: int(Dir(e.facing/2&3)) * 2,
 		Inside: inside, Searching: e.exploring() && e.worldWord(rules.WordSearch)&1 != 0,
