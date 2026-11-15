@@ -1,8 +1,11 @@
 package rules
 
-// Names every Gold Box ruleset shares, declared here so the engine can name
-// them without a ruleset (REFACTOR.md R2a). The strings are the ids the
-// rulesets key their tables by.
+// AD&D names the Pool games' scripts and script commands still read by
+// name (a thief's skills, the saving throws, the Ranger of PartySurprise,
+// Knock at a door), declared here so the engine names them without
+// importing a ruleset. They are 1e's, not every ruleset's: REFACTOR.md R2f
+// puts them behind facts the ruleset gives by script field. The strings
+// are the ids the rulesets key their tables by.
 
 const ClassRanger Class = "ranger"
 
