@@ -27,9 +27,6 @@ import (
 
 	"gobox/importer"
 	"gobox/ui"
-
-	_ "buckrogers/importbr1"
-	_ "buckrogers2/importbr2"
 )
 
 // ruleset1e is the manifest Ruleset the pool host plays.

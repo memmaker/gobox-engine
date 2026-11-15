@@ -1,0 +1,13 @@
+# Read by gameimport (~/Projects/gameimport/cmd/gameimport): `gameimport games/br2/import.toml`.
+# Paths are relative to this file. It copies the originals into data/br2/sources/ and runs
+# `gobox import`, which writes the adventure folder data/br2.
+game = "Buck Rogers II: Matrix Cubed"
+
+[[source]]
+name     = "Buck Rogers II: Matrix Cubed (1992, German)"
+describe = "The SSI DOS release: the game folder, its disks or the GOG installer"
+markers  = ["VENUSCOM.DAX", "MARSCOM.DAX", "SHIPS.DAX"]
+files    = ["*.DAX", "ITEMS", "START.EXE", "GAME.OVR", "*.SAV", "*.STF", "SEG00036.*"]
+dest     = "../../data/br2/sources/dos"
+upper    = true
+run      = ["../../gobox", "import", "-out", "../../data", "br2", "../../data/br2/sources/dos"] # the adventure folder data/br2

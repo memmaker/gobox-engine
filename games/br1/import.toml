@@ -1,0 +1,13 @@
+# Read by gameimport (~/Projects/gameimport/cmd/gameimport): `gameimport games/br1/import.toml`.
+# Paths are relative to this file. It copies the originals into data/br1/sources/ and runs
+# `gobox import`, which writes the adventure folder data/br1.
+game = "Buck Rogers: Countdown to Doomsday"
+
+[[source]]
+name     = "Buck Rogers: Countdown to Doomsday (1990)"
+describe = "The SSI DOS release: the game folder, its disks or the GOG installer"
+markers  = ["MARSCOM.DAX", "HITEK.DAX", "LOTEK.DAX"]
+files    = ["*.DAX", "ITEMS", "START.EXE", "GAME.OVR", "*.SAV", "*.STF"]
+dest     = "../../data/br1/sources/dos"
+upper    = true
+run      = ["../../gobox", "import", "-out", "../../data", "br1", "../../data/br1/sources/dos"] # the adventure folder data/br1

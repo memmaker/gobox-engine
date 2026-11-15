@@ -8,9 +8,6 @@ import (
 	"testing"
 
 	"gobox/importer"
-
-	_ "buckrogers/importbr1"
-	_ "buckrogers2/importbr2"
 )
 
 // The Buck Rogers originals the br1/br2 tests import from; without them
