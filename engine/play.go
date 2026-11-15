@@ -436,8 +436,17 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 			add(game.CampRest{Kind: k})
 		}
 		for n, m := range cm.Party {
-			if m.CanCast {
-				add(game.Cast{Member: n}, game.Memorize{Member: n}, game.Scribe{Member: n})
+			if m.CanCast { // a spell memorized that it may cast now
+				add(game.Cast{Member: n})
+			}
+			if n < e.partySize() { // each only for one who can: a book to memorize from, a scroll to scribe
+				study := e.fact(e.partyIDs()[n], rules.StudyFact{}).(rules.Study)
+				if study.Book > 0 {
+					add(game.Memorize{Member: n})
+				}
+				if study.Scrolls > 0 {
+					add(game.Scribe{Member: n})
+				}
 			}
 			if n < e.partySize() { // a paladin's powers, wherever casting is; they ask whom (UsePower)
 				for _, p := range e.powers(e.partyIDs()[n]) {

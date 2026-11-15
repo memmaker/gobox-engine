@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"gobox/game"
 	"gobox/rules1e"
 	"slices"
 	"testing"
@@ -61,5 +62,34 @@ func TestCampIconEditor(t *testing.T) {
 	e.EditIcon(0)
 	if e.iconEd == nil || e.adventure() {
 		t.Fatalf("editor %v, adventure %v", e.iconEd != nil, e.adventure())
+	}
+}
+
+// TestCampOffersOnlyWhatMemberCan: camp offers each member Cast only with
+// a spell to cast now, Memorize only with a book, Scribe only with a
+// scroll's spell to scribe: never to one who cannot.
+func TestCampOffersOnlyWhatMemberCan(t *testing.T) {
+	e := quickStarted(t)
+	e.CampMenu()
+	c := e.build().(game.Camping)
+	offered := func(a game.Action) bool { return slices.Contains(c.Allowed.Plain, a) }
+	casters := 0
+	for n, ch := range e.state().Party {
+		book, scrolls := e.state().SpellLists(ch)
+		if len(book) > 0 {
+			casters++
+		}
+		if got := offered(game.Memorize{Member: n}); got != (len(book) > 0) {
+			t.Errorf("%s: Memorize offered %v with %d spells in the book", ch.Name(), got, len(book))
+		}
+		if got := offered(game.Scribe{Member: n}); got != (len(scrolls) > 0) {
+			t.Errorf("%s: Scribe offered %v with %d spells on scrolls", ch.Name(), got, len(scrolls))
+		}
+		if got := offered(game.Cast{Member: n}); got != c.Party[n].CanCast {
+			t.Errorf("%s: Cast offered %v, can cast %v", ch.Name(), got, c.Party[n].CanCast)
+		}
+	}
+	if casters == 0 || casters == len(e.state().Party) {
+		t.Skipf("%d of %d members have a book: nothing told apart", casters, len(e.state().Party))
 	}
 }
