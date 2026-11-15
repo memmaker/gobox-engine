@@ -245,15 +245,37 @@ func (r *frontState) askOf(ps game.State) *FrontAsk {
 	if q, ok := Ask(mode, pending); ok && q != nil {
 		return q
 	}
-	services, _ := templeOf(ps)
-	menu, _ := PartyMenu(mode, trainingOf(ps), pending, false)
-	if menu == nil && mode != game.ModeCamp && services == nil && shopOf(ps) == nil && r.inventoryKind(ps) == invNone && lootOf(ps) == nil && trainingOf(ps) == nil &&
-		pending != nil && (mode == game.ModeParty || mode >= game.ModeCamp && mode <= game.ModeLoot) { // ModeParty: a question over the party menu (the hall's Pick New Class:)
+	if pending != nil && !r.claimed(ps, mode, pending) {
 		if q, ok := Ask(game.ModeAsk, pending); ok {
 			return q
 		}
 	}
 	return nil
+}
+
+// claimed: a screen of its own shows ps's question pending (the party
+// menu, camp, the temple, the shop, the items, the treasure, training), so
+// the question window does not. One say for drawing (askOf) and answering
+// (Presenter.unseen): a question neither claimed nor drawn takes no answer.
+func (r *frontState) claimed(ps game.State, mode game.Mode, pending *game.Ask) bool {
+	services, _ := templeOf(ps)
+	menu, _ := PartyMenu(mode, trainingOf(ps), pending, false)
+	if menu != nil || mode == game.ModeCamp || services != nil || shopOf(ps) != nil || r.inventoryKind(ps) != invNone || lootOf(ps) != nil || trainingOf(ps) != nil {
+		return true
+	}
+	return mode != game.ModeParty && (mode < game.ModeCamp || mode > game.ModeLoot) // the other modes' screens (the view, the fight, the creation sheet, a scene) show theirs
+}
+
+// unseen: the game asks a question that is on no screen, not even the
+// question window's (bug class: any key answered the hall's undrawn "Pick
+// New Class:"). A Continue is nothing to choose and needs no window.
+func (p *Presenter) unseen() bool {
+	if p.eng == nil {
+		return false
+	}
+	r, ps := p.eng.r, p.state()
+	a := r.asking(ps)
+	return a != nil && a.Kind != game.Continue && !r.claimed(ps, r.modeOf(ps), a) && p.askUp() == nil
 }
 
 // door is the locked door the party stands at (nil: none).

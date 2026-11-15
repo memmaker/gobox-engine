@@ -80,6 +80,9 @@ func (p *Presenter) arrow(a input.Act) {
 }
 
 func (p *Presenter) send(kind ActKind, n int) {
+	if (kind == ActOK || kind == ActChoose || kind == ActYes || kind == ActNo) && p.unseen() { // no answer to a question the player cannot see
+		return
+	}
 	if kind == ActChoose || kind == ActOK { // a question answered: the next menu pops up, the same one again too
 		p.asked, p.pageAsked = "", ""
 	}

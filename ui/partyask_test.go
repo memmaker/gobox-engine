@@ -17,4 +17,10 @@ func TestPartyQuestionShown(t *testing.T) {
 	if a := p.askUp(); a == nil || a.Kind != AskMenu || a.Prompt != "Pick New Class:" || len(a.Commands) != 2 {
 		t.Fatalf("the party screen's question: %+v", a)
 	}
+	p.backdrop = true // the question on no screen: no key answers it
+	p.Key(13)
+	p.Key('M')
+	if as := p.Actions(); len(as) != 0 || !p.unseen() {
+		t.Fatalf("keys on an unseen question: %+v (unseen %v)", as, p.unseen())
+	}
 }
