@@ -56,9 +56,13 @@ const (
 	WidthWord
 	WidthText  // a zero-terminated string, one character per address
 	WidthDword // four bytes, one address (the original's longints)
+	// WidthBytes: Len raw bytes, one address each, that operands of any
+	// width read and write little-endian at an offset (Buck Rogers' scratch
+	// zones 4C00..4C1F and 7F79..7F82). Only a dialect that stores by operand has them.
+	WidthBytes
 )
 
-var widthNames = map[string]Width{"byte": WidthByte, "word": WidthWord, "dword": WidthDword, "text": WidthText}
+var widthNames = map[string]Width{"byte": WidthByte, "word": WidthWord, "dword": WidthDword, "text": WidthText, "bytes": WidthBytes}
 
 // Field is one typed piece of state: Len elements of Width, one address
 // each, from address From on. Len 1 is a single value; more is an array a
@@ -97,11 +101,19 @@ func (f *Field) ElementName(i int) string { return f.Elements[i] }
 type Encoding string
 
 // Ref is a resolved operand: element Index of Field. A value: Args compare
-// with ==, Ref and all; the zero Ref is none.
+// with ==, Ref and all; the zero Ref is none. Two Refs name the same cell
+// when their Cell()s are equal.
 type Ref struct {
 	Field FieldID
 	Index int
+	// As is the width of the operand the script addresses the cell through
+	// (a byte, word or long variable); zero: the engine addresses the field
+	// itself, at the field's own width.
+	As Width
 }
+
+// Cell is r without the operand's width: the cell alone, for "the same cell" tests.
+func (r Ref) Cell() Ref { r.As = 0; return r }
 
 // routine: f names an engine routine CALL runs, not memory. Routine numbers
 // are their own space: they may share numbers with memory addresses.
@@ -110,7 +122,7 @@ func (f Field) routine() bool { return f.Owner == OwnerCall }
 // Plus is the element i past r in its field's memory: a table operand's
 // base and the index a command adds (GET TABLE, SAVE TABLE). Like the byte
 // code's address arithmetic it may pass the field's end.
-func (r Ref) Plus(i int) Ref { return Ref{Field: r.Field, Index: r.Index + i} }
+func (r Ref) Plus(i int) Ref { r.Index += i; return r }
 
 // Named is the memory field called name: for the words an engine reads or
 // writes by itself (a native command's answer, DIVIDE's remainder).
@@ -278,6 +290,9 @@ func ParseLayout(r io.Reader) (*Layout, error) {
 		o, ok := ownerNames[f[3]]
 		if !ok {
 			return nil, fmt.Errorf("layout line %d: owner %q", n, f[3])
+		}
+		if w == WidthBytes && (o == OwnerConst || o == OwnerFact || o == OwnerCall) {
+			return nil, fmt.Errorf("layout line %d: %s: raw bytes make no %s", n, f[4], f[3])
 		}
 		if names[f[4]] {
 			return nil, fmt.Errorf("layout line %d: %s twice", n, f[4])

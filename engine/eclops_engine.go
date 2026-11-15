@@ -113,7 +113,7 @@ func (e *Engine) opCompare() {
 	a := e.vm.Arg(1, e.host)
 	b := e.vm.Arg(2, e.host)
 	hours, hasHours := e.layoutField(fieldHours)
-	if hasHours && (e.vm.ArgType[1] == ecl.ArgVar || e.vm.ArgType[1] == ecl.ArgVarWord) && e.vm.Ref(1) == hours && e.vm.ArgType[2] == ecl.ArgByte && b == 14 && e.DaySky.Load() {
+	if hasHours && (e.vm.ArgType[1] == ecl.ArgVar || e.vm.ArgType[1] == ecl.ArgVarWord) && e.vm.Ref(1).Cell() == hours && e.vm.ArgType[2] == ecl.ArgByte && b == 14 && e.DaySky.Load() {
 		// option (U3): the scripts pick the day sky by hour < 14; day is 6:00-20:00 instead.
 		// Night is 15, not 14, so the pier's "Hours > 14" (no ship picture after dark) holds too.
 		a = 15
@@ -506,7 +506,7 @@ func (e *Engine) opCheckParty() {
 		}
 	default:
 		for name, f := range censusFacts {
-			if r, err := e.vm.Script.Layout.Named(name); err == nil && e.vm.Ref(1) == r { // a word the game's layout lacks is no census
+			if r, err := e.vm.Script.Layout.Named(name); err == nil && e.vm.Ref(1).Cell() == r { // a word the game's layout lacks is no census
 				what, fact = censusFact, f
 			}
 		}

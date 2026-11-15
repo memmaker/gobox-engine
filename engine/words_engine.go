@@ -11,10 +11,12 @@ import (
 // The canonical fields of the words the VM itself keeps (every game's layout names them so,
 // when it has them).
 const (
-	fieldLastBlock  = "LastBlock"       // the block NewECL left (sotsb, cotab, pod); POR has none: core.WordLastBlock
-	fieldRemainder  = "DivideRemainder" // where DIVIDE leaves its remainder (sotsb, cotab, pod); POR has none
-	fieldPriceScale = "PriceScale"      // the shops' price factor (cotab, sotsb, pod); POR has none
-	fieldVault      = "VaultRequest"    // 1: Combat with no monsters opens the vault (pod); the others have none
+	fieldLastBlock   = "LastBlock"       // the block NewECL left (sotsb, cotab, pod); POR has none: core.WordLastBlock
+	fieldRemainder   = "DivideRemainder" // where DIVIDE leaves its remainder (sotsb, cotab, pod); POR has none
+	fieldLoopCounter = "LoopCounter"     // FOR/NEXT's counter (Buck Rogers); the Pool games have none
+	fieldLoopLimit   = "LoopLimit"       // FOR/NEXT's limit (Buck Rogers); the Pool games have none
+	fieldPriceScale  = "PriceScale"      // the shops' price factor (cotab, sotsb, pod); POR has none
+	fieldVault       = "VaultRequest"    // 1: Combat with no monsters opens the vault (pod); the others have none
 )
 
 // layoutField is the loaded script's field called name; ok false when the game's layout has none.
@@ -31,6 +33,8 @@ func (e *Engine) layoutField(name string) (ecl.Ref, bool) {
 // loaded; a game without one keeps no remainder.
 func (e *Engine) bindWords() {
 	e.vm.Remainder, _ = e.layoutField(fieldRemainder)
+	e.vm.LoopCounter, _ = e.layoutField(fieldLoopCounter)
+	e.vm.LoopLimit, _ = e.layoutField(fieldLoopLimit)
 }
 
 // setLastBlock keeps block, the one NewECL leaves, to come back to: in the layout's LastBlock
@@ -46,7 +50,7 @@ func (e *Engine) setLastBlock(block int) {
 // BoundFields are the canonical script field names the engine gives a meaning: a game's
 // layout names a field so when, and only when, it has that field (each game's layout test).
 func BoundFields() []string {
-	names := []string{fieldLastBlock, fieldRemainder, fieldPriceScale, fieldVault, fieldHours, tourDone}
+	names := []string{fieldLastBlock, fieldRemainder, fieldLoopCounter, fieldLoopLimit, fieldPriceScale, fieldVault, fieldHours, tourDone}
 	for n := range (&Engine{}).newEngineFields() {
 		names = append(names, n)
 	}

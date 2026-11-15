@@ -159,6 +159,7 @@ func (vm *VM) ReadArgs(n int) {
 				panic(fmt.Sprintf("ecl: command %d operand %d (%04X) has no field: the script was not resolved in its layout", vm.cur, k, a.N))
 			}
 			vm.ArgN[k] = 0 // state is named by its field, never by an address
+			vm.ArgRef[k].As = operandWidth[a.Type]
 		}
 		switch a.Type {
 		case ArgText:
@@ -175,6 +176,10 @@ func (vm *VM) ReadArgs(n int) {
 		vm.Trace(vm, n)
 	}
 }
+
+// operandWidth is the width a variable operand's type reads and writes
+// (the original's Width: byte var 1, word var 2, long var 4); a text variable has none.
+var operandWidth = map[byte]Width{ArgVar: WidthByte, ArgVarWord: WidthWord, ArgVarLong: WidthDword}
 
 // isVar: a names state, so it must carry its field (ResolveRefs). A
 // label and a CALL's routine are numbers.

@@ -202,12 +202,36 @@ func (e *Engine) varField(r ecl.Ref) *ecl.Field {
 	if f.Owner == ecl.OwnerCall {
 		panic(fmt.Sprintf("script: %s is not a variable", f.Name))
 	}
+	if f.Width == ecl.WidthBytes && !e.storesByOperand() {
+		panic(fmt.Sprintf("script: %s is a byte buffer, which only a dialect that stores by operand has", f.Name))
+	}
 	return f
+}
+
+// storesByOperand: the running dialect's operand type says the width of a read or write.
+func (e *Engine) storesByOperand() bool { return e.eclVersion.Behaviour.StoreByOperand }
+
+// operandWidth is the width r's access reads and writes when the dialect stores by operand
+// and the script addressed the cell through an operand; else (ok false) the field's own cell.
+func (e *Engine) operandWidth(r ecl.Ref) (ecl.Width, bool) {
+	return r.As, e.storesByOperand() && r.As != 0
 }
 
 // getVar = ReadGbvm (ovr08:0E0C) on a Ref.
 func (e *Engine) getVar(r ecl.Ref) int64 {
 	f := e.varField(r)
+	if f.Width == ecl.WidthBytes {
+		return e.getBytes(f, r)
+	}
+	v := e.getCell(f, r)
+	if w, ok := e.operandWidth(r); ok {
+		return readAsWidth(w, v)
+	}
+	return v
+}
+
+// getCell is the cell r names, whole.
+func (e *Engine) getCell(f *ecl.Field, r ecl.Ref) int64 {
 	if f.Owner == ecl.OwnerConst { // a table in the script's own code (the code image at OriginalSave.CodeBase)
 		if r.Index < 0 || r.Index >= f.Len { // the layout does not cover the read (ecl.ConstLayout takes a field as far as its reads go)
 			e.tableFault(f, r.Index)
@@ -238,7 +262,15 @@ func (e *Engine) setVar(r ecl.Ref, v int64) {
 	if f.ReadOnly {
 		panic(fmt.Sprintf("script: %s is read-only", f.Name))
 	}
-	v = cutToWidth(f.Width, v)
+	if f.Width == ecl.WidthBytes {
+		e.setBytes(f, r, v)
+		return
+	}
+	if w, ok := e.operandWidth(r); ok {
+		v = cutToOperand(w, v)
+	} else {
+		v = cutToWidth(f.Width, v)
+	}
 	ef, bi, bound := e.binding(f, r.Index)
 	if !bound || ef.stored {
 		if f.Width != ecl.WidthText {
@@ -465,6 +497,79 @@ func cutToWidth(w ecl.Width, v int64) int64 {
 		return int64(uint32(v))
 	}
 	panic(fmt.Sprintf("script: width %d", w))
+}
+
+// cutToOperand is v as the operand of width w stores it: that many bytes (BR ecl.go PutN).
+func cutToOperand(w ecl.Width, v int64) int64 {
+	switch w {
+	case ecl.WidthByte:
+		return int64(uint8(v))
+	case ecl.WidthWord:
+		return int64(uint16(v))
+	case ecl.WidthDword:
+		return int64(uint32(v))
+	}
+	panic(fmt.Sprintf("script: operand width %d", w))
+}
+
+// readAsWidth is the cell value v as an operand of width w reads it: zero-extended for a byte
+// or word, a signed 32-bit value for a long (BR ecl.go GetN).
+func readAsWidth(w ecl.Width, v int64) int64 {
+	if w == ecl.WidthDword {
+		return int64(int32(v))
+	}
+	return cutToOperand(w, v)
+}
+
+// byteSpan is the bytes an access through r takes: its operand's width (a byte for the engine's
+// own); an access past the buffer's end is a layout fault.
+func (e *Engine) byteSpan(f *ecl.Field, r ecl.Ref) int {
+	n := 1
+	switch r.As {
+	case ecl.WidthWord:
+		n = 2
+	case ecl.WidthDword:
+		n = 4
+	}
+	if r.Index < 0 || r.Index+n > f.Len {
+		panic(fmt.Sprintf("script: %s[%d..%d] is past the buffer's %d bytes (layout too short)", f.Name, r.Index, r.Index+n-1, f.Len))
+	}
+	return n
+}
+
+// getBytes reads r's width of bytes from byte buffer f, little-endian.
+func (e *Engine) getBytes(f *ecl.Field, r ecl.Ref) int64 {
+	n := e.byteSpan(f, r)
+	c := e.cells(f)[f.Name]
+	var v int64
+	for k := n - 1; k >= 0; k-- {
+		v <<= 8
+		if r.Index+k < len(c) {
+			v |= c[r.Index+k] & 0xFF
+		}
+	}
+	return readAsWidth(widthOfBytes(n), v)
+}
+
+// setBytes writes v's r-width bytes into byte buffer f, little-endian.
+func (e *Engine) setBytes(f *ecl.Field, r ecl.Ref, v int64) {
+	n := e.byteSpan(f, r)
+	vs := make([]int64, n)
+	for k := range vs {
+		vs[k] = (v >> (8 * k)) & 0xFF
+	}
+	e.storeCells(f, r.Index, vs)
+}
+
+// widthOfBytes is the operand width that takes n bytes.
+func widthOfBytes(n int) ecl.Width {
+	switch n {
+	case 2:
+		return ecl.WidthWord
+	case 4:
+		return ecl.WidthDword
+	}
+	return ecl.WidthByte
 }
 
 // TableFault is a read of a script's own table past the field the layout

@@ -11,7 +11,7 @@ import (
 // canonical name, but these, which the game has no field for (cotab-re: no script reads them,
 // or the field is POR's own story or engine word).
 func TestCotabBoundFields(t *testing.T) {
-	absent := []string{"AreaKind", "Boss", "EffectTable", "MapPatchA", "MapPatchB", "Mark3", "Mark4", "Mark4Off", "MarkFlags4", "MarkFlags57", "RiverOpen", "TourDone", "UnknownD015", "VaultRequest"}
+	absent := []string{"AreaKind", "Boss", "EffectTable", "LoopCounter", "LoopLimit", "MapPatchA", "MapPatchB", "Mark3", "Mark4", "Mark4Off", "MarkFlags4", "MarkFlags57", "RiverOpen", "TourDone", "UnknownD015", "VaultRequest"}
 	got, err := engine.UnboundFields(importer.EmbeddedScripts("cotab"))
 	if err != nil {
 		t.Fatal(err)

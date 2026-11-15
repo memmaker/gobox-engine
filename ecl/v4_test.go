@@ -159,3 +159,27 @@ func TestV4Calls(t *testing.T) {
 		}
 	}
 }
+
+func TestRefAsAndBytes(t *testing.T) {
+	vm, _ := v4VM(t, V4, append(append(append([]byte{}, cmdSave...), varA...), varLongA...))
+	vm.Fetch()
+	vm.ReadArgs(2)
+	for k, w := range []Width{WidthByte, WidthDword} {
+		if got := vm.Ref(k + 1).As; got != w {
+			t.Errorf("operand %d As %d, want %d", k+1, got, w)
+		}
+	}
+	if vm.Ref(1).Cell() != (Ref{Field: 1}) {
+		t.Errorf("Cell keeps As: %+v", vm.Ref(1).Cell())
+	}
+	l, err := ParseLayout(strings.NewReader("4C00 32 bytes local Scratch\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r, err := l.Resolve(0x4C05); err != nil || r != (Ref{Field: 1, Index: 5}) {
+		t.Errorf("resolve %+v %v", r, err)
+	}
+	if _, err := ParseLayout(strings.NewReader("4C00 4 bytes const T\n")); err == nil {
+		t.Error("const bytes accepted")
+	}
+}

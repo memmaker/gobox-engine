@@ -67,7 +67,11 @@ type Behaviour struct {
 	SelectMemberDrop  bool           // SelectMember's bit 7 refreshes and may drop a dead member; otherwise the bit is only masked off
 	NoMonsterCombat   []CombatScreen // Combat with no monsters loaded: the first screen whose word is set opens (it clears the word)
 	SymbolSetFrames   bool           // the symbol set picks only the frame set (pod's tileSet, pod-re eclmenu.pas:472 $39: Load8x8Set, no other files); otherwise it is the content set too (POR's, cotab's gameArea)
-	PictureAnimates   bool           // Picture marks the view drawn, so a wait under it cycles the picture's frames (cotab's and sotsb's b8B7D, pod's alike); otherwise only a step or Picture(255) does (POR's picDrawn, eclvm.pas:371, 1874)
+	// StoreByOperand: a variable operand's type says how many bytes a read or write takes (BR ecl.go
+	// Width, GetN, PutN; buckrogers-go rules/ecl.go val, getVar, setVar); otherwise a cell is a word
+	// whatever the operand (Pool's WriteGbvm)
+	StoreByOperand  bool
+	PictureAnimates bool // Picture marks the view drawn, so a wait under it cycles the picture's frames (cotab's and sotsb's b8B7D, pod's alike); otherwise only a step or Picture(255) does (POR's picDrawn, eclvm.pas:371, 1874)
 }
 
 // ProgramFn is a PROGRAM sub-command, by name (ruling S14: each game's
@@ -276,7 +280,7 @@ var V4 = func() *Version {
 	// is the sound and 26627 the picture's animation, which V2 maps to
 	// CallDuelSound and CallPause: BR's own meaning, so named separately.
 	calls := map[uint16]CallFn{11723: CallRedrawView, 49182: CallStepForward, 49176: CallWallAhead, 45571: CallSound, 26627: CallPictureAnimation}
-	return &Version{ID: 4, Base: 32768, Cmds: t, Skip: skip, Calls: calls, Behaviour: Behaviour{ReturnEndsScript: true}}
+	return &Version{ID: 4, Base: 32768, Cmds: t, Skip: skip, Calls: calls, Behaviour: Behaviour{ReturnEndsScript: true, StoreByOperand: true}}
 }()
 
 // Versions are the dialects by ID.
