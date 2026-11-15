@@ -135,7 +135,11 @@ func (e *Engine) newEngineFields() map[string]engineField {
 			e.posY = int(v)
 			e.es.posChanged = 1
 		}),
-		"Facing": fact(func() uint16 { return uint16(e.facing >> 1) }, func(v uint16) {
+		// the way the party goes: during a step back or aside (gobox's: the view's
+		// facing stays) the way of the step, as the originals' scripts take the
+		// facing for it (they only ever stepped ahead): an exit, a door, a guard
+		// by Facing is the one the step goes through
+		"Facing": fact(func() uint16 { return uint16(e.moveDir() >> 1) }, func(v uint16) {
 			e.facing = [4]int{0, 2, 4, 6}[v%4]
 			e.ext.back = 0 // the script chose the facing
 			e.es.posChanged = 1

@@ -70,3 +70,26 @@ func TestTablesOverlap(t *testing.T) {
 		t.Errorf("ExitAreaByFacing[west] = %d, want 18", got)
 	}
 }
+
+// TestScriptFacingIsTheStepsWay: a script reads Facing as the way the party
+// goes. Stepping aside or back (the view's facing stays) it is the way of
+// the step: POR area 29 picks the area an exit leads to by Facing, so
+// leaving east while looking north goes where the east exit goes, not by
+// the north entry (an area and a data set that are none of its exits).
+func TestScriptFacingIsTheStepsWay(t *testing.T) {
+	e := quickStarted(t)
+	e.loadScript(29)
+	const north, east = 0, 2
+	e.facing, e.ext.back = north, east // a step aside to the east, looking north
+	if got := e.host.Get(e.field("Facing")); got != east/2 {
+		t.Fatalf("Facing reads %d during a step east, want %d", got, east/2)
+	}
+	exit := func(table string) int64 { return e.host.Get(e.field(table).Plus(int(e.host.Get(e.field("Facing"))))) }
+	if area, set := exit("ExitAreaByFacing"), exit("ExitSymbolSetByFacing"); area != 20 || set != 2 {
+		t.Errorf("the east exit, stepped aside: area %d set %d, want 20 and 2", area, set)
+	}
+	e.ext.back = 0 // the step made: the view's facing again
+	if got := e.host.Get(e.field("Facing")); got != north/2 {
+		t.Errorf("Facing reads %d standing, want %d", got, north/2)
+	}
+}
