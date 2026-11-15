@@ -40,10 +40,7 @@ func (e *Engine) partyState() (party []game.Member, selected int) {
 					gm.SlotsMax[spellGroup(rules.SpellClass(cls), byte(lvl+1))] = int(n)
 				}
 			}
-			sel := e.sel
-			e.sel = i
-			gm.CanCast = e.canCastNow()
-			e.sel = sel
+			gm.CanCast = e.canCast(id)
 			for _, sp := range book.Memorized {
 				gm.Spells = append(gm.Spells, game.SpellRef{ID: int(sp.Number), Name: sp.Name, Memorized: true})
 			}
@@ -321,7 +318,7 @@ func (e *Engine) mapState(w *game.Where) game.Automap {
 		return game.Automap{}
 	}
 	m := game.Automap{Area: e.mapName(), Size: rules.Size{W: 16, H: 16}, NoMap: e.worldWord(rules.WordNoCoords) != 0}
-	seen, mine, built := e.ext.seen[e.areaKey()], e.userLabels(), e.builtinLabels(e.areaKey())
+	seen, mine, built := e.ext.seen[e.areaKey()], e.ext.labels[e.areaKey()], e.builtinLabels(e.areaKey())
 	secret := e.secretSides()
 	for y := range 16 {
 		for x := range 16 {

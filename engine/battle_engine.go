@@ -16,7 +16,6 @@ func (e *Engine) battleShown() bool {
 
 // battle builds the snapshot's Battle (nil outside combat).
 func (e *Engine) battle() *Battle {
-	e.present()
 	s := &e.snap
 	if !e.battleShown() {
 		return nil

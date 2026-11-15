@@ -52,10 +52,8 @@ func (e *Engine) Version() uint64 {
 // rebuild builds State anew: every call that changes the engine (Do, Load,
 // LoadSlot, Start, Step) ends with it.
 func (e *Engine) rebuild() {
+	e.present() // what the action queued, shown before the state that shows it is built
 	e.ps = e.build()
-	if _, ok := e.ps.(game.Looting); !ok { // a new treasure is announced again
-		e.lootSeen = false
-	}
 	e.StateBuilds++
 }
 

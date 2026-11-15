@@ -106,7 +106,6 @@ func (e *Engine) fightState() *game.Combat {
 			if ch == rules.NoChar {
 				continue
 			}
-			e.as(e.sel)
 			aim := e.fact(ch, rules.SpellAimFact{Spell: e.spellID(sp.ID)}).(rules.SpellAim)
 			if aim.Kind != rules.SpellAimNone && aim.Now { // the spells that take a square now; one cast over rounds is only begun, its aim opens when it goes off (playerTurn)
 				ref.Targets = 1

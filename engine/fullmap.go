@@ -40,7 +40,8 @@ func (e *Engine) builtinLabels(k int) map[int]mapLabel {
 	return m
 }
 
-// userLabels are the player's labels of the current map (ext.labels).
+// userLabels are the player's labels of the current map (ext.labels),
+// made when there are none: for the code that adds or removes one; reads use ext.labels.
 func (e *Engine) userLabels() map[int]mapLabel {
 	k := e.areaKey()
 	if e.ext.labels == nil {

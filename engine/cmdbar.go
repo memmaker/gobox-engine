@@ -5,15 +5,11 @@ import "gobox/rules"
 // The context-sensitive command bar: Cast is
 // offered only when the selected member could cast a spell.
 
-// canCastNow: Cast would offer a spell (the checks of canStudy and
+// canCast: Cast would offer member id a spell (the checks of canStudy and
 // CastMenu, without their messages).
-func (e *Engine) canCastNow() bool {
-	id := e.selected()
+func (e *Engine) canCast(id rules.CharID) bool {
 	if e.worldWord(rules.WordNoMagic) > 0 || e.ruleset().Sheet(id).Status != rules.StatusOkay || !e.ruleset().Check(rules.Fit{Who: id}, nil).Yes {
 		return false
 	}
-	list, ids := e.spellList, e.spellIDs
-	any := e.buildSpellList(0)
-	e.spellList, e.spellIDs = list, ids
-	return any
+	return len(e.fact(id, rules.SpellMenuFact{Kind: 0}).(rules.SpellMenu)) > 0
 }

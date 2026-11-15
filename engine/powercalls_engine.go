@@ -133,7 +133,6 @@ var localPower = map[game.PowerKind]PowerKind{game.PowerCast: PowerSpells, game.
 // EffectsList is member n's spell effects (the sheet's Magic,
 // displayAffects = ovr16:0FBC) as the nodes of a list.
 func (e *Engine) EffectsList(n int) []*ListNode {
-	e.setWorldWord(rules.WordWho, e.sel) // as before: the list names the actor
 	id := e.selected()
 	if party := e.partyIDs(); n >= 0 && n < len(party) {
 		id = party[n]

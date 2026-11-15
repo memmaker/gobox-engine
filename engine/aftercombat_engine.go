@@ -123,6 +123,7 @@ func (e *Engine) showResult(exp int32) {
 // once the party leaves it.
 func (e *Engine) lootMenu() {
 	e.pw.anim = e.animInput
+	e.lootSeen = false // a new treasure is announced again
 	e.lootRedraw()
 	e.wait(PendLoot)
 }
