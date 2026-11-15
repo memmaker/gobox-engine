@@ -25,8 +25,8 @@ func TestTourPausesTimed(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		g.TitleDone()
 	}
-	if err := eng.QuickStart(); err != nil {
-		t.Fatal(err)
+	if r := g.Send(game.QuickStart{}); r.Err != nil { // as the party menu's: the state follows
+		t.Fatal(r.Err)
 	}
 	if r := g.Send(game.Begin{}); r.Err != nil {
 		t.Fatal(r.Err)
@@ -34,7 +34,7 @@ func TestTourPausesTimed(t *testing.T) {
 	pauses := 0
 	for range 40 { // the greeting's two Approaches, then the walk's first stops
 		w, pg, a, at := g.Window(), g.Page(), g.Asked(), g.Where()
-		if w == game.WindowText && len(pg.View) == 0 || w == game.WindowPicture && len(pg.Layers) == 0 {
+		if w == game.WindowText && len(pg.View) == 0 || w == game.WindowPicture && len(pg.Layers) == 0 && game.CommonOf(eng.State()).Portrait == nil { // a speaker's portrait is gobox's to compose: no layer of the game's
 			t.Fatalf("at %d,%d window %v with nothing in it", at.X, at.Y, w)
 		}
 		switch {
