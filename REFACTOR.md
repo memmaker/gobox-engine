@@ -24,7 +24,7 @@
 
 ## Checklist
 
-### Order of work (Felix, 2026-11-15): R2, then G2, then B1
+### Order of work (Felix, 2026-11-15): R2, then G2 (b, c, e), then B1, then G3
 
 Handover: each item below is one commit or one track (`foldwt.sh new <track>`, landed with
 `foldwt.sh land <track>`, which gates). Sonnet agents take the mechanical items, one track each, on
@@ -76,24 +76,46 @@ only shrink), `game/noui_test.go` (no drawing package, no screen position), `ui`
     `Trading.Name/Pooled/Vault`, `Looting.Status`, `Draft.MinHP/MaxHP/Step/Stats/Derived`,
     `Unit.Dead/Gone/Pose`, `Battlefield.FloorTile/Clouds`, `Item.Cursed/Charges`.
   - [x] G2a the inventory above
-  - [ ] G2b the build is a pure read: nothing in `build()`'s call tree writes engine or rules state;
-    a test saves the rules and the engine before and after `build()` in every dev scene and compares
-  - [ ] G2c no disk read in the build: the area's name and the character list are read where they
-    change (an area load, a roster write)
-  - [ ] G2d one copy: `game.Fighting` built once (no `game.Combat` beside it), `game.Member` once
-    (no engine `Member` beside it); `pushCombat` without a build
+  - [~] G2b the build is a pure read (track g2b, landed): queued effects are applied in `rebuild()`
+    before the build; the `WordWho` writes of `EffectsList` and `fightState` are gone; `canCast(id)`
+    asks the member's spell menu (no `e.sel`, no spell list rewritten); map labels read without
+    creating; `lootSeen` reset where a treasure opens. Guard: `TestBuildReadsOnly` (12 scenes; it
+    caught only the queued effects, the rest is by reading). Left, both go with G3: `applyItems` in
+    `creationState` and `offers` (the rules rewrite the character to get AC and THAC0), `selected()`
+    resolving `EmptyMember` for an empty party. Changed: a question during the treasure no longer
+    announces the loot again
+  - [x] G2c no disk read in the build (track g2c, landed): the map names are read once, the roster
+    list when `charlist.txt` is written or the save folder changes (`rosterChanged`). Guard:
+    `TestBuildReadsNoDisk` (party menu, hall, shop, loot, fight; not the overland),
+    `TestRosterListRefreshed`. Noted, not looked into: Quick Start's per-member save leaves one
+    name in charlist.txt
   - [ ] G2e the mode is a value the engine sets where the screen changes, not derived
-  - [ ] G2f RULING NEEDED (Felix): after b to e the build is a side-effect-free projection, once per
-    action. "The engine writes each part where it changes, no rebuild" needs the rules to announce
-    every change (sheet, items, purse, clock, words), for 1e and XXVc: a notification system the
-    rules do not have. Options: keep the projection; or build the notifications
+  - (G2d, one copy per thing inside the engine: not done on its own. The copy chains
+    `members()`/`partyState()`, `sheetPage()`/`gameSheetPage()`, `battle()`/`fightState()` are
+    deleted whole by G3; shortening them first is work thrown away)
+  - RULING (Felix, 2026-11-15), replaces G2f: one source of truth for every piece of state
+    (CLAUDE.md). State is split by owner and never copied across:
+    the ruleset owns characters, items, money, spells, effects, time, the fight's units and ground,
+    and the ui reads them from a read-only view of the rules when it draws; the engine owns where
+    the party is, the screen, the pending question, what was seen, quests and journal marks, in one
+    small struct of `game` types it writes where they change; the adventure's data is loaded once;
+    the ui owns presentation only. No notifications from the rules are needed.
+- [ ] G3 The contract by owner (after B1, when `engine` is the only `game.Game`): `game.State`
+  shrinks to the engine-owned part (the party is ids and the selected one); `game.Game` gives the
+  ui the rules' read-only view; the ui reads sheets, items, spells, units from it, screen by screen;
+  the allowed actions become a question asked when needed; `rebuild()`, `build()`, the copy chains
+  and the engine's own `Member`, `SheetPage`, `Battle`, and `game.Combat`, `game.Member`,
+  `game.Item`, `game.SheetPage`, `game.Unit` as copies go; a version counter bumped per action
+  tells the ui to redraw. Known sizes: `.Party` read in 41 places of ui, 92 test sites build
+  `game.Member`. To pin: the engine acts and the ui draws never interleave
 - [ ] B1 Buck Rogers as data folders (decision above; survey 2026-11-15). BR1 and BR2 are two engines
   of ~15k lines each (near copies), `buckrogers-core` (2.6k: its own script VM, combat map, ships,
   space, the importer) and `rulesxxvc` (8k, already a `rules` ruleset, but not what runs: the BR
   engines carry their own rule code). They run in the one binary on `ui`, not on `engine`.
-  - [ ] B1a pin what must survive: the 19 combat meshes (asset/sprites/series/buck-rogers/combat/meshes,
-    12 hitek, 7 lotek) and `props.json` are found by tile name (`hitek_tile_037`); a test in gobox
-    that every mesh and prop names a tile the BR1 combat map can produce
+  - [x] B1a pinned: `asset/brmeshes_test.go` TestBuckRogersMeshesKept (the 19 models with model,
+    Blockbench source and texture, no other; each a tile a combat map can produce, its own picture
+    there; props.json names only such tiles). The frame counts per set are copied from BR1's
+    rules/cmap.go until B1c
   - [ ] B1b one script machine (ARCHITECTURE.md section 2): widen `gobox/ecl` to int32 and width;
     dialect tables for V4 and FOR/NEXT; BR's ops as engine ops; `ecl-br`'s VM deleted
   - [ ] B1c the importer: `ecl-br/importbr`, `importbr1`, `importbr2` into `importer`; `data/br1`,
