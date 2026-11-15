@@ -27,6 +27,7 @@ var aiDirOffsets = [6][5]int{
 // An area weapon in reach fires at SelectAreaTarget's cell (Attack At).
 // ponytail: medics' FindPatients is not ported.
 func (r *Rules) Decide(f rules.Fight, id rules.CharID, rng *rules.RNG) rules.Action {
+	rng = r.stream(rng) // the engine passes none: the ruleset's own stream
 	f.Board = r.board(f.Board)
 	c, s := r.chars[id], r.fight[id]
 	if c == nil || s == nil {

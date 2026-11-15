@@ -133,8 +133,24 @@ type FightTerms struct {
 	// The party's map facing when the fight began (BR partyPosition.facing:
 	// a fleeing monster runs from it).
 	PartyFacing Facing
-	PartyAt     image.Point // the party's map square when the fight began (por DS:6AAD/6AAE: the placement's origin)
+	// Approach is the sides the monsters come from (the script's SetupMonster 4th operand, BR monsterApproach:
+	// bits 0..3); 0 one side, the party's facing.
+	Approach Approach
+	PartyAt  image.Point // the party's map square when the fight began (por DS:6AAD/6AAE: the placement's origin)
 }
+
+// Approach is a set of the sides the monsters come from (BR monsterApproach, combatst.pas PlaceAllCreatures): bit n
+// is the side facing n*2 (C_Dir: north 0, east 2, south 4, west 6). The byte is carried whole, as PlaceAllCreatures
+// tests it: only bits 0..3 name a side.
+type Approach uint8
+
+const (
+	ApproachNorth Approach = 1 << iota
+	ApproachEast
+	ApproachSouth
+	ApproachWest
+	ApproachSides = ApproachNorth | ApproachEast | ApproachSouth | ApproachWest // PlaceAllCreatures' `and $F`
+)
 
 // AreaKind is the sort of place a fight is in, as a ruleset tests it (BR
 // zone0 areaKind). The zero value is a place with no special kind.

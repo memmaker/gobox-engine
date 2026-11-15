@@ -91,6 +91,8 @@ var toCanon = map[ecl.Encoding]func(game int64, set rules.Set) int64{
 		}
 		panic(fmt.Sprintf("pod: SelSide %d", g))
 	},
+	// zone0 areaKind (types.pas): the canonical value is rules.PlaceTraits.
+	"BrTravelKind":   func(g int64, _ rules.Set) int64 { return int64(BRPlaceTraits(byte(g))) },
 	"SotsbSelStatus": func(g int64, _ rules.Set) int64 { return CanonStatusWrite(sotsbStatusWrite(g)) },
 	"BrSelStatus":    func(g int64, _ rules.Set) int64 { return CanonStatusWrite(brStatusWrite(g)) },
 	// setChar: r[76] = v, read back as 128 while non-zero; canonical: 0 or 1.
@@ -111,4 +113,73 @@ func Canonical(enc ecl.Encoding, v int64, set rules.Set) int64 {
 		return f(v, set)
 	}
 	return v
+}
+
+// brPlaceTrait is one row of BR's areaKind byte: the trait and the bits that make it. THE table both directions
+// are made from (types.pas areaKind; the tests are in rules.PlaceTraits' comments).
+type brPlaceTrait struct {
+	trait rules.PlaceTraits
+	has   func(kind byte) bool
+}
+
+// The areaKind values and bits BR tests (c_area.pas, combatst.pas).
+const (
+	BRVenusWilderness = 0xA2
+	BRMarsWilderness  = 0xA8
+	BRZeroGravity     = 0x10
+	BRLotekA          = 0x88
+	BRLotekB          = 0x82
+	BRScatterTiles    = 0x40
+	BRSecondTileSet   = 0x08
+	BRTerrainNibble   = 0x0F // the low nibble: 8 raises the wilderness terrain by 10
+)
+
+var brPlaceTraits = []brPlaceTrait{
+	{rules.TraitHasKind, func(k byte) bool { return k != 0 }},
+	{rules.TraitWilderness, func(k byte) bool { return k == BRVenusWilderness || k == BRMarsWilderness }},
+	{rules.TraitZeroGravity, func(k byte) bool { return k&BRZeroGravity != 0 }},
+	{rules.TraitLowTech, func(k byte) bool { return k == BRLotekA || k == BRLotekB }},
+	{rules.TraitScatterTiles, func(k byte) bool { return k&BRScatterTiles != 0 }},
+	{rules.TraitSecondTileSet, func(k byte) bool { return k&BRSecondTileSet != 0 }},
+	{rules.TraitTerrainShift, func(k byte) bool { return k&BRTerrainNibble == BRSecondTileSet }},
+}
+
+// BRPlaceTraits is the traits of BR's areaKind byte.
+func BRPlaceTraits(kind byte) rules.PlaceTraits {
+	var t rules.PlaceTraits
+	for _, r := range brPlaceTraits {
+		if r.has(kind) {
+			t |= r.trait
+		}
+	}
+	return t
+}
+
+// BRAreaKind is a byte with exactly the traits t (the canonical value as BR keeps it). The script's own byte is
+// stored whole and never rebuilt from the traits: the byte a script wrote reads back as written.
+func BRAreaKind(t rules.PlaceTraits) byte {
+	var k byte
+	switch {
+	case t.Has(rules.TraitWilderness) && t.Has(rules.TraitTerrainShift):
+		k = BRMarsWilderness
+	case t.Has(rules.TraitWilderness):
+		k = BRVenusWilderness
+	case t.Has(rules.TraitLowTech) && t.Has(rules.TraitSecondTileSet):
+		k = BRLotekA
+	case t.Has(rules.TraitLowTech):
+		k = BRLotekB
+	case t.Has(rules.TraitTerrainShift):
+		k = BRSecondTileSet
+	case t.Has(rules.TraitSecondTileSet):
+		k = BRSecondTileSet | 1 // bit 8 with the nibble not 8
+	case t.Has(rules.TraitHasKind):
+		k = 1
+	}
+	if t.Has(rules.TraitZeroGravity) {
+		k |= BRZeroGravity
+	}
+	if t.Has(rules.TraitScatterTiles) {
+		k |= BRScatterTiles
+	}
+	return k
 }

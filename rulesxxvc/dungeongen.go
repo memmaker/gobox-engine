@@ -4,36 +4,32 @@ import "gobox/rules"
 
 // wallBetween is combatst.pas WallBetween's kind from the map's sides: each side's GetWallKind or-ed. Off the 16x16
 // map a side counts as 1, except east and west along the party's row (partyRow).
-// ponytail: the MapSides give a wall (WallAt non-zero) and a door (DoorAt non-zero); GetWallKind's barrier plane
-// (View3D.GetBarrierType 0 -> 1, else the wall type 0 -> 0, else 3) is taken as: no wall 0, a door 3, else 1.
+// GetWallKind reads the barrier plane first: barrier type 0 (DoorAt 0, a solid wall) is kind 1, else no wall (WallAt 0)
+// is 0, else 3 (a wall that can be passed: door, secret). DoorAt answers 1 on a side with no wall, as GetBarrierType.
+// The old engine's side3D (cmap.go) reads the same: passable 0 -> 1, wallAt 0 -> 0, else 3.
 func wallBetween(walls rules.MapSides, partyRow, x, y, dir int) int {
 	side := func(cx, cy, facing int) int {
 		if cx >= 0 && cx < arenaMapSide && cy >= 0 && cy < arenaMapSide {
 			switch {
+			case walls.DoorAt(cx, cy, facing) == 0:
+				return wallPlain
 			case walls.WallAt(cx, cy, facing) == 0:
-				return 0
-			case walls.DoorAt(cx, cy, facing) != 0:
-				return 3
+				return wallNone
 			}
-			return 1
+			return wallDoor
 		}
 		if cy == partyRow && (facing == dirEast || facing == dirWest) {
-			return 0
+			return wallNone
 		}
-		return 1
+		return wallPlain
 	}
 	return side(x, y, dir) | side(x+dirStep[dir].X, y+dirStep[dir].Y, (dir+4)%8)
 }
 
-// Dungeon arena kinds (zone0 areaKind): lotek's floor is terrain 7, the others' 45; bit $40 scatters tile groups,
-// bit $08 picks the second tile set (BuildDungeonArena, ScatterWallTiles).
+// Dungeon arena floors: lotek's (rules.TraitLowTech) is terrain 7, the others' 45 (BuildDungeonArena).
 const (
-	AreaKindLotekA  = 0x88
-	AreaKindLotekB  = 0x82
 	floorLotek      = 7
 	floorHitek      = 45
-	kindScatterBit  = 0x40
-	kindSecondSet   = 0x08
 	squareVariantEv = 0x40 // GetMapEvent and $40
 )
 
@@ -74,11 +70,12 @@ func (d *dungeonArena) plotOnFloor(px, py, pv int) {
 	}
 }
 
+// roll is Random(n) from the one generator, rules.RNG (high word mod n); the original's runtime reduces by multiply.
 func (d *dungeonArena) roll(n int) int { return d.rng.N(n) }
 
 // scatterWallTiles is combatst.pas ScatterWallTiles(mode): tiles at random along the north and east walls of the
 // square being laid, Random's draws in the original's order.
-func (d *dungeonArena) scatterWallTiles(mode int) {
+func (d *dungeonArena) scatterWallTiles(place rules.PlaceTraits) {
 	// eachNorth: for i := 4 to 6, a Random(10) < chance, then Random(len(tiles)) picks the tile.
 	eachNorth := func(chance int, tiles ...int) {
 		for i := 4; i <= 6; i++ {
@@ -95,7 +92,7 @@ func (d *dungeonArena) scatterWallTiles(mode int) {
 			}
 		}
 	}
-	if mode&kindSecondSet == 0 {
+	if !place.Has(rules.TraitSecondTileSet) {
 		if d.wallNorth == wallPlain {
 			for i := 4; i <= 6; i++ {
 				if d.roll(10) < 3 {
@@ -174,7 +171,7 @@ var rightWallTiles = [15][2][2]int{
 }
 
 // layMapSquare is BuildDungeonArena's body for one map square: its walls' tiles, the corners, then the scatter.
-func (d *dungeonArena) layMapSquare(walls rules.MapSides, partyAt rules.BoardPos, mode int) {
+func (d *dungeonArena) layMapSquare(walls rules.MapSides, partyAt rules.BoardPos, place rules.PlaceTraits) {
 	mapX, mapY := partyAt.X+d.ox, partyAt.Y+d.oy
 	wall := func(x, y, dir int) int { return wallBetween(walls, partyAt.Y, x, y, dir) }
 	d.wallWest, d.wallNorth, d.wallEast = wall(mapX, mapY, dirWest), wall(mapX, mapY, dirNorth), wall(mapX, mapY, dirEast)
@@ -266,7 +263,7 @@ func (d *dungeonArena) layMapSquare(walls rules.MapSides, partyAt rules.BoardPos
 	}
 	// GetMapEvent and $40; off the 16x16 map the original wraps (GetWallType).
 	d.squareVariant = int(walls.MapCell((mapX+arenaMapSide)%arenaMapSide, (mapY+arenaMapSide)%arenaMapSide)) & squareVariantEv
-	d.scatterWallTiles(mode)
+	d.scatterWallTiles(place)
 }
 
 // The dungeon block's reach from the party: 6 columns and 2 rows of map squares each way.
@@ -275,14 +272,14 @@ const (
 	dungeonReachY = 2
 )
 
-// buildDungeonArena is combatst.pas BuildDungeonArena(mode): the arena filled with floor (7 for kinds $88 and $82,
-// else 45), tile groups scattered when mode has bit $40, and each map square within 6 columns and 2 rows of the party
+// buildDungeonArena is combatst.pas BuildDungeonArena(mode): the arena filled with floor (7 for the lotek kinds,
+// else 45), tile groups scattered with the scatter trait, and each map square within 6 columns and 2 rows of the party
 // laid from its walls. The generator is seeded with the ECL script's id (ReseedRandom(eclId)), so one script draws
 // the same sequence: seed is that stream's start; the call's own stream is not touched (RestoreRandom).
-func buildDungeonArena(mode int, walls rules.MapSides, partyAt rules.BoardPos, seed uint32) *[arenaRows][arenaCols]rules.TerrainID {
+func buildDungeonArena(place rules.PlaceTraits, walls rules.MapSides, partyAt rules.BoardPos, seed uint32) *[arenaRows][arenaCols]rules.TerrainID {
 	d := &dungeonArena{rng: &rules.RNG{State: seed}}
 	floor := rules.TerrainID(floorHitek)
-	if mode == AreaKindLotekA || mode == AreaKindLotekB {
+	if place.Has(rules.TraitLowTech) {
 		floor = floorLotek
 	}
 	for y := range d.cells {
@@ -290,7 +287,7 @@ func buildDungeonArena(mode int, walls rules.MapSides, partyAt rules.BoardPos, s
 			d.cells[y][x] = floor
 		}
 	}
-	if mode&kindScatterBit != 0 { // ScatterRandomTiles
+	if place.Has(rules.TraitScatterTiles) { // ScatterRandomTiles
 		for d.oy = -dungeonReachY; d.oy <= dungeonReachY; d.oy++ {
 			for d.ox = -dungeonReachX; d.ox <= dungeonReachX; d.ox++ {
 				if d.roll(2) == 0 {
@@ -304,7 +301,7 @@ func buildDungeonArena(mode int, walls rules.MapSides, partyAt rules.BoardPos, s
 	}
 	for d.oy = -dungeonReachY; d.oy <= dungeonReachY; d.oy++ {
 		for d.ox = -dungeonReachX; d.ox <= dungeonReachX; d.ox++ {
-			d.layMapSquare(walls, partyAt, mode)
+			d.layMapSquare(walls, partyAt, place)
 		}
 	}
 	return &d.cells

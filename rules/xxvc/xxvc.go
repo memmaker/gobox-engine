@@ -124,17 +124,20 @@ type Monster struct {
 	HP          int32
 	BaseCombat  int32 // baseCombat, attackBonus starts from it
 	AttackBonus int32
-	ArmorClass  [2]int32      // front, rear
-	Damage      [2]rules.Dice // per attack phase (currentRolls, currentDice, currentModifiers)
-	BaseScale   int32         // phase 1's attacks per round times two, unarmed (baseScale)
-	Scale       int32         // attacks per round times two (scale)
-	Movement    int32
-	Skills      map[rules.Skill]int32
-	Saves       [8]int32
-	Hostile     bool // C_Side.HOSTILE; else on the team's side
-	XPAward     int64
-	Credits     rules.Copper // creditTotal
-	Items       []rules.ItemRef
+	// IconDimensions is iconDimensions: the combat icon's size in the ICON_SIZE_MASK ($7F) bits; PlaceAllCreatures
+	// takes the low three (ICON_SIZE_LOW_BITS).
+	IconDimensions int32
+	ArmorClass     [2]int32      // front, rear
+	Damage         [2]rules.Dice // per attack phase (currentRolls, currentDice, currentModifiers)
+	BaseScale      int32         // phase 1's attacks per round times two, unarmed (baseScale)
+	Scale          int32         // attacks per round times two (scale)
+	Movement       int32
+	Skills         map[rules.Skill]int32
+	Saves          [8]int32
+	Hostile        bool // C_Side.HOSTILE; else on the team's side
+	XPAward        int64
+	Credits        rules.Copper // creditTotal
+	Items          []rules.ItemRef
 }
 
 func (Tables) RuleTables() {}

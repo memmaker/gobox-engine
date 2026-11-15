@@ -25,6 +25,7 @@ type BRSave struct {
 	CreditTotal           int64
 	Experience            int64
 	BaseCombat            int
+	IconDimensions        int // types.pas iconDimensions
 	BaseMovement          int
 	BaseArmorClass        int
 	BaseScale, Scale      int
@@ -84,7 +85,7 @@ var brStatOrder = [7]rules.Ability{rules.Strength, rules.Dexterity, rules.Consti
 func ConvertBRCharacter(t xxvc.Tables, b BRSave) (Character, error) {
 	c := Character{
 		Name: b.Name, Level: b.Level, Scores: map[rules.Ability]int{},
-		HP: b.HitPoints, MaxHP: b.HitPointMaximum, BaseCombat: b.BaseCombat,
+		HP: b.HitPoints, MaxHP: b.HitPointMaximum, BaseCombat: b.BaseCombat, IconDimensions: b.IconDimensions,
 		Coins: rules.Copper(b.CreditTotal), Enabled: b.IsEnabled, Status: b.Status,
 		Exp: b.Experience, XPAward: b.XPAward, AttackBonus: b.AttackBonus, ArmorClass: b.ArmorClass,
 		BaseScale: b.BaseScale, Scale: b.Scale, Movement: b.CurrentMovement,

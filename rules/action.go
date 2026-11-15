@@ -107,11 +107,15 @@ type (
 		Dungeon   bool
 		MapShift  int
 		NoRemains bool
-		Terrain   TerrainID // the wilderness terrain, for a ruleset that takes it from the game (ground gen terrain "given")
+		Terrain   TerrainID // the adventure's terrain number for a fight outdoors, carried as it is (BR zone0 wildernessTerrain, the ruleset's table; ground gen terrain "given")
 		River     bool      // a river runs across the wilderness (PoD)
 		// The wilderness place the ground is laid for (por area.MapX, MapY, Boss): the party's map
 		// square and the Boss word (0xFF: the boss's terrain kind).
 		MapX, MapY, Boss uint16
+		// Block is the script block in play (BR seeds the dungeon arena with it: ReseedRandom(eclId)).
+		Block int32
+		// Place is the place's traits (BR zone0 areaKind).
+		Place PlaceTraits
 	}
 	// TakeLoot: Who takes the treasure's Item (FightResult.Items); All:
 	// every piece in turn until one does not fit (por the treasure screen's Take).

@@ -32,8 +32,17 @@ type combatState struct {
 
 // fighters is the fight's characters as partyHead lists them: the party, then
 // the board's others (the monsters EclLoadMonster appended).
+// fightParty is the party list the fight runs on: the one the call hands in (the unit tests'), else the ruleset's
+// own (GDVars.partyHead, the monsters EclLoadMonster appended with it): the engine passes none.
+func (r *Rules) fightParty(f rules.Fight) []rules.CharID {
+	if len(f.Party) > 0 {
+		return f.Party
+	}
+	return r.party
+}
+
 func (r *Rules) fighters(f rules.Fight) []rules.CharID {
-	ids := slices.Clone([]rules.CharID(f.Party))
+	ids := slices.Clone(r.fightParty(f))
 	for _, u := range f.Board.Units {
 		if !slices.Contains(ids, u.ID) {
 			ids = append(ids, u.ID)
@@ -69,6 +78,7 @@ func surprised(f rules.Fight, c *Character) bool {
 // OrderCreatures: higher initiative first, then the higher tie-breaker, else
 // list order; initiative 0 too.
 func (r *Rules) BeginRound(f rules.Fight, rng *rules.RNG) rules.Outcome {
+	rng = r.stream(rng) // the engine passes none: the ruleset's own stream
 	f.Board = r.board(f.Board)
 	if r.fight == nil {
 		r.fight = map[rules.CharID]*combatState{}
@@ -145,6 +155,7 @@ var zeroGSkill, _ = skillNo("maneuver-in-0g")
 // (cbtacts.pas): on a zero-g board an enabled creature with initiative above
 // 1 rolls Maneuver in 0g, Normal; a failure is StFailedZeroG.
 func (r *Rules) BeginTurn(f rules.Fight, id rules.CharID, rng *rules.RNG) rules.Turn {
+	rng = r.stream(rng) // the engine passes none: the ruleset's own stream
 	f.Board = r.board(f.Board)
 	c, s := r.chars[id], r.fight[id]
 	if c == nil || s == nil {
@@ -278,7 +289,7 @@ func (r *Rules) EndFight(f rules.Fight, _ *rules.RNG) rules.FightResult {
 		}
 	}
 	if verdict != rules.PartyLost && verdict != rules.PartyFled {
-		for _, id := range f.Party {
+		for _, id := range r.fightParty(f) {
 			c := r.chars[id]
 			if c == nil {
 				continue

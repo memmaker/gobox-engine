@@ -50,6 +50,11 @@ func (e *Engine) combatMapSetup() {
 // groundTerms is what the rules lay the combat ground from.
 func (e *Engine) groundTerms() rules.BuildGround {
 	g := rules.BuildGround{Walls: e.gmap(), Dungeon: e.viewMode == 1, NoRemains: e.gs.areaKind == 0xA, MapX: e.world.MapX, MapY: e.world.MapY, Boss: e.world.Boss}
+	g.Block = int32(e.gs.areaKind) // the ECL block in play (the field's name is older than its use)
+	g.Place, _ = e.placeTraits()
+	if r, ok := e.layoutField(fieldWildTerrain); ok {
+		g.Terrain = rules.TerrainID(e.host.Get(r))
+	}
 	switch e.viewMode {
 	case 3:
 		g.MapShift = 0xD

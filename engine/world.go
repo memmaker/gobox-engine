@@ -81,6 +81,10 @@ func (e *Engine) fightTerms() rules.FightTerms {
 		In3D:         e.in3D(),
 		PartyAt:      image.Pt(e.posX, e.posY),
 		PartyFacing:  rules.Facing(e.facing),
+		Approach:     rules.Approach(e.run.monsterSides),
+	}
+	if p, _ := e.placeTraits(); p.Has(rules.TraitWilderness) {
+		t.Area = rules.AreaWilderness
 	}
 	for _, s := range surpriseBits {
 		if byte(w.Surprise)&byte(s.bit) != 0 { // only the low byte is tested

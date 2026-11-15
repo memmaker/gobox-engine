@@ -250,6 +250,9 @@ func (w *wildArena) fillUnset(base, spread int) {
 	}
 }
 
+// wildTerrainShift is added to the terrain in an area whose kind's low nibble is 8 (combatst.pas:485).
+const wildTerrainShift = 10
+
 // buildWildernessArena is combatst.pas BuildWildernessArena for the wilderness terrain (zone0 wildernessTerrain, 10
 // higher when the area kind's low nibble is 8): the cells of the arena, or the error the original shows ("Cant
 // identify wild terrain").
@@ -288,16 +291,25 @@ func buildWildernessArena(terrain int, rng *rules.RNG) (*[arenaRows][arenaCols]r
 }
 
 // buildGround is the rules' half of combatMapSetup (combatst.pas LoadCombatTileSet): the wilderness arena from the
-// terrain the game names, drawn from the call's stream (the original draws from the game's Random).
-// A dungeon arena (BuildDungeonArena) is not ported: it needs the area kind byte and the barrier plane, which
-// BuildGround does not carry.
-func (r *Rules) buildGround(g rules.BuildGround, rng *rules.RNG) error {
-	if g.Dungeon {
-		return fmt.Errorf("BuildGround dungeon: %w (BuildDungeonArena needs the area kind and the barrier plane)", ErrNotPorted)
-	}
-	cells, err := buildWildernessArena(int(g.Terrain), r.stream(rng))
-	if err != nil {
-		return err
+// terrain the game names (10 higher with the terrain-shift trait), drawn from the call's stream (the original draws
+// from the game's Random); else BuildDungeonArena from the walls round the party, drawn from the script block's own
+// stream (ReseedRandom(eclId)).
+func (r *Rules) buildGround(f rules.Fight, g rules.BuildGround, rng *rules.RNG) error {
+	var cells *[arenaRows][arenaCols]rules.TerrainID
+	if g.Dungeon && !g.Place.Has(rules.TraitWilderness) {
+		if g.Walls == nil {
+			return fmt.Errorf("BuildGround dungeon: no map walls handed in")
+		}
+		cells = buildDungeonArena(g.Place, g.Walls, rules.BoardPos{X: f.Terms.PartyAt.X, Y: f.Terms.PartyAt.Y}, uint32(g.Block))
+	} else {
+		terrain := int(g.Terrain)
+		if g.Place.Has(rules.TraitTerrainShift) {
+			terrain += wildTerrainShift
+		}
+		var err error
+		if cells, err = buildWildernessArena(terrain, r.stream(rng)); err != nil {
+			return err
+		}
 	}
 	r.arena = arena{}
 	b := rules.Board{Size: image.Pt(arenaCols, arenaRows), Terrain: make([]rules.TerrainID, arenaCols*arenaRows)}

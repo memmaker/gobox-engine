@@ -5,6 +5,7 @@ import (
 
 	"gobox/adventure"
 	"gobox/ecl"
+	"gobox/rules"
 )
 
 // brCareerFirst is the number of the catalog's first career: 0 is none.
@@ -25,6 +26,8 @@ var brCodecs = map[ecl.Encoding]codec{
 		}
 		return n
 	}},
+	// zone0 areaKind: the canonical rules.PlaceTraits as BR keeps them (the stored byte is never rebuilt from them).
+	"BrTravelKind": {toGame: func(_ *Engine, c int64) int64 { return int64(adventure.BRAreaKind(rules.PlaceTraits(c))) }},
 	// Party[40] (charVar r[40]): TCareer, the career's place in the catalog from 1, 0 none; the canonical
 	// SelCharClass is the place from 0 (the Pool's record number), -1 none.
 	"BrSelCharClass": {toGame: func(_ *Engine, c int64) int64 { return c + brCareerFirst }},

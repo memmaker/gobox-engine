@@ -62,7 +62,8 @@ const (
 // effect differs between the games (one named behaviour each, decoded here).
 type Behaviour struct {
 	ReturnEndsScript  bool           // RETURN with no caller ends the script (BR's exitScript); otherwise the host's Exit hook runs and the script continues
-	SetupMonsterSides bool           // SetupMonster has a 4th operand, the sides (bits 0..3) the monsters come from, and an area outdoors is 2 squares away
+	SetupMonsterSides bool           // SetupMonster has a 4th operand, the sides (bits 0..3) the monsters come from
+	OutdoorsNear      bool           // SetupMonster outdoors asks for 2 squares whatever the script says (pod O055:03D7); BR keeps the asked distance
 	InputTextOperand  bool           // InputString's first operand is the maximum length; otherwise the text window's width
 	SelectMemberDrop  bool           // SelectMember's bit 7 refreshes and may drop a dead member; otherwise the bit is only masked off
 	NoMonsterCombat   []CombatScreen // Combat with no monsters loaded: the first screen whose word is set opens (it clears the word)
@@ -244,7 +245,7 @@ var V3 = func() *Version {
 	// pod renumbered its routines (O040:1E4A)
 	return &Version{ID: 3, Base: 32768, Cmds: t, Skip: skip, Calls: map[uint16]CallFn{1: CallRedrawView, 2: CallStepForward, 3: CallNextFrame},
 		Programs:  map[byte]ProgramFn{0: ProgramPartyMenu, 1: ProgramSaveQuit, 2: ProgramQuit, 9: ProgramCamp},
-		Behaviour: Behaviour{SetupMonsterSides: true, InputTextOperand: true, NoMonsterCombat: []CombatScreen{CombatVault, CombatTemple}, PictureAnimates: true, SymbolSetFrames: true}}
+		Behaviour: Behaviour{SetupMonsterSides: true, OutdoorsNear: true, InputTextOperand: true, NoMonsterCombat: []CombatScreen{CombatVault, CombatTemple}, PictureAnimates: true, SymbolSetFrames: true}}
 }()
 
 // V4 is the Buck Rogers engine's dialect (Countdown to Doomsday, Matrix Cubed).
@@ -289,7 +290,7 @@ var V4 = func() *Version {
 		// BR1 pO035_2DCC case 56 (buckrogers-go opMenuCall): 0 the team menu, 9 the rest menu (holds the script, which
 		// goes on after it: not the Pool games' camp, which ends it)
 		Programs:  map[byte]ProgramFn{0: ProgramPartyMenu, 9: ProgramUnported},
-		Behaviour: Behaviour{ReturnEndsScript: true, StoreByOperand: true, ClearExitText: true, WhoEndsNoMember: true}}
+		Behaviour: Behaviour{SetupMonsterSides: true, ReturnEndsScript: true, StoreByOperand: true, ClearExitText: true, WhoEndsNoMember: true}}
 }()
 
 // Versions are the dialects by ID.

@@ -9,6 +9,7 @@ import (
 
 // Resolve is the rules outside the board's moves: each case names its .pas.
 func (r *Rules) Resolve(s rules.Situation, a rules.Action, rng *rules.RNG) (rules.Outcome, error) {
+	rng = r.stream(rng) // the engine passes none: the ruleset's own stream
 	if o, ok, err := r.resolveSession(a); ok {
 		return o, err
 	}

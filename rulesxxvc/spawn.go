@@ -25,7 +25,7 @@ func (r *Rules) Spawn(id rules.MonsterID, _ *rules.RNG) (rules.CharID, error) {
 		return rules.NoChar, fmt.Errorf("Spawn: no monster %d", id)
 	}
 	c := Character{Name: m.Name, Race: m.Race, Career: m.Career, Level: int(m.Level),
-		Scores: map[rules.Ability]int{}, HP: int(m.HP), MaxHP: int(m.HP), BaseCombat: int(m.BaseCombat),
+		Scores: map[rules.Ability]int{}, HP: int(m.HP), MaxHP: int(m.HP), BaseCombat: int(m.BaseCombat), IconDimensions: int(m.IconDimensions),
 		Enabled: true, Status: StOkay, Side: rules.SideAuto, XPAward: m.XPAward, Coins: m.Credits,
 		AttackBonus: int(m.AttackBonus), ArmorClass: [2]int{int(m.ArmorClass[0]), int(m.ArmorClass[1])},
 		Damage: m.Damage, BaseScale: int(m.BaseScale), Scale: int(m.Scale), Movement: int(m.Movement),

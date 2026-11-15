@@ -137,7 +137,7 @@ func DecodeSave(record, items, effects []byte) (rulesxxvc.BRSave, error) {
 	}
 	s := rulesxxvc.BRSave{
 		Name: pascalString(b.Name[:]), Gender: int(b.Gender), Race: int(b.Race), Career: int(b.Career), Level: int(b.Level),
-		CreditTotal: int64(b.CreditTotal), Experience: int64(b.Experience), BaseCombat: int(b.BaseCombat),
+		CreditTotal: int64(b.CreditTotal), Experience: int64(b.Experience), BaseCombat: int(b.BaseCombat), IconDimensions: int(b.IconDimensions),
 		BaseMovement: int(b.BaseMovement), BaseArmorClass: int(b.BaseArmorClass),
 		BaseScale: int(b.BaseScale), Scale: int(b.Scale), HitPointMaximum: int(b.HitPointMaximum),
 		ArmorFlags: int(b.ArmorFlags), XPAward: int64(b.XPAward), Status: rulesxxvc.Status(b.Status),
@@ -215,7 +215,7 @@ func monster(t xxvc.Tables, record, items []byte) (xxvc.Monster, error) {
 		return xxvc.Monster{}, err
 	}
 	m := xxvc.Monster{Name: c.Name, Race: c.Race, Career: c.Career, Level: int32(c.Level), Scores: map[rules.Ability]int32{},
-		HP: int32(c.HP), BaseCombat: int32(c.BaseCombat), AttackBonus: int32(c.AttackBonus),
+		HP: int32(c.HP), BaseCombat: int32(c.BaseCombat), IconDimensions: int32(c.IconDimensions), AttackBonus: int32(c.AttackBonus),
 		ArmorClass: [2]int32{int32(c.BaseArmorClass), int32(c.ArmorClass[1])}, Damage: c.Unarmed,
 		BaseScale: int32(c.BaseScale), Scale: int32(c.Scale), Movement: int32(c.BaseMovement), Skills: map[rules.Skill]int32{},
 		Hostile: c.Side == rules.SideMonsters, XPAward: c.XPAward, Credits: c.Coins}

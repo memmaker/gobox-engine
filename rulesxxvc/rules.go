@@ -20,14 +20,17 @@ type Character struct {
 	Scores     map[rules.Ability]int
 	HP, MaxHP  int
 	BaseCombat int
-	Skills     SkillLevels
-	Saves      [8]int
-	Coins      rules.Copper // its own, under SharedPurse off; a monster's creditTotal
-	Enabled    bool
-	Status     Status
-	Side       rules.Side // SideParty, SideAuto (the team) or SideMonsters (hostile)
-	Exp        int64
-	XPAward    int64 // what beating it gives (xpAward)
+	// IconDimensions is the combat icon's size in the ICON_SIZE_MASK bits (types.pas iconDimensions); the placement
+	// takes the low three.
+	IconDimensions int
+	Skills         SkillLevels
+	Saves          [8]int
+	Coins          rules.Copper // its own, under SharedPurse off; a monster's creditTotal
+	Enabled        bool
+	Status         Status
+	Side           rules.Side // SideParty, SideAuto (the team) or SideMonsters (hostile)
+	Exp            int64
+	XPAward        int64 // what beating it gives (xpAward)
 
 	// The combat numbers RecalcStats leaves (types.pas TCharacter).
 	// ponytail: kept as set at creation or Spawn; RecalcStats from readied items is not ported.

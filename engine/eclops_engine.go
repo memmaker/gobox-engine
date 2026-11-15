@@ -197,7 +197,7 @@ func (e *Engine) opSetupMonster() {
 	e.world.MaxDist = uint16(e.vm.Arg(2, e.host))
 	e.run.closeup = int(byte(e.vm.Arg(3, e.host)))
 	e.world.MonsterDist = uint16(e.FreeSteps(e.posX, e.posY, e.facing))
-	if sides && e.world.In3D == 0 { // outdoors the distance asked becomes 2 (pod O055:03D7)
+	if e.eclVersion.Behaviour.OutdoorsNear && e.world.In3D == 0 { // outdoors the distance asked becomes 2 (pod O055:03D7)
 		e.world.MaxDist = uint16(maxEncounterDist)
 	}
 	if int(e.world.MaxDist) < int(e.world.MonsterDist) {

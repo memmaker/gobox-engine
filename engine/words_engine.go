@@ -17,7 +17,8 @@ const (
 	fieldLoopLimit   = "LoopLimit"       // FOR/NEXT's limit (Buck Rogers); the Pool games have none
 	fieldPriceScale  = "PriceScale"      // the shops' price factor (cotab, sotsb, pod); POR has none
 	fieldScriptBlock = "ScriptBlock"     // the block whose move entry last ran (Buck Rogers: its start script still reads the block left, a loaded game its own); the Pool games have none
-	fieldTravelKind  = "TravelKind"      // the area's kind of travel, 0 while FacingOrRaw reads the eight-way facing (Buck Rogers); the Pool games have none
+	fieldWildTerrain = "WildTerrain"     // the adventure's terrain number for a fight outdoors (BR zone0 wildernessTerrain, Area[183]); the engine only carries it to the rules
+	fieldTravelKind  = "TravelKind"      // the place's traits (rules.PlaceTraits, canonical; BR keeps its areaKind byte, enc=BrTravelKind); no traits while FacingOrRaw reads the eight-way facing (Buck Rogers); the Pool games have none
 	fieldVault       = "VaultRequest"    // 1: Combat with no monsters opens the vault (pod); the others have none
 )
 
@@ -29,6 +30,16 @@ func (e *Engine) layoutField(name string) (ecl.Ref, bool) {
 	}
 	r, err := l.Named(name)
 	return r, err == nil
+}
+
+// placeTraits is the place's traits, the canonical read of the layout's TravelKind; ok false for a game with none
+// (the Pool games): no traits.
+func (e *Engine) placeTraits() (rules.PlaceTraits, bool) {
+	r, ok := e.layoutField(fieldTravelKind)
+	if !ok {
+		return 0, false
+	}
+	return rules.PlaceTraits(e.canonValue(e.varField(r), e.host.Get(r))), true
 }
 
 // bindWords points DIVIDE's remainder at the layout's DivideRemainder, for the script just
@@ -67,7 +78,7 @@ func (e *Engine) runMoveEntry() {
 // BoundFields are the canonical script field names the engine gives a meaning: a game's
 // layout names a field so when, and only when, it has that field (each game's layout test).
 func BoundFields() []string {
-	names := []string{fieldLastBlock, fieldRemainder, fieldLoopCounter, fieldLoopLimit, fieldPriceScale, fieldScriptBlock, fieldTravelKind, fieldVault, fieldHours, tourDone}
+	names := []string{fieldLastBlock, fieldRemainder, fieldLoopCounter, fieldLoopLimit, fieldPriceScale, fieldScriptBlock, fieldTravelKind, fieldVault, fieldWildTerrain, fieldHours, tourDone}
 	for n := range (&Engine{}).newEngineFields() {
 		names = append(names, n)
 	}

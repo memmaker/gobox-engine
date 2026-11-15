@@ -1,6 +1,7 @@
 package rulesxxvc
 
 import (
+	"math/bits"
 	"slices"
 
 	"gobox/rules"
@@ -65,7 +66,15 @@ type placer struct {
 	teamRows  [2]int
 	solo      bool // isSoloCombat: not ported, no BR1 script sets it
 	wildernes bool // interfaceState = WILDERNESS: no walls matter
+	original  int  // originalFacing: the party's facing when placing began
+	last      int  // lastFacing: the facing InitOccupancy laid last, noFacing before the first
 }
+
+const (
+	noFacing         = -1   // lastFacing := 255
+	iconSizeLowBits  = 0x07 // combatst.pas ICON_SIZE_LOW_BITS: the bits of iconDimensions PlaceAllCreatures takes
+	approachQuarters = 4    // the quarters monsterApproach's bits 0..3 name
+)
 
 func (p *placer) wallBetween(x, y, dir int) int {
 	return wallBetween(p.walls, p.f.Terms.PartyAt.Y, x, y, dir)
@@ -79,12 +88,20 @@ const (
 	dirWest      = 6
 )
 
-// initOccupancy is PlaceAllCreatures' InitOccupancy with no monsterApproach: team 1's origin a monsterDistance
-// off the party along its facing, each team's facing quarter and the open cells of each ring's grid.
-func (p *placer) initOccupancy() {
-	facing := int(p.f.Terms.PartyFacing) & 7
+// initOccupancy is PlaceAllCreatures' InitOccupancy for the party facing facing: unless that is the facing laid last,
+// team 1's origin a monsterDistance off the party along it (1 when the distance is 0 and the facing is not the
+// original), each team's facing quarter and the open cells of each ring's grid.
+func (p *placer) initOccupancy(facing int) {
+	distance := int(p.f.Terms.MonsterDist)
+	if distance == 0 && facing != p.original {
+		distance = 1
+	}
+	if facing == p.last {
+		return
+	}
+	p.last = facing
 	p.teamDir[teamParty] = facing / 2
-	p.place[teamHostile] = dirStep[facing].Mul(int(p.f.Terms.MonsterDist)).Add(p.place[teamParty])
+	p.place[teamHostile] = dirStep[facing].Mul(distance).Add(p.place[teamParty])
 	p.teamDir[teamHostile] = (facing + 4) % 8 / 2
 	for team := teamParty; team <= teamHostile; team++ {
 		for ring := range gridRings {
@@ -203,35 +220,50 @@ func (p *placer) findPlacement(id rules.CharID, team int) bool {
 	}
 }
 
-// placeAllCreatures is combatst.pas PlaceAllCreatures (monsterApproach 0): every creature of the party list placed,
+// placeAllCreatures is combatst.pas PlaceAllCreatures (monsterApproach: the hostiles from the sides it names): every creature of the party list placed,
 // each team facing the other. A downed creature in play that is placed leaves a corpse; one out of play (past the
 // game's party count) that finds no place Left the list.
-// ponytail: monsterApproach (the hostiles from several directions) and isSoloCombat are not in FightTerms; unported.
+// ponytail: isSoloCombat is not in FightTerms (no BR1 script sets it); unported.
 func (r *Rules) placeAllCreatures(f rules.Fight, walls rules.MapSides) rules.Outcome {
 	var o rules.Outcome
 	p := &placer{r: r, f: f, walls: walls, b: r.board(rules.Board{}), wildernes: f.Terms.Area == rules.AreaWilderness}
 	var counts [2]int // CountTeams: the enabled of each side
-	for _, id := range f.Party {
+	for _, id := range r.fightParty(f) {
 		if c := r.chars[id]; c != nil && c.Enabled {
 			counts[sideTeam(c)]++
 		}
 	}
 	p.teamRows[teamParty] = (counts[teamParty] + 1) / 2
-	const approachRoutes = 1 // one direction, two grids a side
-	p.teamRows[teamHostile] = (counts[teamHostile] + approachRoutes*2 - 1) / (approachRoutes * 2)
-	p.initOccupancy()
-	facing := int(f.Terms.PartyFacing) & 7
-	for n, id := range f.Party {
+	approach := f.Terms.Approach
+	routes := 1 // no side named: one direction
+	if approach&rules.ApproachSides != 0 {
+		routes = bits.OnesCount8(uint8(approach & rules.ApproachSides))
+	}
+	p.teamRows[teamHostile] = (counts[teamHostile] + routes*2 - 1) / (routes * 2) // two grids a side
+	p.original, p.last = int(f.Terms.PartyFacing)&7, noFacing
+	p.initOccupancy(p.original)
+	approachQuarter := 0
+	for n, id := range r.fightParty(f) {
 		c := r.chars[id]
 		if c == nil {
 			continue
 		}
 		team, outOfPlay := sideTeam(c), n+1 > int(r.memberCount)
+		facing := p.original
+		if approach&rules.ApproachSides != 0 { // each hostile from the next side named, the party from where it stands
+			if team == teamHostile {
+				for ok := false; !ok; ok = approach&(1<<approachQuarter) != 0 {
+					approachQuarter = (approachQuarter + 1) % approachQuarters
+				}
+				facing = approachQuarter * 2
+			}
+			p.initOccupancy(facing)
+		}
 		face := facing
 		if team == teamHostile {
 			face = (facing + 4) % 8
 		}
-		p.b.Units = append(p.b.Units, rules.BoardUnit{ID: id, Size: 1, Facing: rules.Facing(quarterDirections[face/2]), Side: c.Side})
+		p.b.Units = append(p.b.Units, rules.BoardUnit{ID: id, Size: int32(c.IconDimensions & iconSizeLowBits), Facing: rules.Facing(quarterDirections[face/2]), Side: c.Side})
 		if p.findPlacement(id, team) {
 			if !c.Enabled && !outOfPlay {
 				u := p.b.Units[len(p.b.Units)-1]

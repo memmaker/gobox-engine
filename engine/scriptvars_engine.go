@@ -181,7 +181,7 @@ func (e *Engine) newEngineFields() map[string]engineField {
 		// Buck Rogers' facing cell (pO0B8_0DB6, view cell 49229): Facing, but read as the eight-way
 		// facing while the area's travel kind (the layout's TravelKind) is 0
 		"FacingOrRaw": fact(func() uint16 {
-			if r, ok := e.layoutField(fieldTravelKind); ok && e.host.Get(r) == 0 {
+			if t, ok := e.placeTraits(); ok && !t.Has(rules.TraitHasKind) {
 				return uint16(e.facing)
 			}
 			return uint16(e.moveDir() >> 1)

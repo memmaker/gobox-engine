@@ -273,6 +273,8 @@ func (r *Rules) openAt(w *WildGen, x, y int) bool {
 }
 
 // wildMap = ovr11:11B4: the grass, then the game's passes in order.
+// wildMap reads BuildGround's Walls, Dungeon, MapShift, NoRemains, Terrain, River and MapX/MapY/Boss; its Block and Place
+// (Buck Rogers' arena seed and area kind) are XXVc's and ignored here.
 func (r *Rules) wildMap(g rules.BuildGround) {
 	w := r.S.T().Gen.Wild
 	if w == nil {

@@ -104,7 +104,7 @@ func (r *Rules) groundAims(f rules.Fight, c *Character, at rules.BoardPos, aimed
 func (r *Rules) resolveFight(f rules.Fight, act rules.Action, rng *rules.RNG) (rules.Outcome, error) {
 	switch a := act.(type) { // the set-up: no actor yet (combatst.pas CombatStart)
 	case rules.BuildGround:
-		return rules.Outcome{}, r.buildGround(a, rng)
+		return rules.Outcome{}, r.buildGround(f, a, rng)
 	case rules.PlaceFight:
 		return r.placeAllCreatures(f, a.Walls), nil
 	case rules.FightPlaced:
