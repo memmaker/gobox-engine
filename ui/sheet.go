@@ -154,10 +154,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note) {
 	face, png := p.memberPane(sc.px, note.Glyph, m, (ch-2)*8)
 	y := face.Max.Y + 6
 	hpY, expY := y+10, y+36
-	hpc := green
-	if m.HP < m.MaxHP {
-		hpc = col(inkYellow)
-	}
+	hpc := col(hpInk(m.HP, m.MaxHP))
 	text("HP", lx, y, white)
 	hp := strconv.Itoa(m.HP) + "/" + strconv.Itoa(m.MaxHP)
 	text(hp, vr-8*len(hp), y, hpc)
@@ -177,7 +174,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note) {
 	if sp.Status != "" { // the pane's last line, level with the AC/THAC0/Damage values
 		sy := (ch-2)*8 - 10
 		text("Status", lx, sy, white)
-		text(sp.Status, vr-8*len(sp.Status), sy, green)
+		text(sp.Status, vr-8*len(sp.Status), sy, col(healthInk(m.Health)))
 	}
 
 	// the figures: who, a blank line, the abilities, Move, the rule set's

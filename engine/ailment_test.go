@@ -4,6 +4,7 @@ import (
 	"slices"
 	"testing"
 
+	"gobox/rules"
 	"gobox/rules1e"
 )
 
@@ -19,17 +20,21 @@ const (
 func TestAilmentShown(t *testing.T) {
 	e := quickStarted(t)
 	c := e.state().Party[0]
-	status := func() string { e.rebuild(); return commonOf(e.build()).Party[0].Status }
-	if s := status(); s != "Okay" {
-		t.Fatalf("status before: %q", s)
+	status := func() (string, rules.Health) {
+		e.rebuild()
+		m := commonOf(e.build()).Party[0]
+		return m.Status, m.Health
+	}
+	if s, h := status(); s != "Okay" || h != rules.Hale {
+		t.Fatalf("before: %q, health %d", s, h)
 	}
 	e.state().AddAffect(c, affWeakened, 60, 0, 1)
-	if s := status(); s != "Weakened" {
-		t.Errorf("status %q, want Weakened", s)
+	if s, h := status(); s != "Weakened" || h != rules.Ailing {
+		t.Errorf("%q, health %d, want Weakened and ailing", s, h)
 	}
 	e.state().AddAffect(c, affHelpless, 0, 0xFF, 0)
-	if s := status(); s != "Helpless" {
-		t.Errorf("status %q, want Helpless (the more drastic)", s)
+	if s, h := status(); s != "Helpless" || h != rules.Disabled { // the more drastic; it takes the turns
+		t.Errorf("%q, health %d, want Helpless and disabled", s, h)
 	}
 	if fx := e.state().AffectList(c); !slices.Contains(fx, "Weakened") || !slices.Contains(fx, "Helpless") {
 		t.Errorf("effects %v", fx)

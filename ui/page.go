@@ -16,6 +16,7 @@ import (
 	xdraw "golang.org/x/image/draw"
 
 	"gobox/gpu"
+	"gobox/rules"
 )
 
 // Rect is where the page lands on the window, in device pixels.
@@ -310,16 +311,10 @@ func (p *Presenter) drawModal(m *image.RGBA, note Note) {
 			if lv := slices.Max(append([]int{0}, c.Levels...)); lv > 0 && oc.lv > 0 { // the highest of its classes, right aligned under "Lv"
 				str(oc.lv, y, inkGreen, fmt.Sprintf("%2d", lv))
 			}
-			hpc := inkGreen
-			switch {
-			case c.HP <= 0:
-				hpc = inkRed
-			case c.HP*2 < c.MaxHP:
-				hpc = inkYellow
-			}
+			hpc := hpInk(c.HP, c.MaxHP)
 			str(oc.hp, y, hpc, strconv.Itoa(c.HP)+"/"+strconv.Itoa(c.MaxHP))
 			str(oc.ac, y, inkGreen, strconv.Itoa(c.AC))
-			str(oc.status, y, inkGreen, c.Status)
+			str(oc.status, y, healthInk(c.Health), c.Status)
 			if oc.spells > 0 {
 				str(oc.spells, y, inkGreen, c.SpellsReady)
 			}
@@ -697,4 +692,28 @@ func thousands(n int) string {
 		return "-" + s
 	}
 	return s
+}
+
+// hpInk is the ink of hit points hp of max: green above two thirds, yellow
+// above one third, red below.
+func hpInk(hp, max int) int {
+	switch {
+	case hp*3 > max*2:
+		return inkGreen
+	case hp*3 > max:
+		return inkYellow
+	}
+	return inkRed
+}
+
+// healthInk is the ink of a member's status word: green when fit, yellow
+// when something ails it, red when it cannot act.
+func healthInk(c rules.Health) int {
+	switch c {
+	case rules.Ailing:
+		return inkYellow
+	case rules.Disabled:
+		return inkRed
+	}
+	return inkGreen
 }

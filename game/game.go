@@ -373,6 +373,7 @@ type Where struct {
 // Member is one character.
 type Member struct {
 	Name, Race, Class, Alignment, Status string
+	Health                               rules.Health // how fit it is, behind Status: gobox colours the word by it
 	Levels                               []int
 	Stats                                map[string]int // "str", "int", ...
 	Str00                                int            // exceptional strength: 0 none, 1..100 for 18/01..18/00

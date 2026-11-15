@@ -17,7 +17,7 @@ import (
 func (e *Engine) partyState() (party []game.Member, selected int) {
 	members, chars := e.members(), e.partySide()
 	for i, m := range members {
-		gm := game.Member{Name: m.Name, Class: m.Class, Status: m.Status, HP: m.HP, MaxHP: m.MaxHP, AC: m.AC, Exp: uint32(m.Exp), Dropped: m.Portrait,
+		gm := game.Member{Name: m.Name, Class: m.Class, Status: m.Status, Health: m.Health, HP: m.HP, MaxHP: m.MaxHP, AC: m.AC, Exp: uint32(m.Exp), Dropped: m.Portrait,
 			LevelExp: m.LevelExp, NextExp: m.NextExp, SpellsReady: m.Spells, Memo: m.Memo}
 		if i < e.partySize() {
 			id := e.partyIDs()[i]

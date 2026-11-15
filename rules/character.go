@@ -28,6 +28,7 @@ type Sheet struct {
 	Burden    Burden               // zero under Options.PartyInventory
 	Slots     map[string]SlotCount // by level group, as the ruleset words it ("cleric 1")
 	Effects   []string             // the spell effects on it, as the ruleset words them
+	Health    Health               // how fit it is, behind its status word
 	Figures   []Figure             // what a ruleset adds to the sheet (CombatRules.Sheet)
 	CanCast   bool
 	ItemCap   int32
@@ -299,3 +300,12 @@ type CharacterFile []byte
 // ScriptAffect is an affect as a module's scripts number it; the ruleset
 // reads it through the game's own affect numbering.
 type ScriptAffect byte
+
+// Health is how fit a character is: what its status word stands for.
+type Health int
+
+const (
+	Hale     Health = iota // nothing ails it
+	Ailing                 // something ails it, and it can act
+	Disabled               // it cannot act at all (down, held, helpless ...)
+)

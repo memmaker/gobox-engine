@@ -83,16 +83,17 @@ type Member struct {
 	Name     string
 	HP       int
 	MaxHP    int
-	AC       int         // as displayed: 10 down to negative
-	Status   string      // as the sheet names it ("Okay", "Unconscious" ...)
-	Class    string      // as the sheet names it ("Fighter/Thief" ...)
-	Selected bool        // the selected member, or the candidate while a member is picked (SelectCharacter)
-	Colour   game.Ink    // the roster's EGA colour for the name when not Selected: red not okay, yellow a monster, magenta ready for a level, else cyan
-	Head     image.Image // the paper-doll head the player chose, in EGA colours (nil if missing)
-	HeadPix  Picture     // Head as the game's pixels in the EGA's own colours, not Ink (the presenter colours it)
-	Portrait []byte      // extra: the PNG's bytes the player dropped on the sheet, in place of Head (nil: none)
-	Powers   []Power     // extra: what the member can do now out of combat (a card's context menu): View, Items, then powers'; Kind with the member's index acts
-	Exp      int         // extra: experience, what the level took (LevelExp) and what the next takes (NextExp; 0: it can rise no further)
+	AC       int          // as displayed: 10 down to negative
+	Status   string       // as the sheet names it ("Okay", "Unconscious" ...)
+	Health   rules.Health // how fit it is, behind Status
+	Class    string       // as the sheet names it ("Fighter/Thief" ...)
+	Selected bool         // the selected member, or the candidate while a member is picked (SelectCharacter)
+	Colour   game.Ink     // the roster's EGA colour for the name when not Selected: red not okay, yellow a monster, magenta ready for a level, else cyan
+	Head     image.Image  // the paper-doll head the player chose, in EGA colours (nil if missing)
+	HeadPix  Picture      // Head as the game's pixels in the EGA's own colours, not Ink (the presenter colours it)
+	Portrait []byte       // extra: the PNG's bytes the player dropped on the sheet, in place of Head (nil: none)
+	Powers   []Power      // extra: what the member can do now out of combat (a card's context menu): View, Items, then powers'; Kind with the member's index acts
+	Exp      int          // extra: experience, what the level took (LevelExp) and what the next takes (NextExp; 0: it can rise no further)
 	LevelExp int
 	NextExp  int
 	Spells   string // extra: a spellcaster's spells ready over its slots ("0/3", the overview); "" otherwise
