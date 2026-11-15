@@ -56,6 +56,9 @@ type Character struct {
 	NonPlayer bool
 	Morale    int
 
+	// Order is the combat icon slot the script's LoadMonster gave it (record byte 185, CPIC block of its picture).
+	Order int `json:",omitempty"`
+
 	Pilot bool // isPilot: picked to fly the party's ship
 
 	// ScriptFlags are the bytes the scripts keep on the character (Party[161..163], the record's

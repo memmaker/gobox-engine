@@ -57,6 +57,7 @@ func (r *Rules) Spawn(id rules.MonsterID, _ *rules.RNG) (rules.CharID, error) {
 	r.next++
 	r.chars[cid] = &c
 	r.handOut(&c)
+	r.party = append(r.party, cid) // EclLoadMonster appends it to the team list (partyHead); the count stays
 	return cid, nil
 }
 

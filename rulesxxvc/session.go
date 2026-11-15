@@ -173,6 +173,16 @@ func (r *Rules) resolveSession(a rules.Action) (o rules.Outcome, ok bool, err er
 			return rules.Outcome{}, true, errNoMember
 		}
 		c.Roster = a.Roster
+	case rules.ClearLoot:
+		clear(r.loot) // opClearMonsters (O035:135D): the treasure goes; XXVc's is the beaten's own items, which leave with them
+	case rules.SetOrder:
+		c := r.chars[a.Who]
+		if c == nil {
+			return rules.Outcome{}, true, errNoMember
+		}
+		c.Order = int(a.Order)
+	case rules.NewGroup:
+		// No XXVc counterpart: BR rolls nothing per monster, each Spawn reads its record (EclLoadMonster).
 	case rules.Toughen:
 		// No XXVc counterpart: BR has no Toughness rule; hit points stay as they are.
 	default:
@@ -244,6 +254,9 @@ func (r *Rules) factSession(id rules.CharID, f rules.Fact) (v rules.Value, ok bo
 		return rules.Party(slices.Clone(r.party)), true, nil
 	case rules.PurseFact:
 		return r.partyPurse(f.Loot), true, nil
+	}
+	if _, ok := f.(rules.BeastKindFact); ok {
+		return rules.BeastKind{}, true, nil // no bestiary in XXVc: no kind, the engine records none
 	}
 	c := r.chars[id]
 	if c == nil {
