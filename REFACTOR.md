@@ -180,9 +180,19 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
     - [ ] B1b4 BR's waits and frames as engine continuations; with B1f
     - [ ] B1b5 one random generator (`rules.RNG`); BR's seeded expectations derived again
     - [ ] B1b6 `eclbr.VM` deleted
-  - [ ] B1c the importer: `ecl-br/importbr`, `importbr1`, `importbr2` into `importer`; `data/br1`,
-    `data/br2`; nothing read from the originals at run time (BR2's START.EXE and GAME.OVR, BR1's
-    data segment become import output)
+  - [~] B1c the importer (track b1c, landed): the Buck Rogers import is `gobox/importer`'s
+    (br_import.go, br_save.go, br1_importbr1.go, br2_importbr2.go; `ImportBR`, `BREXE`,
+    `BRMonster`, `BRItem`, `BRRecord`, `BR1Credits`, `WriteBRLayout`); `ecl-br/importbr`,
+    `importbr1`, `importbr2` and the BR repos' import.toml are deleted; `games/br1`, `games/br2`
+    hold the import configs; the originals are in `data/br1/sources/dos`, `data/br2/sources/dos`
+    and `data/br1`, `data/br2` are imported adventure folders. `eclbr.Item` is an alias of
+    `importer.BRItem`, `eclbr.Record` is defined on `importer.BRRecord` (one layout). Output
+    identical to before but `tables.json`: the item templates were numbered in a map's order
+    and differed from run to run (fixed: MON0 id order).
+    Open: nothing read from the originals at run time (BR2's START.EXE and GAME.OVR, BR1's data
+    segment are still read by the BR engines from the folder's data); the full layouts
+    (tracks/b1b2-scan) wired in and proven against every script (B1b2); `gobox-engine/go.mod`
+    still requires `buckrogers`, `buckrogers2`, `ecl-br` (cmd/gobox plays them until B1f)
   - [~] B1d `rulesxxvc` into the gobox module beside `rules1e`; it is what runs. Every difference
     from the BR engines' rule code is listed; ruling per difference (default: open, ask Felix).
     Done (track b1d1): the package is `gobox/rulesxxvc` (50 files, identical but its import
