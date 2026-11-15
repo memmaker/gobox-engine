@@ -126,12 +126,11 @@ func TestHallPartyMenu(t *testing.T) {
 	flowKey(f, 27)
 	menu("Add, Esc")
 	name = p.party()[selected()].Name
-	flowKey(f, 'd')
-	flowKey(f, 'y')
-	flowKey(f, 'y')
-	if n := len(p.party()); n != 4 || slicesHas(p.party(), name) {
-		t.Fatalf("Drop: party of %d, %s in it %v (%q)", n, name, slicesHas(p.party(), name), p.note().Text)
+	flowKey(f, 'd') // the hall has no Drop
+	if n := len(p.party()); n != 5 || !slicesHas(p.party(), name) || p.mm.ask != askNone {
+		t.Fatalf("D in the hall: party of %d, %s in it %v, asking %v", n, name, slicesHas(p.party(), name), p.mm.ask)
 	}
+	menu("D")
 	flowKey(f, 'l')
 	if _, ok := eng.State().(game.Exploring); !ok {
 		t.Fatalf("Leave the Hall: state %T", eng.State())

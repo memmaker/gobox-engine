@@ -2,6 +2,7 @@ package engine
 
 import (
 	"gobox/game"
+	"slices"
 	"testing"
 )
 
@@ -24,5 +25,20 @@ func TestModifyGreyedWithExperience(t *testing.T) {
 	}
 	if _, err := e.doNow(game.Modify{Member: 1}); err == nil {
 		t.Error("Modify taken for a member with experience")
+	}
+	// the hall's menu: Modify only while the selected member may be modified, never Drop
+	for sel, want := range []bool{true, false} {
+		e.selectMember(sel)
+		fs := e.partyFunctions()
+		if got := slices.Contains(fs, partyModify); got != want {
+			t.Errorf("member %d selected: Modify on the menu %v, want %v", sel, got, want)
+		}
+		if slices.Contains(fs, partyDrop) {
+			t.Error("the hall's menu has Drop")
+		}
+	}
+	e.state().Party[0].OldLevels[0] = 3 // dual-classed: experience 0 again, but it has adventured
+	if e.selectMember(0); slices.Contains(e.partyFunctions(), partyModify) {
+		t.Error("Modify on the menu for a dual-classed member")
 	}
 }

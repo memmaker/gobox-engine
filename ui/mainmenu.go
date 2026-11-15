@@ -170,7 +170,7 @@ func (m *mainUI) items(h MainHost, v MainMenu) (string, []MenuRow) {
 		it = append(it, MenuRow{Text: name, Key: key, Do: do})
 	}
 	if v.Hall { // the training hall's: the party's functions and the way out, no title, no submenu
-		for _, k := range []ActKind{ActTraining, ActNewClass, ActMember, ActModify, ActAdd, ActCreate, ActRemove, ActDropMember} {
+		for _, k := range []ActKind{ActTraining, ActNewClass, ActMember, ActModify, ActAdd, ActCreate, ActRemove} {
 			add(k)
 		}
 		return "", append(it, MenuRow{Text: "Leave the Hall", Key: 'L', Do: func() { h.Send(ActBegin, -1) }})

@@ -200,7 +200,13 @@ func (e *Engine) partyFunctions() []partyFn {
 		}
 		return fs
 	}
-	fs := []partyFn{partyBegin, partyAdd, partyCreate, partyDrop, partyModify}
+	fs := []partyFn{partyBegin, partyAdd, partyCreate}
+	if e.ruleset().Check(rules.Modifiable{Who: e.selected()}, nil).Yes { // only when the selected member may be modified: no row that does nothing
+		fs = append(fs, partyModify)
+	}
+	if !e.ext.hall { // extra: the training hall drops no one for good (Remove still takes a member out)
+		fs = append(fs, partyDrop)
+	}
 	if e.mayTrain() && (e.worldWord(rules.WordTrainable) > 0 || e.worldWord(rules.WordDebug) != 0) { // only when the selected member would rise
 		fs = append(fs, partyTraining)
 	}

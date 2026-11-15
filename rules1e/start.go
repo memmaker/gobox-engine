@@ -184,6 +184,9 @@ func defaultIconParts(c *Character) {
 // starting experience for its class count (Start.Experience; none: 0), so a
 // sequel's started character can still be modified (coordinator 01:30).
 func (e *RuleState) Modifiable(c *Character) bool {
+	if DualClassed(c) { // its experience began again at 0, the adventuring behind it did not
+		return false
+	}
 	s := e.T().Start
 	if s.Experience == nil {
 		return c.Exp == 0
