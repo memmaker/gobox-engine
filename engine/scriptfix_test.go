@@ -50,24 +50,50 @@ func TestAddNPCFullParty(t *testing.T) {
 	}
 }
 
-// TestTablesOverlap: a script's own table is read as the original reads it,
-// by the code byte at its base plus the index, past the length its label
-// gives it: POR area 29 lays its three exits-by-facing tables 3 bytes apart
-// and reads each by four facings, so the fourth entry is the next table's
-// first (facing west crashed: "past the field's 3").
+// TestTablesOverlap: POR area 29 lays its three exits-by-facing tables 3
+// bytes apart and reads each by four facings, so the fourth entry of one is
+// the next table's first (facing west crashed: "past the field's 3"). The
+// layout takes them as one field of all ten bytes, the later tables its
+// named elements (Facing's range is declared: a table it reads has four
+// entries), so every read stays in its field and reads what the original does.
 func TestTablesOverlap(t *testing.T) {
 	e := quickStarted(t)
 	e.loadScript(29)
 	const west = 3
+	cells := e.vm.Script.Layout.Field(e.field("ExitCellByFacing"))
+	if cells.Len != 10 || cells.Elements[3] != "ExitSymbolSetByFacing" || cells.Elements[6] != "ExitAreaByFacing" {
+		t.Fatalf("the exit tables' field: %d entries, elements %v, want one field of 10 with the two later tables in it", cells.Len, cells.Elements)
+	}
 	for table, next := range map[string]string{"ExitCellByFacing": "ExitSymbolSetByFacing", "ExitSymbolSetByFacing": "ExitAreaByFacing"} {
-		r, n := e.field(table), e.field(next)
-		got, want := e.host.Get(r.Plus(west)), e.host.Get(n)
-		if got != want {
+		if got, want := e.host.Get(e.field(table).Plus(west)), e.host.Get(e.field(next)); got != want {
 			t.Errorf("%s[west] = %d, want %s[0] = %d", table, got, next, want)
 		}
 	}
-	if got := e.host.Get(e.field("ExitAreaByFacing").Plus(west)); got != 18 {
-		t.Errorf("ExitAreaByFacing[west] = %d, want 18", got)
+	for facing, want := range [4]int64{1, 20, 15, 18} {
+		if got := e.host.Get(e.field("ExitAreaByFacing").Plus(facing)); got != want {
+			t.Errorf("ExitAreaByFacing[%d] = %d, want %d", facing, got, want)
+		}
+	}
+	if f := e.TableFaults(); len(f) != 0 {
+		t.Errorf("table faults: %v", f)
+	}
+}
+
+// TestTableFault: a read of a script's own table past its field is noted
+// once (TableFaults) and reads the code byte there, as the original; it
+// does not stop the game.
+func TestTableFault(t *testing.T) {
+	e := quickStarted(t)
+	e.loadScript(29)
+	r := e.field("DropOffXTable") // 8 entries, DropOffYTable after it
+	past := e.host.Get(r.Plus(8))
+	if want := e.host.Get(e.field("DropOffYTable")); past != want {
+		t.Errorf("DropOffXTable[8] = %d, want the byte after it %d", past, want)
+	}
+	e.host.Get(r.Plus(8))
+	f := e.TableFaults()
+	if len(f) != 1 || f[0] != (TableFault{Area: 29, Table: "DropOffXTable", Index: 8, Len: 8}) {
+		t.Fatalf("faults %v, want the one read past DropOffXTable, once", f)
 	}
 }
 

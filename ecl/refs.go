@@ -21,16 +21,24 @@ func tableBase(op byte, k int) bool {
 
 // ConstLayout is the layout of s's own tables: one read-only constant field
 // a table, from its address to the next table's (or the end of the data).
-// A one-entry table a variable indexes is another base of the table after
-// it (cotab area21: T_8CFF[level] and T_8D00[level], one table read 1-based
-// and 0-based; GetTable reads base+index of the code, unbounded): one field
-// from the first base, the later tables its named elements.
-func ConstLayout(s *Script, v *Version) *Layout {
-	l := &Layout{}
+// GetTable reads the code byte at base plus index, unbounded, and the
+// scripts lay tables over one another; a field is every entry a read of it
+// can take, so no read leaves its field:
+//   - a table read by a variable of a declared range (l's: Facing, range=4)
+//     has that many entries: where the text's is shorter it runs on into the
+//     tables after it (POR area 29: three exits-by-facing tables 3 bytes
+//     apart, each read by four facings);
+//   - a one-entry table a variable indexes is another base of the table
+//     after it (cotab area21: T_8CFF[level] and T_8D00[level], one table
+//     read 1-based and 0-based).
+//
+// The tables a field takes in are its named elements (their bases).
+func ConstLayout(s *Script, v *Version, l *Layout) *Layout {
+	out := &Layout{}
 	names := slices.Sorted(maps.Keys(s.Tables))
 	slices.SortFunc(names, func(a, b string) int { return s.Tables[a] - s.Tables[b] })
-	indexed := varIndexedTables(s)
-	runsOn := false // the last field is a one-entry base the next table continues
+	reads := tableReads(s, l)
+	runsOn := false // the last field has a read past its end: the next table continues it
 	for i, n := range names {
 		at, end := s.Tables[n], v.Base+len(s.Data)
 		if i+1 < len(names) {
@@ -39,30 +47,52 @@ func ConstLayout(s *Script, v *Version) *Layout {
 		if end <= at {
 			continue
 		}
-		base := runsOn
-		runsOn = end-at == 1 && indexed[at] && i+1 < len(names)
-		if base {
-			f := &l.Fields[len(l.Fields)-1]
+		if runsOn {
+			f := &out.Fields[len(out.Fields)-1]
 			if f.Elements == nil {
 				f.Elements = map[int]string{}
 			}
 			f.Elements[at-f.From] = n
 			f.Len = end - f.From
-			continue
+		} else {
+			out.Fields = append(out.Fields, Field{Name: n, Owner: OwnerConst, Width: WidthByte, From: at, Len: end - at, ReadOnly: true})
 		}
-		l.Fields = append(l.Fields, Field{Name: n, Owner: OwnerConst, Width: WidthByte, From: at, Len: end - at, ReadOnly: true})
+		f := &out.Fields[len(out.Fields)-1]
+		runsOn = false
+		for base, r := range reads { // any base of the field read past the field's end
+			if base >= f.From && base < f.From+f.Len && i+1 < len(names) {
+				runsOn = runsOn || base+r.entries > f.From+f.Len || r.variable && end-at == 1 && base == at
+			}
+		}
 	}
-	return l
+	return out
 }
 
-// varIndexedTables are the table addresses of s a variable indexes.
-func varIndexedTables(s *Script) map[int]bool {
-	t := map[int]bool{}
+// tableRead is how s reads the table at a base address: by a variable, and
+// the entries that variable's declared range takes (0: not declared).
+type tableRead struct {
+	variable bool
+	entries  int
+}
+
+// tableReads are the table base addresses of s a variable indexes, with the
+// widest declared range among the variables that do (l: the game's and the
+// area's fields; nil: none declared).
+func tableReads(s *Script, l *Layout) map[int]tableRead {
+	t := map[int]tableRead{}
 	for _, in := range s.Code {
 		for k, a := range in.Args {
-			if tableBase(in.Op, k) && k+1 < len(in.Args) && isVarArg(in.Args[k+1].Type) {
-				t[a.N] = true
+			if !tableBase(in.Op, k) || k+1 >= len(in.Args) || !isVarArg(in.Args[k+1].Type) {
+				continue
 			}
+			r := t[a.N]
+			r.variable = true
+			if l != nil {
+				if x, err := l.Resolve(in.Args[k+1].N); err == nil {
+					r.entries = max(r.entries, l.Field(x).Range)
+				}
+			}
+			t[a.N] = r
 		}
 	}
 	return t
@@ -154,7 +184,7 @@ func resolve(s *Script, data fs.FS, v *Version) error {
 	if err != nil || l == nil {
 		return err
 	}
-	full, err := l.With(ConstLayout(s, v))
+	full, err := l.With(ConstLayout(s, v, l))
 	if err != nil {
 		return err
 	}

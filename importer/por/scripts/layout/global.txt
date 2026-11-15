@@ -208,7 +208,7 @@ C01B 1 byte call CallUnknownC01B  # Call target, engine no-op; areas 25-27 after
 C01E 1 byte call CallStepForward  # Call target 0x401F: StepForward
 C04B 1 byte fact PartyX
 C04C 1 byte fact PartyY
-C04D 1 byte fact Facing
+C04D 1 byte fact Facing range=4  # 0 north .. 3 west: a table it indexes has four entries
 C04E 1 byte fact WallAhead
 C04F 1 byte fact Cell
 C059 1 byte fact SetGroundShade

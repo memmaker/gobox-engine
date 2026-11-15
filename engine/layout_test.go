@@ -52,7 +52,7 @@ func TestLayoutCoversScripts(t *testing.T) {
 		if err != nil || lay == nil {
 			t.Fatalf("area %d: %v %v", area, lay, err)
 		}
-		full, err := lay.With(ecl.ConstLayout(s, ecl.V1))
+		full, err := lay.With(ecl.ConstLayout(s, ecl.V1, lay))
 		if err != nil {
 			t.Fatalf("area %d: %v", area, err)
 		}
@@ -89,7 +89,7 @@ func resolvedOver(t *testing.T, s *ecl.Script, area int, over string) *ecl.Scrip
 	if l, err = l.With(o); err != nil {
 		t.Fatal(err)
 	}
-	full, err := l.With(ecl.ConstLayout(s, ecl.V1))
+	full, err := l.With(ecl.ConstLayout(s, ecl.V1, l))
 	if err != nil {
 		t.Fatal(err)
 	}

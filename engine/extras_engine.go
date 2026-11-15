@@ -88,7 +88,8 @@ type extras struct {
 	aoeSpell int                     // aoe.go: the spell being aimed
 
 	// nav.go: keys and mouse
-	enemiesOnly bool // aiming a weapon or hostile spell: Tab cycles through foes only (playerAim)
+	tableFaults []TableFault // script tables read past their field (tableFault), each once
+	enemiesOnly bool         // aiming a weapon or hostile spell: Tab cycles through foes only (playerAim)
 
 	// fullmap.go
 	labels map[int]map[int]mapLabel // per area: square -> label

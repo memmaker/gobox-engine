@@ -280,7 +280,7 @@ B203 1 byte call CallSound  # key $3204: the move-step sound
 C01E 1 byte call CallMoveForward  # key $401F: move the party forward
 C04B 1 byte fact PartyX
 C04C 1 byte fact PartyY
-C04D 1 byte fact Facing
+C04D 1 byte fact Facing range=4  # 0 north .. 3 west: a table it indexes has four entries
 C04E 1 byte fact WallAhead
 C04F 1 byte fact Cell
 C059 1 byte fact SetGroundShade

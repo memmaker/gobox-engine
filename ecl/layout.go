@@ -70,6 +70,10 @@ type Field struct {
 	From     int
 	Len      int
 	ReadOnly bool // the byte code only reads it (an engine fact, a constant table)
+	// Range: the values the field takes are 0..Range-1 (range=N; 0: not
+	// declared). A table of the script's own that it indexes has that many
+	// entries: where the text's is shorter it runs on into the next (ConstLayout).
+	Range int
 	// Replaces: an area's field that takes the place of the game's field on
 	// exactly its addresses, for that area only: the area's script used the
 	// game's word for state of its own (one script's reuse of another's word).
@@ -212,7 +216,7 @@ func (l *Layout) check() error {
 }
 
 // ParseLayout reads a layout text: one Field a line, "from len width owner
-// name [readonly|replaces] [enc=<encoding>] [coins=<cells>]", from in hex, or
+// name [readonly|replaces] [enc=<encoding>] [coins=<cells>] [range=<n>]", from in hex, or
 // "from = name": the name of the element at from of the array field before
 // it (Field.Elements); '#' starts a comment.
 func ParseLayout(r io.Reader) (*Layout, error) {
@@ -237,8 +241,15 @@ func ParseLayout(r io.Reader) (*Layout, error) {
 		var readOnly, replaces bool
 		var enc Encoding
 		var coins string
+		rng := 0
 		for _, flag := range f[5:] {
 			c, isCoins := strings.CutPrefix(flag, "coins=")
+			if r, isRange := strings.CutPrefix(flag, "range="); isRange && rng == 0 {
+				if rng, _ = strconv.Atoi(r); rng < 1 {
+					return nil, fmt.Errorf("layout line %d: range %q", n, r)
+				}
+				continue
+			}
 			switch e, isEnc := strings.CutPrefix(flag, "enc="); {
 			case isCoins && c != "" && coins == "":
 				coins = c
@@ -272,7 +283,7 @@ func ParseLayout(r io.Reader) (*Layout, error) {
 			return nil, fmt.Errorf("layout line %d: %s twice", n, f[4])
 		}
 		names[f[4]] = true
-		fd := Field{Name: f[4], Owner: o, Width: w, From: int(from), Len: size, ReadOnly: readOnly, Replaces: replaces, Encoding: enc}
+		fd := Field{Name: f[4], Owner: o, Width: w, From: int(from), Len: size, ReadOnly: readOnly, Replaces: replaces, Encoding: enc, Range: rng}
 		if coins != "" {
 			if fd.Coins, err = parseCoins(coins, size); err != nil {
 				return nil, fmt.Errorf("layout line %d: %w", n, err)

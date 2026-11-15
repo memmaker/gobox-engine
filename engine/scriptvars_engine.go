@@ -5,6 +5,7 @@ import (
 	"gobox/adventure"
 	"gobox/rules"
 	"gobox/rules1e"
+	"log"
 	"slices"
 
 	"gobox/ecl"
@@ -209,11 +210,10 @@ func (e *Engine) varField(r ecl.Ref) *ecl.Field {
 func (e *Engine) getVar(r ecl.Ref) int64 {
 	f := e.varField(r)
 	if f.Owner == ecl.OwnerConst { // a table in the script's own code (the code image at OriginalSave.CodeBase)
-		// No bound on the index: the original reads the code byte at base plus
-		// index, and its scripts lay tables over one another (POR area 29's
-		// three exits-by-facing tables are 3 bytes apart and read by 4 facings:
-		// the fourth entry is the next table's first).
-		return int64(e.vm.CodeByte(uint16(f.From + r.Index)))
+		if r.Index < 0 || r.Index >= f.Len { // the layout does not cover the read (ecl.ConstLayout takes a field as far as its reads go)
+			e.tableFault(f, r.Index)
+		}
+		return int64(e.vm.CodeByte(uint16(f.From + r.Index))) // as the original: the code byte at base plus index
 	}
 	ef, bi, bound := e.binding(f, r.Index)
 	if bound && ef.get != nil {
@@ -467,6 +467,34 @@ func cutToWidth(w ecl.Width, v int64) int64 {
 	}
 	panic(fmt.Sprintf("script: width %d", w))
 }
+
+// TableFault is a read of a script's own table past the field the layout
+// gives it: the index's range is not declared (layout: range=N on the
+// variable) or the tables that run into one another are not one field.
+type TableFault struct {
+	Area       int
+	Table      string
+	Index, Len int
+}
+
+func (f TableFault) Error() string {
+	return fmt.Sprintf("script: area %d: %s[%d] is past the field's %d entries", f.Area, f.Table, f.Index, f.Len)
+}
+
+// tableFault notes the fault, once each (TableFaults, and the log): the
+// game goes on as the original does, which reads the code byte at base plus
+// index whatever table it lies in; the fault says the layout is to be mended.
+func (e *Engine) tableFault(f *ecl.Field, i int) {
+	t := TableFault{Area: e.vm.Script.Area, Table: f.Name, Index: i, Len: f.Len}
+	if slices.Contains(e.ext.tableFaults, t) {
+		return
+	}
+	e.ext.tableFaults = append(e.ext.tableFaults, t)
+	log.Print(t.Error())
+}
+
+// TableFaults are the table faults since the engine began, in their order.
+func (e *Engine) TableFaults() []TableFault { return slices.Clone(e.ext.tableFaults) }
 
 func (e *Engine) inField(f *ecl.Field, i int) {
 	if i < 0 || i >= f.Len {

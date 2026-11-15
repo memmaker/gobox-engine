@@ -78,7 +78,7 @@ func TestResolveRefs(t *testing.T) {
 		{Op: OpGetTable, Args: []Arg{{Type: ArgVar, N: V1.Base + 4}, {N: 2}, {Type: ArgVar, N: 0x6DD2}}},
 		{Op: OpGoto, Args: []Arg{{Type: ArgVar, N: 0, Label: true}}},
 	}}
-	full, err := l.With(ConstLayout(s, V1))
+	full, err := l.With(ConstLayout(s, V1, l))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,7 +134,7 @@ func TestPartialLayout(t *testing.T) {
 		{Op: OpSave, Args: []Arg{{N: 1}, {Type: ArgVar, N: 0x4BE6}}},
 		{Op: OpCall, Args: []Arg{{Type: ArgVar, N: 0x1234}}},
 	}}
-	full, err := l.With(ConstLayout(s, V1))
+	full, err := l.With(ConstLayout(s, V1, l))
 	if err != nil || !full.Partial {
 		t.Fatalf("With: %+v, %v", full, err)
 	}
