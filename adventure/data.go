@@ -104,5 +104,8 @@ type Monster[C, A, I any] struct {
 // ItemTableFile is the base item table in an import's data dir (JSON).
 const ItemTableFile = "ITEMS"
 
+// RuleTablesFile is the ruleset's own tables in an import's data dir (JSON; XXVc: xxvc.Tables), rules.SourceRuleTables.
+const RuleTablesFile = "tables"
+
 // RulesFile is the ruleset's tables in an imported game's data folder.
 const RulesFile = "rules.json"

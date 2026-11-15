@@ -48,6 +48,8 @@ func (s source) Name(t rules.SourceTable) string {
 		return s.e.set.File("ITEM")
 	case rules.SourceItems:
 		return adventure.ItemTableFile
+	case rules.SourceRuleTables:
+		return adventure.RuleTablesFile
 	}
 	panic(fmt.Sprintf("data: no table %d", t))
 }

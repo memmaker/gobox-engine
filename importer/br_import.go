@@ -17,9 +17,6 @@ import (
 	"gobox/rules/xxvc"
 )
 
-// TablesFile is the rule tables (xxvc.Tables) in the folder's data dir, JSON.
-const TablesFile = "tables"
-
 // BRSources are the originals both games' imports read.
 var BRSources = []string{"*.DAX", "ITEMS", "START.EXE", "GAME.OVR", "*" + saveExt, "*" + itemsExt, "*" + effectsExt}
 
@@ -153,7 +150,7 @@ func ImportData(l *orig.Loader, e BREXE, dst string) error {
 		}
 		t.Monsters[rules.MonsterID(id)] = m
 	}
-	if err := adventure.WriteJSON(dst, TablesFile, t); err != nil {
+	if err := adventure.WriteJSON(dst, adventure.RuleTablesFile, t); err != nil {
 		return err
 	}
 	return importBRSaves(l, t, filepath.Join(dst, CharactersDir))

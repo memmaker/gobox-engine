@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"slices"
 	"testing"
 
 	"gobox/game"
@@ -14,7 +15,7 @@ func TestViewSheet(t *testing.T) { testViewSheet(t, testEngine) }
 func testViewSheet(t *testing.T, mk func(*testing.T) *Engine) {
 	full := func(what string, p *game.SheetPage) {
 		t.Helper()
-		if p == nil || p.Name == "" || p.Sex == "" || p.Race == "" || p.Class == "" || p.Damage == "" || p.Saves == [5]int{} || p.MaxHP == 0 {
+		if p == nil || p.Name == "" || p.Sex == "" || p.Race == "" || p.Class == "" || p.Damage == "" || len(p.Saves) == 0 || p.MaxHP == 0 {
 			t.Fatalf("%s: sheet %+v", what, p)
 		}
 	}
@@ -34,7 +35,7 @@ func viewSheetShop(t *testing.T, e *Engine) {
 	t.Helper()
 	full := func(what string, p *game.SheetPage) {
 		t.Helper()
-		if p == nil || p.Name == "" || p.Sex == "" || p.Race == "" || p.Class == "" || p.Damage == "" || p.Saves == [5]int{} || p.MaxHP == 0 {
+		if p == nil || p.Name == "" || p.Sex == "" || p.Race == "" || p.Class == "" || p.Damage == "" || len(p.Saves) == 0 || p.MaxHP == 0 {
 			t.Fatalf("%s: sheet %+v", what, p)
 		}
 	}
@@ -47,7 +48,7 @@ func viewSheetShop(t *testing.T, e *Engine) {
 	e.selectMember(1)
 	e.CharacterSheet() // the game's own sheet of the same member
 	own := gameSheetPage(e.snap.sheet)
-	if own == nil || own.Name != shop.Name || own.Sex != shop.Sex || own.Damage != shop.Damage || own.Saves != shop.Saves || own.THAC0 != shop.THAC0 || own.AC != shop.AC {
+	if own == nil || own.Name != shop.Name || own.Sex != shop.Sex || own.Damage != shop.Damage || !slices.Equal(own.Saves, shop.Saves) || own.THAC0 != shop.THAC0 || own.AC != shop.AC {
 		t.Errorf("shop sheet %+v, the game's sheet %+v", shop, own)
 	}
 }

@@ -66,7 +66,7 @@ type SheetPage struct {
 	THAC0              int
 	Damage             string
 	Move               int
-	Saves              [5]int         // extra: the saving throw targets, paralysis, petrification, rod, breath, spell (0: not shown)
+	Saves              []int          // extra: the saving throw targets, paralysis, petrification, rod, breath, spell (0: not shown)
 	Mods               [6]int         // extra: the rule set's ability modifiers, STR .. CHA (shown with Rules)
 	Rules              []rules.Figure // extra: the rule set's own figures (CombatRules.Sheet; nil: none, and no Mods)
 	Status             string

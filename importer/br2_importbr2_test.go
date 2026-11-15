@@ -91,7 +91,7 @@ func TestBR2ImportEqualsDecode(t *testing.T) {
 		}
 	}
 	var tab xxvc.Tables
-	if _, err := adventure.ReadJSON(data, TablesFile, &tab); err != nil {
+	if _, err := adventure.ReadJSON(data, adventure.RuleTablesFile, &tab); err != nil {
 		t.Fatal(err)
 	}
 	items, _ := os.ReadFile(l.Path("ITEMS"))

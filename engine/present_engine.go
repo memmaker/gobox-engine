@@ -20,8 +20,11 @@ func (e *Engine) emit(f rules.Effect) { e.fx = append(e.takePending(), f) }
 // takePending takes the queued effects: the Engine's, with the rules' after them.
 // ponytail: takes the rules' Pending until every rule call returns an Outcome (then core.Pending or nothing).
 func (e *Engine) takePending() []rules.Effect {
-	fx := append(e.fx, e.ruleset().(rules.Pending).TakePending()...)
+	fx := e.fx
 	e.fx = nil
+	if p, ok := e.ruleset().(rules.Pending); ok { // a ruleset whose every call returns its Outcome (XXVc) queues nothing
+		fx = append(fx, p.TakePending()...)
+	}
 	return fx
 }
 

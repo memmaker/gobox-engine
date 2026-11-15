@@ -18,7 +18,7 @@ func br1EngineFolder(t *testing.T) string {
 	t.Helper()
 	_, dos, _ := br1Blocks(t) // skips without the originals
 	dst := t.TempDir()
-	if err := ImportBREngine("br1", br1EXE, dos, dst); err != nil {
+	if err := ImportBREngine("br1", BR1EXE, dos, dst); err != nil {
 		t.Fatal(err)
 	}
 	return dst
@@ -71,7 +71,7 @@ func TestBR1EngineNew(t *testing.T) {
 func TestImportBRUnchanged(t *testing.T) {
 	_, dos, _ := br1Blocks(t)
 	dst := t.TempDir()
-	if err := ImportBR("br1", br1EXE, dos, dst); err != nil {
+	if err := ImportBR("br1", BR1EXE, dos, dst); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(filepath.Join(dst, "scripts", ecl.PartialLayout)); err != nil {

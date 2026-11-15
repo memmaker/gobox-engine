@@ -48,8 +48,8 @@ func (e *Engine) sheetPage(id rules.CharID) *SheetPage {
 		if need := sh.NextExp; need > 0 { // extra: the experience the next level takes, green once it is there
 			sp.Next = int(need)
 		}
-		for i, v := range e.ruleset().Catalog().Saves { // extra: the saving throws
-			sp.Saves[i] = int(e.fact(id, rules.SaveFact{Save: v}).(rules.Number))
+		for _, v := range e.ruleset().Catalog().Saves { // extra: the saving throws, as many as the ruleset has
+			sp.Saves = append(sp.Saves, int(e.fact(id, rules.SaveFact{Save: v}).(rules.Number)))
 		}
 		sp.Status = e.statusName(id)
 		sp.Effects, _ = e.effectsLine(id)

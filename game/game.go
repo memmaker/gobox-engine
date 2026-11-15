@@ -244,7 +244,7 @@ type SheetPage struct {
 	RearAC                      int // the rear one
 	Damage                      string
 	Move                        int
-	Saves                       [5]int
+	Saves                       []int // the saving throws in the ruleset's order (Catalog.Saves); nil: not shown
 	Mods                        [6]int
 	Rules                       []Stat
 	Status                      string
