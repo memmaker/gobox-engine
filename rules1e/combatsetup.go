@@ -5,15 +5,6 @@ package rules1e
 
 // --- the dungeon map (ovr11:0810) -------------------------------------
 
-// --- the deskewed dungeon map (extra) ----------------------------------
-
-// The original's dungeon map is a perspective: each block row is shifted 5
-// squares east of the one above, so north-south walls run diagonally.
-// With Engine.Deskew the cells lie on a square grid, a 6x5 block each with
-// its west wall a column and its north wall a row, both one square thick,
-// a door a 2-square gap in the middle of its wall; the formation and the
-// party's facing follow (placeAt, facingDir, placeRows).
-
 // --- the wilderness map (ovr11:11B4) ----------------------------------
 
 // TerrainKinds = the ranges of ovr11:08A4, tried in order.

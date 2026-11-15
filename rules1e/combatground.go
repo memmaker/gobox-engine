@@ -2,13 +2,28 @@ package rules1e
 
 import "gobox/rules"
 
-// dungeonMap = ovr11:0810: every cell within 6 east-west and 2 north-south
-// of the party becomes a 6x5 block of tiles, rows skewed 5 squares.
-func (r *Rules) dungeonMap(g rules.BuildGround) {
+// StraightX is the column on the straight board (extra, Deskew) of square
+// (x, y) of the original's skewed dungeon map: the same square with the
+// skew taken out. A cell's 5 rows lean a square east each, but for its top
+// two (the north wall and its foot stand upright), so its west wall is a
+// column 2 squares thick, its north wall a row, its floor 4x4.
+func StraightX(x, y int) int {
+	dr := (y-0xA+50)/5 - 10 // the cell's row, floored
+	return x - dr*5 - max(y-0xA-dr*5, 1)
+}
+
+// boardX is the board's column of square (x, y) of the original's map.
+func (r *Rules) boardX(x, y int) int {
 	if r.straight {
-		r.dungeonMapFlat(g)
-		return
+		return StraightX(x, y)
 	}
+	return x
+}
+
+// dungeonMap = ovr11:0810: every cell within 6 east-west and 2 north-south
+// of the party becomes a 6x5 block of tiles, rows skewed 5 squares (extra,
+// Deskew: the same squares unskewed, boardX).
+func (r *Rules) dungeonMap(g rules.BuildGround) {
 	gen := &r.S.T().Gen
 	if gen.Fill != 0 {
 		for y := range r.S.Cmap.Ground {
@@ -22,7 +37,8 @@ func (r *Rules) dungeonMap(g rules.BuildGround) {
 			x, y := r.S.PosX+c, r.S.PosY+dr
 			w, n, ea := CellEdge(g.Walls, r.S.PosY, x, y, 6), CellEdge(g.Walls, r.S.PosY, x, y, 0), CellEdge(g.Walls, r.S.PosY, x, y, 2)
 			put := func(col, row int, t byte) { // ovr11:0221
-				px, py := col+c*6+dr*5+0x15, row+dr*5+0xA
+				py := row + dr*5 + 0xA
+				px := r.boardX(col+c*6+dr*5+0x15, py)
 				if px >= 0 && px <= 0x31 && py >= 0 && py <= 0x18 {
 					r.S.Cmap.Ground[py][px] = Ground(t + 1)
 				}
@@ -177,47 +193,6 @@ func (r *Rules) floorClutter(g rules.BuildGround) {
 			}
 		}
 	}
-}
-
-// dungeonMapFlat is dungeonMap without the skew.
-func (r *Rules) dungeonMapFlat(g rules.BuildGround) {
-	for dr := -2; dr <= 2; dr++ {
-		for c := -4; c <= 4; c++ {
-			x, y := r.S.PosX+c, r.S.PosY+dr
-			w, n := CellEdge(g.Walls, r.S.PosY, x, y, 6), CellEdge(g.Walls, r.S.PosY, x, y, 0)
-			put := func(col, row int, t byte) {
-				px, py := col+c*6+0x15, row+dr*5+0xA
-				if px >= 0 && px <= 0x31 && py >= 0 && py <= 0x18 {
-					r.S.Cmap.Ground[py][px] = Ground(t + 1)
-				}
-			}
-			for row := 0; row <= 4; row++ {
-				for col := 0; col <= 5; col++ {
-					put(col, row, 0x16)
-				}
-			}
-			for row := 1; row <= 4; row++ {
-				switch {
-				case w == 1 || w == 3 && (row == 1 || row == 4):
-					put(0, row, 3)
-				case w == 3:
-					put(0, row, 8)
-				}
-			}
-			for col := 1; col <= 5; col++ {
-				switch {
-				case n == 1 || n == 3 && col != 2 && col != 3:
-					put(col, 0, 5)
-				case n == 3:
-					put(col, 0, 8)
-				}
-			}
-			if w != 0 || n != 0 || CellEdge(g.Walls, r.S.PosY, x, y-1, 6) != 0 || CellEdge(g.Walls, r.S.PosY, x-1, y, 0) != 0 { // a corner post wherever a wall or door ends
-				put(0, 0, 2)
-			}
-		}
-	}
-	r.floorClutter(g)
 }
 
 // flagValue is the value of the last entry of list whose flag the terrain
@@ -589,8 +564,8 @@ func (r *Rules) dungeonRubble(rb *RubbleGen, flagged bool, c, dr int, n, ea, s, 
 	open := func(x, y int) bool { return r.S.GroundInfo(g[y][x])[3] == GroundProp(rb.Tile) }
 	for i := 2; i <= 3; i++ {
 		for j := 2; j <= 4; j++ {
-			x := c*6 + dr*5 + 21 + i + j // sic: the row is added to the column too
 			y := dr*5 + 10 + j
+			x := r.boardX(c*6+dr*5+21+i+j, y) // sic: the row is added to the column too
 			if !inMap(x, y) || !open(x, y) || !flagged || !room || r.S.Dice(1, 10) > rb.HeapOdds {
 				continue
 			}

@@ -89,12 +89,6 @@ func (r *Rules) placeCombatants(m rules.MapSides) []rules.Effect {
 	p.Ox[0], p.Oy[0] = 0, 0
 	p.Dir[0] = Dir(byte(r.S.Facing / 2))
 	dist := int(r.S.Game.MonsterDist)
-	// extra: deskewed, a side's formation is its own cell's floor, so the foes take the cell ahead
-	// (they shared the party's 5x4 floor, among it); never through a wall or a door, as the
-	// original's distance (FreeSteps) never is: there they share the floor still
-	if r.straight && dist == 0 && (m == nil || CellEdge(m, r.S.PosY, r.S.PosX, r.S.PosY, r.S.Facing) == 0) {
-		dist = 1
-	}
 	p.Ox[1] = int8(dist*DirDX[r.S.Facing] + int(p.Ox[0]))
 	p.Oy[1] = int8(dist*DirDY[r.S.Facing] + int(p.Oy[0]))
 	p.Dir[1] = Dir(byte((r.S.Facing + 4) % 8 / 2))
@@ -109,12 +103,6 @@ func (r *Rules) placeCombatants(m rules.MapSides) []rules.Effect {
 			}
 			for y := 0; y <= 5; y++ {
 				lr := PlaceRows[d][y]
-				if r.straight { // the cell's floor, whatever the formation
-					lr = [2]int8{1, 0}
-					if y >= 1 {
-						lr = [2]int8{0, 4}
-					}
-				}
 				for x := 0; x <= 0xA; x++ {
 					v := byte(0)
 					if int(lr[0]) <= x && int(lr[1]) >= x {
@@ -172,11 +160,12 @@ func (r *Rules) placeAt(idx, x, y, ox, oy, team int) bool {
 	if x < 0 || y < 0 || x > 0xA || y > 5 || p.Slots[p.Side][team][y][x] == 0 {
 		return false
 	}
-	r.S.Cpos[idx].X = byte(x + ox*6 + oy*5 + 0x16)
-	if r.straight {
-		r.S.Cpos[idx].X -= byte(oy * 5)
+	py := oy*5 + y + 0xA
+	px := r.boardX(x+ox*6+oy*5+0x16, py) // the original's square, on the board
+	if px < 0 || px > 0x31 {
+		return false
 	}
-	r.S.Cpos[idx].Y = byte(oy*5 + y + 0xA)
+	r.S.Cpos[idx].X, r.S.Cpos[idx].Y = byte(px), byte(py)
 	who, g := r.S.GroundAt(r.S.CombatantSlots[idx-1], 8)
 	if who == 0 && g > 0 && r.S.GroundInfo(Ground(g))[0] < 0xFF {
 		p.Slots[p.Side][team][y][x] = 0
@@ -199,7 +188,7 @@ func (r *Rules) placeOne(m rules.MapSides, idx int) bool {
 	for {
 		dir := int(PlaceTeamDirs[p.Dir[s]][team] >> 1)
 		turn := func(q int) {
-			d := int(r.facingDir((dir + q) % 4))
+			d := int(FacingDir[(dir+q)%4]) // the formation's own squares: the original's, whatever the board
 			dx, dy = DirDX[d], DirDY[d]
 		}
 		switch state {
@@ -211,10 +200,6 @@ func (r *Rules) placeOne(m rules.MapSides, idx int) bool {
 			}
 			bx = int(PlaceStartX[t][dir]) + dx*row
 			by = int(PlaceStartY[t][dir]) + dy*row
-			if r.straight {
-				bx = int(PlaceStartXFlat[t][dir]) + dx*row
-				by = int(PlaceStartYFlat[t][dir]) + dy*row
-			}
 			x, y = bx, by
 			k, state, n = 1, 2, 1
 		case 2:

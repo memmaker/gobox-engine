@@ -7,74 +7,85 @@ import (
 	"testing"
 )
 
-// TestDeskewGrid: with Deskew every walled cell is a rectangle: the walls
-// lie on the block grid's rows and columns, a door is a gap in the middle.
-func TestDeskewGrid(t *testing.T) {
+// straightFight sets up a fight at cell (8,8) facing east on a map of walled
+// cells: (8,8) has a door west, an open side north, and east the side given
+// (0 open, 1 a wall); 6 of the party, 23 foes, no clutter (its dice fall by
+// board square).
+func straightFight(t *testing.T, straight bool, east byte, dist uint16) *rules1e.RuleState {
 	e := &Engine{}
 	e.initVM()
-	e.Deskew.Store(true)
 	for i := range 0x200 { // every side of every cell a wall
 		e.gs.geo.Plane[i] = 0x11
 	}
-	e.gs.geo.Plane[0x300+8*16+8] = 1 << 6 // cell (8,8): its west side a door
-	e.posX, e.posY = 8, 8
-	e.ruleset().BeginFight(rules.Fight{Board: rules.Board{Straight: true}, Terms: rules.FightTerms{PartyAt: image.Pt(8, 8)}}, nil)
-	if _, err := e.ruleset().Resolve(rules.Fight{}, rules.BuildGround{Walls: e.gmap(), Dungeon: true}, nil); err != nil {
-		t.Fatal(err)
+	e.gs.geo.Plane[0x300+8*16+8] = 1 << 6 // its west side a door
+	e.gs.geo.Plane[8*16+8] = east         // north open
+	e.gs.geo.Plane[0x100+7*16+8] = 0x01   // (8,7): south open
+	if east == 0 {
+		e.gs.geo.Plane[0x100+8*16+9] = 0x10 // (9,8): west open
 	}
-	for y := range 25 {
-		for x := range 50 {
-			wall := e.state().GroundInfo(e.state().Cmap.Ground[y][x])[0] == 0xFF
-			onGrid := (y-0xA)%5 == 0 || (x-0x15)%6 == 0
-			door := x == 0x15 && (y == 0xC || y == 0xD)
-			if wall != (onGrid && !door) {
-				t.Errorf("(%d,%d): wall %v, want %v", x, y, wall, !wall)
+	e.posX, e.posY, e.facing = 8, 8, 2
+	s := e.state()
+	tables := *s.T()
+	tables.Gen.Clutter = nil
+	s.Tables = &tables
+	s.Party = nil
+	for i := range 29 {
+		ch := &rules1e.Character{}
+		ch.Okay, ch.Size = 1, 1
+		if i >= 6 {
+			ch.Side = rules1e.SideMonsters
+		}
+		s.Party = append(s.Party, ch)
+	}
+	s.Game.PartyCount, s.Game.MonsterDist = 6, dist
+	e.ruleset().BeginFight(rules.Fight{Board: rules.Board{Straight: straight}, Terms: rules.FightTerms{PartyAt: image.Pt(8, 8), PartyFacing: 2}}, nil)
+	for _, a := range []rules.Action{rules.BuildGround{Walls: e.gmap(), Dungeon: true}, rules.PlaceFight{Walls: e.gmap()}} {
+		if _, err := e.ruleset().Resolve(rules.Fight{}, a, nil); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return s
+}
+
+// TestStraightIsOriginalUnskewed: the Deskew board is the original's, square
+// for square, with the skew taken out (rules1e.StraightX): the same ground
+// and every combatant on the same square, whatever stands ahead. The foes
+// were once put a cell ahead through walls and doors, on a map of its own.
+func TestStraightIsOriginalUnskewed(t *testing.T) {
+	for _, c := range []struct {
+		name string
+		east byte
+		dist uint16
+	}{{"wall ahead", 1, 0}, {"open ahead", 0, 1}, {"open ahead, close", 0, 0}} {
+		skew, straight := straightFight(t, false, c.east, c.dist), straightFight(t, true, c.east, c.dist)
+		for y := range 25 {
+			for x := range 50 {
+				if sx := rules1e.StraightX(x, y); sx >= 0 && sx < 50 && skew.Cmap.Ground[y][x] != 0 && straight.Cmap.Ground[y][sx] != skew.Cmap.Ground[y][x] {
+					t.Errorf("%s: ground (%d,%d) is %d, straight (%d,%d) %d", c.name, x, y, skew.Cmap.Ground[y][x], sx, y, straight.Cmap.Ground[y][sx])
+				}
+			}
+		}
+		for i := 1; i <= len(skew.Party); i++ {
+			a, b := skew.Cpos[i], straight.Cpos[i]
+			if a.Size == 0 {
+				t.Fatalf("%s: combatant %d has no place", c.name, i)
+			}
+			if b.Size != a.Size || int(b.X) != rules1e.StraightX(int(a.X), int(a.Y)) || b.Y != a.Y {
+				t.Errorf("%s: combatant %d at (%d,%d), straight at (%d,%d)", c.name, i, a.X, a.Y, b.X, b.Y)
 			}
 		}
 	}
 }
 
-// TestDeskewFoesNotThroughWall: with Deskew the foes take the cell ahead only
-// where that side is open; a wall or a door ahead (FreeSteps' distance 0)
-// leaves them on the party's floor, as the original's placement does. They
-// stood behind the Hobgoblin Barracks' secret door, out of reach.
-func TestDeskewFoesNotThroughWall(t *testing.T) {
-	for _, c := range []struct {
-		name  string
-		plane func(*Engine)
-		wantX [2]int // the foes' columns
-	}{
-		{"wall", func(*Engine) {}, [2]int{0x15, 0x1A}},
-		{"door", func(e *Engine) { e.gs.geo.Plane[0x300+8*16+8] = 1 << 2 }, [2]int{0x15, 0x1A}},
-		{"open", func(e *Engine) { e.gs.geo.Plane[8*16+8] &= 0xF0; e.gs.geo.Plane[0x100+8*16+9] &= 0xF0 }, [2]int{0x1B, 0x20}},
-	} {
-		e := &Engine{}
-		e.initVM()
-		for i := range 0x200 { // every side of every cell a wall
-			e.gs.geo.Plane[i] = 0x11
-		}
-		c.plane(e) // cell (8,8): its east side
-		e.posX, e.posY, e.facing = 8, 8, 2
-		s := e.state()
-		s.Party = nil
-		for i := range 12 {
-			ch := &rules1e.Character{}
-			ch.Okay, ch.Size = 1, 1
-			if i >= 6 {
-				ch.Side = rules1e.SideMonsters
-			}
-			s.Party = append(s.Party, ch)
-		}
-		s.Game.PartyCount, s.Game.MonsterDist = 6, 0
-		e.ruleset().BeginFight(rules.Fight{Board: rules.Board{Straight: true}, Terms: rules.FightTerms{PartyAt: image.Pt(8, 8), PartyFacing: 2}}, nil)
-		for _, a := range []rules.Action{rules.BuildGround{Walls: e.gmap(), Dungeon: true}, rules.PlaceFight{Walls: e.gmap()}} {
-			if _, err := e.ruleset().Resolve(rules.Fight{}, a, nil); err != nil {
-				t.Fatal(err)
-			}
-		}
-		for i := 7; i <= 12; i++ {
-			if p := s.Cpos[i]; p.Size == 0 || int(p.X) < c.wantX[0] || int(p.X) > c.wantX[1] {
-				t.Errorf("%s ahead: foe %d at (%d,%d) size %d, want x %#x..%#x", c.name, i, p.X, p.Y, p.Size, c.wantX[0], c.wantX[1])
+// TestStraightWalls: on the Deskew board a walled cell is a rectangle: the
+// west wall the block's columns 0 and 1, the north wall its row 0.
+func TestStraightWalls(t *testing.T) {
+	s := straightFight(t, true, 1, 0)
+	for y := 0xA + 5; y < 0xA+10; y++ { // cell (8,9): walled all round
+		for x := 0x15; x < 0x15+6; x++ {
+			wall := s.GroundInfo(s.Cmap.Ground[y][x])[0] == 0xFF
+			if want := y == 0xA+5 || x <= 0x16; wall != want {
+				t.Errorf("(%d,%d): wall %v, want %v", x, y, wall, want)
 			}
 		}
 	}

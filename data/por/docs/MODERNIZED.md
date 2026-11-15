@@ -903,9 +903,10 @@ cut from their combat icons.
   grey ones; point lights and sparks for missiles and spells, deaths, the
   weapon-hit sound. Health bars while Shift is held (`health.go`).
 - **Deskew** (Gameplay option, on): the original's dungeon combat map is
-  skewed (walls drawn as diagonal bands); the port lays it on a square grid,
-  each cell a 6x5 block with its west wall a column and its north wall a row,
-  doors two-square gaps, formation and party placed accordingly.
+  skewed (walls drawn as diagonal bands); the port shows the same map with
+  the skew taken out (`rules1e.StraightX`): the original's squares, walls,
+  doors and placement, square for square, each cell a 6x5 block with its
+  west wall two columns and its north wall a row.
 - **Custom icons:** a PNG dropped on the icon editor is the member's combat
   icon (`Character.Icon`, saved as `NAME.icon.png`): a square picture is both
   poses, one twice as wide as high is cut in the middle, left ready, right

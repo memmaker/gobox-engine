@@ -1,0 +1,19 @@
+# Straight combat map and secret doors (2026-11-15)
+
+Goal: the Deskew dungeon combat board is the original's (ovr11:0810 map,
+ovr11:19F5 placement) with only the skew taken out, never a generator or a
+placement of its own; the automap shows a secret door only once found.
+
+How: one mapping, `rules1e.StraightX` (original square -> board column),
+used by the ground's `put`, the rubble and `placeAt`. Invariant test:
+`engine.TestStraightIsOriginalUnskewed`.
+
+## Checklist
+- [x] Root cause of foes behind the Barracks' secret door: Deskew made distance 0 a cell ahead, through any side (38106227 stopped that; superseded below)
+- [x] Straight board = original map unskewed (dungeonMapFlat, PlaceStart*Flat, the floor formation, the distance bump: deleted)
+- [x] Placement = the original's, square for square
+- [x] Walls and doors = the original's squares (west wall 2 thick, door = the original's opening)
+- [x] Tests: TestStraightIsOriginalUnskewed, TestStraightWalls; TestSidesApart, TestDeskewPlacement and the watch fight's "sides apart" check removed (BUG-CLASSES 29 is superseded: the original mixes the front rows at distance 0)
+- [ ] Clutter: its dice fall by board square, so the straight board's clutter differs from the skewed one's (same odds)
+- [ ] Secret doors on the automap only once found: needs a ruling on what marks a side secret (the data has no flag)
+- [ ] Full suite + a real fight looked at in the game

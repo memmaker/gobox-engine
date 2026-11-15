@@ -43,11 +43,6 @@ func TestWatchFightTurn(t *testing.T) {
 				t.Fatalf("deskew %v seed %d: no watch (%+v)", deskew, sd, q)
 			}
 			e.doNow(game.Reply{N: 1})
-			if f, ok := e.build().(game.Fighting); deskew && ok { // BUG-CLASSES 29: distance 0, the sides apart
-				if in, box := foesInParty(f.Field.Units); in > 0 {
-					t.Errorf("seed %d: %d of the watch inside the party's box %v", sd, in, box)
-				}
-			}
 			turn := playOn(e, 400, func(s game.State) bool {
 				f, ok := s.(game.Fighting)
 				return ok && f.Field.Turn != 0 && e.cs.actor != rules.NoChar
