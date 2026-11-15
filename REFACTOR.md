@@ -33,23 +33,24 @@ the engine: `engine/importguard_test.go` (no ruleset import; a list of the files
 only shrink), `game/noui_test.go` (no drawing package, no screen position), `ui` never imports
 `engine` (T1). A new concern in the engine must fail one of them.
 
-- [ ] R2 `engine` reaches the rules only through `rules`. 2026-11-15: 55 uses of `rules1e` left in 17
-  non-test files (the guard was dead: it matched `rules1e`, the import is `gobox/rules1e`). Rule for
-  every item: the knowledge moves into `rules1e` behind a typed `rules` Fact, Check or Action; the
-  engine names no 1e spell, item, class, save, skill or record layout.
-  - [ ] R2a what the engine names of the 1e rules: skills, saves, coins, race and alignment numbers,
-    Ranger, Knock, the save order (scriptvars_engine.go, eclops_engine.go, eclops2_engine.go,
-    game_engine.go, view_engine.go)
-  - [ ] R2b what a spell or an item looks like in flight, and a monster's kind (present_engine.go,
-    bestiary.go)
-  - [ ] R2c character files: roster and save records, the pool ids (files_engine.go, roster.go,
-    savefile.go, slots.go)
-  - [ ] R2d the ruleset's own data: monsters, items, treasure, the vault's items are read by the
-    ruleset from the adventure folder, not handed over in `rules1e` types (rulesetseam.go,
-    dataimport.go, init.go, vault_engine.go); `NewPool`, `Settings`, `ReadRoster` leave the engine
-    (newpool.go, combatrules_engine.go). After a, b, c.
-  - [ ] R2e the guard's list is empty; `engine`'s tests that reach into `rules1e` state are counted
-    and listed (they stay until G2)
+- [x] R2 `engine` reaches the rules only through `rules` (2026-11-15): no non-test file of `engine`
+  imports a ruleset; `engine/importguard_test.go` forbids it, with no list of exceptions (the guard
+  had been dead: it matched `rules1e`, the import is `gobox/rules1e`, and passed on 17 files).
+  - [x] R2a rule names (track r2a): the saves, races and alignments come from `Rules.Catalog()`;
+    the AD&D names the scripts still read are in `rules/adnd.go` (see R2f)
+  - [x] R2b flight looks and the bestiary kind (track r2b): `rules.FlightFact`, `rules.BeastKindFact`
+  - [x] R2c character files (track r2c): `rules.FileFormat`, a capability the ruleset has;
+    `rules.CharacterFiles`. Unverified: no diff of real saved files before and after, one round-trip test
+  - [x] R2d the ruleset's own data (track r2d): `rules.Source` and `rules.Builder`; `rules1e` reads
+    and caches its monsters, treasure and item table; the vault hands over opaque records
+    (`rules.AddTreasureRecords`); package `pool` is the one place that names the pool games' rulesets
+    (`pool.New`, `pool.Settings`, `pool.ReadRoster`)
+  - [x] R2e the guard has no list. The engine's tests still reach into the ruleset: 97 of 188 test
+    files import `rules1e`, about 760 reads of its state (`e.state()`, `e.member()`); they stay until G2
+  - [ ] R2f the engine names no AD&D thing at all: `rules/adnd.go` (Ranger for PartySurprise, Knock
+    at a door, the thief skills and the petrify save of the Sel script fields) goes; the ruleset says
+    which fact a script field reads, and answers the two Checks by what they ask, not by class or
+    spell. With B1d at the latest: XXVc has none of these
 - [ ] G2 One state (as below). Plan first: which change events the rules emit (party, items, purse,
   clock, position), then automap, then combat, then `build`/`stateOf`/`allowed` go.
   - [ ] G2a plan: list every field `build()` copies and where it changes; rulings where unclear
