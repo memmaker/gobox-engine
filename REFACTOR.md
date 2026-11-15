@@ -147,8 +147,13 @@ only shrink), `game/noui_test.go` (no drawing package, no screen position), `ui`
       63 Logbook, 64 TakeItem, 66, 67 Sound, 69 WallDistance, 70/71, 72 Stash, 73 Damage6, 74 Duel,
       75 Shop, 76 AreaKind
     Steps:
-    - [ ] B1b1 `gobox/ecl` can run V4, the Pool dialects unchanged: long operands read, FOR/NEXT,
-      V4's Skip and Calls, Return on an empty stack by dialect; tests on hand-assembled V4
+    - [x] B1b1 `gobox/ecl` can run V4 at the machine's level (track b1b1, landed), the Pool
+      dialects unchanged: long operands read signed; FOR/NEXT with `vm.LoopCounter`/`LoopLimit`
+      Refs the engine binds from the layout (unset: a panic, as an unresolved operand);
+      V4's Skip (59, 60, 68 are one no-op, skipped by none, as BR's executor runs them) and Calls
+      (45571 the sound, 26627 the picture's animation are BR's own, named only);
+      `Behaviour.ReturnEndsScript`. Tests on hand-assembled code (ecl/v4_test.go); no real BR
+      script run yet. Open for the engine's side: BR's Return also restores the selected member
     - [ ] B1b2 BR's memory as a layout: a scan of BR1's (and BR2's, once imported) scripts for
       what the one-cell model cannot hold (a word and its second byte both used, a byte destination
       given more than 255); from it either a generated full layout (unnamed cells as `WordXXXX`,
