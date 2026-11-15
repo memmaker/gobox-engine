@@ -603,7 +603,7 @@ func (r *frontState) combat(f game.Fighting) *game.Combat {
 			t.Maneuvers = append(t.Maneuvers, maneuver(named, a.ID, 0))
 		}
 	}
-	if r.aim != nil { // aiming: the foes on the aim's squares are what Tab cycles (none in reach: every foe), the cursor on the nearest
+	if r.aim != nil { // aiming: the figures on the aim's squares are the targets (highlighted, what Tab cycles), the cursor on the nearest
 		c.Targets = nil
 		var from rules.BoardPos
 		for _, u := range c.Units {
@@ -616,12 +616,9 @@ func (r *frontState) combat(f game.Fighting) *game.Combat {
 		}
 		var live []game.Unit
 		for _, u := range c.Units {
-			if u.Foe && !u.Dead && !u.Gone {
+			if !u.Dead && !u.Gone && covers(u, r.aim.Squares) {
 				live = append(live, u)
 			}
-		}
-		if inReach := slices.DeleteFunc(slices.Clone(live), func(u game.Unit) bool { return !covers(u, r.aim.Squares) }); len(inReach) > 0 {
-			live = inReach
 		}
 		cur, best, kept := r.cursor, -1, len(r.aim.ats) > 0 || slices.Contains(r.aim.Squares, r.cursor)
 		for _, u := range live {
@@ -631,8 +628,14 @@ func (r *frontState) combat(f game.Fighting) *game.Combat {
 				best, cur = d.X*d.X+d.Y*d.Y, u.At
 			}
 		}
-		if kept || best < 0 {
+		if kept {
 			cur = r.cursor
+		} else if best < 0 { // no figure to aim at (ground): the nearest square the aim takes
+			for _, sq := range r.aim.Squares {
+				if d := sq.Sub(from); best < 0 || d.X*d.X+d.Y*d.Y < best {
+					best, cur = d.X*d.X+d.Y*d.Y, sq
+				}
+			}
 		}
 		r.cursor = cur
 	}
@@ -739,6 +742,9 @@ func (r *frontState) apply(a game.Action) game.Result {
 		if !slices.Contains(al.Plain, a) {
 			for _, x := range al.Aimed {
 				if _, ok := x.Action.(game.Attack); ok { // no foe to hit by id: gobox asks for the square
+					if len(x.Squares) == 0 {
+						return r.noTargets()
+					}
 					r.aim = &squareAim{Aimed: x}
 					return game.Result{}
 				}
@@ -746,6 +752,9 @@ func (r *frontState) apply(a game.Action) game.Result {
 			if m := r.attackAim(al.Plain); m != nil { // Attack before a target (the bar's, F): gobox aims at the foes the game offers
 				r.aim, r.cursor = m, m.Squares[0] // the cursor on the first foe: Enter takes it, Tab cycles
 				return game.Result{}
+			}
+			if _, fight := ps.(game.Fighting); fight && d.At == nil { // by a unit, and the game offers none
+				return r.noTargets()
 			}
 		}
 	case game.Ready: // on a readied item it unreadies it, as the originals' Ready toggles
@@ -1002,12 +1011,27 @@ func (r *frontState) aimOrDo(al game.Allowed, a game.Action) game.Result {
 	if len(ats(a)) == 0 {
 		for _, x := range al.Aimed {
 			if reflect.DeepEqual(withAts(x.Action, nil), withAts(a, nil)) {
+				if len(x.Squares) == 0 { // the game offers the squares its rules take: none is nothing in reach
+					return r.noTargets()
+				}
 				r.aim = &squareAim{Aimed: x}
 				return game.Result{}
 			}
 		}
 	}
 	return r.do(a)
+}
+
+// noTargetsText is the note for an aimed action with nothing to aim at.
+const noTargetsText = "No reachable targets"
+
+// noTargets refuses an aimed action that has no target in reach: a note,
+// no aim, the game not asked.
+func (r *frontState) noTargets() game.Result {
+	r.aim = nil
+	r.note = game.Note{Text: cmp.Or(r.data.Texts[noTargetsText], noTargetsText), At: time.Now()}
+	r.seq++
+	return game.Result{}
 }
 
 func (r *frontState) aimAt(at rules.BoardPos) game.Result {
@@ -1108,7 +1132,13 @@ func (r *frontState) do(a game.Action) game.Result {
 // keep sends a to the game: a refusal is Err, else the outcome as events.
 func (r *frontState) keep(a game.Action) game.Result {
 	out, err := r.g.Do(a)
-	return r.outcome(a, out, err)
+	res := r.outcome(a, out, err)
+	if f, ok := r.g.State().(game.Fighting); ok && err == nil && r.loneAim(f) && len(r.aim.Squares) == 0 { // the game's own aim (an item's spell) with no square its rules take: given up at once
+		if _, err := r.g.Do(game.Leave{}); err == nil {
+			r.noTargets()
+		}
+	}
+	return res
 }
 
 // outcome is what a's Do gave as the result the front plays.

@@ -3,6 +3,7 @@ package engine
 import (
 	"gobox/rules"
 	"gobox/rules1e"
+	"slices"
 	"testing"
 
 	"gobox/game"
@@ -133,5 +134,40 @@ func TestAllyAskKeepsAim(t *testing.T) {
 	q = ask()                                                                                    // aimed again: No took nothing
 	if _, err := e.doNow(yes(q)); err != nil || e.cs.aim != nil || e.state().AttackedAlly == 0 { // Yes
 		t.Fatalf("Yes: %v, aim %v, attacked %d", err, e.cs.aim != nil, e.state().AttackedAlly)
+	}
+}
+
+// TestShootSquaresAreTargets: the Ranged action's squares are the ones its
+// aim takes, each with a figure on it (no bare ground, not the whole board,
+// not the shooter's own): what gobox highlights, and none is nothing in reach.
+func TestShootSquaresAreTargets(t *testing.T) {
+	e := partyTurnScene(t)
+	c := e.member(e.cs.actor)
+	for _, h := range []int{rules1e.SlotWeapon, rules1e.SlotShield, rules1e.SlotMissiles, rules1e.SlotArrows, rules1e.SlotBolts} {
+		if it := c.Slots[h]; it != nil {
+			e.state().ReadyItem(it)
+		}
+	}
+	e.state().ApplyItems(c)
+	j := e.state().AddItemCopy(c, e.state().RandomItem(weaponFor(t, e, c, rules1e.ItemJavelin, true)))
+	if _, err := e.doNow(game.Ready{Member: e.state().PartyIndex(c), Item: e.itemHandle(j)}); err != nil {
+		t.Fatal(err)
+	}
+	f := fighting(e)
+	i := slices.IndexFunc(f.Allowed.Aimed, func(a game.Aimed) bool { _, ok := a.Action.(game.Shoot); return ok })
+	if i < 0 {
+		t.Fatalf("no Shoot with a thrown weapon readied: %+v", f.Allowed.Aimed)
+	}
+	sq := f.Allowed.Aimed[i].Squares
+	if len(sq) == 0 || len(sq) >= f.Field.Size.W*f.Field.Size.H {
+		t.Fatalf("%d squares to shoot at on a %v board", len(sq), f.Field.Size)
+	}
+	for _, at := range sq {
+		on := slices.IndexFunc(f.Field.Units, func(u game.Unit) bool {
+			return !u.Dead && !u.Gone && (u.At == at || slices.Contains(u.Squares, at))
+		})
+		if on < 0 || f.Field.Units[on].ID == f.Field.Turn {
+			t.Errorf("shoot offers %v: no figure to shoot there", at)
+		}
 	}
 }

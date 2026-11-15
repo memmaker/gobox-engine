@@ -30,7 +30,7 @@ func TestFledLeaves(t *testing.T) {
 	}
 }
 
-// TestShootTargets: aiming a shot, the foes on its squares are the targets
+// TestShootTargets: aiming a shot, the figures on its squares are the targets
 // and the cursor is on the nearest, never (0,0).
 func TestShootTargets(t *testing.T) {
 	shoot := game.Shoot{}
@@ -56,17 +56,45 @@ func TestQuickAllOption(t *testing.T) {
 	}
 }
 
-// TestAimNoFoeInReach: aiming with no foe on the aim's squares, Tab still
-// cycles every foe and the cursor is drawn on the nearest, not lost.
-func TestAimNoFoeInReach(t *testing.T) {
+// TestAimNoFigureInReach: aiming ground with no figure on the aim's squares,
+// nobody is a target (none highlighted) and the cursor is on the nearest
+// square the aim takes, not lost.
+func TestAimNoFigureInReach(t *testing.T) {
 	shoot := game.Shoot{}
-	f := &fake{st: game.Fighting{Common: game.Common{Allowed: game.Allowed{Aimed: []game.Aimed{{Action: shoot, Squares: []rules.BoardPos{{X: 2, Y: 1}}, Targets: 1}}}},
+	f := &fake{st: game.Fighting{Common: game.Common{Allowed: game.Allowed{Aimed: []game.Aimed{{Action: shoot, Squares: []rules.BoardPos{{X: 5, Y: 1}, {X: 2, Y: 1}}, Targets: 1}}}},
 		Field: game.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, At: rules.BoardPos{X: 1, Y: 1}}, {ID: 2, At: rules.BoardPos{X: 9, Y: 9}, Foe: true}, {ID: 3, At: rules.BoardPos{X: 4, Y: 3}, Foe: true}}}}}
 	r := newRules(f, game.Data{})
 	r.send(game.Shoot{})
 	c := shownOf(r).Combat
-	if c == nil || !c.Turn.Aim || len(c.Targets) != 2 || r.cursor != (rules.BoardPos{X: 4, Y: 3}) {
-		t.Fatalf("%+v", c)
+	if c == nil || !c.Turn.Aim || len(c.Targets) != 0 || r.cursor != (rules.BoardPos{X: 2, Y: 1}) {
+		t.Fatalf("targets %v cursor %v", c.Targets, r.cursor)
+	}
+}
+
+// TestAimTargetRules: an aimed action with no square its rules take is
+// refused with a note and no aim; aiming, every figure on the aim's squares
+// is a target, friend or foe, and no other; giving the aim up leaves none.
+func TestAimTargetRules(t *testing.T) {
+	cast, shoot := game.Cast{Member: 0, Spell: 3}, game.Shoot{}
+	units := []game.Unit{{ID: 1, At: rules.BoardPos{X: 1, Y: 1}}, {ID: 2, At: rules.BoardPos{X: 2, Y: 1}}, {ID: 3, At: rules.BoardPos{X: 4, Y: 3}, Foe: true},
+		{ID: 4, At: rules.BoardPos{X: 9, Y: 9}, Foe: true}, {ID: 5, At: rules.BoardPos{X: 4, Y: 4}, Foe: true, Dead: true}}
+	f := &fake{st: game.Fighting{Common: game.Common{Allowed: game.Allowed{Plain: []game.Action{game.EndTurn{}}, Aimed: []game.Aimed{{Action: cast, Targets: 1},
+		{Action: shoot, Squares: []rules.BoardPos{{X: 2, Y: 1}, {X: 4, Y: 3}, {X: 4, Y: 4}, {X: 6, Y: 6}}, Targets: 1}}}},
+		Field: game.Battlefield{Turn: 1, Units: units}}}
+	r := newRules(f, game.Data{})
+	for _, a := range []game.Action{cast, game.Attack{}} { // no square to cast at, no foe to attack
+		r.note = game.Note{}
+		if res := r.send(a); res.Err != nil || len(f.sent) != 0 || r.aim != nil || r.note.Text != noTargetsText {
+			t.Fatalf("%T: %+v sent %v aim %v note %q", a, res, f.sent, r.aim, r.note.Text)
+		}
+	}
+	r.send(shoot)
+	if c := shownOf(r).Combat; !c.Turn.Aim || !slices.Equal(c.Targets, []int{2, 3}) {
+		t.Fatalf("aiming: targets %v, want the ally and the foe on its squares", c.Targets)
+	}
+	r.send(game.Cancel{})
+	if c := shownOf(r).Combat; c.Turn.Aim || len(c.Marks) != 0 || len(f.sent) != 0 {
+		t.Fatalf("cancelled: aim %v marks %v sent %v", c.Turn.Aim, c.Marks, f.sent)
 	}
 }
 

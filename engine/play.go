@@ -459,7 +459,7 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 				act = game.Cast{Member: cm.Selected, Spell: int(sa.spell)}
 			}
 			// only the squares the rules take: one out of range or sight is refused, so it is not offered
-			reach := slices.DeleteFunc(inRange(b, aim.rng), func(at rules.BoardPos) bool { return aim.check(at).Why != "" })
+			reach := aim.squares(b)
 			var sq []rules.BoardPos // the aim's targets first: gobox's cursor starts on the first square (a corner of the map was "Out of sight")
 			for _, u := range b.Units {
 				if slices.Contains(b.Targets, u.ID) && slices.Contains(reach, u.At) {
@@ -479,9 +479,9 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 		if aim := e.cs.aim; aim != nil && b != nil { // a maneuver's aim up mid-turn (its move square, its attack, its target): Do aims it
 			switch aim.then.kind {
 			case atManeuverMove, atManeuverAttack, atArea, atTarget:
-				a.Aimed = append(a.Aimed, game.Aimed{Action: game.DoManeuver{ID: aim.then.id}, Squares: inRange(b, aim.rng), Targets: 1})
+				a.Aimed = append(a.Aimed, game.Aimed{Action: game.DoManeuver{ID: aim.then.id}, Squares: aim.squares(b), Targets: 1})
 			case atTurn: // an armed weapon maneuver's attack (attackUnit): Shoot aims it
-				a.Aimed = append(a.Aimed, game.Aimed{Action: game.Shoot{}, Squares: inRange(b, aim.rng), Targets: 1})
+				a.Aimed = append(a.Aimed, game.Aimed{Action: game.Shoot{}, Squares: aim.squares(b), Targets: 1})
 			}
 		}
 		if e.battleUp() && e.ruleset().Check(rules.PartyAuto{}, nil).Yes && (b == nil || b.Turn == nil) { // the keys a computer turn polls (aiKeys): Space and Alt-M
@@ -501,7 +501,7 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 				add(game.Attack{Target: t})
 			}
 			if e.battle().Turn.Missile != nil { // Ranged: only with a launcher and its ammunition, or a missile, readied (WeaponFact Ranged)
-				a.Aimed = append(a.Aimed, game.Aimed{Action: game.Shoot{}, Squares: inRange(b, max(b.Size.W, b.Size.H)), Targets: 1})
+				a.Aimed = append(a.Aimed, game.Aimed{Action: game.Shoot{}, Squares: e.aimSquares(b, 0xFF, 1, false, false), Targets: 1}) // attackUnit's aim
 			}
 		}
 		if slices.Contains(can, VerbManeuver) {
@@ -509,8 +509,9 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 				switch m.Aim {
 				case rules.AimSelf, rules.AimWeapon:
 					add(game.DoManeuver{ID: int(m.ID)})
-				default:
-					a.Aimed = append(a.Aimed, game.Aimed{Action: game.DoManeuver{ID: int(m.ID)}, Squares: inRange(b, m.Range), Targets: 1, Area: m.Area})
+				default: // maneuver's aims: a square of the area, else a foe or an ally
+					sq := e.aimSquares(b, m.Range, 0, m.Aim == rules.AimFoe, m.Aim == rules.AimArea)
+					a.Aimed = append(a.Aimed, game.Aimed{Action: game.DoManeuver{ID: int(m.ID)}, Squares: sq, Targets: 1, Area: m.Area})
 				}
 			}
 		}
@@ -631,9 +632,19 @@ func (e *Engine) spellReach(b *game.Combat, spell int) []rules.BoardPos {
 	c := e.unitID(b.Turn.Unit)
 	e.as(e.sel)
 	aim := e.fact(c, rules.SpellAimFact{Spell: e.spellID(spell)}).(rules.SpellAim)
-	o := e.fact(c, rules.AimFact{Range: aim.Range, FoesOnly: aim.FoesOnly}).(rules.AimOffer)
+	return e.aimSquares(b, aim.Range, 0, aim.FoesOnly, aim.Kind == rules.SpellAimArea)
+}
+
+// aimSquares is the squares the turn's fighter can aim at, by the rules'
+// own offer and check as the aim itself runs them (playerAim's rangeArg and
+// showRange; ground: a bare square may be taken). Gobox offers only these:
+// none is no target in reach.
+func (e *Engine) aimSquares(b *game.Combat, rangeArg, showRange int, foesOnly, ground bool) []rules.BoardPos {
+	c := e.unitID(b.Turn.Unit)
+	e.as(e.sel)
+	o := e.fact(c, rules.AimFact{Range: rangeArg, ShowRange: showRange, FoesOnly: foesOnly}).(rules.AimOffer)
 	return slices.DeleteFunc(inRange(b, o.Range), func(at rules.BoardPos) bool {
-		return e.fact(c, rules.AimCheckFact{Near: o.Near, At: at, Range: o.Range, Ground: aim.Kind == rules.SpellAimArea}).(rules.AimCheck).Why != ""
+		return e.fact(c, rules.AimCheckFact{Near: o.Near, At: at, Range: o.Range, ShowRange: showRange, Ground: ground}).(rules.AimCheck).Why != ""
 	})
 }
 

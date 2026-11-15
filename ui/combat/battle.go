@@ -330,15 +330,15 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 	for _, s := range b.Skipped {
 		frame(s.X, s.Y, skipGlow, 0.001)
 	}
-	for _, u := range b.Units { // the foes a click attacks: red
-		if slices.Contains(b.Targets, u.ID) {
+	// a shot or a spell is aimed from where the unit stands: no walk to show
+	aiming := b.Turn != nil && b.Turn.Aim
+	for _, u := range b.Units { // aiming: the figures the aim takes, red; none once it is over
+		if aiming && slices.Contains(b.Targets, u.ID) {
 			for _, s := range u.Squares {
 				frame(s.X, s.Y, targetGlow, 0.001)
 			}
 		}
 	}
-	// a shot or a spell is aimed from where the unit stands: no walk to show
-	aiming := b.Turn != nil && b.Turn.Aim
 	for _, r := range b.Reach { // where a click walks: XCOM's blue
 		if aiming {
 			break
@@ -847,24 +847,6 @@ func (p *Presenter) aimBoard(b *Board) *Board {
 		if u.Active {
 			at = image.Pt(u.X, u.Y)
 		}
-	}
-	if len(c.Targets) == 0 { // none published: Tab cycles the foes, the nearest first
-		// ponytail: every foe on the map, not only those in the spell's range (the board has no range)
-		for _, u := range c.Units {
-			if !u.Party {
-				c.Targets = append(c.Targets, u.ID)
-			}
-		}
-		dist := func(id int) int {
-			for _, u := range c.Units {
-				if u.ID == id {
-					d := image.Pt(u.X, u.Y).Sub(at)
-					return max(d.X, -d.X, d.Y, -d.Y)
-				}
-			}
-			return 1 << 30
-		}
-		slices.SortStableFunc(c.Targets, func(a, b int) int { return dist(a) - dist(b) })
 	}
 	if p.aimAt == nil { // b's Cursor, else the nearest target, else the actor: never a square nobody chose
 		switch {

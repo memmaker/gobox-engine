@@ -2,7 +2,9 @@ package engine
 
 import (
 	"fmt"
+	"gobox/game"
 	"gobox/rules"
+	"slices"
 )
 
 // aimConfirm = ovr14:2C3D (c, cand, mode): take cand as the target. With
@@ -96,6 +98,11 @@ type aimRun struct {
 // check is the rules' word on the aim at at: who would be the target and why not.
 func (h *aimRun) check(at rules.BoardPos) rules.AimCheck {
 	return h.e.fact(h.c, rules.AimCheckFact{Near: h.list, At: at, Range: h.rng, ShowRange: h.showRange, Ground: h.allowGround != 0}).(rules.AimCheck)
+}
+
+// squares is the squares of b the aim takes (check): what gobox offers.
+func (h *aimRun) squares(b *game.Combat) []rules.BoardPos {
+	return slices.DeleteFunc(inRange(b, h.rng), func(at rules.BoardPos) bool { return h.check(at).Why != "" })
 }
 
 // point moves the aim to (x, y): who would be the target and why not.
