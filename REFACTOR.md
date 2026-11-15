@@ -245,7 +245,7 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
     engine with `gobox/rulesxxvc`, the BR engine as the oracle (the same inputs to both, the
     states compared). Slice 1 the opening; then walking and a new block; a fight; shop and loot;
     the team menu and creation; the overland and the rocket; the space fight.
-    - [ ] B1f0 the world words are the engine's (RULING, Felix, 2026-11-15): the 57 `rules.Word*`
+    - [x] B1f0 the world words are the engine's (RULING, Felix, 2026-11-15): the 57 `rules.Word*`
       (where the party is, 3D or overland, clock, search, encounter distance, ...) leave the
       1e ruleset's records; the engine keeps one store and hands a ruleset the values a fight,
       a rest or a check needs; `WordIs`/`SetWord` go. Not: a store each ruleset embeds.
@@ -289,11 +289,20 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
         A save of any step loads whole: a word the ruleset's part of a save still has comes from
         there, the rest from `World` (`wordsInOldBlob`, by the one table `Cells()`;
         `TestLoadWorldMergesOldBlob`)
-      - [ ] B1f0f the nine left (BeginFlag, TenMinutes, Hours, ClockMinutes, PartyCount, Training,
-        Who, Effect, CampOn; about 55 engine sites): the clock, the party's count, the acting member as facts;
-        BeginFlag, Training, CampOn split into the engine's screen state and what the rules know
-        of their own fight, hall and camp
-      - [ ] B1f0g `WordIs`, `SetWord` and `rules.WorldWord` are gone
+      - [x] B1f0f, B1f0g (track w4, landed): the last nine, and the mechanism is gone
+        (`rules.WorldWord`, `WordIs`, `SetWord`, `worldWord`, `setWorldWord`, `scriptWords`,
+        rules1e/corerules_words.go). The rules' own state by typed kinds: the clock
+        (`rules.ClockIs`, `rules.SetClock`, `ClockPart`), the record's party count
+        (`MemberCount`, `SetMemberCount`; not `PartySize`, the list's length with a fight's
+        extras), the acting member (`ActFor`, `ActingFor`), the affect table (`PartyEffect`).
+        Camp: the engine's `campOpen`, the rules set theirs at CampOpen and CampClose. Hall:
+        `HallOpen`, and `OpenHallForAll` for the ending. The phase: `rules.Phase` (menu, shop,
+        camp, exploring, area start, fight, after fight, finale), the engine's `e.phase` set only
+        by `setPhase`, which hands it to the ruleset (`EnterPhase`; the 1e rules keep the last
+        one and test it as before, not `Fight.On`: not provably the same moments);
+        `rules.EnterShop` is gone, the engine sets the shop's phase. `rulesxxvc` accepts
+        `EnterPhase`; `ActFor`, `SetMemberCount`, `ClockIs` it does not answer yet (B1f1).
+        `engine/sessionwords_test.go`, recorded before the change
     - [ ] B1f1 slice 1, the opening: the import's engine files and the full layout for the shared
       engine; a builder for `rulesxxvc` with its tables; the start-up actions; the words;
       a roster from the imported characters; the facts the state build asks; the op AreaKind and
