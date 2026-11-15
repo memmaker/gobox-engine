@@ -144,13 +144,19 @@ func (e *Engine) SaveLevel(save []byte) (lv int) {
 	if err != nil {
 		return 0
 	}
-	defer os.RemoveAll(dir)
+	laid := true
 	for name, b := range files {
 		if err := os.WriteFile(filepath.Join(dir, filepath.Base(name)), b, 0o600); err != nil {
-			return 0
+			laid = false
+			break
 		}
 	}
-	e.inDir(dir, func() { lv = e.partyLevelHere() })
+	if laid {
+		e.inDir(dir, func() { lv = e.partyLevelHere() })
+	}
+	if err := os.RemoveAll(dir); err != nil {
+		log.Printf("save level: %v", err) // the folder stays in the system's temp: the level read stands
+	}
 	return lv
 }
 
