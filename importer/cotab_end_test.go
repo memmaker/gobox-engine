@@ -15,7 +15,7 @@ import (
 // (art/dos/PIC6.txt, BIGPIC6.txt).
 func TestEndPictures(t *testing.T) {
 	frames := func(file string, block int) int {
-		b, err := os.ReadFile(filepath.Join("..", "..", "data", "cotab", "sources", "assets", "art", "dos", file+".txt"))
+		b, err := os.ReadFile(filepath.Join("..", "data", "cotab", "art", "dos", file+".txt"))
 		if err != nil {
 			t.Skip("no imported art:", err)
 		}

@@ -13,7 +13,7 @@ import (
 // folder: the scripts, saves and AdLib music are there, the art equals
 // data/assets/art (the art import).
 func TestSotsbImportEqualsDecode(t *testing.T) {
-	dos := filepath.Join("..", "..", "data", "sotsb", "sources", "dos")
+	dos := filepath.Join("..", "data", "sotsb", "sources", "dos")
 	if _, err := os.Stat(dos); err != nil {
 		t.Skip("no originals:", err)
 	}
@@ -31,7 +31,7 @@ func TestSotsbImportEqualsDecode(t *testing.T) {
 	if texts, err := os.ReadDir(filepath.Join(dst, "scripts")); err != nil || len(texts) == 0 {
 		t.Fatalf("scripts: %d texts, %v", len(texts), err)
 	}
-	if _, err := os.Stat(filepath.Join(dst, "saves", "SAVGAMA.DAT")); err != nil {
+	if _, err := os.Stat(filepath.Join(dst, "saves", "saves", "GAME A", "GAME.JSON")); err != nil { // the original's save, a slot
 		t.Error("saves:", err)
 	}
 	if _, err := os.Stat(filepath.Join(dst, "sound", "SOUND.DAX")); err != nil {

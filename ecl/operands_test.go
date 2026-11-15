@@ -14,7 +14,7 @@ import (
 func TestGameOperands(t *testing.T) {
 	for _, game := range []string{"por", "cotab", "pod", "sotsb"} {
 		t.Run(game, func(t *testing.T) {
-			dataDir := filepath.Join("..", "..", "data", game, "scripts")
+			dataDir := filepath.Join("..", "data", game, "scripts")
 			if _, err := os.Stat(filepath.Join(dataDir, "names")); err != nil {
 				t.Skipf("no game data: %v", err)
 			}

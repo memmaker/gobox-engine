@@ -27,6 +27,7 @@ func devFirstTurnOn(t *testing.T, e *Engine, name string, deskew bool) *Engine {
 	e.FixedSeed = &seed
 	e.Init()
 	e.Start(e.Play)
+	toDev(e)
 	for range 400 {
 		if e.cs.turn != nil && e.cs.actor != rules.NoChar {
 			break
@@ -360,6 +361,7 @@ func devLootOn(t *testing.T, e *Engine) *Engine {
 	e.FixedSeed = &seed
 	e.Init()
 	e.Start(e.Play)
+	toDev(e)
 	for range 40 {
 		if _, ok := e.build().(game.Looting); ok {
 			seeLoot(t, e)

@@ -13,7 +13,7 @@ import (
 // folder: MUSIC.DAX's songs are there, its contents check, the art equals
 // data/assets/art (the art import).
 func TestPodImportEqualsDecode(t *testing.T) {
-	dos := filepath.Join("..", "..", "data", "pod", "sources", "dos")
+	dos := filepath.Join("..", "data", "pod", "sources", "dos")
 	if _, err := os.Stat(dos); err != nil {
 		t.Skip("no originals:", err)
 	}

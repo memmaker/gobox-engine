@@ -6,6 +6,7 @@ import (
 
 	"gobox/game"
 	"gobox/rules"
+	"gobox/rules1e"
 )
 
 // partyTurn4e is partyTurnScene with "4e Combat" handed in.
@@ -95,28 +96,57 @@ func TestManeuvers4e(t *testing.T) {
 // TestWeaponManeuver4e: a weapon maneuver (Plain) puts its attack's aim
 // up, published Aimed, and Shoot at a foe takes it.
 func TestWeaponManeuver4e(t *testing.T) {
-	e := partyTurn4e(t)
-	f := fighting(e)
-	id := -1
-	for _, m := range f.Field.Maneuvers {
-		if rules.ManeuverAim(m.Aim) == rules.AimWeapon {
-			id = m.ID
+	e := testEngine(t)
+	e.HandIn(Settings{Combat4e: true})
+	e = devFirstTurnOn(t, e, "meleefight", false) // a foe next to every member
+	const cleave = 2                              // rules4e: a fighter's AimWeapon at-will
+	for _, c := range e.state().Party {           // Quick Start members have picked no powers
+		if c.Level(rules1e.ClsFighter) > 0 {
+			c.Powers = append(c.Powers, cleave)
 		}
 	}
-	i := slices.IndexFunc(f.Field.Units, func(u game.Unit) bool { return u.Foe && !u.Dead && !u.Gone })
-	if id < 0 || i < 0 {
-		t.Skip("no weapon maneuver or foe")
+	var f game.Fighting
+	id := -1
+	for n := 0; n < 400 && id < 0; n++ { // the first member up may be no fighter: the next one's turn
+		switch s := e.build(); {
+		case myTurn(s):
+			f = s.(game.Fighting)
+			for _, m := range f.Field.Maneuvers {
+				if rules.ManeuverAim(m.Aim) == rules.AimWeapon {
+					id = m.ID
+				}
+			}
+			if id < 0 {
+				if _, err := e.doNow(game.EndTurn{}); err != nil {
+					t.Fatal("EndTurn:", err)
+				}
+			}
+		case e.waiting(PendFight):
+			e.Step()
+		default:
+			press(e)
+		}
+	}
+	if id < 0 {
+		t.Fatalf("no weapon maneuver: %+v", f.Field.Maneuvers)
 	}
 	if _, err := e.Do(game.DoManeuver{ID: id}); err != nil {
 		t.Fatal(err)
 	}
 	if e.cs.aim == nil {
-		t.Skip("the maneuver took no aim")
+		t.Fatal("the maneuver took no aim")
 	}
-	if len(fighting(e).Allowed.Aimed) == 0 {
+	aimed := fighting(e).Allowed.Aimed
+	if len(aimed) == 0 {
 		t.Fatal("the aim is up but not published")
 	}
-	if _, err := e.Do(game.Shoot{Ats: []rules.BoardPos{f.Field.Units[i].At}}); err != nil {
+	foe := slices.IndexFunc(f.Field.Units, func(u game.Unit) bool {
+		return u.Foe && !u.Dead && !u.Gone && slices.Contains(aimed[0].Squares, u.At)
+	})
+	if foe < 0 {
+		t.Fatalf("no foe in the aim's squares %+v", aimed[0].Squares)
+	}
+	if _, err := e.Do(game.Shoot{Ats: []rules.BoardPos{f.Field.Units[foe].At}}); err != nil {
 		t.Fatal("its attack:", err)
 	}
 	if e.cs.aim != nil {

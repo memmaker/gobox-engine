@@ -17,7 +17,7 @@ import (
 // read them (pool.ReadGameTables, char.Rules1e over rules.json's tables) and equal COTAB's
 // own constants; every scripted journal entry has its text in the data folder's book.
 func TestImportedTablesLoad(t *testing.T) {
-	dos := filepath.Join("..", "..", "data", "cotab", "sources", "dos")
+	dos := filepath.Join("..", "data", "cotab", "sources", "dos")
 	if _, err := os.Stat(dos); err != nil {
 		t.Skip("no originals:", err)
 	}

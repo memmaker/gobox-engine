@@ -13,7 +13,7 @@ import (
 // SPC) use is in the game's affectIds. Items' +0x3E is an item property
 // that also indexes the affect handlers: not covered yet (fold T4b note).
 func TestSotsbAffectIDsCoverData(t *testing.T) {
-	l, err := orig.NewLoader(filepath.Join("..", "..", "data", "sotsb", "sources", "dos"))
+	l, err := orig.NewLoader(filepath.Join("..", "data", "sotsb", "sources", "dos"))
 	if err != nil {
 		t.Skip("no originals:", err)
 	}
@@ -34,7 +34,7 @@ func TestSotsbAffectIDsCoverData(t *testing.T) {
 // TestItemPowersCoverData: every item power code (+0x3E above 0x7F) of the
 // game's items (ITEM0..9, MON ITM) is in its itemPowers.
 func TestSotsbItemPowersCoverData(t *testing.T) {
-	l, err := orig.NewLoader(filepath.Join("..", "..", "data", "sotsb", "sources", "dos"))
+	l, err := orig.NewLoader(filepath.Join("..", "data", "sotsb", "sources", "dos"))
 	if err != nil {
 		t.Skip("no originals:", err)
 	}

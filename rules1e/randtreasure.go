@@ -3,6 +3,8 @@ package rules1e
 import (
 	"embed"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"sync"
 )
 
@@ -131,6 +133,9 @@ type TreasureScroll struct {
 // treasureItem = SotSB's GenerateRandomItem (money.pas): an item of type typ
 // made as t says, as the game's file holds it, then converted to ids.
 func (e *RuleState) treasureItem(t *TreasureRolls, typ ItemType) (*Item, error) {
+	if t == nil { // a library game: its own item of the type
+		return e.libraryItem(typ)
+	}
 	it := e.treasureRecord(t, typ)
 	out, err := e.gameItems([]Item{it})
 	if err != nil {
@@ -209,12 +214,34 @@ func (t *TreasureRolls) makes(typ ItemType) bool {
 	return k || s || m
 }
 
-// treasureRolls is the game's random treasure; POR's when it has none.
+// treasureRolls is the game's random treasure; POR's when it has none, nil
+// for a game whose items are a library's (pod: POR's rolls make POR's items,
+// which its tables cannot name).
 func (e *RuleState) treasureRolls() *TreasureRolls {
 	if t := e.T().Treasure; t != nil {
 		return t
 	}
+	if e.T().Library != nil {
+		return nil
+	}
 	return PorTreasure()
+}
+
+// errNoRolls: a library game was asked for random treasure.
+var errNoRolls = errors.New("rules1e: the game has no random treasure rolls (rules.json randomTreasure)")
+
+// libraryItem is the library's first item of type typ, as the game's.
+func (e *RuleState) libraryItem(typ ItemType) (*Item, error) {
+	for _, l := range e.T().Library {
+		if l != nil && l.Type == typ {
+			out, err := e.gameItems([]Item{*l})
+			if err != nil {
+				return nil, err
+			}
+			return &out[0], nil
+		}
+	}
+	return nil, fmt.Errorf("rules1e: no library item of type %d", typ)
 }
 
 // RandomItem is a random item of type typ made by the game's treasure rolls.

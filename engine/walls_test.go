@@ -21,6 +21,12 @@ func TestAdvWallsCOTAB(t *testing.T) {
 			t.Fatalf("%T: %v", a, err)
 		}
 	}
+	for n := 0; n < 200; n++ { // past the opening scene
+		if _, ok := e.build().(game.Exploring); ok {
+			break
+		}
+		press(e)
+	}
 	e.viewMode = 1
 	for _, c := range []struct {
 		set   rules.Set

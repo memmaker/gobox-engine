@@ -191,6 +191,14 @@ func TestPlayParty(t *testing.T) {
 func devPlay(t *testing.T, name string) *Engine { return devPlayOn(t, testEngine(t), name) }
 
 // devPlayOn is devPlay on the engine e (any game's: advEngine).
+// toDev presses through a game's opening to its first command prompt, where
+// the DevAction runs (POR's -explore start has no opening).
+func toDev(e *Engine) {
+	for n := 0; n < 200 && e.DevAction != nil; n++ {
+		press(e)
+	}
+}
+
 func devPlayOn(t *testing.T, e *Engine, name string) *Engine {
 	e.Explore = true
 	e.DevAction = e.DevScene(name)
@@ -198,6 +206,7 @@ func devPlayOn(t *testing.T, e *Engine, name string) *Engine {
 	e.FixedSeed = &seed
 	e.Init()
 	e.Start(e.Play)
+	toDev(e)
 	return e
 }
 
@@ -428,10 +437,16 @@ func playOn(e *Engine, n int, done func(game.State) bool) bool {
 // engine runs on.
 func press(e *Engine) {
 	var a game.Action = game.ContinueAction{}
-	if q := e.question(); q != nil && len(q.Replies) == 1 {
+	if q := e.question(); q != nil && (len(q.Replies) == 1 || q.YesNo) { // a yes/no: No (pod's opening offers a tour)
 		a = game.Reply{N: 0}
 	}
-	if !allows(commonOf(e.build()).Allowed, a) {
+	al := commonOf(e.build()).Allowed
+	for _, b := range []game.Action{game.ContinueAction{}, game.Leave{}} { // a one-reply question that waits for Continue; a handout to leave (sotsb's opening)
+		if !allows(al, a) {
+			a = b
+		}
+	}
+	if !allows(al, a) {
 		e.advance()
 		return
 	}

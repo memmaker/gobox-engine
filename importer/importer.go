@@ -161,7 +161,7 @@ func Run(id, src, root string) error {
 	if err := g.Import(src, dst); err != nil {
 		return fmt.Errorf("import %s: %w", id, err)
 	}
-	if err := importSaves(dst); err != nil {
+	if err := importSaves(dst, g.Record); err != nil {
 		return fmt.Errorf("import %s: saves: %w", id, err)
 	}
 	if err := poolFont(g, src, root); err != nil {

@@ -24,7 +24,7 @@ func TestMapImage(t *testing.T) {
 	for i := range ink {
 		ink[i] = color.RGBA{asset.EGAPalette[i][0], asset.EGAPalette[i][1], asset.EGAPalette[i][2], 255}
 	}
-	e, err := engine.NewPool(filepath.Join(porSources, "assets"), porSources)
+	e, err := engine.NewPool(filepath.Dir(porSources), porSources)
 	if err != nil {
 		t.Skip("no game files")
 	}

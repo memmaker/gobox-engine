@@ -50,7 +50,7 @@ func ReadRoster(l rules.RecordLayout, dir string) ([]rules.CharacterFile, error)
 				Plan: readFold(base, ".mem"), Dual: readFold(base, ".dual"), Powers: readFold(base, ".pow"),
 				Portrait: readFold(base, ".png"), Icon: readFold(base, ".icon.png")})
 		} else {
-			c, err = packRoster(l, base)
+			c, err = packRoster(l, base, rosterFiles[l].Record)
 		}
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", filepath.Base(base), err)
@@ -60,10 +60,23 @@ func ReadRoster(l rules.RecordLayout, dir string) ([]rules.CharacterFile, error)
 	return out, nil
 }
 
-// packRoster is the character at base of a later layout l.
-func packRoster(l rules.RecordLayout, base string) (rules.CharacterFile, error) {
+// savedRecord is a game save's member record file (CHRDATAn.SAV), in every game.
+const savedRecord = ".SAV"
+
+// PackSaved is the party member a game of the later layout l saved at base
+// (CHRDATAn: its record and the layout's files beside it), as its canonical
+// file: the save import's, the engine reads only canonical members.
+func PackSaved(l rules.RecordLayout, base string) (rules.CharacterFile, error) {
+	if _, ok := rosterFiles[l]; !ok {
+		return nil, fmt.Errorf("PackSaved: no character files known of layout %d", l)
+	}
+	return packRoster(l, base, savedRecord)
+}
+
+// packRoster is the character at base of a later layout l, its record in the file of extension rec.
+func packRoster(l rules.RecordLayout, base, rec string) (rules.CharacterFile, error) {
 	s := rosterFiles[l]
-	f := LaterFiles{Record: readFold(base, s.Record), Items: readFold(base, s.Items), Affects: readFold(base, s.Affects), ItemSize: s.itemSize}
+	f := LaterFiles{Record: readFold(base, rec), Items: readFold(base, s.Items), Affects: readFold(base, s.Affects), ItemSize: s.itemSize}
 	if b := readFold(base, s.IDs); s.IDs != "" && b != nil {
 		f.Record = append(f.Record, PoolTrailer(ReadIDsFile(b))...)
 	}

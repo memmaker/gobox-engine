@@ -70,8 +70,10 @@ func itemSpells(t *testing.T, e *Engine, known func(rules1e.SpellID) bool) {
 			t.Fatalf("treasure block %d: %v", b, err)
 		}
 	}
-	if _, err := r.Resolve(nil, rules.AddRandomTreasure{N: 60}, nil); err != nil {
-		t.Fatalf("random treasure: %v", err)
+	if s.T().Treasure != nil || s.T().Library == nil { // a library game rolls none (pod)
+		if _, err := r.Resolve(nil, rules.AddRandomTreasure{N: 60}, nil); err != nil {
+			t.Fatalf("random treasure: %v", err)
+		}
 	}
 	for _, it := range s.Treasure {
 		if !s.IsScroll(it) {

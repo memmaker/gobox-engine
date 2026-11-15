@@ -18,7 +18,7 @@ var update = flag.Bool("update", false, "rewrite testdata/golden.txt")
 func TestGolden(t *testing.T) {
 	path := os.Getenv("AMIGA_SOUND")
 	if path == "" {
-		t.Skip("AMIGA_SOUND not set")
+		path = "../../data/por/sound/SOUND.BIN" // the repo's own
 	}
 	img, err := os.ReadFile(path)
 	if err != nil || len(img) != End-Base {

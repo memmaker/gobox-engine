@@ -19,7 +19,7 @@ import (
 func TestSotsbOriginals(t *testing.T) {
 	dos := os.Getenv("SOTSB_DATA")
 	if dos == "" {
-		t.Skip("SOTSB_DATA (the DOS originals) unset")
+		dos = "../data/sotsb/sources/dos" // the repo's own
 	}
 	root := t.TempDir()
 	if err := Run("sotsb", dos, root); err != nil {

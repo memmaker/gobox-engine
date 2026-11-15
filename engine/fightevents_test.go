@@ -77,7 +77,7 @@ func testFightEventsOut(t *testing.T, mk func(*testing.T) *Engine) {
 		var err error
 		if i == 0 && fighting { // the dev start opens the fight before any Do: it runs on as Do's would
 			err = e.stepOn(&out, nil)
-		} else if q := commonOf(prev).Ask; q != nil {
+		} else if q := commonOf(prev).Ask; q != nil && !q.Continue { // a timed wait takes Continue (pod's opening)
 			n := 0
 			if q.Text == "Continue Battle:" && !q.YesNo { // No: the fight is won
 				n = 1
@@ -85,6 +85,8 @@ func testFightEventsOut(t *testing.T, mk func(*testing.T) *Engine) {
 			out, err = e.doNow(game.Reply{N: n})
 		} else if playAllows(prev, game.ContinueAction{}) {
 			out, err = e.doNow(game.ContinueAction{})
+		} else if playAllows(prev, game.Leave{}) { // a handout to leave (sotsb's opening)
+			out, err = e.doNow(game.Leave{})
 		} else {
 			t.Fatalf("a fight at rest with nothing to do: %T %+v", prev, commonOf(prev).Allowed) // Do runs the computer's turns on
 		}

@@ -22,8 +22,9 @@ const origSaves = "[Ss][Aa][Vv][Gg][Aa][Mm][A-Ja-j].[Dd][Aa][Tt]"
 
 // importSaves turns each original save the game's import copied into adv's
 // SavesDir into the slot "GAME <letter>" (SlotsDir): its canonical save and
-// copies of its members' files. The original leaves the folder.
-func importSaves(adv string) error {
+// its members' files, canonical (a later layout l's are converted: the
+// engine reads only rules1e.Files). The original leaves the folder.
+func importSaves(adv string, l rules.RecordLayout) error {
 	dir := filepath.Join(adv, adventure.SavesDir)
 	found, err := filepath.Glob(filepath.Join(dir, origSaves))
 	if err != nil || len(found) == 0 {
@@ -52,6 +53,14 @@ func importSaves(adv string) error {
 		if err := os.MkdirAll(slot, 0o755); err != nil {
 			return err
 		}
+		if l != rules.Layout285 {
+			for _, p := range g.Party {
+				if err := convertMember(l, filepath.Join(dir, p), filepath.Join(slot, p)); err != nil {
+					return fmt.Errorf("%s: %s: %w", filepath.Base(path), p, err)
+				}
+			}
+			members = nil
+		}
 		for _, m := range members {
 			base, _, _ := strings.Cut(m.Name(), ".")
 			if m.IsDir() || !slices.ContainsFunc(g.Party, func(p string) bool { return strings.EqualFold(p, base) }) {
@@ -69,6 +78,28 @@ func importSaves(adv string) error {
 			return err
 		}
 		if err := os.Remove(path); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// convertMember writes the member a game of the later layout l saved at
+// from as its canonical files at to.
+func convertMember(l rules.RecordLayout, from, to string) error {
+	c, err := rules1e.PackSaved(l, from)
+	if err != nil {
+		return err
+	}
+	f, err := rules1e.Unpack285(c, true)
+	if err != nil {
+		return err
+	}
+	for ext, b := range map[string][]byte{".SAV": f.Record, ".ITM": f.Items, ".SPC": f.Affects} {
+		if len(b) == 0 {
+			continue
+		}
+		if err := os.WriteFile(to+ext, b, 0o644); err != nil {
 			return err
 		}
 	}

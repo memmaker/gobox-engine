@@ -19,7 +19,7 @@ import (
 func TestPodOriginals(t *testing.T) {
 	dos := os.Getenv("POD_DATA")
 	if dos == "" {
-		t.Skip("POD_DATA (the DOS originals) unset")
+		dos = "../data/pod/sources/dos" // the repo's own
 	}
 	root := t.TempDir()
 	if err := Run("pod", dos, root); err != nil {

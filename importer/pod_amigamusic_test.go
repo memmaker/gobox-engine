@@ -14,7 +14,7 @@ import (
 // TestAmigaMusic: every Sound n the imported scripts play reaches a pod.mx
 // song or a SOUNDS.GLB entry that is there (AmigaMusic, SoundKind).
 func TestAmigaMusic(t *testing.T) {
-	dos, am := filepath.Join("..", "..", "data", "pod", "sources", "dos"), filepath.Join("..", "..", "data", "pod", "sources", "amiga")
+	dos, am := filepath.Join("..", "data", "pod", "sources", "dos"), filepath.Join("..", "data", "pod", "sources", "amiga")
 	mx, err1 := os.ReadFile(filepath.Join(am, PodAmigaMusic.Songs))
 	glb, err2 := os.ReadFile(filepath.Join(am, PodAmigaMusic.Effects))
 	if _, err := os.Stat(dos); err != nil || err1 != nil || err2 != nil {

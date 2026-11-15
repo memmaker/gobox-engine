@@ -13,7 +13,7 @@ import (
 // import rewrote them (ecl.GoldCoins).
 // Detect the class elsewhere: a layout field holding money has coins=, and each game runs this test.
 func TestCotabScriptsGoldOnly(t *testing.T) {
-	dos := filepath.Join("..", "..", "data", "cotab", "sources", "dos")
+	dos := filepath.Join("..", "data", "cotab", "sources", "dos")
 	if _, err := os.Stat(dos); err != nil {
 		t.Skip("no originals:", err)
 	}
@@ -33,7 +33,7 @@ func TestCotabScriptsGoldOnly(t *testing.T) {
 // TestNoScalarTables: no imported script indexes a field of one element
 // (ecl.ScalarTables; POR's quest table was split into scalars).
 func TestCotabNoScalarTables(t *testing.T) {
-	dos := filepath.Join("..", "..", "data", "cotab", "sources", "dos")
+	dos := filepath.Join("..", "data", "cotab", "sources", "dos")
 	if _, err := os.Stat(dos); err != nil {
 		t.Skip("no originals:", err)
 	}

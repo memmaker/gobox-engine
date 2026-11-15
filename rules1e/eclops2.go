@@ -88,6 +88,9 @@ func (e *RuleState) RandomScroll() (*Item, error) {
 // (rules.json randomTreasure; POR's, PorTreasure, when it has none).
 func (e *RuleState) AddRandomTreasure(n int) error {
 	t := e.treasureRolls()
+	if t == nil {
+		return errNoRolls
+	}
 	for range n {
 		it, err := e.treasureItem(t, rollOf(e, t.Type))
 		if err != nil {

@@ -9,7 +9,7 @@ import (
 // TestImportContents imports the originals into a scratch folder and checks
 // every entry of importer.Contents and of hostFiles is there.
 func TestImportContents(t *testing.T) {
-	data := filepath.Join("..", "..", "data", "por", "sources")
+	data := filepath.Join("..", "data", "por", "sources")
 	dos := filepath.Join(data, "dos")
 	if _, err := os.Stat(filepath.Join(dos, "ITEMS")); err != nil {
 		t.Skip("no originals:", err)

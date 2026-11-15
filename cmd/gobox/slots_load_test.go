@@ -11,21 +11,22 @@ import (
 )
 
 // TestShippedSlotsLoad (bug class: a slot format change refuses slots
-// already on disk): every slot a game ships under sources/save/saves loads.
+// already on disk): every slot a game ships under its saves folder's saves
+// loads: POR's own, sotsb's imported original save (pod and cotab ship none).
 func TestShippedSlotsLoad(t *testing.T) {
-	for _, id := range []string{"por", "pod", "cotab", "sotsb"} {
+	for id, saves := range map[string]string{"por": "sources/save", "sotsb": "saves"} {
 		t.Run(id, func(t *testing.T) {
-			src := "../../data/" + id + "/sources"
-			slots, err := os.ReadDir(filepath.Join(src, "save", "saves"))
+			adv := "../../data/" + id
+			slots, err := os.ReadDir(filepath.Join(adv, saves, "saves"))
 			if err != nil {
-				t.Skip(err)
+				t.Fatal(err)
 			}
-			eng, err := engine.NewPool(src+"/assets", src)
+			eng, err := engine.NewPool(adv, adv+"/sources")
 			if err != nil {
-				t.Skip(err)
+				t.Fatal(err)
 			}
 			eng.Cfg.SaveDir = t.TempDir()
-			if err := os.CopyFS(eng.Cfg.SaveDir, os.DirFS(filepath.Join(src, "save"))); err != nil {
+			if err := os.CopyFS(eng.Cfg.SaveDir, os.DirFS(filepath.Join(adv, saves))); err != nil {
 				t.Fatal(err)
 			}
 			g := ui.NewGame(eng, eng.Data())

@@ -13,7 +13,7 @@ import (
 // folder: its contents, the art equal to data/assets/art
 // (the art import), the sound tables to testdata/s.
 func TestCotabImportEqualsDecode(t *testing.T) {
-	dos := filepath.Join("..", "..", "data", "cotab", "sources", "dos")
+	dos := filepath.Join("..", "data", "cotab", "sources", "dos")
 	if _, err := os.Stat(dos); err != nil {
 		t.Skip("no originals:", err)
 	}

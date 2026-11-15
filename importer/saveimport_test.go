@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"gobox/adventure"
+	"gobox/rules"
 	"gobox/rules1e"
 )
 
@@ -56,7 +57,7 @@ func TestImportSaves(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	if err := importSaves(adv); err != nil {
+	if err := importSaves(adv, rules.Layout285); err != nil {
 		t.Fatal(err)
 	}
 	slot := filepath.Join(saves, adventure.SlotsDir, "GAME A")

@@ -14,7 +14,7 @@ import (
 // clock, 3D flag, text delay and party size are the save's own words at the layout's fields
 // (file offset: the game block's bytes from its base).
 func TestOriginalRules(t *testing.T) {
-	b, err := os.ReadFile(filepath.Join("..", "..", "data", "pod", "extras", "scenarios", "saves", "inside", "SAVGAMA.PTY"))
+	b, err := os.ReadFile(filepath.Join("..", "data", "pod", "extras", "scenarios", "saves", "inside", "SAVGAMA.PTY"))
 	if err != nil {
 		t.Skip("no save:", err)
 	}

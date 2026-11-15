@@ -19,7 +19,7 @@ import (
 func TestCotabOriginals(t *testing.T) {
 	dos := os.Getenv("COTAB_DATA")
 	if dos == "" {
-		t.Skip("COTAB_DATA (the DOS originals) unset")
+		dos = "../data/cotab/sources/dos" // the repo's own
 	}
 	root := t.TempDir()
 	if err := Run("cotab", dos, root); err != nil {

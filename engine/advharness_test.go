@@ -2,6 +2,7 @@ package engine
 
 import (
 	"os"
+	"path/filepath"
 	"slices"
 	"testing"
 
@@ -13,21 +14,36 @@ import (
 
 // The adventure harness: any game's imported folder (gobox import <game>
 // <originals>) started headless, as quickStarted does for POR. Each game has
-// its own env var holding the folder; a test skips when it is unset.
+// its own env var for a folder elsewhere; unset, it is the repo's own
+// (data/<game>), and a test skips only when that is not imported.
 const (
 	advEnvSOTSB = "POOL_ADV_SOTSB"
 	advEnvPOD   = "POOL_ADV_POD"
 	advEnvCOTAB = "POOL_ADV_COTAB"
 )
 
+// advFolders are the repo's imported folders, by the game's env var.
+var advFolders = map[string]string{advEnvSOTSB: "../data/sotsb", advEnvPOD: "../data/pod", advEnvCOTAB: "../data/cotab"}
+
+// advFolder is the imported folder env names, else the repo's; the test
+// skips when there is none.
+func advFolder(t *testing.T, env string) string {
+	t.Helper()
+	adv := os.Getenv(env)
+	if adv == "" {
+		adv = advFolders[env]
+	}
+	if _, err := os.Stat(filepath.Join(adv, importer.ManifestFile)); err != nil {
+		t.Skip(env + " unset and no imported adventure folder: " + err.Error())
+	}
+	return adv
+}
+
 // advEngine is an engine on the imported folder named by env: the game's
 // ruleset tables (no title steps: the Start sequence is the presenter's), its saves under a temp dir, a fixed seed.
 func advEngine(t *testing.T, env string) *Engine {
 	t.Helper()
-	adv := os.Getenv(env)
-	if adv == "" {
-		t.Skip(env + " unset: an imported adventure folder")
-	}
+	adv := advFolder(t, env)
 	f, err := importer.Read(adv)
 	if err != nil {
 		t.Fatal(err)

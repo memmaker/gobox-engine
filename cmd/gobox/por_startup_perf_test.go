@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"testing"
 	"time"
 
@@ -12,9 +11,6 @@ import (
 
 // Start-up as main does it, headless: each step and the first frames must be quick.
 func TestStartupTiming(t *testing.T) {
-	if err := os.Chdir(".."); err != nil {
-		t.Skip(err)
-	}
 	start, t0 := time.Now(), time.Now()
 	defer func() {
 		if d := time.Since(start); d > time.Second {

@@ -258,7 +258,7 @@ icon: 474
 
 internal_name: 63
 name: Valuable
-icon: 231
+icon: 242
 
 internal_name: 64
 name: Potion
@@ -298,7 +298,7 @@ icon: 491
 
 internal_name: 73
 name: Giant Boulder
-icon: 493
+icon: 675
 
 internal_name: 74
 name: Feather Fall Ring
@@ -354,7 +354,7 @@ icon: 257
 
 internal_name: 87
 name: Robe
-icon: 485
+icon: 490
 
 internal_name: 88
 name: Boots
@@ -362,7 +362,7 @@ icon: 84
 
 internal_name: 89
 name: Curio
-icon: 297
+icon: 388
 
 internal_name: 90
 name: Necklace
@@ -378,15 +378,15 @@ icon: 474
 
 internal_name: 93
 name: Hornets Nest Dart
-icon: 161
+icon: 162
 
 internal_name: 94
 name: Staff Sling
-icon: 574
+icon: 578
 
 internal_name: 95
 name: Misc Magic
-icon: 231
+icon: 617
 
 internal_name: 96
 name: Mirror
@@ -410,207 +410,207 @@ icon: 41
 
 internal_name: 1001
 name: Brass Dragon Figurine
-icon: 231
+icon: 1189
 
 internal_name: 1002
 name: Brass Mirror
-icon: 450
+icon: 384
 
 internal_name: 1003
 name: Chain of Bone
-icon: 297
+icon: 290
 
 internal_name: 1004
 name: Copper Brazier
-icon: 297
+icon: 330
 
 internal_name: 1005
 name: Diamond Necklace
-icon: 231
+icon: 22
 
 internal_name: 1006
 name: Dust of Disappearance
-icon: 231
+icon: 184
 
 internal_name: 1007
 name: Electrum Decanter
-icon: 231
+icon: 579
 
 internal_name: 1008
 name: Elixer of Youth
-icon: 231
+icon: 458
 
 internal_name: 1009
 name: Elixir of Youth
-icon: 231
+icon: 458
 
 internal_name: 1010
 name: Emerald Broach
-icon: 231
+icon: 534
 
 internal_name: 1011
 name: Eyes of Charming
-icon: 231
+icon: 200
 
 internal_name: 1012
 name: Fine Opal Pendant
-icon: 231
+icon: 26
 
 internal_name: 1013
 name: Fine Tapestry
-icon: 231
+icon: 131
 
 internal_name: 1014
 name: Fungus Covered Tapestry
-icon: 297
+icon: 18
 
 internal_name: 1015
 name: Gold Banded Wand
-icon: 231
+icon: 523
 
 internal_name: 1016
 name: Gold Chain
-icon: 231
+icon: 391
 
 internal_name: 1017
 name: Gold Lightning Figurine
-icon: 231
+icon: 1181
 
 internal_name: 1018
 name: Gold Scarab
-icon: 231
+icon: 1232
 
 internal_name: 1019
 name: Gold Statuette
-icon: 231
+icon: 1181
 
 internal_name: 1020
 name: Huge Tapestry
-icon: 231
+icon: 289
 
 internal_name: 1021
 name: Incense
-icon: 231
+icon: 292
 
 internal_name: 1022
 name: Ioun Stone Deep Red
-icon: 231
+icon: 296
 
 internal_name: 1023
 name: Ioun Stone Pale Blue
-icon: 231
+icon: 301
 
 internal_name: 1024
 name: Ioun Stone Pink And Green
-icon: 231
+icon: 294
 
 internal_name: 1025
 name: Ioun Stone Scarlet And Blue
-icon: 231
+icon: 297
 
 internal_name: 1026
 name: Iron Holy Symbol Of Tempus
-icon: 450
+icon: 610
 
 internal_name: 1027
 name: Jewel Studded Bowl
-icon: 231
+icon: 1171
 
 internal_name: 1028
 name: Jewelled Dragon Statuette
-icon: 450
+icon: 1189
 
 internal_name: 1029
 name: Jewelled Silver Wings
-icon: 231
+icon: 675
 
 internal_name: 1030
 name: Manual of Bodily Health
-icon: 231
+icon: 0
 
 internal_name: 1031
 name: Necklace of Missiles
-icon: 231
+icon: 27
 
 internal_name: 1032
 name: Pearl Necklace
-icon: 231
+icon: 25
 
 internal_name: 1033
 name: Periapt of Health
-icon: 231
+icon: 225
 
 internal_name: 1034
 name: Platinum Sphere
-icon: 231
+icon: 402
 
 internal_name: 1035
 name: Potion Extra Healing
-icon: 231
+icon: 449
 
 internal_name: 1036
 name: Potion of Giant Strength
-icon: 231
+icon: 1210
 
 internal_name: 1037
 name: Potion of Healing
-icon: 450
+icon: 449
 
 internal_name: 1038
 name: Potion of Invisibility
-icon: 450
+icon: 629
 
 internal_name: 1039
 name: Potion of Speed
-icon: 450
+icon: 671
 
 internal_name: 1040
 name: Rotting Leather Saddle
-icon: 297
+icon: 18
 
 internal_name: 1041
 name: Rotting Rug
-icon: 297
+icon: 18
 
 internal_name: 1042
 name: Sheet of Gold
-icon: 231
+icon: 242
 
 internal_name: 1043
 name: Silver Brooch
-icon: 231
+icon: 559
 
 internal_name: 1044
 name: Silver Dragon Statuette
-icon: 231
+icon: 1261
 
 internal_name: 1045
 name: Silver Holy Symbol Of Sune
-icon: 450
+icon: 610
 
 internal_name: 1046
 name: Silver Mirror
-icon: 450
+icon: 122
 
 internal_name: 1047
 name: Silver Necklace
-icon: 231
+icon: 615
 
 internal_name: 1048
 name: Silver Ring
-icon: 231
+icon: 398
 
 internal_name: 1049
 name: Silver Scarab
-icon: 231
+icon: 1234
 
 internal_name: 1050
 name: Stone Statuette
-icon: 297
+icon: 1184
 
 internal_name: 1051
 name: Stone of Good Luck
-icon: 231
+icon: 659
 
 internal_name: 1052
 name: Tapestry
@@ -618,8 +618,8 @@ icon: 297
 
 internal_name: 1053
 name: Wooden Holy Symbol Of Tyr
-icon: 450
+icon: 606
 
 internal_name: 1054
 name: Woods Holy Symbol
-icon: 231
+icon: 606

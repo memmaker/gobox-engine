@@ -29,6 +29,7 @@ func partyTurnSceneOn(t *testing.T, e *Engine) *Engine {
 	e.FixedSeed = &seed
 	e.Init()
 	e.Start(e.Play)
+	toDev(e)
 	for range 400 {
 		if e.cs.turn != nil && e.cs.actor != rules.NoChar {
 			break
