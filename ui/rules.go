@@ -1210,49 +1210,23 @@ func walkBlocked(e game.Edge) bool {
 	return e.Kind == game.EdgeWall || e.Kind == game.EdgeDoor && (e.State == game.DoorLocked || e.State == game.DoorWizardLocked)
 }
 
-// walkRound is what a square the game marks costs the walk's search, in
-// steps: more than any way round it on a map, so the way goes through one
-// only to end on it or when there is no other.
-const walkRound = 4096
-
-// walkSide is the side of from the way to goal leaves by, false: none. The
-// way is the shortest that goes round the squares the game marks for its
-// own events (game.MarkedMap: a building's entrance, an encounter's room),
-// through one only to end on it or when there is no other.
+// walkSide is the side of from the shortest way to goal leaves by, false: none.
 func walkSide(m game.Map, from, goal image.Point) (int, bool) {
-	marks, _ := m.(game.MarkedMap)
-	type way struct{ cost, side int } // to a square: what it costs, the side the way to it leaves from by
-	best := map[image.Point]way{from: {side: -1}}
-	for open := []image.Point{from}; len(open) > 0; {
-		i := 0
-		for j := range open {
-			if best[open[j]].cost < best[open[i]].cost {
-				i = j
-			}
-		}
-		at := open[i]
-		open = slices.Delete(open, i, i+1)
-		if at == goal {
-			return best[goal].side, goal != from
+	first := map[image.Point]int{from: -1} // each square reached: the side the way to it left from by
+	for q := []image.Point{from}; len(q) > 0; q = q[1:] {
+		if q[0] == goal {
+			return first[goal], goal != from
 		}
 		for _, s := range walkSides {
-			n := at.Add(s.d)
-			if !n.In(image.Rectangle{Max: m.Size()}) || walkBlocked(m.Edge(at, s.side)) {
+			n := q[0].Add(s.d)
+			if _, seen := first[n]; seen || !n.In(image.Rectangle{Max: m.Size()}) || walkBlocked(m.Edge(q[0], s.side)) {
 				continue
 			}
-			w := way{cost: best[at].cost + 1, side: best[at].side}
-			if at == from {
-				w.side = s.side
+			first[n] = first[q[0]]
+			if q[0] == from {
+				first[n] = s.side
 			}
-			if marks != nil && n != goal && marks.Marked(n) {
-				w.cost += walkRound
-			}
-			if b, seen := best[n]; !seen {
-				open = append(open, n)
-			} else if w.cost >= b.cost {
-				continue
-			}
-			best[n] = w
+			q = append(q, n)
 		}
 	}
 	return 0, false

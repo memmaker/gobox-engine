@@ -513,15 +513,6 @@ type Map interface {
 	Event(at image.Point) bool
 }
 
-// MarkedMap is a Map that knows the squares the game marks for its own
-// events (a building's entrance, an encounter's room): gobox's auto-walk
-// goes round them where there is another way, and through one only to end
-// on it or when there is none.
-type MarkedMap interface {
-	Map
-	Marked(at image.Point) bool
-}
-
 // Edge is one side of a square to a step.
 type Edge struct {
 	Kind  EdgeKind

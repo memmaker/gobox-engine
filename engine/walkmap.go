@@ -43,16 +43,6 @@ func (m walkMap) Edge(at image.Point, side int) game.Edge {
 	return game.Edge{Kind: game.EdgeDoor, State: game.DoorWizardLocked}
 }
 
-// Marked (game.MarkedMap): the square's cell byte names something to the
-// area's step script (its low seven bits, as the scripts dispatch on them;
-// the top bit is only inside or outside). The area map and overland mark none.
-func (m walkMap) Marked(at image.Point) bool {
-	return m.e.viewMode == 1 && m.e.MapCell(at.X, at.Y)&^cellInside != 0
-}
-
-// cellInside is the cell byte's bit for a square under a roof.
-const cellInside = 0x80
-
 // Departure: the area's pre-step script runs ahead of every step
 // (RunEvent{Before}).
 func (m walkMap) Departure(at image.Point, side int) bool { return true }
