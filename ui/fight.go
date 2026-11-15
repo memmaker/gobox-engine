@@ -718,7 +718,7 @@ func (p *Presenter) drawnBoard() {
 				d.lists.spells = append(d.lists.spells, Spell{ID: sp.ID, Name: sp.Name})
 			}
 		}
-		d.board = p.askedBoard(p.aimPreview(p.boardOf(d.view, p.boardParty, p.fly)), d.view)
+		d.board = p.askedBoard(p.aimPreview(p.moveMarks(p.boardOf(d.view, p.boardParty, p.fly))), d.view)
 		return d
 	})
 	p.fightView, p.fightLists, p.fightBoard = d.view, d.lists, d.board
@@ -729,6 +729,24 @@ type fightDrawn struct {
 	view  *game.Combat  // the board with the fallen kept until their fall plays
 	lists lists         // the turn's weapons, spells and maneuvers
 	board *combat.Board // view as the tabletop draws it, aims put in
+}
+
+// moveMarks is b with the walk shown (CanMove: the reach, the hovered
+// path) only while a party member has its turn and may walk: not on a foe's
+// turn, and not while what happened before is still played (the turn that
+// ended).
+func (p *Presenter) moveMarks(b *combat.Board) *combat.Board {
+	if b == nil {
+		return nil
+	}
+	b.CanMove = false
+	if p.Playing() || b.Turn == nil || len(b.Reach) == 0 {
+		return b
+	}
+	for _, u := range b.Units {
+		b.CanMove = b.CanMove || u.Active && u.Party
+	}
+	return b
 }
 
 // aimPreview is b with the aimed spell's area washed round the hovered

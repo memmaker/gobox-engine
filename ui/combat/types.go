@@ -22,6 +22,7 @@ type Board struct {
 	CursorAt  []image.Point
 	Marks     []image.Point
 	Reach     []image.Point
+	CanMove   bool // a party member has its turn and may walk: the reach and the hovered path are shown
 	Paths     map[image.Point][]Step
 	Targets   []int // unit IDs an Attack takes; aiming: the foes Tab cycles through
 	Turn      *Turn // nil: no one to act for

@@ -340,7 +340,7 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 		}
 	}
 	for _, r := range b.Reach { // where a click walks: XCOM's blue
-		if aiming {
+		if aiming || !b.CanMove {
 			break
 		}
 		o := gpu.MeshOptions{Blend: gpu.MeshAdd, Tint: reachGlow, Model: place(float32(r.X)+.5, 0.003, float32(r.Y)+.5, 0, .96, .005, .96)}
@@ -349,7 +349,7 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 	if mx, my, ok := p.hoverSquare(); ok {
 		frame(mx, my, hoverGlow, 0)
 		for i, s := range b.Paths[image.Pt(mx, my)] { // the walk a click takes; red where leaving lets a foe strike
-			if i == 0 || aiming { // the mover's own square
+			if i == 0 || aiming || !b.CanMove { // the mover's own square
 				continue
 			}
 			tint := pathGlow
