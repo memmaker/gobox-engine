@@ -718,6 +718,7 @@ func (e *Engine) knock() bool {
 // the original wrapped an off-map step to the far edge; Move blocks it.
 func (e *Engine) stepAhead() {
 	// the step sound plays once the loop sees the square change (ovr04:3395)
+	e.foundSecret(e.posX, e.posY, e.moveDir())
 	e.posX += rules.StepX[e.moveDir()]
 	e.posY += rules.StepY[e.moveDir()]
 	e.es.wallAhead = e.WallAt(e.posX, e.posY, e.facing)

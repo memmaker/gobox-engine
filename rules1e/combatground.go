@@ -4,13 +4,17 @@ import "gobox/rules"
 
 // StraightX is the column on the straight board (extra, Deskew) of square
 // (x, y) of the original's skewed dungeon map: the same square with the
-// skew taken out. A cell's 5 rows lean a square east each, but for its top
-// two (the north wall and its foot stand upright), so its west wall is a
-// column 2 squares thick, its north wall a row, its floor 4x4.
+// skew taken out, a square west for each row down. A cell is a 6x5 block:
+// its west wall 2 columns, its north wall a row, its floor 4x4.
 func StraightX(x, y int) int {
-	dr := (y-0xA+50)/5 - 10 // the cell's row, floored
-	return x - dr*5 - max(y-0xA-dr*5, 1)
+	return x - (y - 0xA)
 }
+
+// doorPost is the tile of the original's own west door post (ovr11:02BA).
+const doorPost = 0
+
+// cornerPost is the tile of a wall's corner.
+const cornerPost = 2
 
 // boardX is the board's column of square (x, y) of the original's map.
 func (r *Rules) boardX(x, y int) int {
@@ -57,7 +61,7 @@ func (r *Rules) dungeonMap(g rules.BuildGround) {
 				}
 			} else if w == 3 {
 				put(1, 2, 8)
-				put(5, 4, 0)
+				put(5, 4, doorPost)
 			}
 			// nested ovr11:0377: north wall
 			if n == 1 {
@@ -112,6 +116,16 @@ func (r *Rules) dungeonMap(g rules.BuildGround) {
 			put(2, 0, b)
 			put(1, 1, cc)
 			put(2, 1, d)
+			if r.straight { // extra: square corners, where the original's pieces leave the slant's notches
+				if w == 3 { // the door's posts fill the wall's 2 columns (the original's stand a square apart)
+					put(2, 1, doorPost)
+					put(4, 4, doorPost)
+				}
+				if w != 0 || n != 0 || CellEdge(g.Walls, r.S.PosY, x, y-1, 6) != 0 || CellEdge(g.Walls, r.S.PosY, x-1, y, 0) != 0 { // a post wherever a wall or door ends
+					put(0, 0, cornerPost)
+					put(1, 0, cornerPost)
+				}
+			}
 			// nested ovr11:0615: the north-east corner
 			ne7, ne8 := CellEdge(g.Walls, r.S.PosY, x, y-1, 2), CellEdge(g.Walls, r.S.PosY, x+1, y, 0)
 			ne := ne7 == 0 && ne8 == 0

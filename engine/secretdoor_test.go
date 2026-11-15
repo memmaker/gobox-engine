@@ -39,9 +39,15 @@ func TestSecretDoorOnMap(t *testing.T) {
 		t.Error("a plain door (13,0 east) does not show")
 	}
 	e.posX, e.posY, e.facing = 13, 2, 2
-	e.StepForward()
+	e.stepAhead() // the party's own step
 	if !door(13, 2, 2) || !door(14, 2, 6) {
 		t.Error("the secret door gone through does not show")
+	}
+	e.ext.secrets = nil
+	e.posX, e.posY, e.facing = 14, 2, 6
+	e.StepForward() // a script's step, from the far side
+	if !door(13, 2, 2) || !door(14, 2, 6) {
+		t.Error("the secret door a script took the party through does not show")
 	}
 	found := e.ext.secrets
 	if err := e.saveTo("A"); err != nil {

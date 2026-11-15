@@ -906,7 +906,10 @@ cut from their combat icons.
   skewed (walls drawn as diagonal bands); the port shows the same map with
   the skew taken out (`rules1e.StraightX`): the original's squares, walls,
   doors and placement, square for square, each cell a 6x5 block with its
-  west wall two columns and its north wall a row.
+  west wall two columns and its north wall a row. Only the posts are squared
+  up: a west door's two posts fill the wall's width and every wall end has
+  its corner (the original's pieces leave one-square notches there), so a
+  combatant the original stood on such a square takes the next free one.
 - **Custom icons:** a PNG dropped on the icon editor is the member's combat
   icon (`Character.Icon`, saved as `NAME.icon.png`): a square picture is both
   poses, one twice as wide as high is cut in the middle, left ready, right
