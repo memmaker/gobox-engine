@@ -9,6 +9,11 @@ import (
 // TestWallTextures: every game's table parses and names pool textures.
 func TestWallTextures(t *testing.T) {
 	const series = "pool"
+	for n := range solidWalls() {
+		if !asset.Has(series, n) {
+			t.Errorf("walls/solid.txt: no texture %s", n)
+		}
+	}
 	for _, id := range []string{"por", "cotab", "sotsb", "pod"} {
 		w := wallTextures(id, "", "")
 		if len(w.Walls) == 0 {

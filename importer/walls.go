@@ -17,6 +17,20 @@ import (
 //go:embed walls/*.txt
 var wallFiles embed.FS
 
+// solidWalls are the pool textures that look like a solid wall
+// (walls/solid.txt, a name a line; Felix's marking), for every game.
+func solidWalls() map[string]bool {
+	b, err := wallFiles.ReadFile("walls/solid.txt")
+	if err != nil {
+		panic(err)
+	}
+	solid := map[string]bool{}
+	for _, n := range strings.Fields(string(b)) {
+		solid[n] = true
+	}
+	return solid
+}
+
 // wallTextures is game id's wall textures under the flats floor and sky.
 // The tables are embedded: a malformed line is a build defect (TestWallTextures).
 func wallTextures(id, floor, sky string) *adventure.WallTextures {
@@ -25,11 +39,13 @@ func wallTextures(id, floor, sky string) *adventure.WallTextures {
 		panic(err)
 	}
 	w := &adventure.WallTextures{Floor: floor, Sky: sky}
+	solid := solidWalls()
 	for _, l := range strings.Split(strings.TrimSpace(string(b)), "\n") {
 		var t adventure.WallTexture
 		if _, err := fmt.Sscan(l, &t.Set, &t.Block, &t.Chunk, &t.Wall, &t.Texture); err != nil || t.Wall < 1 || t.Wall > rules.SetWalls || t.Chunk < 1 {
 			panic(fmt.Sprintf("walls/%s.txt: %q: %v", id, l, err))
 		}
+		t.Solid = solid[t.Texture]
 		w.Walls = append(w.Walls, t)
 	}
 	if b, err := wallFiles.ReadFile("walls/" + id + "_areas.txt"); err == nil {

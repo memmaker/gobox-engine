@@ -78,6 +78,7 @@ type extras struct {
 	quests   []questNote             // quests.go: the quests this save was given
 	notes    []noteRec               // lore.go: the journal's notes
 	doors    map[int][]doorSide      // per map (areaKey): the doors opened for good (openDoor)
+	secrets  map[int][]doorSide      // per map (areaKey): the secret doors found (foundSecret)
 	beasts   []Beast                 // bestiary.go: their entries, as last published
 	art      map[string]game.Picture // gamedata.go: the overland's art, as last built
 	artKey   artKey                  // ... from these pictures

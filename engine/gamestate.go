@@ -323,6 +323,7 @@ func (e *Engine) mapState(w *game.Where) game.Automap {
 	}
 	m := game.Automap{Area: e.mapName(), Size: rules.Size{W: 16, H: 16}, NoMap: e.worldWord(rules.WordNoCoords) != 0}
 	seen, mine, built := e.ext.seen[e.areaKey()], e.userLabels(), e.builtinLabels(e.areaKey())
+	secret := e.secretSides()
 	for y := range 16 {
 		for x := range 16 {
 			at := rules.MapPos{X: x, Y: y}
@@ -333,6 +334,8 @@ func (e *Engine) mapState(w *game.Where) game.Automap {
 				w, door := e.WallAt(x, y, d), e.DoorAt(x, y, d)
 				switch {
 				case w == 0:
+				case secret[doorSide{X: x, Y: y, Dir: d}]: // a secret door not found yet: the wall it looks like
+					m.Walls = append(m.Walls, game.Wall{At: at, Side: d, Kind: int(w)})
 				case door == 1:
 					m.Doors = append(m.Doors, game.Wall{At: at, Side: d, Kind: int(w), State: game.DoorOpen})
 				case door == 2:

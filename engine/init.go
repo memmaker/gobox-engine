@@ -60,10 +60,10 @@ func (e *Engine) resetAdventure() {
 	e.vm.PC = 0    // DS:49ED
 	e.msgDelay = 1 // DS:49E2
 	e.viewMode, e.prevViewMode = 1, 1
-	e.viewBit0, e.viewBit1 = 1, 1                                                                                                                    // DS:49F5/49F6
-	e.mapPairA, e.mapPairB = [3]int{0, -1, -1}, [3]int{0, -1, -1}                                                                                    // DS:6AAE+4i / 6AB0+4i, i = 2..3
-	e.es.skyShade, e.es.groundShade = 0xE8, 0xDB                                                                                                     // DS:6F69/6F68
-	e.ext.seen, e.ext.voiced, e.ext.met, e.ext.beasts, e.ext.labels, e.ext.quests, e.ext.notes, e.ext.doors = nil, nil, nil, nil, nil, nil, nil, nil // extra: kept with the save, not the party menu
+	e.viewBit0, e.viewBit1 = 1, 1                                                                                                                                        // DS:49F5/49F6
+	e.mapPairA, e.mapPairB = [3]int{0, -1, -1}, [3]int{0, -1, -1}                                                                                                        // DS:6AAE+4i / 6AB0+4i, i = 2..3
+	e.es.skyShade, e.es.groundShade = 0xE8, 0xDB                                                                                                                         // DS:6F69/6F68
+	e.ext.seen, e.ext.voiced, e.ext.met, e.ext.beasts, e.ext.labels, e.ext.quests, e.ext.notes, e.ext.doors, e.ext.secrets = nil, nil, nil, nil, nil, nil, nil, nil, nil // extra: kept with the save, not the party menu
 }
 
 // readItems reads the base item table: skips the 2-byte count and takes up

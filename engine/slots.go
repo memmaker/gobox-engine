@@ -164,6 +164,9 @@ const notesFile = "NOTES.GOB"
 // doorsFile holds the doors a slot opened for good (openDoor).
 const doorsFile = "DOORS.GOB"
 
+// secretsFile holds the secret doors a slot found (foundSecret).
+const secretsFile = "SECRETS.GOB"
+
 // loadFrom loads the slot, its explored squares and its map labels (none
 // for a slot saved before they were kept).
 func (e *Engine) loadFrom(name string) (ok bool) {
@@ -171,7 +174,7 @@ func (e *Engine) loadFrom(name string) (ok bool) {
 	if !ok {
 		return false
 	}
-	e.ext.seen, e.ext.voiced, e.ext.met, e.ext.beasts, e.ext.quests, e.ext.notes, e.ext.doors = nil, nil, nil, nil, nil, nil, nil
+	e.ext.seen, e.ext.voiced, e.ext.met, e.ext.beasts, e.ext.quests, e.ext.notes, e.ext.doors, e.ext.secrets = nil, nil, nil, nil, nil, nil, nil, nil
 	dir := filepath.Join(e.slotRoot(), name)
 	if _, err := os.Stat(filepath.Join(dir, seenFile)); err == nil {
 		if !decodeSlotFile(dir, seenFile, &e.ext.seen) {
@@ -189,7 +192,7 @@ func (e *Engine) loadFrom(name string) (ok bool) {
 	for _, f := range []struct {
 		file string
 		to   any
-	}{{voicedFile, &e.ext.voiced}, {metFile, &e.ext.met}, {questsFile, &e.ext.quests}, {notesFile, &e.ext.notes}, {doorsFile, &e.ext.doors}} {
+	}{{voicedFile, &e.ext.voiced}, {metFile, &e.ext.met}, {questsFile, &e.ext.quests}, {notesFile, &e.ext.notes}, {doorsFile, &e.ext.doors}, {secretsFile, &e.ext.secrets}} {
 		if !decodeSlotFile(dir, f.file, f.to) {
 			return false
 		}
@@ -258,6 +261,7 @@ func (e *Engine) saveTo(name string) error {
 			writeGob(filepath.Join(tmp, questsFile), e.ext.quests),
 			writeGob(filepath.Join(tmp, notesFile), e.ext.notes),
 			writeGob(filepath.Join(tmp, doorsFile), e.ext.doors),
+			writeGob(filepath.Join(tmp, secretsFile), e.ext.secrets),
 			e.writeLabels(filepath.Join(tmp, labelsFile)))
 	})
 	if err != nil {

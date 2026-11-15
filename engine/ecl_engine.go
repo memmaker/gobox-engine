@@ -82,6 +82,7 @@ func (e *Engine) StepForward() {
 		x, y = (x+16)%16, (y+16)%16
 	}
 	if x >= 0 && x <= 15 && y >= 0 && y <= 15 {
+		e.foundSecret(e.posX, e.posY, e.moveDir())
 		e.posX, e.posY = x, y
 	}
 	e.es.cell = e.MapCell(e.posX, e.posY)

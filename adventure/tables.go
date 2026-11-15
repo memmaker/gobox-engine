@@ -70,10 +70,13 @@ func (w *WallTextures) Area(set rules.Set, geo int) *AreaLook {
 
 // WallTexture is wall Wall (1..rules.SetWalls) of chunk Chunk (1-based) of
 // block Block of set Set's WALLDEF archive: the pool series texture Texture.
+// Solid: the texture looks like a solid wall, so a side with it the map
+// lets the party through is a secret door (an illusionary wall).
 type WallTexture struct {
 	Set                rules.Set
 	Block, Chunk, Wall int
 	Texture            string
+	Solid              bool
 }
 
 // ArtNames are the picture files the Engine loads by role, each game's own
