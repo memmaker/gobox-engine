@@ -135,29 +135,23 @@ func (e *Engine) partyLevelHere() (lv int) {
 
 // SaveLevel (game.SaveLevels) is partyLevelHere of a save as Save gave it:
 // its files laid out in a folder of their own for the reading.
-func (e *Engine) SaveLevel(save []byte) (lv int) {
+func (e *Engine) SaveLevel(save []byte) (lv int, err error) {
 	var files map[string][]byte
 	if err := gob.NewDecoder(bytes.NewReader(save)).Decode(&files); err != nil {
-		return 0
+		return 0, err
 	}
 	dir, err := os.MkdirTemp("", "gobox-save")
 	if err != nil {
-		return 0
+		return 0, err
 	}
-	laid := true
+	defer func() { err = errors.Join(err, os.RemoveAll(dir)) }()
 	for name, b := range files {
 		if err := os.WriteFile(filepath.Join(dir, filepath.Base(name)), b, 0o600); err != nil {
-			laid = false
-			break
+			return 0, err
 		}
 	}
-	if laid {
-		e.inDir(dir, func() { lv = e.partyLevelHere() })
-	}
-	if err := os.RemoveAll(dir); err != nil {
-		log.Printf("save level: %v", err) // the folder stays in the system's temp: the level read stands
-	}
-	return lv
+	e.inDir(dir, func() { lv = e.partyLevelHere() })
+	return lv, nil
 }
 
 // inSlot runs f with the save directory pointed at the slot's folder.

@@ -1558,9 +1558,13 @@ func (r *frontState) saveLevel(file string, at time.Time) int {
 	if l, ok := r.levels[file]; ok && l.at.Equal(at) {
 		return l.level
 	}
+	b, err := os.ReadFile(filepath.Join(r.dir, file))
 	lv := 0
-	if b, err := os.ReadFile(filepath.Join(r.dir, file)); err == nil {
-		lv = gl.SaveLevel(b)
+	if err == nil {
+		lv, err = gl.SaveLevel(b)
+	}
+	if err != nil { // said once (the level is kept as unknown for the file as written): loading it says the rest
+		r.note = game.Note{Text: file + ": " + err.Error(), At: time.Now()}
 	}
 	if r.levels == nil {
 		r.levels = map[string]savedLevel{}

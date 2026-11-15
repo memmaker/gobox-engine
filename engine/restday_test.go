@@ -93,11 +93,11 @@ func TestSaveLevel(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := e.SaveLevel(b); got != want || want == 0 {
-		t.Fatalf("SaveLevel %d, the party's highest level %d", got, want)
+	if got, err := e.SaveLevel(b); err != nil || got != want || want == 0 {
+		t.Fatalf("SaveLevel %d (%v), the party's highest level %d", got, err, want)
 	}
-	if got := e.SaveLevel([]byte("no save")); got != 0 {
-		t.Fatalf("SaveLevel of no save: %d", got)
+	if got, err := e.SaveLevel([]byte("no save")); err == nil || got != 0 {
+		t.Fatalf("SaveLevel of no save: %d, %v", got, err)
 	}
 	var _ game.SaveLevels = e
 }

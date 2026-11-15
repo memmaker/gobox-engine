@@ -18,7 +18,7 @@ func (longSlot) Slots() []game.SaveSlot {
 
 func (longSlot) LoadSlot(int) error { return nil }
 
-func (longSlot) SaveLevel(save []byte) int { return len(save) } // a save of n bytes: level n
+func (longSlot) SaveLevel(save []byte) (int, error) { return len(save), nil } // a save of n bytes: level n
 
 // TestSlotRowLevelDate: a slot row's level stands under the "Level"
 // heading, right aligned with it, a space before the date that ends the
