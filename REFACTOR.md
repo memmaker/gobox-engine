@@ -119,8 +119,44 @@ only shrink), `game/noui_test.go` (no drawing package, no screen position), `ui`
     Blockbench source and texture, no other; each a tile a combat map can produce, its own picture
     there; props.json names only such tiles). The frame counts per set are copied from BR1's
     rules/cmap.go until B1c
-  - [ ] B1b one script machine (ARCHITECTURE.md section 2): widen `gobox/ecl` to int32 and width;
-    dialect tables for V4 and FOR/NEXT; BR's ops as engine ops; `ecl-br`'s VM deleted
+  - [ ] B1b one script machine. Survey 2026-11-15 (an agent's line-by-line read; BR2's Pascal in
+    buckrogers2-re was read, BR1's is not on this machine; BR2's scripts are not imported here).
+    ARCHITECTURE.md section 2 is partly stale: `gobox/ecl` values are int64 already (the 16-bit cut
+    is the engine's store, `cutToWidth`), V4 with FOR/NEXT is a dialect of `gobox/ecl` already, and
+    both BR engines already decode, parse and load scripts with it. Only the executor is separate:
+    `eclbr.VM` (159 lines) and each BR engine's ecl.go/eclops.go. What differs:
+    - reads agree: BR zero-extends bytes and words (verified in BR2's ReadGbvm), compares signed
+      32-bit; only long operands (types 4, 5) can be negative, and `ecl.VM.Arg` reads those as 0
+    - stores differ: Pool keeps 16 bits in one cell per address whatever the operand's type; BR
+      writes as many bytes as the destination operand's type into byte memory (a word at a also
+      writes a+1). `ecl.Layout` has one cell per address, no aliasing
+    - BR has no layout: BR1's scripts use 304 raw addresses (248 area, 37 party, 12 aux, 7 view),
+      121 as words, 4 as longs; 59 fixed indices in the BR1 engine's Go. `ecl.VM` panics on a
+      variable with no Ref. BR2: not counted
+    - Return with an empty call stack: Pool goes on, BR ends the script
+    - V4 has no Skip table (BR's rule differs from `Fixed` for 12, 31, 52, 54, 59, 60 and the
+      counted commands) and no Calls map (BR dispatches Call on raw addresses, V2's keys)
+    - FOR/NEXT: one `LoopAt` and two area cells; not in `ecl.VM` nor the engine's ops
+    - waits: BR keeps one wait and one `Next` frame in the VM (`Wait`, `WaitOp`, `Frame`,
+      `scriptDone`'s switch: the block chain, depart/arrive, look, input); gobox keeps a stack of
+      continuations beside a passive VM. Neither saves a script's wait
+    - random: BR uses PCG, the original and gobox the Turbo Pascal generator; changing it changes
+      every seeded BR test
+    - of the commands the plan called BR's own, 30, 50, 54, 56, 57, 58, 62, 65 have a Pool
+      counterpart in the engine by name and arity (unrun); BR's own are 31 SpaceFight, 34/35 Skill,
+      63 Logbook, 64 TakeItem, 66, 67 Sound, 69 WallDistance, 70/71, 72 Stash, 73 Damage6, 74 Duel,
+      75 Shop, 76 AreaKind
+    Steps:
+    - [ ] B1b1 `gobox/ecl` can run V4, the Pool dialects unchanged: long operands read, FOR/NEXT,
+      V4's Skip and Calls, Return on an empty stack by dialect; tests on hand-assembled V4
+    - [ ] B1b2 BR's memory as a layout: a scan of BR1's (and BR2's, once imported) scripts for
+      what the one-cell model cannot hold (a word and its second byte both used, a byte destination
+      given more than 255); from it either a generated full layout (unnamed cells as `WordXXXX`,
+      the engine's 59 fixed indices named) or a ruling on byte memory (CLAUDE.md: no raw memory)
+    - [ ] B1b3 the store by dialect (16-bit cell, or the operand's width) as data of the Version
+    - [ ] B1b4 BR's waits and frames as engine continuations; with B1f
+    - [ ] B1b5 one random generator (`rules.RNG`); BR's seeded expectations derived again
+    - [ ] B1b6 `eclbr.VM` deleted
   - [ ] B1c the importer: `ecl-br/importbr`, `importbr1`, `importbr2` into `importer`; `data/br1`,
     `data/br2`; nothing read from the originals at run time (BR2's START.EXE and GAME.OVR, BR1's
     data segment become import output)
