@@ -331,14 +331,32 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
         an unported command panics (every game); `GameTables.PictureSets`; VGA animation blocks
         load; layout names `FacingOrRaw` + `TravelKind`, `Cell`; `Behaviour.ClearExitText`;
         `rulesxxvc` `AdvanceClock`. B1f1 is done with this.
-      - Open after slice 1, for the walking/new block slice: V4 76's rocket view (2) and kind 3
-        panic (B1e); `ScriptBlock` (4BF2) is unbound: BR writes the current block at every step and a
-        loaded game starts from it, the engine's `LastBlock` is what NewECL left; `Word7EB1`
-        (selected member), `ForwardHeld` unbound; Delay pauses by the engine's message speed, BR's
-        is 100 ms a unit and none at speed 0; Sound(5), Sound(131) have no table (`sound.json`);
-        the command's name `AreaKind` in `ecl` is wrong (it is the view's kind) and collides with
-        the engine's AreaKind (the block); the walls are slots only, nothing draws BR's (no
-        WALLDEF); a year's carry does not age (a `Character` has no age).
+    - [x] B1f2 slice 2, a new block and places without walking: `TestBR1NewBlock` (block 17,
+      Salvation: greeting, Log Book entry 41 in the pager, the base's menu, HQ's team menu and
+      back), `TestBR1TurnAndWall`, `TestScriptedPlace` (a block the test writes). View kind 3 is
+      `World.Scripted` (the move entry runs again until it asks; 1000 runs without a question
+      panic); `Logbook` (V4 63) with BR1's Log Book as `importer/br1/journal` and
+      `GameTables.Logbook`; V4 56 is `Program` (0 the team menu); layout name `ScriptBlock`
+      (`markScriptBlock`, `runMoveEntry`); a script that does not parse panics.
+    - Open after slice 2:
+      - V4 76's rocket view (2) and Program 9 (BR's rest menu: holds the script, which goes on;
+        the Pool games' camp ends it) panic as not ported
+      - a Program code a dialect does not list does nothing, for every game (pod's scripts use 3
+        and a variable; pod's table has 0, 1, 2, 9): not checked what the original does there
+      - `InitAreaScript` sets `In3D` at every block's start; BR keeps the view across blocks until
+        command 76 says otherwise (the overland slice)
+      - a locked door (door state 2, 3) opens the Pool games' bash/pick/knock; BR steps only
+        through state 1
+      - `scriptText` replaces platinum prices in every game's text (an AD&D rule in the engine)
+      - `GameLoop` and `areaStart` name POR's overland blocks 0x19..0x1B (a game's numbers in
+        the engine)
+      - the member cells (`Word7EB1` selected, `Word7D00`.. the clinic's reads), `ForwardHeld`
+        unbound; block 17's CLINIC, DEPOT (Shop), PORT untested
+      - Delay pauses by the engine's message speed, BR's is 100 ms a unit and none at speed 0;
+        Sound has no table (`sound.json`); the command's name `AreaKind` in `ecl` is wrong (the
+        view's kind) and collides with the engine's AreaKind (the block); the walls are slots
+        only, nothing draws BR's (no WALLDEF); a year's carry does not age
+      - the ui: menu replies come out as "Bar", "Hq" (the engine's casing of script menus)
       - Seen wrong in the state after Begin, to fix with the sheet/team menu slice: `AC` is BR's
         raw value (58), `Health` 0 and `Okay` false for an okay member, `SlotsMax` lists AD&D spell
         slots, the ui's save labels are AD&D's five, the sheet has six abilities (XXVc has Tech).
