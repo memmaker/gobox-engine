@@ -90,14 +90,7 @@ func (r *Rules) attack(f rules.Fight, aid, did rules.CharID, rng *rules.RNG) (ru
 			backstab = g2 >= rules.Made
 		}
 	}
-	r.RecalcStats(d) // then DEFENDER_ARMOR_CLASS: a blind defender is 4 easier
-	if hasEffect(d, EffBlind) {
-		d.ArmorClass[0] -= blindPenalty
-		d.ArmorClass[1] -= blindPenalty
-	}
-	armor := ArmorValue(d.ArmorClass[0], d.ArmorClass[1], rear, false, a.Career == xxvc.Rogue)
-	_, _, _, forth := walkLine(f.Board, aat, dat, 255, true, false) // ApplyRangePenalty's line
-	armor += RangePenalty(weaponRange > 1 && s.guarding, forth.blocked, distance(aat, dat), weaponRange)
+	armor := r.defenderArmor(f, a, d, s, rear, weaponRange, aat, dat)
 	// CalcWeaponDamage's line from the defender back, and the attacker's cell
 	_, _, _, back := walkLine(f.Board, dat, aat, 255, true, false)
 	switch terrainAt(f.Board, aat) {
@@ -203,3 +196,16 @@ func helpless(c *Character) bool { return hasEffect(c, EffHelpless) }
 // attacksLeft is BeginRound's and RecalcAttacksLeft's counts: rate plus the
 // round's odd bit, halved.
 func attacksLeft(rate int, round int32) int { return (rate + int(round&1)) >> 1 }
+
+// defenderArmor is the armor value an attack on d is rolled against: its armor class (a blind defender 4 easier,
+// DEFENDER_ARMOR_CLASS) by the side struck, with ApplyRangePenalty's line penalty.
+func (r *Rules) defenderArmor(f rules.Fight, a, d *Character, s *combatState, rear bool, weaponRange int, aat, dat rules.BoardPos) int {
+	r.RecalcStats(d)
+	if hasEffect(d, EffBlind) {
+		d.ArmorClass[0] -= blindPenalty
+		d.ArmorClass[1] -= blindPenalty
+	}
+	armor := ArmorValue(d.ArmorClass[0], d.ArmorClass[1], rear, false, a.Career == xxvc.Rogue)
+	_, _, _, forth := walkLine(f.Board, aat, dat, 255, true, false) // ApplyRangePenalty's line
+	return armor + RangePenalty(weaponRange > 1 && s.guarding, forth.blocked, distance(aat, dat), weaponRange)
+}

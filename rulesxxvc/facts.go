@@ -18,6 +18,9 @@ func (r *Rules) Fact(id rules.CharID, f rules.Fact) (rules.Value, error) {
 	if v, ok, err := r.factSession(id, f); ok {
 		return v, err
 	}
+	if v, ok, err := r.factFight(id, f); ok {
+		return v, err
+	}
 	c := r.chars[id]
 	if c == nil {
 		if f == rules.FactActive {

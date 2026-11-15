@@ -37,6 +37,9 @@ func (r *Rules) allowedFight(f rules.Fight) rules.Allowed {
 		len(r.targetList(f, f.Actor, c, 1, false)) > 0 {
 		offer(rules.Intimidate{})
 	}
+	if len(a.Aimed) > 0 { // the turn bar's Attack button: a foe (or a ground aim) can be aimed at
+		offer(rules.Attack{})
+	}
 	offer(rules.Quick{})
 	if ps := r.patients(f, c, at); len(ps) > 0 {
 		offer(rules.Aid{Target: ps[0]})
@@ -107,6 +110,8 @@ func (r *Rules) resolveFight(f rules.Fight, act rules.Action, rng *rules.RNG) (r
 		return rules.Outcome{}, r.buildGround(f, a, rng)
 	case rules.PlaceFight:
 		return r.placeAllCreatures(f, a.Walls), nil
+	case rules.TakeLoot:
+		return rules.Outcome{}, r.takeLoot(a)
 	case rules.FightPlaced:
 		return rules.Outcome{}, nil // CombatStart's last rule, UpdateHostileHpPercent, BeginFight already ran
 	}
@@ -114,6 +119,11 @@ func (r *Rules) resolveFight(f rules.Fight, act rules.Action, rng *rules.RNG) (r
 	f.Board = r.board(f.Board)
 	o, err := r.resolveAction(f, act, rng)
 	if err == nil {
+		// The turn is used when the actor has no actions left (EndActions: initiative 0), or it waited (Delay).
+		_, waited := act.(rules.Delay)
+		if st := r.fight[f.Actor]; st != nil {
+			o.TurnOver = o.Confirm == "" && (st.initiative <= 0 || waited)
+		}
 		r.layFallen(&f.Board, &o)
 		if own {
 			r.keepOnGround(o.Effects)
@@ -154,6 +164,20 @@ func (r *Rules) resolveAction(f rules.Fight, act rules.Action, rng *rules.RNG) (
 			return rules.Outcome{}, fmt.Errorf("Move %d to %v: not reachable with the movement left", f.Actor, act.To)
 		}
 		return r.walk(f, f.Actor, c, s, at, r.reach(f, at, s.movement)[i].Path, rng)
+	case rules.Quick: // Combat.TurnOnAuto: the actor (All: every party member in play) goes to quick-fight, the computer steering
+		ids := []rules.CharID{f.Actor}
+		if act.All {
+			ids = r.fightParty(f)
+		}
+		for _, id := range ids {
+			if q := r.chars[id]; q != nil && q.team() {
+				q.Side = rules.SideAuto
+				if qs := r.fight[id]; qs != nil && r.chars[qs.target] != nil && r.chars[qs.target].team() {
+					qs.target = rules.NoChar // an ally target is dropped
+				}
+			}
+		}
+		return rules.Outcome{}, nil
 	case rules.Intimidate: // 'I'; ponytail: the turn ending after it is assumed (EndActions)
 		at, _ := unitAt(f, f.Actor)
 		o := r.intimidate(f, c, at, rng)

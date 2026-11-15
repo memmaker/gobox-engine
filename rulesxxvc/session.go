@@ -240,6 +240,12 @@ func (r *Rules) sessionCheck(q rules.Check, rng *rules.RNG) rules.Answer {
 		return rules.Answer{}
 	case rules.InFight:
 		return rules.Answer{Yes: r.fight != nil || r.space != nil}
+	case rules.BoardUp:
+		return rules.Answer{Yes: len(r.ground.Terrain) > 0}
+	case rules.FightRound:
+		return rules.Answer{Yes: true, Value: int32(r.round)}
+	case rules.PartyAuto: // a member the computer steers (SideAuto) and the player may take back
+		return rules.Answer{Yes: slices.ContainsFunc(r.party, func(id rules.CharID) bool { c := r.chars[id]; return c != nil && c.Side == rules.SideAuto })}
 	case rules.HallOpen:
 		// No training hall in XXVc.
 		return rules.Answer{}
@@ -257,6 +263,9 @@ func (r *Rules) factSession(id rules.CharID, f rules.Fact) (v rules.Value, ok bo
 	}
 	if _, ok := f.(rules.BeastKindFact); ok {
 		return rules.BeastKind{}, true, nil // no bestiary in XXVc: no kind, the engine records none
+	}
+	if v, ok, err := r.lootFact(id, f); ok {
+		return v, true, err
 	}
 	c := r.chars[id]
 	if c == nil {
@@ -318,10 +327,10 @@ func (r *Rules) factSession(id rules.CharID, f rules.Fact) (v rules.Value, ok bo
 
 // partyPurse is the credits the party holds as a Purse (credits are Copper,
 // rules.Purse's comment): the one purse under SharedPurse, else every member's
-// own. The loot's is empty outside a fight's looting, whose coins the Situation holds.
+// own. The loot's is the pool (poolCredits) the beaten left.
 func (r *Rules) partyPurse(loot bool) rules.Purse {
 	if loot {
-		return rules.Purse{}
+		return rules.Purse{Copper: uint64(max(r.pool, 0))}
 	}
 	total := r.purse
 	if !r.options.SharedPurse {

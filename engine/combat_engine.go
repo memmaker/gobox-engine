@@ -203,7 +203,7 @@ func (e *Engine) turnChoices(cID rules.CharID) map[int]rules.BoardPos {
 	steps := func(w rules.Reach) []rules.Step {
 		out := make([]rules.Step, len(w.Path))
 		for k, at := range w.Path {
-			out[k] = rules.Step{At: at, Free: w.Free[k]}
+			out[k] = rules.Step{At: at, Free: k < len(w.Free) && w.Free[k]} // Reach.Free nil: no free attacks (XXVc has none)
 		}
 		return out
 	}

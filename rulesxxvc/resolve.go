@@ -14,6 +14,24 @@ func (r *Rules) Resolve(s rules.Situation, a rules.Action, rng *rules.RNG) (rule
 		return o, err
 	}
 	switch a := a.(type) {
+	case rules.OpenTurn:
+		// The Pool's menu runs affect group 0xF and disarms a maneuver first; XXVc has neither (its turn-start
+		// effects run in BeginTurn): nothing to do.
+		return rules.Outcome{}, nil
+	case rules.ClearCombat: // the turn record cleared: no more actions this round
+		if s := r.fight[a.Who]; s != nil {
+			endActions(s)
+		}
+		return rules.Outcome{TurnOver: true}, nil
+	case rules.FightCleared: // the fight's board and what it laid on it go (BeginFight and EndFight clear the arena)
+		r.ground, r.arena, r.fight = rules.Board{}, arena{}, nil
+		return rules.Outcome{}, nil
+	case rules.ClearTreasure: // the treasure's items go, the pool's credits stay
+		clear(r.loot)
+		return rules.Outcome{}, nil
+	case rules.BankLoot:
+		r.bankLoot()
+		return rules.Outcome{}, nil
 	case rules.EnterPhase:
 		return rules.Outcome{}, nil // the engine's phase: no XXVc rule differs by it
 	case rules.Ready:

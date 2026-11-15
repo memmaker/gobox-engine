@@ -57,6 +57,7 @@ func (r *Rules) BeginFight(f rules.Fight, _ *rules.RNG) rules.Outcome {
 	f.Board = r.board(f.Board)
 	r.layCorpses(&f.Board, r.fighters(f), func(id rules.CharID) (rules.BoardPos, bool) { return unitAt(f, id) }, &o) // PlaceAllCreatures
 	r.fight = map[rules.CharID]*combatState{}
+	r.round = 0
 	r.tactics = [2]bool{}
 	r.moveBonus = int(f.Terms.PartyMove)
 	r.hpPercent = r.hostileHpPercent(f) // combatst.pas setup
@@ -83,6 +84,7 @@ func (r *Rules) BeginRound(f rules.Fight, rng *rules.RNG) rules.Outcome {
 	if r.fight == nil {
 		r.fight = map[rules.CharID]*combatState{}
 	}
+	r.round++
 	o := r.rollTactics(f, rng)
 	type rolled struct {
 		id        rules.CharID
@@ -258,6 +260,7 @@ func (r *Rules) EndFight(f rules.Fight, _ *rules.RNG) rules.FightResult {
 		}
 	}
 	var res rules.FightResult
+	r.pool = 0
 	verdict := r.Verdict(f)
 	if verdict == rules.PartyWon {
 		var total int64
@@ -303,6 +306,17 @@ func (r *Rules) EndFight(f rules.Fight, _ *rules.RNG) rules.FightResult {
 				c.Status = StUnconscious
 			}
 		}
+	}
+	r.pool = rules.Copper(res.Money.Copper) // DetermineLootExp's poolCredits
+	if verdict != rules.PartyLost {         // the monsters leave the party list and the ruleset's characters (CharGen.RemoveCreature, old engine 1F6B leaveField)
+		r.party = slices.DeleteFunc(r.party, func(id rules.CharID) bool {
+			c := r.chars[id]
+			gone := c != nil && !c.team()
+			if gone {
+				delete(r.chars, id)
+			}
+			return gone
+		})
 	}
 	r.fight = nil
 	return res

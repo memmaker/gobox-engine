@@ -82,6 +82,7 @@ func (c *Character) team() bool { return c.Side != rules.SideMonsters }
 // Rules is the XXVc ruleset of BR1 and BR2: core.Rules. The game's tables come
 // at Begin (core.Campaign.Tables, an xxvc.Tables).
 type Rules struct {
+	pool      rules.Copper                       // poolCredits: the credits the beaten left, until BankLoot
 	loot      map[rules.ItemHandle]rules.ItemRef // FightResult.Items' handles (lootHandle)
 	nextItem  rules.ItemHandle                   // the last carried item's handle (handOut)
 	chars     map[rules.CharID]*Character
@@ -96,6 +97,7 @@ type Rules struct {
 	moveBonus int          // zone1 movementBonus (FightTerms.PartyMove) for this fight
 	tactics   [2]bool      // GDVars.tacticsSides by side (TEAM, HOSTILE): RollTactics each round
 
+	round      int            // combatRound: the rounds begun this fight (BeginRound)
 	initiative []rules.CharID // this round's order still to act
 	fight      map[rules.CharID]*combatState
 	arena      arena       // the arena cells, clouds and corpses over Board.Terrain

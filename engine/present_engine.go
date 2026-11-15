@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"gobox/game"
 	"gobox/rules"
 )
@@ -93,8 +94,9 @@ func (e *Engine) apply(f rules.Effect) {
 		}
 		e.event(ev)
 
+	case rules.TerrainSet: // the board is the ruleset's, read as GroundFact at each state build: no event to play (a corpse's terrain)
 	default:
-		panic("present: an effect with no presentation")
+		panic(fmt.Sprintf("present: an effect with no presentation: %T", f))
 	}
 }
 
