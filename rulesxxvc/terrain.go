@@ -144,7 +144,10 @@ func (r *Rules) probeDirection(b rules.Board, id rules.CharID, dir int) (blocked
 		return false, 0, false
 	}
 	for _, c := range cellsOf(b.Units[i]) {
-		n := c.Add(dirStep[dir])
+		n := c
+		if dir != centerDir { // dirStepX/Y[8] = 0
+			n = c.Add(dirStep[dir])
+		}
 		if o, ok := r.occupant(b, n); ok && o != id {
 			blocked = true
 		}

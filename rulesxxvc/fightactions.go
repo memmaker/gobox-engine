@@ -102,6 +102,14 @@ func (r *Rules) groundAims(f rules.Fight, c *Character, at rules.BoardPos, aimed
 // resolveFight is ManualControl's keys and their cbtacts.pas rules, on the
 // arena as the rules hold it; the fallen leave corpses.
 func (r *Rules) resolveFight(f rules.Fight, act rules.Action, rng *rules.RNG) (rules.Outcome, error) {
+	switch a := act.(type) { // the set-up: no actor yet (combatst.pas CombatStart)
+	case rules.BuildGround:
+		return rules.Outcome{}, r.buildGround(a, rng)
+	case rules.PlaceFight:
+		return r.placeAllCreatures(f, a.Walls), nil
+	case rules.FightPlaced:
+		return rules.Outcome{}, nil // CombatStart's last rule, UpdateHostileHpPercent, BeginFight already ran
+	}
 	own := ownsBoard(f)
 	f.Board = r.board(f.Board)
 	o, err := r.resolveAction(f, act, rng)
