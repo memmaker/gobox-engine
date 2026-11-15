@@ -26,6 +26,7 @@ const SavesDir, SlotsDir = "saves", "saves"
 type Save struct {
 	Set                      rules.Set
 	Rules                    json.RawMessage    // the ruleset's part (the ruleset's Save)
+	World                    *rules.World       // the engine's world words; nil in a save written before the engine kept them (their values are in Rules then)
 	Fields                   map[string][]int64 // the game's fields, by name
 	Locals                   map[string][]int64 // the running area's locals, by name
 	X, Y, Facing, Pos3, Pos4 byte

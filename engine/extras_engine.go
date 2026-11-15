@@ -9,7 +9,7 @@ import (
 // areaKey identifies the current map: data set and GEO block (New Phlan's
 // three scripts share one map).
 func (e *Engine) areaKey() int {
-	return int(e.set)<<16 | e.worldWord(rules.WordGeo)
+	return int(e.set)<<16 | int(e.world.Geo)
 }
 
 // markSeen records the party's cell as visited and the cells in view

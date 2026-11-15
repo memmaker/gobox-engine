@@ -301,6 +301,7 @@ func (e *Engine) loadSlot() bool {
 		e.fileError("read", e.savePath(adventure.GameFile))
 		return false
 	}
+	e.loadWorld(f)
 	taken, err := e.ruleset().Resolve(nil, rules.TakeSavedWalls{}, nil)
 	if err != nil {
 		panic(fmt.Sprintf("load: %v", err)) // the action never refuses
@@ -318,9 +319,9 @@ func (e *Engine) loadSlot() bool {
 	e.pos3, e.pos4 = f.Pos3, f.Pos4
 	e.viewMode = int(f.ViewMode)
 	e.setWorldWord(rules.WordBeginFlag, int(f.BeginFlag))
-	w := uint16(e.worldWord(rules.WordViewFlags))
+	w := uint16(e.world.ViewFlags)
 	e.viewBit1, e.viewBit0 = byte(w>>1), byte(w&1)
-	e.msgDelay = byte(e.worldWord(rules.WordMsgDelay))
+	e.msgDelay = byte(e.world.MsgDelay)
 	e.do(rules.EmptyParty{})
 	e.do(rules.ForgetParty{})
 	e.sel = 0
@@ -336,10 +337,10 @@ func (e *Engine) loadSlot() bool {
 	}
 	e.sel = 0
 	if !e.eclVersion.Behaviour.SymbolSetFrames {
-		e.set = rules.Set(e.worldWord(rules.WordSymbolSet))
+		e.set = rules.Set(e.world.SymbolSet)
 	}
 	if e.viewMode < 2 {
-		e.LoadGeo(int(byte(e.worldWord(rules.WordGeo)))) // ovr30:10C7
+		e.LoadGeo(int(byte(e.world.Geo))) // ovr30:10C7
 	}
 	if e.viewMode > 1 {
 		e.loadAreaIcon(0, 0xB) // ovr33:01C8
@@ -352,7 +353,7 @@ func (e *Engine) loadSlot() bool {
 			}
 		}
 	}
-	if e.worldWord(rules.WordRiverOpen) != 0 {
+	if e.world.RiverOpen != 0 {
 		e.EndgameHook(0) // ovr19:06B3
 	}
 	e.clearPrompt()
@@ -364,15 +365,15 @@ func (e *Engine) loadSlot() bool {
 func (e *Engine) saveSlot() error {
 	e.clearPrompt()
 	e.prompt(game.InkLightGreen, "Saving...Please Wait")
-	e.setWorldWord(rules.WordMsgDelay, int(e.msgDelay))
-	e.setWorldWord(rules.WordViewFlags, int(e.viewBit1)*2+int(e.viewBit0))
+	e.world.MsgDelay = uint16(e.msgDelay)
+	e.world.ViewFlags = uint16(e.viewBit1)*2 + uint16(e.viewBit0)
 	if !e.eclVersion.Behaviour.SymbolSetFrames {
-		e.setWorldWord(rules.WordSymbolSet, int(e.set))
+		e.world.SymbolSet = uint16(e.set)
 	}
-	// the running area: after an area change the area block still names the
-	// one left (opNewECL; the game loop copies the new one after the next
-	// command), but the load reloads the running script (GameLoop)
-	v := rules.RecordView{AreaKind: uint16(e.gs.areaKind)}
+	// the running area (savedWorld) is not the area word after an area change
+	// (opNewECL; the game loop copies the new one after the next command), but
+	// the load reloads the running script (GameLoop)
+	var v rules.RecordView
 	for i := range 3 {
 		v.WallsA[i] = uint16(e.mapPairA[i])
 		v.WallsB[i] = uint16(e.mapPairB[i])
@@ -382,7 +383,7 @@ func (e *Engine) saveSlot() error {
 	if err != nil {
 		panic(err) // the ruleset's part always marshals
 	}
-	f := adventure.Save{Set: e.set, Rules: blob, Fields: e.vars, Locals: e.locals}
+	f := adventure.Save{Set: e.set, Rules: blob, World: e.savedWorld(), Fields: e.vars, Locals: e.locals}
 	f.X, f.Y, f.Facing, f.Pos3, f.Pos4 = byte(e.posX), byte(e.posY), byte(e.facing), e.pos3, e.pos4
 	f.ViewMode, f.BeginFlag = byte(e.viewMode), byte(e.beginFlag())
 	for i := range e.partyIDs() {

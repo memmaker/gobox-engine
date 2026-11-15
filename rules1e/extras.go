@@ -24,7 +24,3 @@ package rules1e
 // Menus also get a selection indicator: the highlighted item sits on a
 // coloured background (the original only recolours its text, which is the
 // colour the hotkey letters already have).
-
-// NoMap: the game's own rule for its Area command refuses this area
-// (Automap.NoMap).
-func (e *RuleState) NoMap() bool { return e.Area.NoCoords != 0 }

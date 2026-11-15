@@ -2,6 +2,7 @@ package importer
 
 import (
 	"gobox/ecl"
+	"gobox/rules"
 	"gobox/rules1e"
 )
 
@@ -15,12 +16,13 @@ var (
 	OriginalRules   = originalRules
 )
 
-// originalRules is the ruleset's part of the original save b laid out as s
-// whose script fields are l (a game's test against its real saves).
-func originalRules(b []byte, s rules1e.SaveLayout, l *ecl.Layout) ([]byte, error) {
+// originalRules is the ruleset's part and the engine's world of the original
+// save b laid out as s whose script fields are l (a game's test against its
+// real saves).
+func originalRules(b []byte, s rules1e.SaveLayout, l *ecl.Layout) ([]byte, *rules.World, error) {
 	o, err := rules1e.ReadOriginalSave(b, s)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	return rulesOf(&o, s, l)
 }

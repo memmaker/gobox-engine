@@ -165,10 +165,8 @@ type SaveBlob struct {
 }
 
 // SaveView is the engine's view state a save records on Area (por saveSlot):
-// the running area (after an area change Area still names the one left) and
-// its wall slots, which the live Area keeps cleared.
+// the wall slots, which the live Area keeps cleared.
 type SaveView struct {
-	AreaKind       uint16
 	WallsA, WallsB [3]uint16
 }
 
@@ -179,7 +177,7 @@ func (r *Rules) SetSaveView(v SaveView) { r.view = &v }
 func (r *Rules) Save() ([]byte, error) {
 	b := SaveBlob{Area: r.S.Area, Game: r.S.Game, Purse: r.S.Purse}
 	if v := r.view; v != nil {
-		b.Area.AreaKind, b.Area.WallsA, b.Area.WallsB = v.AreaKind, v.WallsA, v.WallsB
+		b.Area.WallsA, b.Area.WallsB = v.WallsA, v.WallsB
 	}
 	return json.Marshal(b)
 }

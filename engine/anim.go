@@ -175,7 +175,7 @@ func (e *Engine) ShowEncounter(sprite, pic, dist int, flags *[2]byte) {
 			e.DrawAnimFrame(2)
 		}
 	}
-	face := uint16(e.worldWord(rules.WordPortrait))
+	face := uint16(e.world.Portrait)
 	if flags[1] != 0 && uint16(e.es.shownFace) == face {
 		return
 	}

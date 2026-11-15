@@ -11,7 +11,7 @@ import (
 // The canonical fields of the words the VM itself keeps (every game's layout names them so,
 // when it has them).
 const (
-	fieldLastBlock   = "LastBlock"       // the block NewECL left (sotsb, cotab, pod); POR has none: core.WordLastBlock
+	fieldLastBlock   = "LastBlock"       // the block NewECL left (sotsb, cotab, pod); POR has none: the world's AreaKind
 	fieldRemainder   = "DivideRemainder" // where DIVIDE leaves its remainder (sotsb, cotab, pod); POR has none
 	fieldLoopCounter = "LoopCounter"     // FOR/NEXT's counter (Buck Rogers); the Pool games have none
 	fieldLoopLimit   = "LoopLimit"       // FOR/NEXT's limit (Buck Rogers); the Pool games have none
@@ -38,13 +38,13 @@ func (e *Engine) bindWords() {
 }
 
 // setLastBlock keeps block, the one NewECL leaves, to come back to: in the layout's LastBlock
-// field, else (POR) in the ruleset's core.WordLastBlock.
+// field, else (POR) in the world's AreaKind (POR keeps the block in the area's kind word).
 func (e *Engine) setLastBlock(block int) {
 	if r, ok := e.layoutField(fieldLastBlock); ok {
 		e.host.Set(r, int64(block))
 		return
 	}
-	e.setWorldWord(rules.WordLastBlock, block)
+	e.world.AreaKind = uint16(block)
 }
 
 // BoundFields are the canonical script field names the engine gives a meaning: a game's

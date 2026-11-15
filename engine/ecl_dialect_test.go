@@ -24,13 +24,13 @@ func runOp(e *Engine, v *ecl.Version, op func(), args ...int) {
 func TestLoadAreaOp(t *testing.T) {
 	e := quickStarted(t)
 	e.setWorldWord(rules.WordIn3D, 1)
-	e.setWorldWord(rules.WordGeo, 9)
+	e.world.Geo = 9
 	runOp(e, ecl.V3, e.opLoadArea, geoNone, wallsNone)
-	if g := e.worldWord(rules.WordGeo); g != 9 {
+	if g := int(e.world.Geo); g != 9 {
 		t.Fatalf("map 127 loaded: geo %d", g)
 	}
 	runOp(e, ecl.V3, e.opLoadArea, 1, wallsNone)
-	if g := e.worldWord(rules.WordGeo); g != 1 {
+	if g := int(e.world.Geo); g != 1 {
 		t.Fatalf("map 1: geo %d", g)
 	}
 }
@@ -43,7 +43,7 @@ func TestSetupMonsterSides(t *testing.T) {
 	if e.run.monsterSides != 5 || e.vm.PC != 1 {
 		t.Fatalf("sides %d, PC %d", e.run.monsterSides, e.vm.PC)
 	}
-	if d := e.worldWord(rules.WordMaxDist); d != maxEncounterDist {
+	if d := int(e.world.MaxDist); d != maxEncounterDist {
 		t.Fatalf("max distance %d", d)
 	}
 }
@@ -53,7 +53,7 @@ func TestNewECLSavesLastBlock(t *testing.T) {
 	e := quickStarted(t)
 	e.gs.areaKind = 7
 	runOp(e, ecl.V1, e.opNewECL, 1)
-	if b := e.worldWord(rules.WordLastBlock); b != 7 {
+	if b := int(e.world.AreaKind); b != 7 {
 		t.Fatalf("last block %d", b)
 	}
 }
@@ -62,8 +62,8 @@ func TestNewECLSavesLastBlock(t *testing.T) {
 func TestNoMonsterCombat(t *testing.T) {
 	e := quickStarted(t)
 	e.eclVersion = ecl.V1
-	e.setWorldWord(rules.WordTemple, 1)
-	if e.noMonsterScreen() == nil || e.worldWord(rules.WordTemple) != 0 {
+	e.world.Temple = 1
+	if e.noMonsterScreen() == nil || e.world.Temple != 0 {
 		t.Fatal("temple not opened")
 	}
 	if e.noMonsterScreen() != nil {

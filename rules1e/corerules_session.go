@@ -24,7 +24,7 @@ func (r *Rules) resolveSession(a rules.Action) (rules.Outcome, bool, error) {
 	case rules.EndSession:
 		s.Camp.On, s.Training, s.Learning = false, false, false
 	case rules.RecordView:
-		r.SetSaveView(SaveView{AreaKind: a.AreaKind, WallsA: a.WallsA, WallsB: a.WallsB})
+		r.SetSaveView(SaveView{WallsA: a.WallsA, WallsB: a.WallsB})
 	case rules.TakeSavedWalls:
 		w := rules.SavedWalls{A: s.Area.WallsA, B: s.Area.WallsB}
 		s.Area.WallsA, s.Area.WallsB = [3]uint16{}, [3]uint16{}

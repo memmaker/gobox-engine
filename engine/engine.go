@@ -36,6 +36,7 @@ type Engine struct {
 	given              *adventure.GameTables  // the game's GameTables (New; bareData when nil)
 	eclVersion         *ecl.Version           // the game's ECL dialect (initVM)
 	rules              rules.Rules            // the ruleset; it owns the rules' state (state) (rulesetseam.go)
+	world              rules.World            // the world words the engine and the scripts keep, no ruleset reads them (saved: adventure.Save.World)
 	create             rules.CreationRules    // the ruleset's creation, made with rules
 	posX, posY, facing int                    // the party's map square and facing 0..7 (DS:6AAD, 6AAE, 6AAF): world navigation, the Engine's; saves keep them (files_engine.go)
 	campSavedFlag      int                    // beginFlag as camp found it

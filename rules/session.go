@@ -55,9 +55,8 @@ func LogJoin(s, msg string) string {
 }
 
 // RecordView is the engine's view state the next Save records with the
-// area: the running area and the wall slots (a block, a slot; 0xFFFF none).
+// area: the wall slots (a block, a slot; 0xFFFF none).
 type RecordView struct {
-	AreaKind       uint16
 	WallsA, WallsB [3]uint16
 }
 

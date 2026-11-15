@@ -34,7 +34,7 @@ func TestPodCombatWords(t *testing.T) {
 	}
 	for _, l := range e.artNames().WildTiles { // the wilderness tiles' block by the set: 1 and 2 their own, else 0
 		for set, want := range []int{0, 1, 2, 0} {
-			e.setWorldWord(rules.WordSymbolSet, set)
+			e.world.SymbolSet = uint16(set)
 			if got := e.tileBlock(l); got != want {
 				t.Errorf("set %d: wilderness tile block %d, want %d", set, got, want)
 			}

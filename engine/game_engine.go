@@ -20,7 +20,7 @@ func (e *Engine) GameLoop() {
 	r.needFrame = 1
 	e.setWorldWord(rules.WordBeginFlag, 4)
 	r.areaChanged = false
-	e.gs.areaKind = byte(e.worldWord(rules.WordAreaKind))
+	e.gs.areaKind = byte(e.world.AreaKind)
 	if e.gs.areaKind == 0 { // no last block: the game's first (POR's is 0)
 		e.gs.areaKind = byte(e.game().FirstBlock)
 	}
@@ -60,7 +60,7 @@ func (e *Engine) gameBegan(fresh bool) {
 	if fresh {
 		e.Music(4) // extra: the party first enters Phlan (the Amiga never plays song 4)
 	}
-	e.setWorldWord(rules.WordAreaKind, int(uint16(e.gs.areaKind)))
+	e.world.AreaKind = uint16(e.gs.areaKind)
 	e.looking, e.over = false, false
 	e.ext.explore, e.ext.exploreSeq = true, e.opens()
 	e.commandBegin()
@@ -73,7 +73,7 @@ func (e *Engine) afterCommand(encamp bool) {
 	r := &e.run
 	r.savedSel = e.selected()
 	if !e.looking {
-		e.setWorldWord(rules.WordAreaKind, int(uint16(e.gs.areaKind)))
+		e.world.AreaKind = uint16(e.gs.areaKind)
 	}
 	if e.ext.interacting { // extra: Space on a square whose event waits (interact.go)
 		e.ext.interacting = false
@@ -92,15 +92,15 @@ func (e *Engine) afterCommand(encamp bool) {
 		return
 	}
 	// Look / encamp: repeat while the last command was one of them.
-	if (e.worldWord(rules.WordSearch) > 1 || encamp) && !r.quit {
+	if (e.world.Search > 1 || encamp) && !r.quit {
 		e.looking = true
 		if encamp {
 			e.push(cont{kind: kLookDone})
 			e.Encamp()
 			return
 		}
-		r.searchSave = byte(e.worldWord(rules.WordSearch) & 1)
-		e.setWorldWord(rules.WordSearch, 1)
+		r.searchSave = byte(int(e.world.Search) & 1)
+		e.world.Search = 1
 		e.Redraw()
 		e.push(cont{kind: kSearched, n: [3]int{e.ext.opened, e.posX, e.posY}})
 		e.RunECL(e.es.events[1])
@@ -137,7 +137,7 @@ func (e *Engine) stepDone() {
 	p := e.ext.pre
 	e.ext.pre = nil
 	if split && p != nil && p.ran && p.x == e.posX && p.y == e.posY && p.side == e.moveDir() {
-		e.setWorldWord(rules.WordHoldMove, int(p.hold)) // RunEvent{Before} ran the pre-step script for this step
+		e.world.HoldMove = p.hold // RunEvent{Before} ran the pre-step script for this step
 		e.stepMove(split)
 		return
 	}
@@ -165,8 +165,8 @@ func (e *Engine) stepPre(split bool) {
 
 // stepMove is the step's move, then its events.
 func (e *Engine) stepMove(split bool) {
-	e.setWorldWord(rules.WordPrevX, int(uint16(int16(int8(e.posX)))))
-	e.setWorldWord(rules.WordPrevY, int(uint16(int16(int8(e.posY)))))
+	e.world.PrevX = uint16(int16(int8(e.posX)))
+	e.world.PrevY = uint16(int16(int8(e.posY)))
 	e.push(cont{kind: kMoved, flag: split})
 	e.Move()
 }
@@ -174,7 +174,7 @@ func (e *Engine) stepMove(split bool) {
 // moved: the step is made.
 func (e *Engine) moved(split bool) {
 	e.Redraw()
-	if e.worldWord(rules.WordPrevX) != e.posX || e.worldWord(rules.WordPrevY) != e.posY {
+	if int(e.world.PrevX) != e.posX || int(e.world.PrevY) != e.posY {
 		e.cue(rules.CueStep)
 	}
 	if split {
@@ -223,7 +223,7 @@ func (e *Engine) preEnd(p *preStep, kept int) {
 		e.ext.pre = nil
 		e.stepEnd()
 	default:
-		p.hold = uint16(e.worldWord(rules.WordHoldMove))
+		p.hold = uint16(e.world.HoldMove)
 		if e.viewMode != 1 && e.facing == p.side {
 			e.facing = kept // the facing shows the step's way only once Arrive takes it
 		}
@@ -255,7 +255,7 @@ func (e *Engine) areaChanged() {
 // area's start events and settle the view mode; then what follows.
 func (e *Engine) AreaChange() {
 	e.es.cell = e.MapCell(e.posX, e.posY)
-	e.setWorldWord(rules.WordLeftMap, 0)
+	e.world.LeftMap = 0
 	e.ruleset()         // charID
 	sel := e.selected() // DS:5D92 kept at bp-4 (ovr04:31D5)
 	e.prevViewMode = e.viewMode
@@ -276,7 +276,7 @@ func (e *Engine) areaStart(sel rules.CharID) {
 		case 0x1A:
 			e.viewMode = 3
 			e.setWorldWord(rules.WordBeginFlag, 3)
-			if e.worldWord(rules.WordBoss) == 0xFE && e.worldWord(rules.WordRiverOpen) == 0 {
+			if e.worldWord(rules.WordBoss) == 0xFE && e.world.RiverOpen == 0 {
 				e.EndgameHook(1)
 			}
 		case 0x1B:
@@ -344,7 +344,7 @@ func (e *Engine) campOver() {
 // screen then waits for the adventuring decisions until one ends input
 // (camp, search here, a step: commandEnd).
 func (e *Engine) commandBegin() {
-	e.setWorldWord(rules.WordHoldMove, 0)
+	e.world.HoldMove = 0
 	e.areaMusic()
 	e.unback() // a backward step the scripts ended
 	if e.viewMode >= 2 && e.viewMode <= 4 && e.prevViewMode < 2 {
@@ -446,7 +446,7 @@ func (e *Engine) interactCmd() (ends, encamp bool) {
 
 // lookCmd is the original's Look: search this square once.
 func (e *Engine) lookCmd() (ends, encamp bool) {
-	e.setWorldWord(rules.WordSearch, int(e.worldWord(rules.WordSearch)|2))
+	e.world.Search |= 2
 	e.searchSecrets()
 	e.searchTime()
 	e.vm.PC = uint16(e.es.events[1])
@@ -455,8 +455,8 @@ func (e *Engine) lookCmd() (ends, encamp bool) {
 
 // sweepCmd is the original's Search: the slow, searching pace on or off.
 func (e *Engine) sweepCmd() (ends, encamp bool) {
-	e.setWorldWord(rules.WordSearch, int(e.worldWord(rules.WordSearch)^1))
-	e.say(map[bool]string{true: "Sweeping", false: "Sweeping off"}[e.worldWord(rules.WordSearch)&1 != 0]) // extra: the toggle shows
+	e.world.Search ^= 1
+	e.say(map[bool]string{true: "Sweeping", false: "Sweeping off"}[e.world.Search&1 != 0]) // extra: the toggle shows
 	return false, false
 }
 
@@ -475,7 +475,7 @@ func (e *Engine) turn(d int, sound bool) {
 // side would leave the map.
 func (e *Engine) checkEdge() {
 	x, y := e.posX, e.posY
-	e.setWorldWord(rules.WordLeftMap, 0)
+	e.world.LeftMap = 0
 	if e.DoorAt(x, y, e.moveDir()) == 0 {
 		return
 	}
@@ -483,19 +483,19 @@ func (e *Engine) checkEdge() {
 	y += rules.StepY[e.moveDir()]
 	if x > 15 {
 		e.posX = 15
-		e.setWorldWord(rules.WordLeftMap, 1)
+		e.world.LeftMap = 1
 	}
 	if x < 0 {
 		e.posX = 0
-		e.setWorldWord(rules.WordLeftMap, 1)
+		e.world.LeftMap = 1
 	}
 	if y > 15 {
 		e.posY = 15
-		e.setWorldWord(rules.WordLeftMap, 1)
+		e.world.LeftMap = 1
 	}
 	if y < 0 {
 		e.posY = 0
-		e.setWorldWord(rules.WordLeftMap, 1)
+		e.world.LeftMap = 1
 	}
 }
 
@@ -518,8 +518,8 @@ func (e *Engine) unback() {
 func (e *Engine) Move() {
 	switch {
 	case e.viewMode == 1:
-		if e.worldWord(rules.WordHoldMove) >= 0xFF {
-			e.setWorldWord(rules.WordHoldMove, 0)
+		if e.world.HoldMove >= 0xFF {
+			e.world.HoldMove = 0
 			break
 		}
 		switch e.DoorAt(e.posX, e.posY, e.moveDir()) {
@@ -536,10 +536,10 @@ func (e *Engine) Move() {
 		}
 		return
 	case e.viewMode >= 2 && e.viewMode <= 4:
-		if e.worldWord(rules.WordHoldMove) < 0xFF {
+		if e.world.HoldMove < 0xFF {
 			e.mapMove()
 		} else {
-			e.setWorldWord(rules.WordHoldMove, 0)
+			e.world.HoldMove = 0
 		}
 	}
 	e.moveEnd()
@@ -724,7 +724,7 @@ func (e *Engine) stepAhead() {
 	e.es.wallAhead = e.WallAt(e.posX, e.posY, e.facing)
 	e.run.doorTry = [3]byte{1, 1, 1}
 	e.es.cell = e.MapCell(e.posX, e.posY)
-	if e.worldWord(rules.WordSearch)&1 != 0 {
+	if e.world.Search&1 != 0 {
 		e.searchSecrets() // sweeping: every square stepped on is searched
 		e.searchTime()
 	} else {
@@ -746,7 +746,7 @@ func (e *Engine) mapMove() {
 		t >= 0xDD && t <= 0xDE, t >= 0xE1 && t <= 0xE9, t == 0xF5:
 		return
 	case t >= 0x66 && t <= 0x6C, t == 0x72:
-		if e.worldWord(rules.WordRiverOpen) == 0 {
+		if e.world.RiverOpen == 0 {
 			e.DisplayMessageWait(game.InkYellow, "The river's stench drives you back.")
 			return
 		}

@@ -17,7 +17,7 @@ func (e *Engine) InitAreaScript() {
 	s.cloneIcon = 8
 	e.vm.Calls = nil
 	e.vm.Flags = [6]bool{}
-	e.setWorldWord(rules.WordPortrait, 0xFF)
+	e.world.Portrait = 0xFF
 	e.setWorldWord(rules.WordRestEvery, 0)
 	e.setWorldWord(rules.WordRestChance, 0)
 	e.setWorldWord(rules.WordNoMagic, 0)
@@ -78,7 +78,7 @@ func (e *Engine) FreeSteps(x, y, dir int) int {
 // the east edge): an area change, not a wrap within the map.
 func (e *Engine) StepForward() {
 	x, y := e.posX+rules.StepX[e.moveDir()], e.posY+rules.StepY[e.moveDir()]
-	if e.worldWord(rules.WordLeftMap) != 0 {
+	if e.world.LeftMap != 0 {
 		x, y = (x+16)%16, (y+16)%16
 	}
 	if x >= 0 && x <= 15 && y >= 0 && y <= 15 {

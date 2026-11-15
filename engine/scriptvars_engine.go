@@ -26,12 +26,12 @@ func (e *Engine) newEngineFields() map[string]engineField {
 		"SymbolSet": { // ovr08:07BC/0A74 +0x312: the symbol set (0802:094A)
 			get: func(int) (int64, bool) {
 				if e.eclVersion.Behaviour.SymbolSetFrames {
-					return int64(e.worldWord(rules.WordSymbolSet)), true
+					return int64(int(e.world.SymbolSet)), true
 				}
 				return int64(e.set), true
 			},
 			set: func(_ int, v int64) {
-				e.setWorldWord(rules.WordSymbolSet, int(v))
+				e.world.SymbolSet = uint16(v)
 				if !e.eclVersion.Behaviour.SymbolSetFrames {
 					e.set = rules.Set(v)
 				}
@@ -159,6 +159,11 @@ func (e *Engine) newEngineFields() map[string]engineField {
 	}
 	for name, w := range scriptWords {
 		m[name] = e.wordField(w)
+	}
+	for name, cell := range e.world.Cells() { // the engine's own words; the special ones above (SymbolSet) keep their field
+		if _, special := m[name]; !special {
+			m[name] = cellField(cell)
+		}
 	}
 	for name, w := range portraitWords {
 		f := e.wordField(w) // ovr08:0C77: writing the HEAD/BODY words redraws the portrait
@@ -614,6 +619,14 @@ func (e *Engine) wordField(n rules.WorldWord) engineField {
 	}
 }
 
+// cellField is the script field of a world cell.
+func cellField(p *uint16) engineField {
+	return engineField{
+		get: func(int) (int64, bool) { return int64(*p), true },
+		set: func(_ int, v int64) { *p = uint16(v) },
+	}
+}
+
 // effect is entry i of the party's affect table.
 func (e *Engine) effect(i int) (uint16, bool) {
 	a := e.ruleset().Check(rules.WordIs{Word: rules.WordEffect, Index: i}, nil)
@@ -634,44 +647,27 @@ func (e *Engine) partyIndex(id rules.CharID) int {
 var scriptWords = map[string]rules.WorldWord{
 	"MapX":         rules.WordMapX,
 	"MapY":         rules.WordMapY,
-	"Geo":          rules.WordGeo,
 	"TenMinutes":   rules.WordTenMinutes,
 	"Hours":        rules.WordHours,
 	"NoMagic":      rules.WordNoMagic,
 	"In3D":         rules.WordIn3D,
-	"WallSplitA":   rules.WordWallSplitA,
-	"WallSplitB":   rules.WordWallSplitB,
-	"PrevX":        rules.WordPrevX,
-	"PrevY":        rules.WordPrevY,
-	"AreaKind":     rules.WordAreaKind,
-	"NoCoords":     rules.WordNoCoords,
-	"MsgDelay":     rules.WordMsgDelay,
-	"ViewFlags":    rules.WordViewFlags,
 	"MarkFlags4":   rules.WordMarkFlags4,
 	"Mark3":        rules.WordMark3,
 	"Mark4Off":     rules.WordMark4Off,
 	"MarkFlags57":  rules.WordMarkFlags57,
-	"RiverOpen":    rules.WordRiverOpen,
 	"Boss":         rules.WordBoss,
 	"Mark4":        rules.WordMark4,
 	"PartyExp":     rules.WordTrainable,
-	"MaxDist":      rules.WordMaxDist,
 	"MonsterDist":  rules.WordMonsterDist,
 	"Morale":       rules.WordMorale,
 	"CombatEnd":    rules.WordCombatEnd,
 	"Beaten":       rules.WordBeaten,
-	"HoldMove":     rules.WordHoldMove,
-	"Search":       rules.WordSearch,
 	"Surprise":     rules.WordSurprise,
 	"RestEvery":    rules.WordRestEvery,
 	"RestChance":   rules.WordRestChance,
-	"LeftMap":      rules.WordLeftMap,
-	"Portrait":     rules.WordPortrait,
-	"Temple":       rules.WordTemple,
 	"NoLoot":       rules.WordNoLoot,
 	"Duel":         rules.WordDuel,
 	"AttackedAlly": rules.WordAttackedAlly,
-	"Shop":         rules.WordShop,
 	"MonsterHit":   rules.WordMonsterHit,
 	"PartyHit":     rules.WordPartyHit,
 	"PartyMove":    rules.WordPartyMove,

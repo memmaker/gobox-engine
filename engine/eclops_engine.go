@@ -196,14 +196,14 @@ func (e *Engine) opSetupMonster() {
 		e.vm.ReadArgs(3)
 	}
 	e.run.sprite = int(byte(e.vm.Arg(1, e.host)))
-	e.setWorldWord(rules.WordMaxDist, int(e.vm.Arg(2, e.host)))
+	e.world.MaxDist = uint16(e.vm.Arg(2, e.host))
 	e.run.closeup = int(byte(e.vm.Arg(3, e.host)))
 	e.setWorldWord(rules.WordMonsterDist, int(e.FreeSteps(e.posX, e.posY, e.facing)))
 	if sides && e.worldWord(rules.WordIn3D) == 0 { // outdoors the distance asked becomes 2 (pod O055:03D7)
-		e.setWorldWord(rules.WordMaxDist, maxEncounterDist)
+		e.world.MaxDist = uint16(maxEncounterDist)
 	}
-	if e.worldWord(rules.WordMaxDist) < e.worldWord(rules.WordMonsterDist) {
-		e.setWorldWord(rules.WordMonsterDist, int(e.worldWord(rules.WordMaxDist)))
+	if int(e.world.MaxDist) < e.worldWord(rules.WordMonsterDist) {
+		e.setWorldWord(rules.WordMonsterDist, int(e.world.MaxDist))
 	}
 	e.ShowEncounter(e.run.sprite, e.run.closeup, int(byte(e.worldWord(rules.WordMonsterDist))), &e.es.encounterShown)
 }
@@ -234,7 +234,7 @@ func (e *Engine) opPicture() {
 		if e.eclVersion.Behaviour.PictureAnimates {
 			e.es.picAnimating = 1
 		}
-		if face := e.worldWord(rules.WordPortrait); face == 0xFF {
+		if face := int(e.world.Portrait); face == 0xFF {
 			if big := e.game().BigPictures; big.First > 0 && v >= big.First {
 				e.showBigPicture(v, big)
 				return
@@ -376,9 +376,9 @@ func (e *Engine) opLoadArea() {
 	e.run.scriptLoad, e.run.geoSet, e.run.walldefSet = 1, 1, 1
 	geo, walls := int(byte(e.vm.Arg(1, e.host))), int(byte(e.vm.Arg(2, e.host)))
 	if geo < geoNone && e.worldWord(rules.WordIn3D) != 0 {
-		e.setWorldWord(rules.WordGeo, geo)
+		e.world.Geo = uint16(geo)
 		e.LoadGeo(geo)
-		e.setWorldWord(rules.WordHoldMove, 0)
+		e.world.HoldMove = 0
 	}
 	if walls != wallsNone && walls != e.mapPairA[0] {
 		e.LoadWalldef(walls, 1)
@@ -405,9 +405,9 @@ func (e *Engine) opLoadFiles() {
 	if e.cmdIs(ecl.OpLoadMap) {
 		e.run.geoSet = 1
 		if a[1] != 0xFF && a[1] != 0x7F && e.worldWord(rules.WordIn3D) != 0 {
-			e.setWorldWord(rules.WordGeo, int(a[1]))
+			e.world.Geo = uint16(a[1])
 			e.LoadGeo(a[1])
-			e.setWorldWord(rules.WordHoldMove, 0)
+			e.world.HoldMove = 0
 		}
 		if a[3] != 0xFF && e.worldWord(rules.WordIn3D) == 0 {
 			e.layAreaTiles() // ovr33:0022
@@ -417,7 +417,7 @@ func (e *Engine) opLoadFiles() {
 		switch {
 		case a[1] == walldefDefault:
 			e.LoadWalldef(0, 1)
-		case e.worldWord(rules.WordWallSplitA) != 0 && e.worldWord(rules.WordWallSplitB) != 0:
+		case e.world.WallSplitA != 0 && e.world.WallSplitB != 0:
 			e.LoadWalldef(a[1], 1)
 			e.LoadWalldef(a[3], 3)
 		default:
@@ -626,9 +626,17 @@ func (e *Engine) noMonsterScreen() func() {
 	return nil
 }
 
-// combatScreenWords is the world word that asks for each screen; the
-// vault's is a field of the game's layout (fieldVault), the rules keep none.
-var combatScreenWords = map[ecl.CombatScreen]rules.WorldWord{ecl.CombatShop: rules.WordShop, ecl.CombatTemple: rules.WordTemple}
+// screenRequest is the world word that asks for screen s; the vault's is a
+// field of the game's layout (fieldVault), the world keeps none.
+func (e *Engine) screenRequest(s ecl.CombatScreen) *uint16 {
+	switch s {
+	case ecl.CombatShop:
+		return &e.world.Shop
+	case ecl.CombatTemple:
+		return &e.world.Temple
+	}
+	panic(fmt.Sprintf("ecl: Combat: no request word for screen %v", s))
+}
 
 // takeScreenRequest: a script asked for screen s (its word or field is 1);
 // the request is cleared, as the original's Combat does before opening it.
@@ -641,11 +649,11 @@ func (e *Engine) takeScreenRequest(s ecl.CombatScreen) bool {
 		e.host.Set(r, 0)
 		return true
 	}
-	w := combatScreenWords[s]
-	if e.worldWord(w) != 1 {
+	w := e.screenRequest(s)
+	if *w != 1 {
 		return false
 	}
-	e.setWorldWord(w, 0)
+	*w = 0
 	return true
 }
 
@@ -656,7 +664,7 @@ func (e *Engine) takeScreenRequest(s ecl.CombatScreen) bool {
 // table's entry 4 is entry 0's).
 func (e *Engine) addReserve() {
 	t := e.game().Reserve
-	m, ok := t.For(e.worldWord(rules.WordSymbolSet))
+	m, ok := t.For(int(e.world.SymbolSet))
 	if !ok {
 		return
 	}
@@ -696,7 +704,7 @@ func (e *Engine) opCombatEnd() {
 	} else {
 		e.setWorldWord(rules.WordBeginFlag, 3)
 	}
-	e.setWorldWord(rules.WordSearch, e.worldWord(rules.WordSearch)&1)
+	e.world.Search &= 1
 	e.es.encounterShown = [2]byte{}
 	e.es.picShown = 0
 	e.DrawMainScreen()

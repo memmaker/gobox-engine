@@ -69,7 +69,7 @@ func TestImportSaves(t *testing.T) {
 	if err := json.Unmarshal(g.Rules, &r); err != nil {
 		t.Fatal(err)
 	}
-	if g.X != 7 || g.Y != 9 || r.Area.AreaKind != 20 || r.Game.Shop != 1 || r.Purse.Gold != 12 {
+	if g.X != 7 || g.Y != 9 || g.World.AreaKind != 20 || g.World.Shop != 1 || r.Purse.Gold != 12 {
 		t.Errorf("imported %+v", g)
 	}
 	for name, want := range map[string]bool{"CHRDATA1.SAV": true, "CHRDATA1.ITM": true, "OTHER.SAV": false} {

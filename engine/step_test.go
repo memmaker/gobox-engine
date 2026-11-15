@@ -12,7 +12,7 @@ func TestStepForwardEdge(t *testing.T) {
 	if e.posX != 0 {
 		t.Fatalf("edge step without LeftMap moved to x=%d", e.posX)
 	}
-	e.state().Game.LeftMap = 1
+	e.world.LeftMap = 1
 	e.StepForward()
 	if e.posX != 15 || e.posY != 4 {
 		t.Fatalf("leaving west: %d,%d, want 15,4", e.posX, e.posY)

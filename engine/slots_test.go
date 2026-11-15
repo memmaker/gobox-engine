@@ -48,11 +48,11 @@ func TestSaveToRunningArea(t *testing.T) {
 	e := &Engine{set: 1, data: "../data/por/sources", adv: "../data/por"} // the save needs the script layout
 	e.initVM()
 	e.Cfg.SaveDir = t.TempDir()
-	e.state().Area.AreaKind, e.gs.areaKind = 20, 0
+	e.world.AreaKind, e.gs.areaKind = 20, 0
 	e.saveTo("X")
 	g, err := adventure.ReadSave(filepath.Join(e.slotRoot(), "X", adventure.GameFile))
-	if a := blobOf(t, g).Area; err != nil || a.AreaKind != 0 {
-		t.Errorf("saved area %d (%v), want 0, the running one", a.AreaKind, err)
+	if err != nil || g.World == nil || g.World.AreaKind != 0 {
+		t.Errorf("saved world %+v (%v), want the running area 0", g.World, err)
 	}
 }
 
@@ -170,15 +170,15 @@ func TestMapName(t *testing.T) {
 	if n := e.mapName(); n != "New Phlan" {
 		t.Errorf("set 3 GEO 0 = %q, want New Phlan", n)
 	}
-	e.set, e.state().Area.Geo = 5, 3
+	e.set, e.world.Geo = 5, 3
 	if n := e.mapName(); n != "Valjevo Castle 3" {
 		t.Errorf("set 5 GEO 3 = %q, want Valjevo Castle 3", n)
 	}
-	e.set, e.state().Area.Geo = 8, 32
+	e.set, e.world.Geo = 8, 32
 	if n := e.mapName(); n != "Well Bottom" {
 		t.Errorf("set 8 GEO 32 = %q, want Well Bottom", n)
 	}
-	e.state().Area.Geo = 99
+	e.world.Geo = 99
 	if n := e.mapName(); n != "Map" {
 		t.Errorf("unnamed map = %q, want Map", n)
 	}

@@ -136,7 +136,7 @@ func ImportSave(b []byte, s rules1e.SaveLayout, scripts fs.FS) (adventure.Save, 
 	if l == nil {
 		return g, fmt.Errorf("area %d: no layout", o.AreaKind)
 	}
-	if g.Rules, err = rulesOf(&o, s, l); err != nil {
+	if g.Rules, g.World, err = rulesOf(&o, s, l); err != nil {
 		return g, err
 	}
 	for _, fl := range l.Fields {
@@ -150,13 +150,15 @@ func ImportSave(b []byte, s rules1e.SaveLayout, scripts fs.FS) (adventure.Save, 
 	return g, nil
 }
 
-// rulesOf is the ruleset's part of o, whose script fields are l: its
-// records when they are rules1e's, else made from the fields by name.
-func rulesOf(o *rules1e.ImportedSave, s rules1e.SaveLayout, l *ecl.Layout) ([]byte, error) {
+// rulesOf is the ruleset's part of o, whose script fields are l, and the
+// engine's world: from its records when they are rules1e's, else made from the
+// fields by name.
+func rulesOf(o *rules1e.ImportedSave, s rules1e.SaveLayout, l *ecl.Layout) ([]byte, *rules.World, error) {
 	if s.RulesRecords {
-		return o.Rules, nil
+		return o.Rules, &o.World, nil
 	}
-	return rules1e.RulesFromFields(canonFields(o, l), o.Purse)
+	blob, w, err := rules1e.RulesFromFields(canonFields(o, l), o.Purse)
+	return blob, &w, err
 }
 
 // saved: field f keeps cells of its own in a save. The engine also binds

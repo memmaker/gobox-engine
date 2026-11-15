@@ -134,7 +134,7 @@ func (e *Engine) DevScene(name string) func() {
 				}
 			}
 			e.es.inEncounterMenu = 1
-			e.setWorldWord(rules.WordPortrait, 0xFF)
+			e.world.Portrait = 0xFF
 			e.ShowEncounter(sprite, pic, 0, &e.es.encounterShown)
 			e.msgCol, e.msgRow = 1, 0x11
 			e.paneText(game.InkLightGreen, true, "A band of kobolds blocks the way.")

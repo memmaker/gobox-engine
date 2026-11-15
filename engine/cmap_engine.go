@@ -5,7 +5,6 @@ import (
 
 	"gobox/adventure"
 	"gobox/asset"
-	"gobox/rules"
 )
 
 // LayTiles = ovr33:0022 LoadBackpacIcons (name, first, n): block l.Block
@@ -36,7 +35,7 @@ func (e *Engine) tileBlock(l adventure.TileLoad) int {
 	case adventure.TileBlockWalls:
 		return e.mapPairA[0] & 0xFF
 	case adventure.TileBlockAreaSet:
-		if s := e.worldWord(rules.WordSymbolSet); s == 1 || s == 2 { // pod-re LoadCombatTileSet: zone0.tileSet, the layout's SymbolSet
+		if s := int(e.world.SymbolSet); s == 1 || s == 2 { // pod-re LoadCombatTileSet: zone0.tileSet, the layout's SymbolSet
 			return s
 		}
 		return 0

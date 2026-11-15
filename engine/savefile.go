@@ -32,6 +32,7 @@ func OpenSave(ruleset rules.Builder, dir, adv string) (*SaveEditor, error) {
 	if err := e.ruleset().Load(g.Rules); err != nil {
 		return nil, err
 	}
+	e.loadWorld(g)
 	return &SaveEditor{e: e, g: g}, nil
 }
 
@@ -44,7 +45,7 @@ func (s *SaveEditor) Bytes() []byte {
 	if err != nil {
 		panic(err) // the ruleset's part always marshals
 	}
-	s.g.Rules = blob
+	s.g.Rules, s.g.World = blob, &s.e.world
 	b, err := adventure.MarshalSave(s.g)
 	if err != nil {
 		panic(err) // a adventure.Save always marshals
@@ -83,9 +84,10 @@ func (s *SaveEditor) SetVar(name string, v uint16) error {
 func (s *SaveEditor) EnterArea(disk, block, geo int, _ []byte, walls [3]int) {
 	g := &s.g
 	g.Set = rules.Set(disk)
-	s.e.setWorldWord(rules.WordSymbolSet, disk)
-	s.e.setWorldWord(rules.WordGeo, geo)
-	v := rules.RecordView{AreaKind: uint16(block)}
+	s.e.world.SymbolSet = uint16(disk)
+	s.e.world.Geo = uint16(geo)
+	s.e.world.AreaKind = uint16(block)
+	var v rules.RecordView
 	for i, id := range walls {
 		blk, slot := id, i+1
 		if id == 0xFF {

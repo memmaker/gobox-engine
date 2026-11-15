@@ -57,7 +57,7 @@ func (e *Engine) LoadGeo(n int) {
 			e.gs.geo.Plane = m.Plane
 		}
 	}
-	e.setWorldWord(rules.WordGeo, n)
+	e.world.Geo = uint16(n)
 	e.reopenDoors()
 }
 

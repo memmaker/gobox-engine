@@ -6,6 +6,8 @@ import (
 	"io"
 	"math"
 	"reflect"
+
+	"gobox/rules"
 )
 
 // OriginalSave is the fixed part of SAVGAMx.DAT (ovr18 LoadGame/SaveGame),
@@ -97,6 +99,7 @@ type RecordCells struct {
 // fields that live in the records.
 type ImportedSave struct {
 	Rules                    []byte
+	World                    rules.World // the engine's words of the records (with RulesRecords); the rules' blob has none
 	Set                      byte
 	X, Y, Facing, Pos3, Pos4 byte
 	ViewMode, BeginFlag      byte
@@ -198,6 +201,7 @@ func ReadOriginalSave(b []byte, l SaveLayout) (ImportedSave, error) {
 		for i, v := range o.Records[1].Cells {
 			*s.Game.Word(i) = v
 		}
+		o.World = worldOfRecords(&s.Area, &s.Game)
 		s.Area.ClearScriptWords()
 		s.Game.ClearScriptWords()
 		var err error
@@ -218,14 +222,37 @@ const OriginalSaveFile = "SAVGAMA.DAT"
 // days, months, years): its first element each.
 var clockParts = map[string]int{"Clock": 0, "TenMinutes": 2, "Hours": 3, "ClockRest": 4, "ClockDate": 4}
 
+// worldOfRecords are the engine's words (rules.World) in the area and game records.
+func worldOfRecords(a *AreaVars, g *GameVars) rules.World {
+	return rules.World{
+		AreaKind: a.AreaKind, PrevX: a.PrevX, PrevY: a.PrevY, RiverOpen: a.RiverOpen, Geo: a.Geo,
+		WallSplitA: a.WallSplitA, WallSplitB: a.WallSplitB, NoCoords: a.NoCoords, MsgDelay: a.MsgDelay, ViewFlags: a.ViewFlags,
+		MaxDist: g.MaxDist, HoldMove: g.HoldMove, Search: g.Search, LeftMap: g.LeftMap,
+		Portrait: g.Portrait, Temple: g.Temple, Shop: g.Shop, SymbolSet: g.SymbolSet,
+	}
+}
+
 // RulesFromFields is the ruleset's canonical part of a save whose records are not rules1e's
 // (sotsb, cotab, pod): each canonical field (canonical values, by name) that is a word of
-// rules1e's area or game record goes there; the others are script fields only.
-func RulesFromFields(fields map[string][]int64, p Purse) ([]byte, error) {
+// rules1e's area or game record goes there; the others are script fields only. The canonical
+// fields that are a world word (rules.World) make the world; its first cell is the word.
+func RulesFromFields(fields map[string][]int64, p Purse) ([]byte, rules.World, error) {
 	s := &RuleState{Purse: p}
 	words := recordFields(&s.Area)
 	for n, w := range recordFields(&s.Game) {
 		words[n] = w
+	}
+	var world rules.World
+	worldCells := world.Cells()
+	for name, c := range fields {
+		if w, ok := worldCells[name]; ok {
+			if len(c) > 1 {
+				return nil, world, fmt.Errorf("%s: %d cells, the world has 1", name, len(c))
+			}
+			for _, v := range c {
+				*w = uint16(v)
+			}
+		}
 	}
 	for name, cells := range fields {
 		at, ok := words[name]
@@ -236,13 +263,14 @@ func RulesFromFields(fields map[string][]int64, p Purse) ([]byte, error) {
 			continue
 		}
 		if len(cells) > len(at) {
-			return nil, fmt.Errorf("%s: %d cells, rules1e has %d", name, len(cells), len(at))
+			return nil, world, fmt.Errorf("%s: %d cells, rules1e has %d", name, len(cells), len(at))
 		}
 		for i, v := range cells {
 			*at[i] = uint16(v)
 		}
 	}
-	return (&Rules{S: s}).Save()
+	blob, err := (&Rules{S: s}).Save()
+	return blob, world, err
 }
 
 // recordFields are a rules1e record's named words (its exported fields but the

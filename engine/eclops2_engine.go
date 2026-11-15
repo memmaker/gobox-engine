@@ -102,7 +102,7 @@ func (e *Engine) opEncounterMenu() {
 	hi, lo := int(mr.High), int(mr.Low)
 	e.vm.ReadArgs(14)
 	e.run.sprite = int(byte(e.vm.Arg(1, e.host)))
-	e.setWorldWord(rules.WordMaxDist, int(e.vm.Arg(2, e.host)))
+	e.world.MaxDist = uint16(e.vm.Arg(2, e.host))
 	e.run.closeup = int(byte(e.vm.Arg(3, e.host)))
 	dst := e.vm.Ref(4)
 	var react [5]byte
@@ -116,8 +116,8 @@ func (e *Engine) opEncounterMenu() {
 	e.es.enc = &encounter{dst: dst, react: react, texts: texts, hi: hi, lo: lo,
 		fleeAt: int(byte(e.vm.Arg(13, e.host))), strength: int(byte(e.vm.Arg(14, e.host)))}
 	e.setWorldWord(rules.WordMonsterDist, int(e.FreeSteps(e.posX, e.posY, e.facing)))
-	if e.worldWord(rules.WordMaxDist) < e.worldWord(rules.WordMonsterDist) {
-		e.setWorldWord(rules.WordMonsterDist, int(e.worldWord(rules.WordMaxDist)))
+	if int(e.world.MaxDist) < e.worldWord(rules.WordMonsterDist) {
+		e.setWorldWord(rules.WordMonsterDist, int(e.world.MaxDist))
 	}
 	e.encShow()
 	e.encRound()

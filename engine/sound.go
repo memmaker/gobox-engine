@@ -125,7 +125,7 @@ func (e *Engine) areaSong() int {
 			return l.Song
 		}
 	}
-	return e.music().Songs[e.worldWord(rules.WordGeo)]
+	return e.music().Songs[int(e.world.Geo)]
 }
 
 // battleMusic (extra) starts a battle's music: A Battle Begins into the
@@ -133,7 +133,7 @@ func (e *Engine) areaSong() int {
 // without the soundtrack.
 func (e *Engine) battleMusic() {
 	switch {
-	case e.music().BattleSongs[e.worldWord(rules.WordGeo)] != 0 && e.songMusic(e.music().BattleSongs[e.worldWord(rules.WordGeo)], 0):
+	case e.music().BattleSongs[int(e.world.Geo)] != 0 && e.songMusic(e.music().BattleSongs[int(e.world.Geo)], 0):
 	case e.songMusic(adventure.SongBattleBegins, adventure.SongCombat):
 	default:
 		e.Music(2) // Amiga 0x364E2

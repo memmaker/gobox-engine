@@ -96,8 +96,8 @@ func (e *Engine) whereState() (game.Where, game.Automap) {
 	px, py := e.posX, e.posY
 	inside := e.MapCell(px, py) > 0x7F
 	w := game.Where{
-		Area: strconv.Itoa(int(AreaID(e.worldWord(rules.WordGeo)))), X: px, Y: py, Facing: int(Dir(e.facing/2&3)) * 2,
-		Inside: inside, Searching: e.exploring() && e.worldWord(rules.WordSearch)&1 != 0,
+		Area: strconv.Itoa(int(AreaID(int(e.world.Geo)))), X: px, Y: py, Facing: int(Dir(e.facing/2&3)) * 2,
+		Inside: inside, Searching: e.exploring() && e.world.Search&1 != 0,
 		Mode: map[bool]string{true: "dungeon", false: "wilderness"}[e.worldWord(rules.WordIn3D) != 0],
 	}
 	m := e.mapState(&w)
@@ -317,7 +317,7 @@ func (e *Engine) mapState(w *game.Where) game.Automap {
 		}
 		return game.Automap{}
 	}
-	m := game.Automap{Area: e.mapName(), Size: rules.Size{W: 16, H: 16}, NoMap: e.worldWord(rules.WordNoCoords) != 0}
+	m := game.Automap{Area: e.mapName(), Size: rules.Size{W: 16, H: 16}, NoMap: e.world.NoCoords != 0}
 	seen, mine, built := e.ext.seen[e.areaKey()], e.ext.labels[e.areaKey()], e.builtinLabels(e.areaKey())
 	secret := e.secretSides()
 	for y := range 16 {

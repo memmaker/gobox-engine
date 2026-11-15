@@ -237,7 +237,7 @@ func (e *Engine) common(mode game.Mode, pending *game.Question, pg *textPage, do
 	where, automap := e.whereState()
 	cm := game.Common{Where: where, Automap: automap, Area: automap.Area, Quests: e.questsState(), Lore: e.loreState(), PowerPick: e.powerPickState(),
 		PartyCap: int(e.ruleset().Check(rules.PoolCap{}, nil).Value), PoolItems: int(e.ruleset().Check(rules.PoolCount{}, nil).Value),
-		Text: pg.Pane, Status: pg.Prompt, SymbolSet: e.worldWord(rules.WordSymbolSet)}
+		Text: pg.Pane, Status: pg.Prompt, SymbolSet: int(e.world.SymbolSet)}
 	cm.Picture, cm.Frames, cm.Delays, cm.Portrait = e.viewState()
 	cm.Party, cm.Selected = e.partyState()
 	if e.partySize() > 0 {

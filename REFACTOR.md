@@ -266,7 +266,7 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
         Duel; the engine fills only Duel and the party's square and facing. By owner: the clock,
         the party's count and the acting member are the rules' own state, to be read as facts,
         not words; "in a fight" the rules know from BeginFight and EndFight
-      - [ ] B1f0b the 19 engine-only words: a typed `world` struct in the engine, saved by the
+      - [x] B1f0b the 19 engine-only words: a typed `world` struct in the engine, saved by the
         engine; the rules' fields and their `wordPtr` rows go; an old slot's words are read from
         the rules' blob once; a test loads every shipped slot
       - [ ] B1f0c the three outputs: the engine sets CombatEnd and Beaten from `FightResult`,

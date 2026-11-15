@@ -139,7 +139,7 @@ func (e *Engine) mapName() string {
 		}
 		e.mapNamesRead = true
 	}
-	n := ecl.ValueName(e.mapNames, "Map", int(e.set), e.worldWord(rules.WordGeo))
+	n := ecl.ValueName(e.mapNames, "Map", int(e.set), int(e.world.Geo))
 	if n == "" {
 		return "Map"
 	}

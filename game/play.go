@@ -96,7 +96,7 @@ type Common struct {
 	PoolItems int // the party inventory's items held (of PartyCap)
 	Where     Where
 	Area      string // the area's name as the player knows it
-	SymbolSet int    // the game's symbol set (rules.WordSymbolSet): pod's tileSet picks the frame set (Border.Sets)
+	SymbolSet int    // the game's symbol set (rules.World.SymbolSet): pod's tileSet picks the frame set (Border.Sets)
 	Lore      []Lore // the journal, newest first
 	Quests    []Quest
 	Allowed   Allowed

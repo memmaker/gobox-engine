@@ -105,7 +105,7 @@ func (e *Engine) mapWalls() game.MapWalls {
 		return game.MapWalls{}
 	}
 	w := game.MapWalls{Side: make([][][4]int, rules.AreaSize), Pool: pool, Floor: wt.Floor, Sky: wt.Sky}
-	if a := wt.Area(e.set, e.worldWord(rules.WordGeo)); a != nil {
+	if a := wt.Area(e.set, int(e.world.Geo)); a != nil {
 		if a.Floor != "" {
 			w.Floor = a.Floor
 		}

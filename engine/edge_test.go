@@ -46,7 +46,7 @@ func TestMapEdgeScriptedExit(t *testing.T) {
 	e.LoadArea(0)
 	e.posX, e.posY, e.facing = 0, 4, 6
 	e.stepCmd(0)
-	if e.state().Game.LeftMap == 0 {
+	if e.world.LeftMap == 0 {
 		t.Fatal("west from New Phlan 0,4 did not set LeftMap")
 	}
 	e.stepDone()

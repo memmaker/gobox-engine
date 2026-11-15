@@ -84,7 +84,7 @@ func (e *Engine) ret() {
 	case kSearched:
 		e.searched(c.n[0], c.n[1], c.n[2])
 	case kSearchRestore:
-		e.setWorldWord(rules.WordSearch, int(e.run.searchSave))
+		e.world.Search = uint16(e.run.searchSave)
 		e.lookDone()
 	case kStepPre:
 		e.stepPre(c.flag)

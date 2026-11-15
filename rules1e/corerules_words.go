@@ -11,8 +11,6 @@ func (r *Rules) wordPtr(w rules.WorldWord) *uint16 {
 		return &a.MapX
 	case rules.WordMapY:
 		return &a.MapY
-	case rules.WordGeo:
-		return &a.Geo
 	case rules.WordTenMinutes:
 		return &a.Clock[2]
 	case rules.WordHours:
@@ -21,22 +19,6 @@ func (r *Rules) wordPtr(w rules.WorldWord) *uint16 {
 		return &a.NoMagic
 	case rules.WordIn3D:
 		return &a.In3D
-	case rules.WordWallSplitA:
-		return &a.WallSplitA
-	case rules.WordWallSplitB:
-		return &a.WallSplitB
-	case rules.WordPrevX:
-		return &a.PrevX
-	case rules.WordPrevY:
-		return &a.PrevY
-	case rules.WordAreaKind, rules.WordLastBlock: // POR keeps the block NewECL left in the area's kind word
-		return &a.AreaKind
-	case rules.WordNoCoords:
-		return &a.NoCoords
-	case rules.WordMsgDelay:
-		return &a.MsgDelay
-	case rules.WordViewFlags:
-		return &a.ViewFlags
 	case rules.WordMarkFlags4:
 		return &a.MarkFlags4
 	case rules.WordMark3:
@@ -45,8 +27,6 @@ func (r *Rules) wordPtr(w rules.WorldWord) *uint16 {
 		return &a.Mark4Off
 	case rules.WordMarkFlags57:
 		return &a.MarkFlags57
-	case rules.WordRiverOpen:
-		return &a.RiverOpen
 	case rules.WordBoss:
 		return &a.Boss
 	case rules.WordMark4:
@@ -57,8 +37,6 @@ func (r *Rules) wordPtr(w rules.WorldWord) *uint16 {
 		return &a.SkyInside
 	case rules.WordTrainable:
 		return &g.PartyExp
-	case rules.WordMaxDist:
-		return &g.MaxDist
 	case rules.WordMonsterDist:
 		return &g.MonsterDist
 	case rules.WordMorale:
@@ -67,30 +45,18 @@ func (r *Rules) wordPtr(w rules.WorldWord) *uint16 {
 		return &g.CombatEnd
 	case rules.WordBeaten:
 		return &g.Beaten
-	case rules.WordHoldMove:
-		return &g.HoldMove
-	case rules.WordSearch:
-		return &g.Search
 	case rules.WordSurprise:
 		return &g.Surprise
 	case rules.WordRestEvery:
 		return &g.RestEvery
 	case rules.WordRestChance:
 		return &g.RestChance
-	case rules.WordLeftMap:
-		return &g.LeftMap
-	case rules.WordPortrait:
-		return &g.Portrait
-	case rules.WordTemple:
-		return &g.Temple
 	case rules.WordNoLoot:
 		return &g.NoLoot
 	case rules.WordDuel:
 		return &g.Duel
 	case rules.WordAttackedAlly:
 		return &g.AttackedAlly
-	case rules.WordShop:
-		return &g.Shop
 	case rules.WordMonsterHit:
 		return &g.MonsterHit
 	case rules.WordPartyHit:
@@ -116,8 +82,6 @@ func (r *Rules) word(k rules.WordIs) rules.Answer {
 		return rules.Answer{Yes: true, Value: int32(r.S.Who)}
 	case rules.WordBeginFlag:
 		return rules.Answer{Yes: true, Value: int32(r.S.BeginFlag)}
-	case rules.WordSymbolSet:
-		return rules.Answer{Yes: true, Value: int32(r.S.Game.SymbolSet)}
 	case rules.WordDebug:
 		return flag(r.S.Debug)
 	case rules.WordTraining:
@@ -141,8 +105,6 @@ func (r *Rules) setWord(a rules.SetWord) error {
 	switch a.Word {
 	case rules.WordPartyCount:
 		r.S.Game.PartyCount = uint16(a.Value)
-	case rules.WordSymbolSet:
-		r.S.Game.SymbolSet = uint16(a.Value)
 	case rules.WordWho:
 		r.S.Who = int(a.Value)
 	case rules.WordBeginFlag:

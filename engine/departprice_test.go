@@ -59,7 +59,7 @@ func departureAtWalls(t *testing.T, e *Engine) {
 		}
 	}
 	if n == 0 {
-		t.Fatalf("no walls in geo %d", e.worldWord(rules.WordGeo))
+		t.Fatalf("no walls in geo %d", int(e.world.Geo))
 	}
 }
 

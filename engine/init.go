@@ -50,6 +50,7 @@ func (e *Engine) Init() {
 // whose block still named it, at the new one's square: inside the water).
 func (e *Engine) resetAdventure() {
 	e.do(rules.NewAdventure{})                    // game and area records DS:49D6, 49D2, an empty purse
+	e.world = rules.World{}                       // the words of those records that are the engine's
 	e.posX, e.posY, e.facing = 0xF, 1, 6          // the start square DS:6AAD/6AAE/6AAF (the Engine's)
 	e.vars, e.locals = fieldCells{}, fieldCells{} // DS:49DA
 	e.gs.areaKind = 0

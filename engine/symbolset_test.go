@@ -2,8 +2,6 @@ package engine
 
 import (
 	"testing"
-
-	"gobox/rules"
 )
 
 // TestPodSymbolSetFrames: pod's scripts writing the symbol set (tileSet)
@@ -21,7 +19,7 @@ func TestPodSymbolSetFrames(t *testing.T) {
 	}
 	const frames = 2
 	f.set(0, frames)
-	if v, _ := f.get(0); v != frames || e.set != e.game().GameSet || e.worldWord(rules.WordSymbolSet) != frames {
-		t.Errorf("SymbolSet %d: read %d, set %d, word %d", frames, v, e.set, e.worldWord(rules.WordSymbolSet))
+	if v, _ := f.get(0); v != frames || e.set != e.game().GameSet || int(e.world.SymbolSet) != frames {
+		t.Errorf("SymbolSet %d: read %d, set %d, word %d", frames, v, e.set, int(e.world.SymbolSet))
 	}
 }

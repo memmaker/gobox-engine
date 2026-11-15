@@ -9,12 +9,12 @@ import "testing"
 func TestResetAdventure(t *testing.T) {
 	e := &Engine{}
 	e.initVM()
-	e.gs.areaKind, e.state().Area.AreaKind = 1, 0
+	e.gs.areaKind, e.world.AreaKind = 1, 0
 	e.posX, e.posY, e.facing = 3, 9, 2
 	e.mapPairA[1], e.state().Purse.Gold, e.state().Game.PartyCount = 5, 20, 6
 	e.resetAdventure()
-	if e.gs.areaKind != 0 || e.state().Area.AreaKind != 0 || e.posX != 15 || e.posY != 1 || e.facing != 6 {
-		t.Errorf("area %d/%d at %d,%d facing %d, want New Phlan at 15,1 facing west", e.gs.areaKind, e.state().Area.AreaKind, e.posX, e.posY, e.facing)
+	if e.gs.areaKind != 0 || e.world.AreaKind != 0 || e.posX != 15 || e.posY != 1 || e.facing != 6 {
+		t.Errorf("area %d/%d at %d,%d facing %d, want New Phlan at 15,1 facing west", e.gs.areaKind, e.world.AreaKind, e.posX, e.posY, e.facing)
 	}
 	if e.mapPairA != [3]int{0, -1, -1} || e.state().Purse.Gold != 0 || e.state().Game.PartyCount != 0 {
 		t.Errorf("pairs %v gold %d count %d", e.mapPairA, e.state().Purse.Gold, e.state().Game.PartyCount)

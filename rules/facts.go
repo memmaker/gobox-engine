@@ -116,25 +116,12 @@ const (
 	// the game and area record words por's scripts and engine read and
 	// write (fold E-R6; WordIs, SetWord)
 	WordBeginFlag    // por DS:49F3: 0 the party menu, 3 exploring, 4 an area starting, 5 a fight's setup
-	WordAreaKind     // por area.AreaKind
 	WordIn3D         // por area.In3D: nonzero a 3D area
 	WordMapX         // por area.MapX: the overland square
 	WordMapY         // por area.MapY
-	WordPrevX        // por area.PrevX: the square before the step
-	WordPrevY        // por area.PrevY
-	WordRiverOpen    // por area.RiverOpen
 	WordBoss         // por area.Boss
-	WordSearch       // por game.Search: bit 0 sweeping, bit 1 search this square
-	WordHoldMove     // por game.HoldMove: >= 0xFF the next move is skipped
-	WordLeftMap      // por game.LeftMap: the step left the map
-	WordGeo          // por area.Geo: the area's GEO block
 	WordTenMinutes   // por area.Clock[2]
 	WordHours        // por area.Clock[3]
-	WordWallSplitA   // por area.WallSplitA
-	WordWallSplitB   // por area.WallSplitB
-	WordNoCoords     // por area.NoCoords
-	WordMsgDelay     // por area.MsgDelay
-	WordViewFlags    // por area.ViewFlags
 	WordMarkFlags4   // por area.MarkFlags4
 	WordMark3        // por area.Mark3
 	WordMark4Off     // por area.Mark4Off
@@ -142,24 +129,18 @@ const (
 	WordMark4        // por area.Mark4
 	WordSky          // por area.Sky: a write redraws the portrait
 	WordSkyInside    // por area.SkyInside: the same
-	WordMaxDist      // por game.MaxDist
 	WordMonsterDist  // por game.MonsterDist
 	WordCombatEnd    // por game.CombatEnd
 	WordBeaten       // por game.Beaten
 	WordRestEvery    // por game.RestEvery
 	WordRestChance   // por game.RestChance
-	WordPortrait     // por game.Portrait
-	WordTemple       // por game.Temple
 	WordDuel         // por game.Duel
 	WordAttackedAlly // por game.AttackedAlly
-	WordShop         // por game.Shop
 	WordPartyCount   // por game.PartyCount (read: the party's size)
-	WordSymbolSet    // por game.SymbolSet (write)
 	WordDebug        // por: the debug flag (Yes)
 	WordTraining     // por: the training hall is open (Yes; SetWord opens or closes it)
 	WordWho          // por DS:5D92: the member the rules act for
 	WordEffect       // por: the party's affect table, entry WordIs.Index (read only)
 	WordClockMinutes // por: the area clock as minutes of the day (read only)
 	WordCampOn       // por: camp is up (CampMenu; flag)
-	WordLastBlock    // the script block NewECL left, kept to come back to (por the area's AreaKind word; sotsb/cotab area word LastECL; pod game save block)
 )
