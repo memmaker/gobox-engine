@@ -68,7 +68,7 @@ func (e *RuleState) spellAmount(spell int) int {
 	case 0x3B:
 		v = e.Dice(1, 4)*10 + 0x28
 	case 0x3F:
-		if e.BeginFlag == 5 {
+		if e.Phase == rules.PhaseFight {
 			v = e.Dice(2, 10) * 10
 		} else {
 			v = (e.Dice(1, 10) + 10) * 10
@@ -207,7 +207,7 @@ func (e *RuleState) applySpellToSide(side int, msg string) {
 	for i := 1; i <= e.NSpellTargets; i++ {
 		t := e.tgt(i)
 		if t == nil || int(t.Side) != side ||
-			e.CurSpell == SpBless && e.BeginFlag == 5 && e.NearEnemies(t, 1) > 0 {
+			e.CurSpell == SpBless && e.Phase == rules.PhaseFight && e.NearEnemies(t, 1) > 0 {
 			e.SetTgt(i, nil)
 		}
 	}
@@ -223,7 +223,7 @@ func (e *RuleState) CastSpell(spell SpellID, mode, b byte, r CastReply, quit *bo
 	caster := e.Acting()
 	ok := true
 	e.castIn3D = r.In3D || e.Fight.On && e.Terms.In3D
-	if e.BeginFlag != 5 && e.SpellRec(spell, 7) == 0 { // the yes/no was asked before (castAsk)
+	if e.Phase != rules.PhaseFight && e.SpellRec(spell, 7) == 0 { // the yes/no was asked before (castAsk)
 		yes := r.Yes
 		if !e.UsingItem {
 			if yes {
@@ -243,7 +243,7 @@ func (e *RuleState) CastSpell(spell SpellID, mode, b byte, r CastReply, quit *bo
 		*quit = e.spellTargetHook(int(spell), int(mode), r) // the asm passes the caller's var
 		if *quit {
 			ok = false
-			if e.BeginFlag == 5 {
+			if e.Phase == rules.PhaseFight {
 				x, y := e.CombatX(caster), e.CombatY(caster)
 				dir := 0
 				for !e.InArc(x, y, e.TgtX, e.TgtY, dir) {
@@ -280,7 +280,7 @@ func (e *RuleState) CastSpell(spell SpellID, mode, b byte, r CastReply, quit *bo
 			e.spellKept = false
 			e.CurSpell = 0
 			e.areaSpell = 0
-		} else if e.BeginFlag != 5 {
+		} else if e.Phase != rules.PhaseFight {
 			ok = false
 		} else {
 			if mode == 0 { // extra: the player cancelled the aim (the original asked "Abort Spell?" and lost
@@ -621,11 +621,11 @@ func (e *RuleState) announceCast(c *Character, msg string, spell int) {
 	switch {
 	case msg != "casts":
 		e.Emit(rules.Sounded{Cue: rules.SoundCue("study")}) // memorized, scribed
-	case e.BeginFlag != 5:
+	case e.Phase != rules.PhaseFight:
 		e.Emit(rules.Sounded{Cue: rules.SoundCue("cast_spell")}) // in combat the spell's flight has the sound
 	}
 	msg = rules.Cut(msg, msgMax)
-	if e.BeginFlag == 5 {
+	if e.Phase == rules.PhaseFight {
 		e.CombatSay(c, "Casts a Spell", true)
 		e.CombatSay(nil, "Spell: "+e.SpellName(spell), true)
 		return

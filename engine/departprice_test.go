@@ -68,7 +68,7 @@ func departureAtWalls(t *testing.T, e *Engine) {
 func TestShopPriceIsGold(t *testing.T) {
 	for _, typ := range []rules1e.ItemType{rules1e.ItemLongSword, rules1e.ItemPlateMail, rules1e.ItemArrow, rules1e.ItemPotion} {
 		e := quickStarted(t)
-		e.state().BeginFlag = 4
+		e.setPhase(rules.PhaseAreaStart)
 		e.state().Treasure = []*rules1e.Item{e.state().RandomItem(typ)}
 		e.state().Purse.Gold = 1 << 20
 		e.Shop()

@@ -3,6 +3,7 @@ package engine
 import (
 	"bufio"
 	"fmt"
+	"gobox/rules"
 	"gobox/rules1e"
 	"os"
 	"slices"
@@ -74,7 +75,7 @@ func aiTurnVector(e *Engine, v aiVaried, seed, dist, hp, lvl, flank int) string 
 	e.state().Cpos[1] = rules1e.CombatPos{X: 10, Y: v.startY, Size: 1}
 	e.state().Cpos[2] = rules1e.CombatPos{X: byte(10 + dist), Y: v.startY, Size: 1}
 	e.state().Occ[v.startY][10], e.state().Occ[v.startY][10+dist] = 1, 2
-	e.state().BeginFlag = 5
+	e.setPhase(rules.PhaseFight)
 	e.state().Terms.Morale, e.facing = 50, 0 // TFix: threshold 50, StartCombat(NORTH)
 	e.state().RandSeed = uint32(int32(seed))
 	if v.breath != nil {
@@ -168,7 +169,7 @@ func TestDecideAgainstPascal(t *testing.T) {
 			if k[2] == 1 {
 				// ruled (Felix): coughing acts only in a fight (PoD's rule); the
 				// Pascal vector's use/cast outcome is checked there
-				e.state().BeginFlag = 5
+				e.setPhase(rules.PhaseFight)
 				e.state().CoughingEnds(c, nil, 0)
 			} else {
 				e.state().IsSilenced(c, nil, 0)
@@ -179,7 +180,7 @@ func TestDecideAgainstPascal(t *testing.T) {
 			c.HP, c.MaxHP, c.Okay = 40, 40, 1
 			it := &rules1e.Item{Readied: 1}
 			it.Spells[1] = 0x81
-			e.state().BeginFlag = byte(k[0])
+			e.setPhase(rules.Phase(k[0]))
 			c.Combat = &rules1e.CombatInfo{}
 			e.state().CombatantSlots, e.state().Ncomb = []*rules1e.Character{c}, 1
 			e.state().CursedAlignment(c, &rules1e.Affect{Item: it}, 0)

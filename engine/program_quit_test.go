@@ -86,7 +86,7 @@ func TestEndScene(t *testing.T) {
 	e := quickStarted(t)
 	e.title.end = &game.Scene{Kind: game.SceneTitle, Intro: &game.Intro{Pictures: []int{1}, End: true}}
 	e.msgDelay = 5
-	e.setWorldWord(rules.WordPartyCount, 3)
+	e.setMemberCount(3)
 	in := e.endScene(game.Common{}).Intro
 	if in.Party != 3 || in.MsgDelay != 5 || !in.End || !slices.Equal(in.Pictures, []int{1}) {
 		t.Fatalf("end intro %+v", in)
@@ -101,7 +101,7 @@ func TestEndScene(t *testing.T) {
 func TestEndEffects(t *testing.T) {
 	e := quickStarted(t)
 	id := e.partyIDs()[0]
-	e.ruleset().Resolve(nil, rules.SetWord{Word: rules.WordTraining, Value: 0}, nil)
+	e.do(rules.CloseHall{})
 	before := e.ruleset().Sheet(id)
 	if before.HP == 0 {
 		t.Fatal("no member to heal")
@@ -109,8 +109,8 @@ func TestEndEffects(t *testing.T) {
 	e.title.after = []adventure.Effect{adventure.EffectHealParty, adventure.EffectOpenHall}
 	e.title.note = "You've won."
 	e.endEffects()
-	if a := e.ruleset().Check(rules.WordIs{Word: rules.WordTraining}, nil); !a.Yes || a.Value == 0 {
-		t.Fatalf("training word %+v: want open", a)
+	if !e.trainingOpen() {
+		t.Fatal("the hall is closed, want open")
 	}
 	if got := e.ruleset().Sheet(id); got.HP != got.MaxHP {
 		t.Fatalf("HP %d of %d after the ending", got.HP, got.MaxHP)

@@ -289,7 +289,7 @@ func (e *Engine) UseItem(h rules.ItemHandle, spell, target int, sure bool) error
 		if !own {
 			u.Spell = e.spellID(spell)
 		}
-		e.as(e.sel) // the user acts (WordWho)
+		e.as(e.sel) // the user acts (rules.ActFor)
 		e.do(u)
 		return nil
 	}
@@ -314,7 +314,7 @@ func (e *Engine) uncovered() {
 	case e.stateRedraw():
 	case e.waiting(PendFight):
 		if e.cs.actor != rules.NoChar {
-			e.setWorldWord(rules.WordWho, e.sel)
+			e.as(e.sel)
 			e.do(rules.SetSpeed{Who: e.cs.actor})
 		}
 		e.turnOn()

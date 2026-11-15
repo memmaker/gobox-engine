@@ -11,13 +11,13 @@ import (
 
 // The session words (the phase, the clock, the party's count, the acting member, the effect table,
 // camp and the hall): the engine's values at each moment, recorded on the code before they left the
-// ruleset's generic words (RECORD_WORLD=1 prints them).
+// ruleset's generic words (WordIs, SetWord; RECORD_WORLD=1 prints them).
 
 // The observations, by the engine's own accessors.
-func obsPhase(e *Engine) int                    { return e.beginFlag() }
-func obsMinute(e *Engine) int                   { return e.worldWord(rules.WordClockMinutes) }
-func obsCount(e *Engine) int                    { return e.worldWord(rules.WordPartyCount) }
-func obsActing(e *Engine) int                   { return e.worldWord(rules.WordWho) }
+func obsPhase(e *Engine) int                    { return int(e.phase) }
+func obsMinute(e *Engine) int                   { return e.clockPart(rules.ClockMinuteOfDay) }
+func obsCount(e *Engine) int                    { return e.memberCount() }
+func obsActing(e *Engine) int                   { return int(e.ruleset().Check(rules.ActingFor{}, nil).Value) }
 func obsEffect(e *Engine, i int) (uint16, bool) { return e.effect(i) }
 
 // sessionWant is each scene's recorded observations.

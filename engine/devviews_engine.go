@@ -107,7 +107,7 @@ func (e *Engine) DevScene(name string) func() {
 		}
 	case "overland": // the wilderness map, the party on it
 		return func() {
-			e.setWorldWord(rules.WordBeginFlag, 4)
+			e.setPhase(rules.PhaseAreaStart)
 			e.world.In3D = 0
 			e.viewMode = 2
 			e.world.MapX = 7
@@ -266,7 +266,7 @@ func (e *Engine) DevScene(name string) func() {
 
 // devBack: as opCombat after a shop or temple, the 3D view comes back.
 func (e *Engine) devBack() {
-	e.setWorldWord(rules.WordBeginFlag, 4)
+	e.setPhase(rules.PhaseAreaStart)
 	e.DrawMainScreen()
 	e.ret()
 }

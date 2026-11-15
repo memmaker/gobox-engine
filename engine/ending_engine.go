@@ -12,7 +12,7 @@ func (e *Engine) endScene(cm game.Common) game.Scene {
 	sc := *e.title.end
 	sc.Common = cm
 	in := *sc.Intro
-	in.Party, in.MsgDelay = e.worldWord(rules.WordPartyCount), int(e.msgDelay)
+	in.Party, in.MsgDelay = e.memberCount(), int(e.msgDelay)
 	sc.Intro = &in
 	return sc
 }
@@ -50,9 +50,6 @@ func (e *Engine) endDone() error {
 	return nil
 }
 
-// trainAll is the training hall's word once the game is won: it teaches every class (the original's 255).
-const trainAll = 255
-
 // endEffects carries out what the end sequence leaves in the game (adventure.Sequence.After), through the
 // ruleset, and says its closing note.
 func (e *Engine) endEffects() {
@@ -61,7 +58,7 @@ func (e *Engine) endEffects() {
 		case adventure.EffectHealParty:
 			e.do(rules.HealParty{})
 		case adventure.EffectOpenHall:
-			e.setWorldWord(rules.WordTraining, trainAll)
+			e.do(rules.OpenHallForAll{})
 		}
 	}
 	if e.title.note != "" {

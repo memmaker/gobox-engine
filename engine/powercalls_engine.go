@@ -12,7 +12,7 @@ import (
 // target (a member, -1: not picked yet) are the picks it asked for, sure
 // its yes/no answered Yes. Magic is a list (EffectsList).
 func (e *Engine) UsePower(n int, k game.PowerKind, spell, target int, sure bool) error {
-	if e.worldWord(rules.WordBeginFlag) == 5 || e.partySize() == 0 {
+	if e.phase == rules.PhaseFight || e.partySize() == 0 {
 		return rules.ErrNotNow
 	}
 	who := e.actor(n)

@@ -1,5 +1,7 @@
 package rules1e
 
+import "gobox/rules"
+
 // cotabHandlers are CotAB's affect handlers (fold T4c): its variants of
 // POR's affects and its own, by the names CotabAffectVariants gives them,
 // each ported exactly from cotab-go/rules (affects.go, O064 and O08D) and
@@ -76,8 +78,6 @@ var cotabHandlers = map[HandlerName]AffectHandler{
 
 // CotAB's values the handlers test.
 const (
-	beginFlagCombat = 5 // BeginFlag in a fight (CotAB's gameState stateCombat)
-
 	controlHiredCotab   = 0x7F // above: a hired NPC
 	controlCharmedCotab = 0xB3
 	controlBerserkCotab = 0xB2
@@ -135,7 +135,7 @@ const (
 )
 
 // inCombat: CotAB's gameState == stateCombat.
-func (e *RuleState) inCombat() bool { return e.BeginFlag == beginFlagCombat }
+func (e *RuleState) inCombat() bool { return e.Phase == rules.PhaseFight }
 
 func (e *RuleState) noEffectCotab(c *Character, a *Affect, flag byte) {}
 

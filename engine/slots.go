@@ -52,14 +52,15 @@ func (e *Engine) unwindReset() {
 	e.k = nil
 	x.explore, e.eclWait = false, nil
 	e.do(rules.EndSession{})
+	e.campOpen = false // as the rules' own camp flag (EndSession)
 	e.resting, e.menu, e.es.hold = nil, partyMenu{}, holdNone
 	x.redraws, e.temps = nil, nil
 	e.view.on, e.view.chain = false, false
 	e.picker, e.creation, e.iconEd, x.creating = nil, nil, nil, false
 	e.pending = PendNone
 	e.snap.invOn, e.snap.shop, e.snap.sheetOn = false, false, false
-	e.sel = 0                         // a defer on the way out may have put back the old party's index
-	e.loadedGame = e.beginFlag() != 0 // DS:49F8, as the party menu's Load
+	e.sel = 0                                 // a defer on the way out may have put back the old party's index
+	e.loadedGame = e.phase != rules.PhaseMenu // DS:49F8, as the party menu's Load
 }
 
 func (e *Engine) slotRoot() string { return filepath.Join(e.Cfg.SaveDir, adventure.SlotsDir) }
@@ -302,7 +303,7 @@ func (e *Engine) saveTo(name string) error {
 // Load (loadOnly), and only with a game in play outside a fight and with no
 // vault open (its items and the screen to leave it are not in a save).
 func (e *Engine) canSave(loadOnly bool) bool {
-	return !loadOnly && e.ext.inGame && len(e.partyIDs()) > 0 && e.beginFlag() != 5 && e.vault == nil
+	return !loadOnly && e.ext.inGame && len(e.partyIDs()) > 0 && e.phase != rules.PhaseFight && e.vault == nil
 }
 
 // SlotsView is the save slots, newest first, for the presenter's F10
@@ -348,21 +349,21 @@ func (e *Engine) LoadNamed(name string, loadOnly bool) bool {
 	if e.SlotIndex(name) < 0 {
 		return false
 	}
-	if e.beginFlag() == 5 {
+	if e.phase == rules.PhaseFight {
 		e.combatViewLeave()
 	}
 	if !e.loadFrom(name) {
 		return false
 	}
 	if loadOnly {
-		if e.menu.on && e.beginFlag() != 0 { // back from the party menu's Load with a game
+		if e.menu.on && e.phase != rules.PhaseMenu { // back from the party menu's Load with a game
 			e.loadedGame = true // DS:49F8
 			e.closeParty()
 		}
 		return true
 	}
-	e.unwindReset()         // what is open is closed: adventure resumes from the loaded game
-	if e.beginFlag() == 0 { // a save from the party menu: no area yet, so back there
+	e.unwindReset()                 // what is open is closed: adventure resumes from the loaded game
+	if e.phase == rules.PhaseMenu { // a save from the party menu: no area yet, so back there
 		e.PartyMenu()
 	} else {
 		e.GameLoop()

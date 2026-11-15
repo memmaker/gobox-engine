@@ -1,5 +1,7 @@
 package rules1e
 
+import "gobox/rules"
+
 // The adventuring loop: ovr04:31B4/32F8 (game loop and area change),
 // ovr15 (command input, movement, doors) and ovr21 (clock).
 
@@ -89,7 +91,7 @@ func (e *RuleState) AdvanceClock(count, unit int) {
 // looked at.
 func (e *RuleState) tickEffects(count, unit int) {
 	r := e
-	if e.BeginFlag != 2 {
+	if e.Phase != rules.PhaseCamp {
 		for i := 1; i < len(r.EffTick); i++ { // FillChar(DS:471E, 0x48, 1)
 			r.EffTick[i] = 1
 		}

@@ -2,6 +2,7 @@ package engine
 
 import (
 	"gobox/game"
+	"gobox/rules"
 	"slices"
 	"strings"
 )
@@ -28,7 +29,7 @@ func (e *Engine) stateMode() game.Mode {
 	switch {
 	case e.ext.intro:
 		return game.ModeTitle
-	case e.question() != nil && e.inFight() && e.beginFlag() == 5: // a fight's own question (Continue Battle:): still the fight, with its Ask (BUG-CLASSES 46)
+	case e.question() != nil && e.inFight() && e.phase == rules.PhaseFight: // a fight's own question (Continue Battle:): still the fight, with its Ask (BUG-CLASSES 46)
 		return game.ModeCombat
 	case e.question() != nil:
 		return game.ModeAsk

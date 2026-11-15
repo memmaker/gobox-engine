@@ -47,8 +47,8 @@ func (e *Engine) actor(n int) rules.CharID {
 	return e.selected()
 }
 
-// as hands member n to the rules as the actor of the next call (WordWho).
-func (e *Engine) as(n int) { e.setWorldWord(rules.WordWho, n) }
+// as hands member n to the rules as the actor of the next call (rules.ActFor).
+func (e *Engine) as(n int) { e.do(rules.ActFor{Member: int32(n)}) }
 
 // join adds c to the party as the rules' AddToParty, which makes it the
 // actor (DS:5D92), and selects it.
@@ -58,7 +58,7 @@ func (e *Engine) join(cID rules.CharID) {
 }
 
 // follow selects the rules' actor after a call that moved it.
-func (e *Engine) follow() { e.sel = e.worldWord(rules.WordWho) }
+func (e *Engine) follow() { e.sel = int(e.ruleset().Check(rules.ActingFor{}, nil).Value) }
 
 // PartyMenu = ovr17:0161: the party menu takes decisions (MainMenu)
 // until the player begins adventuring or loads a game that starts play
@@ -80,8 +80,8 @@ func (e *Engine) partyMenu(hall, chain bool) {
 	if e.Explore {           // -explore: straight into the 3D view (debugging the renderer); GameLoop clears it
 		if e.partySize() == 0 && e.ExploreSlot != "" && e.loadFrom(e.ExploreSlot) { // -slot: a saved game instead
 			e.Explore = false
-			e.loadedGame = e.beginFlag() != 0 // DS:49F8, as the party menu's Load (LoadNamed): the game resumes, not afresh
-			e.ret()                           // GameLoop
+			e.loadedGame = e.phase != rules.PhaseMenu // DS:49F8, as the party menu's Load (LoadNamed): the game resumes, not afresh
+			e.ret()                                   // GameLoop
 			return
 		}
 		if e.partySize() == 0 {
@@ -90,7 +90,7 @@ func (e *Engine) partyMenu(hall, chain bool) {
 			}
 		}
 		if e.partySize() > 0 {
-			e.setWorldWord(rules.WordBeginFlag, 4)
+			e.setPhase(rules.PhaseAreaStart)
 			if chain {
 				e.ret()
 			}
@@ -98,14 +98,14 @@ func (e *Engine) partyMenu(hall, chain bool) {
 		}
 	}
 	e.ext.hall = hall // a script's (the training hall): the game goes on under it
-	e.setWorldWord(rules.WordBeginFlag, 0)
+	e.setPhase(rules.PhaseMenu)
 	e.partyRedraw()
 	e.menu.on, e.menu.chain, e.menu.seq = true, chain, e.opens()
 }
 
 // inParty: the party menu's own decisions are open.
 func (e *Engine) inParty() bool {
-	return e.onTop() == onMenu && !e.view.on && !e.snap.invOn && e.creation == nil && e.worldWord(rules.WordTraining) == 0 && e.eclWait == nil
+	return e.onTop() == onMenu && !e.view.on && !e.snap.invOn && e.creation == nil && !e.trainingOpen() && e.eclWait == nil
 }
 
 // onTop is camp's or the party menu's on flag when it is up with nothing
@@ -118,7 +118,7 @@ func (e *Engine) onTop() decider {
 }
 
 // campOn: camp is up (CampMenu).
-func (e *Engine) campOn() bool { return e.worldWord(rules.WordCampOn) != 0 }
+func (e *Engine) campOn() bool { return e.campOpen }
 
 // stateRedraw draws camp or the party menu again when what was over
 // it went; false: neither is on top.
@@ -148,7 +148,7 @@ func (e *Engine) begin() error {
 	if !e.inParty() || !slices.Contains(e.partyFunctions(), partyBegin) {
 		return rules.ErrNotNow
 	}
-	e.setWorldWord(rules.WordBeginFlag, 4)
+	e.setPhase(rules.PhaseAreaStart)
 	e.ext.hall = false
 	e.clearPrompt()
 	e.closeParty()
@@ -232,7 +232,7 @@ func (e *Engine) RemoveSelected(keepCount, freeIcon bool) {
 		e.sel = 0
 	}
 	if !keepCount {
-		e.setWorldWord(rules.WordPartyCount, e.worldWord(rules.WordPartyCount)-1)
+		e.setMemberCount(e.memberCount() - 1)
 	}
 }
 
@@ -251,6 +251,6 @@ func (e *Engine) mayTrain() bool {
 
 // applyItems = por ApplyItems (00BA:0BB8) on id, the selected member acting.
 func (e *Engine) applyItems(id rules.CharID) {
-	e.setWorldWord(rules.WordWho, e.sel)
+	e.as(e.sel)
 	e.must(rules.ApplyItems{Who: id})
 }

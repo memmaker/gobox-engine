@@ -49,7 +49,7 @@ func (e *Engine) markSeen() {
 // mapView: the party is in the 3D view out of camp, where the game's Area
 // command could show a map (in camp the panel keeps the party). Whether
 // the area allows one (noMap) is gobox's "No Map Zones" option's call.
-func (e *Engine) mapView() bool { return e.viewMode == 1 && e.worldWord(rules.WordBeginFlag) != 2 }
+func (e *Engine) mapView() bool { return e.viewMode == 1 && e.phase != rules.PhaseCamp }
 
 // statusName = DS:1047 + 0xD*n, the status words. extra: dead with the
 // poison still in (0x37, Slow Poison can still raise) reads "Poisoned".

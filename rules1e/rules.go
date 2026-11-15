@@ -152,7 +152,7 @@ func (e *RuleState) checkAffect(c *Character, typ AffectType) {
 				continue
 			}
 			a = pa
-			if e.BeginFlag != 5 {
+			if e.Phase != rules.PhaseFight {
 				found = true
 				continue
 			}
@@ -560,7 +560,7 @@ func (e *RuleState) Damage(c *Character, dmg int, mode byte, saved bool) {
 	}
 	e.hitMessage(c, false, msg)
 	e.ApplyDamage(c, int(e.Rv.Damage))
-	if e.BeginFlag == 5 && c.Combat != nil {
+	if e.Phase == rules.PhaseFight && c.Combat != nil {
 		c.Combat.CanCast = 0
 		if c.Combat.Spell > 0 {
 			e.CombatSay(c, "lost a spell", true)
@@ -577,7 +577,7 @@ func (e *RuleState) Damage(c *Character, dmg int, mode byte, saved bool) {
 			msg = "is killed"
 		}
 		e.CombatSay(c, msg, true)
-		if e.BeginFlag == 5 {
+		if e.Phase == rules.PhaseFight {
 			e.removeCombatAffects(c)
 			e.AffectGroup(c, grpDown)
 			if c.Okay == 0 {
@@ -608,7 +608,7 @@ func (e *RuleState) Heal(c *Character, amount int, magical bool) bool {
 		if c.Status == StatusDying {
 			c.Status = StatusUnconscious
 		}
-		if c.Status == StatusUnconscious && e.BeginFlag != 5 {
+		if c.Status == StatusUnconscious && e.Phase != rules.PhaseFight {
 			e.callAffect(affGetUp, c, nil, 1)
 		}
 	}
@@ -642,7 +642,7 @@ func (e *RuleState) reviveAt(c *Character, x, y int, hp byte, msg string) bool {
 // flashes (once per message delay step for magic) with a sound.
 func (e *RuleState) hitMessage(c *Character, magical bool, msg string) {
 	// fixed: the original cut msg to 40 characters ("...damage from Electric"); every path wraps it
-	if e.BeginFlag == 5 { // the target's flash is the presenter's (Struck, Attacked)
+	if e.Phase == rules.PhaseFight { // the target's flash is the presenter's (Struck, Attacked)
 		if magical {
 			e.Sound(e.hitEvent(c, "hit_good"))
 		} else {
@@ -658,7 +658,7 @@ func (e *RuleState) ApplyDamage(c *Character, dmg int) {
 	if s := c.Status; s >= StatusDead && s <= StatusGone { // fixed, as the Pascal reference: a hit on a body made it Dying again
 		return
 	}
-	if e.BeginFlag == 5 {
+	if e.Phase == rules.PhaseFight {
 		dmg = e.Rules().Damage(e, c, dmg)
 	}
 	e.factHarm(c, dmg)
@@ -675,7 +675,7 @@ func (e *RuleState) ApplyDamage(c *Character, dmg int) {
 		c.Status = StatusDead
 	case over > 0:
 		c.Status = StatusDying
-		if e.BeginFlag == 5 && c.Combat != nil {
+		if e.Phase == rules.PhaseFight && c.Combat != nil {
 			c.Combat.Dying = byte(over)
 		}
 	case left == 0:
@@ -687,7 +687,7 @@ func (e *RuleState) ApplyDamage(c *Character, dmg int) {
 	}
 	c.Okay = 0
 	c.HP = 0
-	if e.BeginFlag == 5 {
+	if e.Phase == rules.PhaseFight {
 		e.Rv.Side[int8(c.Side)&1]--
 		if c.Combat != nil {
 			c.Combat.Delay = 0

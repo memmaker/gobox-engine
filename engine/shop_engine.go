@@ -19,7 +19,7 @@ func (e *Engine) shopBrowse() {
 func (e *Engine) Shop() {
 	e.songMusic(adventure.SongShop, 0) // extra
 	greeting := e.paneCopy()           // extra: the merchant's greeting comes back after each redraw (the original cleared it)
-	e.must(rules.EnterShop{})
+	e.setPhase(rules.PhaseShop)
 	e.DrawMainScreen()
 	e.keepPane(greeting)
 	e.must(rules.StockShop{})

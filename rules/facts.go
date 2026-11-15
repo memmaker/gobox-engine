@@ -98,21 +98,3 @@ const (
 // Copper is money: the rules' one unit. Gold-and-copper is presentation's, and
 // a script's CoinFact is a view that converts.
 type Copper int64
-
-// WorldWord is a script variable the rules depend on. The engine keeps script
-// memory; it passes these on in FightTerms.
-type WorldWord int
-
-const (
-	// the words still read and written through the ruleset (WordIs, SetWord;
-	// REFACTOR.md B1f0f: the rules' own state, to become facts)
-	WordBeginFlag    WorldWord = iota + 1 // por DS:49F3: 0 the party menu, 3 exploring, 4 an area starting, 5 a fight's setup
-	WordTenMinutes                        // por area.Clock[2]
-	WordHours                             // por area.Clock[3]
-	WordPartyCount                        // por game.PartyCount (read: the party's size)
-	WordTraining                          // por: the training hall is open (Yes; SetWord opens or closes it)
-	WordWho                               // por DS:5D92: the member the rules act for
-	WordEffect                            // por: the party's affect table, entry WordIs.Index (read only)
-	WordClockMinutes                      // por: the area clock as minutes of the day (read only)
-	WordCampOn                            // por: camp is up (CampMenu; flag)
-)

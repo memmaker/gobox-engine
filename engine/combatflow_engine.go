@@ -17,7 +17,7 @@ func (e *Engine) event(ev game.Event) {
 // pushCombat = Combat (ovr09:007A): set up the battle, then rounds until
 // one side is down (or the party stops fighting), a timed screen.
 func (e *Engine) pushCombat() {
-	e.setWorldWord(rules.WordBeginFlag, 5)
+	e.setPhase(rules.PhaseFight)
 	e.present() // what the last fight left
 	e.ext.battleLog, e.ext.panel = nil, rules.NoChar
 	e.cs = combatState{}

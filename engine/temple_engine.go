@@ -30,7 +30,7 @@ func (e *Engine) cure(n, x int) error {
 		done = "is cured."
 	}
 	e.say(e.ruleset().Sheet(cID).Name + " " + done)
-	e.setWorldWord(rules.WordWho, e.sel)
+	e.as(e.sel)
 	e.do(rules.GiveTempleCure{Who: cID, Cure: int32(x)})
 	return nil
 }
@@ -40,7 +40,7 @@ func (e *Engine) cure(n, x int) error {
 func (e *Engine) Temple() {
 	e.songMusic(adventure.SongTemple, 0) // extra
 	greeting := e.paneCopy()             // extra: the priests' greeting stays, as the shop
-	e.setWorldWord(rules.WordBeginFlag, 1)
+	e.setPhase(rules.PhaseShop)
 	e.DrawMainScreen()
 	e.keepPane(greeting)
 	e.pw.greeting = greeting

@@ -18,7 +18,7 @@ func (e *Engine) GameLoop() {
 	r.restoreSel = false
 	r.scriptLoad = 0
 	r.needFrame = 1
-	e.setWorldWord(rules.WordBeginFlag, 4)
+	e.setPhase(rules.PhaseAreaStart)
 	r.areaChanged = false
 	e.gs.areaKind = byte(e.world.AreaKind)
 	if e.gs.areaKind == 0 { // no last block: the game's first (POR's is 0)
@@ -26,7 +26,7 @@ func (e *Engine) GameLoop() {
 	}
 	fresh := !e.loadedGame // extra: a new adventure, not a loaded game
 	if k := e.gs.areaKind; (k == 0x19 || k == 0x1A || k == 0x1B) && e.world.In3D == 0 {
-		e.setWorldWord(rules.WordBeginFlag, 3)
+		e.setPhase(rules.PhaseExploring)
 	}
 	// the area's text script, also for a loaded game (whose save holds
 	// the byte code)
@@ -50,7 +50,7 @@ func (e *Engine) gameBegan(fresh bool) {
 		e.AreaChange()
 		return
 	}
-	if e.worldWord(rules.WordBeginFlag) != 3 {
+	if e.phase != rules.PhaseExploring {
 		if r.needFrame == 1 {
 			e.DrawMainScreen()
 			r.needFrame = 0
@@ -267,21 +267,21 @@ func (e *Engine) AreaChange() {
 // areaStart: the new area's start events are done.
 func (e *Engine) areaStart(sel rules.CharID) {
 	r := &e.run
-	e.setWorldWord(rules.WordBeginFlag, 4)
+	e.setPhase(rules.PhaseAreaStart)
 	if e.world.In3D == 0 {
 		switch e.gs.areaKind {
 		case 0x19:
 			e.viewMode = 2
-			e.setWorldWord(rules.WordBeginFlag, 3)
+			e.setPhase(rules.PhaseExploring)
 		case 0x1A:
 			e.viewMode = 3
-			e.setWorldWord(rules.WordBeginFlag, 3)
+			e.setPhase(rules.PhaseExploring)
 			if e.world.Boss == 0xFE && e.world.RiverOpen == 0 {
 				e.EndgameHook(1)
 			}
 		case 0x1B:
 			e.viewMode = 4
-			e.setWorldWord(rules.WordBeginFlag, 3)
+			e.setPhase(rules.PhaseExploring)
 		}
 	}
 	if e.prevViewMode > 1 && e.viewMode == 1 {

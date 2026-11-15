@@ -25,7 +25,7 @@ func podEngine(t *testing.T) *Engine {
 
 // POD's Combat reads the area's tile set and the vault request (pod-re
 // EclCombat, LoadCombatTileSet). Bug class: shared code read a world word
-// the rules keep for no game (Engine.worldWord panics): a POD fight outside
+// the rules keep for no game (the engine's asks panicked): a POD fight outside
 // a dungeon and a Combat with no monsters crashed.
 func TestPodCombatWords(t *testing.T) {
 	e := podEngine(t)

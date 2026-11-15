@@ -1,5 +1,7 @@
 package engine
 
+import "gobox/rules"
+
 // The adventure screen: the view window and what the screen is rebuilt with.
 // Ported from 00BA:272A/27D9/290B and ovr27.
 
@@ -21,24 +23,24 @@ func (e *Engine) Redraw() {
 
 // DrawMainScreen = 00BA:27D9: rebuild the whole screen for DS:49F3.
 func (e *Engine) DrawMainScreen() {
-	switch e.beginFlag() {
-	case 0:
+	switch e.phase {
+	case rules.PhaseMenu:
 		e.newPage()
 		e.clearWindow()
-	case 1:
+	case rules.PhaseShop:
 		e.newPage()
 		e.LoadPortrait(e.set, int(e.es.picHead), int(e.es.picBody))
 		e.DrawPortrait()
-	case 2:
+	case rules.PhaseCamp:
 		e.newPage()
 		e.LoadAnimPic("PIC", 0x1D, false)
-	case 4:
+	case rules.PhaseAreaStart:
 		e.newPage()
 		e.Redraw()
-	case 3:
+	case rules.PhaseExploring:
 		e.newPage()
 		e.Redraw()
-	case 6:
+	case rules.PhaseAfterFight:
 		e.newPage()
 		e.LoadAnimPic("PIC", 1, false)
 	}

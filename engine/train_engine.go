@@ -112,7 +112,7 @@ func (e *Engine) addSaved(p *picker, i int) bool {
 			names[i] = names[i][2:] // unmarked again, as in CotAB
 		}
 	}
-	return count > 5 || e.worldWord(rules.WordPartyCount) > 7
+	return count > 5 || e.memberCount() > 7
 }
 
 // joinPicked puts the picked character id in the party (ovr17:306D): the first into an empty
@@ -128,7 +128,7 @@ func (e *Engine) joinPicked(id rules.CharID) (refused bool, count int) {
 	count = int(e.ruleset().Check(rules.ControlledBefore{Who: id}, nil).Value)
 	npc := e.fact(id, rules.FactControl).(rules.Number) >= 0x80
 	refused = !dup && !e.ruleset().Check(rules.CanJoin{Who: id}, nil).Yes
-	if !dup && !refused && (!npc && count < 6 || npc && e.worldWord(rules.WordPartyCount) < 8) {
+	if !dup && !refused && (!npc && count < 6 || npc && e.memberCount() < 8) {
 		e.join(id)
 		if !npc {
 			count++

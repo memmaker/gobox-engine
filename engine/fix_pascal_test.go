@@ -3,6 +3,7 @@ package engine
 import (
 	"bufio"
 	"fmt"
+	"gobox/rules"
 	"gobox/rules1e"
 	"os"
 	"slices"
@@ -39,7 +40,7 @@ func TestFixesAgainstPascal(t *testing.T) {
 		var got string
 		switch fs[0] {
 		case "damage":
-			e.state().BeginFlag = 0
+			e.setPhase(rules.PhaseMenu)
 			c.HP, c.Status, c.Okay, c.Affects = 4, byte(k[0]), 1, nil
 			e.state().ApplyDamage(c, k[1])
 			got = fmt.Sprintf("%d %d", c.Status, c.HP)
@@ -142,7 +143,7 @@ func spellLostCase(t *testing.T, slot int) string {
 	fixFloor(e)
 	fixPlace(e, a, 6, 4)
 	fixPlace(e, d, 6, 6)
-	e.state().BeginFlag = 5
+	e.setPhase(rules.PhaseFight)
 	e.state().RandSeed = 1
 	e.state().Damage(d, 3, 0, false)
 	return fmt.Sprintf("%d %d %d", d.Memorized[slot], a.Memorized[slot], d.Combat.Spell)
@@ -158,7 +159,7 @@ func charmCase(t *testing.T, dist, seed int) string {
 	c.Combat.Target = o
 	fixPlace(e, c, 6, 4)
 	fixPlace(e, o, 6, 4+dist)
-	e.state().BeginFlag = 5
+	e.setPhase(rules.PhaseFight)
 	e.state().CurSpell = 7
 	e.state().RandSeed = uint32(int32(seed))
 	e.state().CharmGaze(c, &rules1e.Affect{}, 0)

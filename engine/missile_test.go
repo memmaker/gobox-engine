@@ -93,7 +93,7 @@ func TestLauncherMissilesSlots(t *testing.T) {
 	if d := r.DollSlot(c, bow); d != rules.DollLauncher {
 		t.Errorf("bow on doll slot %d", d)
 	}
-	r.BeginFlag = 5 // in a fight
+	e.setPhase(rules.PhaseFight)
 	cID := e.charID(c)
 	tw := &Turn{}
 	e.turnWeapons(cID, tw)

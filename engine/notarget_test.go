@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"gobox/rules"
 	"gobox/rules1e"
 	"slices"
 	"testing"
@@ -38,7 +39,7 @@ func TestNoTargetAsks(t *testing.T) {
 		}
 	}
 	e := quickStarted(t)
-	e.state().BeginFlag = 4
+	e.setPhase(rules.PhaseAreaStart)
 	ci := slices.IndexFunc(e.state().Party, func(c *rules1e.Character) bool { return c.Levels[rules1e.ClsCleric] > 0 })
 	e.state().Party[ci].Memorized[0] = rules1e.SpCureLightWounds
 	check("Cure Light Wounds", e, game.UsePower{Member: ci, Kind: game.PowerCast, Spell: rules1e.SpCureLightWounds, Target: -1})

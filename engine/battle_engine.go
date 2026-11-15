@@ -11,7 +11,7 @@ import (
 
 // battleShown: the combat map is up (battle builds it).
 func (e *Engine) battleShown() bool {
-	return e.worldWord(rules.WordBeginFlag) == 5 && e.sqrpaci[0] != nil && e.ruleset().Check(rules.BoardUp{}, nil).Yes && e.snap.cmapOn && !e.snap.sheetOn
+	return e.phase == rules.PhaseFight && e.sqrpaci[0] != nil && e.ruleset().Check(rules.BoardUp{}, nil).Yes && e.snap.cmapOn && !e.snap.sheetOn
 }
 
 // battle builds the snapshot's Battle (nil outside combat).

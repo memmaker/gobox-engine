@@ -305,7 +305,7 @@ func (e *Engine) askMember(prompt string, whoID rules.CharID, d askDone) {
 	for _, id := range ids {
 		q.Replies = append(q.Replies, e.ruleset().Sheet(id).Name)
 	}
-	e.eclWait = &eclWait{ask: q, member: true, shape: shMember, anim: e.beginFlag() == 2 || e.beginFlag() == 6, done: d}
+	e.eclWait = &eclWait{ask: q, member: true, shape: shMember, anim: e.phase == rules.PhaseCamp || e.phase == rules.PhaseAfterFight, done: d}
 }
 
 // askPause is a pause of ms the presenter paces (the engine never sleeps);

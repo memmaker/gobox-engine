@@ -54,9 +54,6 @@ func (r *Rules) resolveTown(a rules.Action) (rules.Outcome, bool, error) {
 	case rules.CloseHall:
 		s.Training, s.Learning = false, false
 		return rules.Outcome{}, true, nil
-	case rules.EnterShop:
-		s.BeginFlag = 1
-		return rules.Outcome{}, true, nil
 	case rules.StockShop:
 		for _, it := range s.Treasure {
 			s.ItemName(nil, it, false)

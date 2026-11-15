@@ -231,7 +231,7 @@ func (e *Engine) LoadCharacter(name string, useSav bool) (rules.CharID, bool) {
 	}
 	b, err := e.fileFormat().Pack(f)
 	if err == nil {
-		e.setWorldWord(rules.WordWho, e.sel) // ImportCharacter's member
+		e.as(e.sel) // ImportCharacter's member
 		var id rules.CharID
 		if id, err = e.ruleset().Import(b); err == nil {
 			return id, true
@@ -259,7 +259,7 @@ func (e *Engine) LoadMonster(index int) (rules.CharID, bool) {
 
 // AddMonsterToParty = ovr18:1262 (index): NPC joins the party.
 func (e *Engine) AddMonsterToParty(index int) {
-	if e.worldWord(rules.WordPartyCount) > 7 {
+	if e.memberCount() > 7 {
 		return
 	}
 	id, _ := e.LoadMonster(index) // a failed load dresses a blank one, as the original
@@ -318,7 +318,7 @@ func (e *Engine) loadSlot() bool {
 	e.run.doorTry = [3]byte{1, 1, 1} // extra: else a game loaded at a locked door offers only Exit, which walls it up
 	e.pos3, e.pos4 = f.Pos3, f.Pos4
 	e.viewMode = int(f.ViewMode)
-	e.setWorldWord(rules.WordBeginFlag, int(f.BeginFlag))
+	e.setPhase(rules.Phase(f.BeginFlag))
 	w := uint16(e.world.ViewFlags)
 	e.viewBit1, e.viewBit0 = byte(w>>1), byte(w&1)
 	e.msgDelay = byte(e.world.MsgDelay)
@@ -385,7 +385,7 @@ func (e *Engine) saveSlot() error {
 	}
 	f := adventure.Save{Set: e.set, Rules: blob, World: e.savedWorld(), Fields: e.vars, Locals: e.locals}
 	f.X, f.Y, f.Facing, f.Pos3, f.Pos4 = byte(e.posX), byte(e.posY), byte(e.facing), e.pos3, e.pos4
-	f.ViewMode, f.BeginFlag = byte(e.viewMode), byte(e.beginFlag())
+	f.ViewMode, f.BeginFlag = byte(e.viewMode), byte(e.phase)
 	for i := range e.partyIDs() {
 		f.Party = append(f.Party, "CHRDATA"+strconv.Itoa(i+1))
 	}

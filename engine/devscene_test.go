@@ -259,7 +259,7 @@ func TestContinueBattle(t *testing.T) {
 	e.doNow(yes(ask()))
 	if _, ok := e.build().(game.Fighting); !ok {
 		sc, _ := e.build().(game.Scene)
-		t.Fatalf("Yes ended the fight: %T %q %q phase %v flag %d", e.build(), sc.Text, commonOf(sc).Text, e.cs.phase, e.state().BeginFlag)
+		t.Fatalf("Yes ended the fight: %T %q %q phase %v flag %d", e.build(), sc.Text, commonOf(sc).Text, e.cs.phase, e.phase)
 	}
 	e.doNow(no(ask()))
 	if _, ok := e.build().(game.Fighting); ok {

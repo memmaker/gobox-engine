@@ -1,6 +1,7 @@
 package rules1e
 
 import (
+	"gobox/rules"
 	"slices"
 )
 
@@ -13,7 +14,7 @@ import (
 // PaladinCan = CotAB CanCastHeal/CanCastCureDiseases: out of combat, okay,
 // and the power not used yet.
 func (e *RuleState) PaladinCan(c *Character, used AffectType) bool {
-	return int8(c.Levels[ClsPaladin]) > 0 && e.BeginFlag != 5 && c.Status == StatusOkay && e.FindAffect(c, used) == nil
+	return int8(c.Levels[ClsPaladin]) > 0 && e.Phase != rules.PhaseFight && c.Status == StatusOkay && e.FindAffect(c, used) == nil
 }
 
 // CanLoseItem = ovr20:0D70 (item): readied items must be unreadied first.
@@ -135,7 +136,7 @@ func (e *RuleState) ReadyItem(it *Item) {
 			e.notice("It's Cursed")
 			return
 		}
-		if e.partyMember(c) && e.poolFull(it) && !(e.BeginFlag == 5 && c.Auto != 0) { // extra: it goes back into the party inventory; the computer's turn never stalls on a full one (it overflows, addToPool)
+		if e.partyMember(c) && e.poolFull(it) && !(e.Phase == rules.PhaseFight && c.Auto != 0) { // extra: it goes back into the party inventory; the computer's turn never stalls on a full one (it overflows, addToPool)
 			e.notice("No room in the party items")
 			return
 		}
@@ -205,7 +206,7 @@ func (e *RuleState) ReadyItem(it *Item) {
 		}
 		e.notice("already using " + name)
 	case 3:
-		if !(e.BeginFlag == 5 && c.Auto != 0) {
+		if !(e.Phase == rules.PhaseFight && c.Auto != 0) {
 			e.notice("Your hands are full!")
 		}
 	}
@@ -255,7 +256,7 @@ func (e *RuleState) UseItem(it *Item, spell SpellID, r CastReply) bool {
 	e.UsingItem = true
 	e.CastSpell(spell, c.Auto, 0, r, &quit) // a cancelled aim: nothing used, the inventory stays
 	e.UsingItem = false
-	if e.BeginFlag == 5 && e.SpellRec(spell, 0xB) != 0 {
+	if e.Phase == rules.PhaseFight && e.SpellRec(spell, 0xB) != 0 {
 		quit = e.ClearCombatInfo(c)
 	}
 	if quit {

@@ -123,7 +123,7 @@ type Picked struct{ Picks map[FieldID]int }
 
 func (Picked) effect() {}
 
-// PartySize: the members of the party (Value), extras too; core.WordPartyCount
+// PartySize: the members of the party (Value), extras too; core.MemberCount
 // is the record's count, which they are not in.
 type PartySize struct{}
 

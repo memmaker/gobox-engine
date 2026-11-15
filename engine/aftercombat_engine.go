@@ -206,7 +206,7 @@ func (e *Engine) LootLeave(sure bool) error {
 
 // pushAfterCombat = AfterCombat (ovr06:1527): the results, then the treasure screen, which ends it.
 func (e *Engine) pushAfterCombat() {
-	e.setWorldWord(rules.WordBeginFlag, 6)
+	e.setPhase(rules.PhaseAfterFight)
 	e.endFight()
 	if !e.run.quit || e.duel() {
 		e.push(cont{kind: kAfterShared})

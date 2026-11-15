@@ -37,12 +37,14 @@ func (r *Rules) resolveCamp(a rules.Action) (rules.Outcome, bool, error) {
 	s := r.S
 	switch a := a.(type) {
 	case rules.CampOpen:
+		s.Camp.On = true
 		s.Camp.Heal = 0
 		s.Camp.Rest = [7]int{}
 		s.Camp.RestEvery, s.Camp.RestChance = a.RestEvery, a.RestChance
 	case rules.ClearStudy:
 		s.ClearStudy()
 	case rules.CampClose:
+		s.Camp.On = false
 		s.Camp.RestEvery, s.Camp.RestChance = 0, 0
 		for _, c := range s.Party {
 			s.PlanSpells(c)

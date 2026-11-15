@@ -129,7 +129,7 @@ func (e *Engine) foreignChars(from string) (names []string, chars []rules.CharID
 		return nil, nil
 	}
 	for _, f := range files {
-		e.setWorldWord(rules.WordWho, e.sel) // ImportCharacter's member
+		e.as(e.sel) // ImportCharacter's member
 		id, err := e.ruleset().Import(f)
 		if err != nil {
 			e.fileError("read", from)
@@ -150,7 +150,7 @@ func (e *Engine) addForeign(p *picker, i int) bool {
 		if refused {
 			p.labels[i] = p.labels[i][2:]
 		}
-		return count > 5 || e.worldWord(rules.WordPartyCount) > 7
+		return count > 5 || e.memberCount() > 7
 	}
-	return e.worldWord(rules.WordPartyCount) > 7
+	return e.memberCount() > 7
 }

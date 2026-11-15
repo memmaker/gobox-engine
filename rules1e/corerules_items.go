@@ -161,7 +161,7 @@ func (r *Rules) ready(c *Character, it *Item, n int, to rules.ReadyTo) rules.Out
 // useItemOutside = por's UseItem out of a fight, after its questions: the
 // Item casts its own spell (UsingItem) or the scroll's Spell, on Target when
 // the spell asks for one (Sure: yes to "Use it?"); the items are applied
-// again. The acting member (WordWho) is the user, as the Engine set it.
+// again. The acting member (ActFor) is the user, as the Engine set it.
 func (r *Rules) useItemOutside(a rules.UseItem) (rules.Outcome, error) {
 	c, it := r.chars[a.User], r.Held(a.Item)
 	if c == nil || it == nil {

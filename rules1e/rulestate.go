@@ -44,7 +44,7 @@ type RuleState struct {
 	ageCheckDue                     bool                          // SotSB b7D44 / PoD: someone aged in the fight: see who dies of old age (oldAgeDeaths)
 	tiedTarget                      *Character                    // DS:6826 scratch target
 	Settings                        Settings                      // extra: the options handed in (combatrules.go)
-	BeginFlag                       byte                          // DS:49F3
+	Phase                           rules.Phase                   // DS:49F3: the phase the engine last handed (EnterPhase)
 	Game                            GameVars                      // DS:49D6 record (vars.go)
 	Area                            AreaVars                      // DS:49D2
 	Treasure                        []*Item                       // DS:6810 list: the items a fight or a script leaves to take

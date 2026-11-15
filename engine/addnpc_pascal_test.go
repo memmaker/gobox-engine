@@ -45,7 +45,7 @@ func TestAddNPCAgainstPascal(t *testing.T) {
 			members = append(members, &c)
 		}
 		e.state().Party = members[:k[0]]
-		e.setWorldWord(rules.WordPartyCount, k[0])
+		e.setMemberCount(k[0])
 		e.selectMember(0)
 		first := e.member(e.selected())
 		e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Op: 0x36, Args: []ecl.Arg{{Type: 0, N: k[2]}, {Type: 0, N: 100}}}}}

@@ -27,7 +27,7 @@ func (e *Engine) areaMapInit() {
 
 // areaMapIcons = 00BA:2B5E: switch to the area map view and draw it.
 func (e *Engine) areaMapIcons() {
-	e.setWorldWord(rules.WordBeginFlag, 3)
+	e.setPhase(rules.PhaseExploring)
 	e.areaMapInit()
 	e.Redraw()
 }

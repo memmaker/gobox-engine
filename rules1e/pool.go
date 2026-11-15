@@ -139,9 +139,9 @@ func (e *RuleState) DollSlot(c *Character, it *Item) int {
 // shop, showing another member; noMagic: the area forbids magic (the area's word, handed in).
 func (e *RuleState) InvFlags(c *Character, noMagic bool) (use, sell, switches bool) {
 	hired := c.Control >= 0x80 && c.Okay != 0 && c.Status != StatusAnimated
-	use = c.Okay != 0 && !noMagic && (e.BeginFlag == 2 || e.BeginFlag == 3 || e.BeginFlag == 4 ||
-		e.BeginFlag == 5 && c.Combat != nil && c.Combat.CanUse != 0)
-	return use, !hired && e.BeginFlag == 1, e.BeginFlag != 5
+	use = c.Okay != 0 && !noMagic && (e.Phase == rules.PhaseCamp || e.Phase == rules.PhaseExploring || e.Phase == rules.PhaseAreaStart ||
+		e.Phase == rules.PhaseFight && c.Combat != nil && c.Combat.CanUse != 0)
+	return use, !hired && e.Phase == rules.PhaseShop, e.Phase != rules.PhaseFight
 }
 
 // Listed is items in the order the inventory lists them (by kind, the

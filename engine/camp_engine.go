@@ -135,15 +135,15 @@ func (e *Engine) CampMenu() {
 	if !e.songMusic(adventure.SongInn, 0) { // extra: the inn theme for camp
 		e.Music(1) // Amiga 0x17FBC .. 0x1813C
 	}
-	e.campSavedFlag = e.worldWord(rules.WordBeginFlag)
-	e.setWorldWord(rules.WordBeginFlag, 2)
+	e.campSavedFlag = e.phase
+	e.setPhase(rules.PhaseCamp)
 	e.must(rules.CampOpen{RestEvery: e.world.RestEvery, RestChance: e.world.RestChance})
 	e.DrawMainScreen()
 	e.must(rules.ClearStudy{})
 	e.campInterrupted = false
 	e.campSavedAnim = e.animInput
 	e.animInput = true // the camp picture's fire burns while camp is up (the camp bar's anim, ovr06:101F)
-	e.setWorldWord(rules.WordCampOn, 1)
+	e.campOpen = true
 	e.campSeq = e.opens()
 }
 
@@ -157,9 +157,9 @@ func (e *Engine) leaveCamp() {
 	if !e.campOn() {
 		return
 	}
-	e.setWorldWord(rules.WordCampOn, 0)
+	e.campOpen = false
 	e.must(rules.CampClose{}) // the plans hold: the next rest learns them
-	e.setWorldWord(rules.WordBeginFlag, e.campSavedFlag)
+	e.setPhase(e.campSavedFlag)
 	e.animInput = e.campSavedAnim
 	e.ClearMessageArea()
 	e.clearPrompt()
@@ -190,7 +190,7 @@ func (e *Engine) planSpell(n, spell, count int) error {
 	if !e.inCamp() {
 		return rules.ErrNotNow
 	}
-	e.setWorldWord(rules.WordWho, e.sel) // the rules' actor is the one selected before n
+	e.as(e.sel) // the rules' actor is the one selected before n
 	e.must(rules.Plan{Who: e.actor(n), Spell: e.spellID(spell), Count: int32(count)})
 	return nil
 }
@@ -200,7 +200,7 @@ func (e *Engine) scribe(n, spell int) error {
 	if !e.inCamp() {
 		return rules.ErrNotNow
 	}
-	e.setWorldWord(rules.WordWho, e.sel) // the rules' actor is the one selected before n
+	e.as(e.sel) // the rules' actor is the one selected before n
 	e.must(rules.Scribe{Who: e.actor(n), Spell: e.spellID(spell)})
 	return nil
 }
@@ -249,7 +249,7 @@ func (e *Engine) campRest(kind int) error {
 		if !e.ruleset().Check(rules.IsDay{}, nil).Yes {
 			until = 6 * 60
 		}
-		e.restFor(((until-e.worldWord(rules.WordClockMinutes))%(24*60)+24*60)%(24*60), false, restThen{kind: thRested})
+		e.restFor(((until-e.clockPart(rules.ClockMinuteOfDay))%(24*60)+24*60)%(24*60), false, restThen{kind: thRested})
 	default:
 		return rules.ErrNotNow
 	}
@@ -432,7 +432,7 @@ func twoDigits(n int) string {
 
 // castCures has the clerics cast Cure Light Wounds, the member selected the actor.
 func (e *Engine) castCures() {
-	e.setWorldWord(rules.WordWho, e.sel)
+	e.as(e.sel)
 	e.must(rules.CastCures{NoMagic: e.noMagic()})
 }
 

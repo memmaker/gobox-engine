@@ -29,7 +29,7 @@ func (e *Engine) combatSetup() {
 	if _, err := e.ruleset().Resolve(e.fight(), rules.FightPlaced{}, nil); err != nil {
 		panic(fmt.Sprintf("combat setup: %v", err))
 	}
-	e.setWorldWord(rules.WordBeginFlag, 5)
+	e.setPhase(rules.PhaseFight)
 }
 
 // combatMapSetup = ovr11:1244: the tile sets and the map.

@@ -1,6 +1,6 @@
 package rules1e
 
-import ()
+import "gobox/rules"
 
 // Affect handlers of GAME.OVR overlay 13 from 0x1C00 to the end, and the
 // ovr13:31A2 routine that fills the DS:6828 handler table.
@@ -807,10 +807,10 @@ func (e *RuleState) magicStrength(c *Character, flag byte, str Score, str00 byte
 	}
 	out, ok := e.SetStrength(c, str, str00)
 	if ok && say {
-		if e.BeginFlag == 5 {
-			e.BeginFlag = 2
+		if e.Phase == rules.PhaseFight {
+			e.Phase = rules.PhaseCamp // a local trick on the rules' own copy of the phase: the line says like camp's, the engine's phase stays
 			e.CombatSay(c, "is stronger", true)
-			e.BeginFlag = 5
+			e.Phase = rules.PhaseFight
 		} else {
 			e.CombatSay(c, "is stronger", true)
 		}

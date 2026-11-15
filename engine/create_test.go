@@ -3,6 +3,7 @@ package engine
 import (
 	"errors"
 	"gobox/game"
+	"gobox/rules"
 	"gobox/rules1e"
 	"image"
 	"image/png"
@@ -167,8 +168,8 @@ func TestCreateSheet(t *testing.T) {
 		t.Fatal("back from the sheet: no party menu")
 	}
 	e.begin()
-	if e.state().BeginFlag != 4 || e.menu.on {
-		t.Errorf("begin flag %d, screens %d", e.state().BeginFlag, e.top())
+	if e.phase != rules.PhaseAreaStart || e.menu.on {
+		t.Errorf("phase %d, screens %d", e.phase, e.top())
 	}
 	// Forget: the picker asks (the presenter's question), a pick deletes.
 	e.SaveCharacter(e.charID(e.state().Party[0]), "") // as Remove

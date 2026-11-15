@@ -24,7 +24,7 @@ type Sequence struct {
 }
 
 // Effect is what an end sequence does to the game when it is over; the ruleset
-// carries it out (core.HealParty, core.SetWord).
+// carries it out (core.HealParty, core.OpenHallForAll).
 type Effect int
 
 const (

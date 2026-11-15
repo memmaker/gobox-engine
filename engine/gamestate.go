@@ -101,7 +101,7 @@ func (e *Engine) whereState() (game.Where, game.Automap) {
 		Mode: map[bool]string{true: "dungeon", false: "wilderness"}[e.world.In3D != 0],
 	}
 	m := e.mapState(&w)
-	w.Hour, w.Minute = e.worldWord(rules.WordClockMinutes)/60, e.worldWord(rules.WordClockMinutes)%60
+	w.Hour, w.Minute = e.clockPart(rules.ClockMinuteOfDay)/60, e.clockPart(rules.ClockMinuteOfDay)%60
 	w.Hall = e.ext.hall // the party menu is the training hall's
 	return w, m
 }

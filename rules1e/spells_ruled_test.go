@@ -91,7 +91,7 @@ func TestHealWakeRuled(t *testing.T) {
 		c := newChar("HURT", 1)
 		c.HP, c.Okay, c.Status = 0, 0, StatusUnconscious
 		e := ruledScene(t, c)
-		e.BeginFlag = 0
+		e.Phase = rules.PhaseMenu
 		castOn(e, sp, c)
 		if c.Okay == 0 || c.HP == 0 {
 			t.Errorf("spell %d: not awake (okay %d HP %d)", sp, c.Okay, c.HP)
@@ -309,7 +309,7 @@ func TestCharmPersonOrMammalRuled(t *testing.T) {
 func TestStoneToFleshRuled(t *testing.T) {
 	c := newChar("C", 1)
 	e := ruledScene(t, c)
-	e.BeginFlag = 0
+	e.Phase = rules.PhaseMenu
 	castOn(e, spStoneToFlesh, c)
 	if !e.spellKept || !strings.Contains(said(e), "is not stoned") {
 		t.Errorf("camp: kept %v %q", e.spellKept, said(e))

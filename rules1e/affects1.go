@@ -486,7 +486,7 @@ func (e *RuleState) damageLessQuarter(c *Character, a *Affect, flag byte) {
 // CoughingEnds = PoD O07C:0A11 (Felix's ruling, all games; POR's ovr13:0A65
 // replaced): in a fight no spells or items, and both armour classes 2 worse.
 func (e *RuleState) CoughingEnds(c *Character, a *Affect, flag byte) {
-	if e.BeginFlag != beginFlagCombat {
+	if e.Phase != rules.PhaseFight {
 		return
 	}
 	ci := combatInfo(c)

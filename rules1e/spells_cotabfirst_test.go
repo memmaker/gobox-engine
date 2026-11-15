@@ -1,6 +1,7 @@
 package rules1e
 
 import (
+	"gobox/rules"
 	"slices"
 	"testing"
 )
@@ -22,7 +23,7 @@ func cotabFirstScene(t *testing.T, foes ...*Character) *RuleState {
 	}
 	tb.Affects[affCloudkill] = "cloudkill"
 	tb.Grounds = CotabGroundIDs
-	e := &RuleState{Tables: &tb, BeginFlag: 5, RandSeed: 1}
+	e := &RuleState{Tables: &tb, Phase: rules.PhaseFight, RandSeed: 1}
 	caster := newChar("CASTER", 0)
 	caster.Levels[ClsMage], caster.Levels[ClsRanger] = 9, 9
 	e.Party = append([]*Character{caster}, foes...)

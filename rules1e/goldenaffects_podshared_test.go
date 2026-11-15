@@ -46,8 +46,6 @@ type goldenPodSharedCase struct {
 	Want             goldenPodSnap
 }
 
-const goldenPodBeginFlagCombat = 5 // BeginFlag in a fight
-
 func TestGoldenAffectsPodShared(t *testing.T) {
 	dir := filepath.Join("testdata", "pod")
 	var cases []goldenPodSharedCase
@@ -85,7 +83,7 @@ func runGoldenPodShared(tb *Tables, k goldenPodSharedCase) goldenPodSnap {
 	r.Party, r.Who = cs, k.Acting
 	r.Rv.Damage, r.Rv.DmgType = int16(k.Damage), k.DmgType
 	if k.Combat {
-		r.BeginFlag, r.Cmap = goldenPodBeginFlagCombat, &CombatMap{}
+		r.Phase, r.Cmap = rules.PhaseFight, &CombatMap{}
 	}
 	r.Rv.Critical, r.SlotShots[1] = k.Critical, Count(k.Blow)
 	a := &Affect{AffectRecord: AffectRecord{Type: id, Data: k.Data}}

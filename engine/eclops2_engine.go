@@ -87,7 +87,7 @@ func (e *Engine) opRob() {
 	if who != 0 {
 		robbed = e.partyIDs()
 	}
-	e.setWorldWord(rules.WordWho, e.sel)
+	e.as(e.sel)
 	e.do(rules.Rob{Robbed: robbed, Pct: int32(pct), ItemPct: int32(itemPct)})
 }
 

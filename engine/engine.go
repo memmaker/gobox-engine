@@ -39,10 +39,12 @@ type Engine struct {
 	world              rules.World            // the world words the engine and the scripts keep, no ruleset reads them (saved: adventure.Save.World)
 	create             rules.CreationRules    // the ruleset's creation, made with rules
 	posX, posY, facing int                    // the party's map square and facing 0..7 (DS:6AAD, 6AAE, 6AAF): world navigation, the Engine's; saves keep them (files_engine.go)
-	campSavedFlag      int                    // beginFlag as camp found it
+	phase              rules.Phase            // which screen or loop the game is in (por DS:49F3); set only by setPhase, which tells the rules
+	campSavedFlag      rules.Phase            // the phase as camp found it
+	campOpen           bool                   // camp is open (CampMenu .. leaveCamp)
 	campSavedAnim      bool                   // the picture's animation as camp found it
 	campInterrupted    bool                   // a rest was interrupted (camp closes)
-	campSeq            int                    // when camp opened (top); the rules keep camp up (core.WordCampOn)
+	campSeq            int                    // when camp opened (top); campOpen tells whether it is up
 	fx                 []rules.Effect         // the effects queued and not yet shown (emit, present)
 	resting            *restRun               // the camp rest going on (RestStep), nil none
 	unheard            bool                   // work done unseen (camp's Fix at once): nothing sounds

@@ -93,21 +93,6 @@ func selIndex[V comparable](e *Engine, f rules.Fact, table []V) int {
 	panic(fmt.Sprintf("script: fact %v: unexpected value", f))
 }
 
-// worldWord is the world word w's value (core.WordIs); a word the rules do not
-// keep is a bug of the Engine.
-func (e *Engine) worldWord(w rules.WorldWord) int {
-	a := e.ruleset().Check(rules.WordIs{Word: w}, nil)
-	if !a.Yes {
-		panic(fmt.Sprintf("rules keep no world word %d", w))
-	}
-	return int(a.Value)
-}
-
-// setWorldWord stores v in the world word w (core.SetWord).
-func (e *Engine) setWorldWord(w rules.WorldWord, v int) {
-	e.do(rules.SetWord{Word: w, Value: int32(v)})
-}
-
 // rollDice is n dice of sides from the rules' generator (core.RollDice).
 func (e *Engine) rollDice(n, sides int) int {
 	return int(e.ruleset().Check(rules.RollDice{N: int32(n), Sides: int32(sides)}, nil).Value)

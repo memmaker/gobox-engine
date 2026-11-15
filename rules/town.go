@@ -85,9 +85,6 @@ type OpenHall struct {
 // CloseHall leaves it.
 type CloseHall struct{}
 
-// EnterShop makes the party's screen the shop's.
-type EnterShop struct{}
-
 // StockShop names the wares for no one and prices a free one at a piece,
 // and sounds the door.
 type StockShop struct{}
@@ -95,7 +92,5 @@ type StockShop struct{}
 func (OpenHall) action() {}
 
 func (CloseHall) action() {}
-
-func (EnterShop) action() {}
 
 func (StockShop) action() {}

@@ -11,8 +11,8 @@ import (
 // checkWorld answers the Checks por's script asks (eclops.go).
 func (r *Rules) checkWorld(k rules.Check) rules.Answer {
 	switch k := k.(type) {
-	case rules.WordIs:
-		return r.word(k)
+	case rules.ClockIs, rules.MemberCount, rules.ActingFor, rules.PartyEffect:
+		return r.sessionCheck(k)
 	case rules.AreaTileIs:
 		return rules.Answer{Value: int32(r.S.AreaTile(int(k.X), int(k.Y), k.Marks))}
 	case rules.PartyStrength:
@@ -168,8 +168,8 @@ func (r *Rules) resolveWorld(s rules.Situation, a rules.Action) (o rules.Outcome
 		return o, true, nil
 	case rules.Fixture:
 		return o, true, r.fixture(a)
-	case rules.SetWord:
-		return o, true, r.setWord(a)
+	case rules.SetClock, rules.SetMemberCount, rules.ActFor, rules.EnterPhase, rules.OpenHallForAll:
+		return o, true, r.sessionResolve(a)
 	case rules.DevPlace:
 		r.S.DevPlace(a.Melee)
 		return o, true, nil

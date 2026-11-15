@@ -21,7 +21,7 @@ func (e *Engine) refuse(s string) { e.bottomMessage(s, game.InkLightRed) }
 func (e *Engine) bottomMessage(s string, colour game.Ink) {
 	s = rules.Cut(s, textCols)
 	e.say(s)
-	if e.beginFlag() == 5 && e.ruleset().Check(rules.BoardUp{}, nil).Yes {
+	if e.phase == rules.PhaseFight && e.ruleset().Check(rules.BoardUp{}, nil).Yes {
 		e.do(rules.CombatSay{Text: s})
 	}
 }

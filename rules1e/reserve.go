@@ -20,7 +20,7 @@ func (r *Rules) holdInReserve(a rules.HoldInReserve) error {
 	if c == nil {
 		return errNoChar
 	}
-	if c.Side != SideMonsters || r.S.BeginFlag == 5 {
+	if c.Side != SideMonsters || r.S.Phase == rules.PhaseFight {
 		return ErrNotNow
 	}
 	c.Status = StatusReserve

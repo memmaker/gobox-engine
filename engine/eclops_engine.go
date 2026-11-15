@@ -700,9 +700,9 @@ func (e *Engine) opAfterFight() {
 // opCombatEnd is opCombat's end, after its screens.
 func (e *Engine) opCombatEnd() {
 	if e.viewMode == 1 {
-		e.setWorldWord(rules.WordBeginFlag, 4)
+		e.setPhase(rules.PhaseAreaStart)
 	} else {
-		e.setWorldWord(rules.WordBeginFlag, 3)
+		e.setPhase(rules.PhaseExploring)
 	}
 	e.world.Search &= 1
 	e.es.encounterShown = [2]byte{}

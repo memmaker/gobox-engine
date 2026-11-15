@@ -149,7 +149,7 @@ func (e *RuleState) combatRemoveFromMap(c *Character) {
 // combatRemoveUnder: as combatRemoveFromMap, the body lying on at's square
 // (a swallower's, sotsb O0A4:1C26).
 func (e *RuleState) combatRemoveUnder(c, at *Character) {
-	if e.BeginFlag != 5 {
+	if e.Phase != rules.PhaseFight {
 		e.Sound(e.fallEvent(c))
 		return
 	}
@@ -179,7 +179,7 @@ func (e *RuleState) combatRemoveUnder(c, at *Character) {
 // (x,y) if every square it needs is free ground; with uncover, its body is
 // taken off the map.
 func (e *RuleState) combatSquareFree(c *Character, x, y int, uncover bool) bool {
-	if e.BeginFlag != 5 {
+	if e.Phase != rules.PhaseFight {
 		return true
 	}
 	idx := e.CombatIndex(c)

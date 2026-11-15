@@ -70,7 +70,7 @@ type KeptRecord struct {
 }
 
 // Import = por LoadCharacter's rules part (ovr18:0AEC): the record, the
-// items and affects mended as ImportCharacter does for the member WordWho
+// items and affects mended as ImportCharacter does for the member ActFor
 // names, then the extras.
 func (r *Rules) Import(b rules.CharacterFile) (rules.CharID, error) {
 	var f CharacterJSON

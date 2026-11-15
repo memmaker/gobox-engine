@@ -89,7 +89,7 @@ func goldenCotabSetup(tb *Tables, s goldenCotabScene, affect byte) (*RuleState, 
 	r.Rv.DmgType, r.Rv.Damage, r.Rv.AffVal, r.Rv.Save, r.Rv.HitRoll, r.Rv.SaveMade = s.DmgType, int16(s.Damage), CotabAffectIDs[s.AffVal], s.Save, s.HitRoll, s.SaveMade
 	r.CurSpell, r.RandSeed = CotabSpellIDs[s.CurSpell], s.Seed
 	if s.Combat {
-		r.BeginFlag = 5
+		r.Phase = rules.PhaseFight
 	}
 	return r, rc
 }

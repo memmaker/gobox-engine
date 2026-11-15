@@ -307,7 +307,7 @@ func (e *RuleState) spellAnimateDead() {
 			p.Control = 0xB3
 		}
 		p.Kind = 4
-		if e.BeginFlag == 5 {
+		if e.Phase == rules.PhaseFight {
 			p.Combat.Target = nil
 		}
 		lvl--

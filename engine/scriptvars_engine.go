@@ -38,8 +38,8 @@ func (e *Engine) newEngineFields() map[string]engineField {
 			},
 		},
 		"PartyCount": {
-			get: func(int) (int64, bool) { return int64(e.worldWord(rules.WordPartyCount)), true },
-			set: func(_ int, v int64) { e.setWorldWord(rules.WordPartyCount, int(v)) },
+			get: func(int) (int64, bool) { return int64(e.memberCount()), true },
+			set: func(_ int, v int64) { e.setMemberCount(int(v)) },
 		},
 		"WallSlot1": e.wallSlot(1), "WallSlot2": e.wallSlot(2), "WallSlot3": e.wallSlot(3),
 		// the selected member's window (SpecialReadZ1/WriteZ1)
@@ -157,9 +157,8 @@ func (e *Engine) newEngineFields() map[string]engineField {
 		// area 2's well: the party's affects (the Pascal's fix, effectTable)
 		fieldEffectTable: {stored: true, get: func(i int) (int64, bool) { v, ok := e.effect(i); return int64(v), ok }},
 	}
-	for name, w := range scriptWords {
-		m[name] = e.wordField(w)
-	}
+	m["TenMinutes"] = e.clockField(rules.ClockTenMinutes)
+	m["Hours"] = e.clockField(rules.ClockHours)
 	for name, cell := range e.world.Cells() { // the engine's own words; the special ones above (SymbolSet) keep their field
 		if _, special := m[name]; !special {
 			m[name] = cellField(cell)
@@ -611,11 +610,11 @@ func (e *Engine) inField(f *ecl.Field, i int) {
 	}
 }
 
-// wordField is the script field of the ruleset's word n.
-func (e *Engine) wordField(n rules.WorldWord) engineField {
+// clockField is the script field of the clock's part.
+func (e *Engine) clockField(part rules.ClockPart) engineField {
 	return engineField{
-		get: func(int) (int64, bool) { return int64(e.worldWord(n)), true },
-		set: func(_ int, v int64) { e.setWorldWord(n, int(v)) },
+		get: func(int) (int64, bool) { return int64(e.clockPart(part)), true },
+		set: func(_ int, v int64) { e.setClockPart(part, int(v)) },
 	}
 }
 
@@ -629,7 +628,7 @@ func cellField(p *uint16) engineField {
 
 // effect is entry i of the party's affect table.
 func (e *Engine) effect(i int) (uint16, bool) {
-	a := e.ruleset().Check(rules.WordIs{Word: rules.WordEffect, Index: i}, nil)
+	a := e.ruleset().Check(rules.PartyEffect{Index: int32(i)}, nil)
 	return uint16(a.Value), a.Yes
 }
 
@@ -640,13 +639,6 @@ func (e *Engine) partyIndex(id rules.CharID) int {
 		return i
 	}
 	return len(ids)
-}
-
-// scriptWords are the plain record words a script reads and writes, by the
-// name its layout gives them (data -> the typed word, once, here).
-var scriptWords = map[string]rules.WorldWord{
-	"TenMinutes": rules.WordTenMinutes,
-	"Hours":      rules.WordHours,
 }
 
 // portraitFields are the sky words' fields (world cells): a write redraws the portrait.

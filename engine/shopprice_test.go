@@ -2,6 +2,7 @@ package engine
 
 import (
 	"gobox/game"
+	"gobox/rules"
 	"gobox/rules1e"
 	"testing"
 )
@@ -10,7 +11,7 @@ import (
 // ovr07:0068 has it: shown so at the shop's door, before Buy, and charged.
 func TestShopZeroPrice(t *testing.T) {
 	e := quickStarted(t)
-	e.state().BeginFlag = 4
+	e.setPhase(rules.PhaseAreaStart)
 	it := e.state().RandomItem(rules1e.ItemLongSword)
 	it.Price = 0
 	e.state().Treasure = []*rules1e.Item{it}
