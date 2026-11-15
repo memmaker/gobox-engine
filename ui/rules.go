@@ -1160,7 +1160,7 @@ func (r *frontState) outcome(a game.Action, out game.Outcome, err error) game.Re
 	if traceOn {
 		fmt.Fprintf(os.Stderr, "trace %s game.Do %T%+v err=%v events=%d\n", time.Now().Format("15:04:05.000"), a, a, err, len(out.Events))
 		for _, e := range out.Events { // each fact by type and content: what a sound or a stop came with
-			fmt.Fprintf(os.Stderr, "trace %s   event %T %.120v\n", time.Now().Format("15:04:05.000"), e, e)
+			fmt.Fprintf(os.Stderr, "trace %s   event %T %s\n", time.Now().Format("15:04:05.000"), e, upTo(fmt.Sprintf("%+v", e), 120))
 		}
 	}
 	if err != nil { // no toast: the old path's refusals were silent unless the rules said (Refused)
