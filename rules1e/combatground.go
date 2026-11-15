@@ -4,17 +4,49 @@ import "gobox/rules"
 
 // StraightX is the column on the straight board (extra, Deskew) of square
 // (x, y) of the original's skewed dungeon map: the same square with the
-// skew taken out, a square west for each row down. A cell is a 6x5 block:
-// its west wall 2 columns, its north wall a row, its floor 4x4.
+// skew taken out, a square west for each row down. A cell is a 6x5 block,
+// its west wall the first columns, its north wall the first row.
 func StraightX(x, y int) int {
 	return x - (y - 0xA)
 }
 
-// doorPost is the tile of the original's own west door post (ovr11:02BA).
-const doorPost = 0
-
-// cornerPost is the tile of a wall's corner.
-const cornerPost = 2
+// squareWalls (extra, Deskew) makes the straight board's walls one square
+// thick with square corners, once everyone is placed on the original's
+// squares: a cell's west wall is its block's first column (the original's
+// is two wide, its door posts and wall ends a square apart along the
+// slant), its north wall the first row, a door two squares between posts.
+// A square someone stands on stays open.
+func (r *Rules) squareWalls(m rules.MapSides) {
+	const west, north, corner = 3, 5, 2 // the pieces' tiles (ovr11:02BA, :0377, :040F)
+	floor := r.S.grounds().Floor
+	set := func(x, y int, wall bool, tile byte) {
+		if x < 0 || x > 0x31 || y < 0 || y > 0x18 {
+			return
+		}
+		who, g := r.S.MapAt(x, y)
+		switch is := r.S.GroundInfo(g)[0] == 0xFF; {
+		case wall && !is && who == 0:
+			r.S.Cmap.Ground[y][x] = Ground(tile + 1)
+		case !wall && is:
+			r.S.Cmap.Ground[y][x] = floor
+		}
+	}
+	for dr := -2; dr <= 2; dr++ {
+		for c := -4; c <= 4; c++ {
+			x, y := r.S.PosX+c, r.S.PosY+dr
+			w, n := CellEdge(m, r.S.PosY, x, y, 6), CellEdge(m, r.S.PosY, x, y, 0)
+			x0, y0 := c*6+0x15, dr*5+0xA
+			set(x0, y0, w != 0 || n != 0 || CellEdge(m, r.S.PosY, x, y-1, 6) != 0 || CellEdge(m, r.S.PosY, x-1, y, 0) != 0, corner) // wherever a wall or door ends
+			for col := 1; col <= 5; col++ {
+				set(x0+col, y0, n == 1 || n == 3 && col != 3 && col != 4, north)
+			}
+			for row := 1; row <= 4; row++ {
+				set(x0, y0+row, w == 1 || w == 3 && row != 2 && row != 3, west)
+				set(x0+1, y0+row, false, 0)
+			}
+		}
+	}
+}
 
 // boardX is the board's column of square (x, y) of the original's map.
 func (r *Rules) boardX(x, y int) int {
@@ -61,7 +93,7 @@ func (r *Rules) dungeonMap(g rules.BuildGround) {
 				}
 			} else if w == 3 {
 				put(1, 2, 8)
-				put(5, 4, doorPost)
+				put(5, 4, 0)
 			}
 			// nested ovr11:0377: north wall
 			if n == 1 {
@@ -116,16 +148,6 @@ func (r *Rules) dungeonMap(g rules.BuildGround) {
 			put(2, 0, b)
 			put(1, 1, cc)
 			put(2, 1, d)
-			if r.straight { // extra: square corners, where the original's pieces leave the slant's notches
-				if w == 3 { // the door's posts fill the wall's 2 columns (the original's stand a square apart)
-					put(2, 1, doorPost)
-					put(4, 4, doorPost)
-				}
-				if w != 0 || n != 0 || CellEdge(g.Walls, r.S.PosY, x, y-1, 6) != 0 || CellEdge(g.Walls, r.S.PosY, x-1, y, 0) != 0 { // a post wherever a wall or door ends
-					put(0, 0, cornerPost)
-					put(1, 0, cornerPost)
-				}
-			}
 			// nested ovr11:0615: the north-east corner
 			ne7, ne8 := CellEdge(g.Walls, r.S.PosY, x, y-1, 2), CellEdge(g.Walls, r.S.PosY, x+1, y, 0)
 			ne := ne7 == 0 && ne8 == 0

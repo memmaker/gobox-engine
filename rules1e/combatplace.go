@@ -150,6 +150,9 @@ func (r *Rules) placeCombatants(m rules.MapSides) []rules.Effect {
 		r.S.Cpos[0].Size++
 		r.S.Ncomb++
 	}
+	if r.straight && r.S.Dungeon && m != nil {
+		r.squareWalls(m)
+	}
 	return left
 }
 
