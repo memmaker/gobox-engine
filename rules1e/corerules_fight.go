@@ -160,6 +160,10 @@ func (r *Rules) factFight(id rules.CharID, f rules.Fact) (rules.Value, bool, err
 		return r.ground(), true, nil
 	case rules.UnitsFact:
 		return r.units(), true, nil
+	case rules.FlightFact:
+		return rules.Flight{Kind: flight(f.Spell, f.Item)}, true, nil
+	case rules.BeastKindFact:
+		return rules.BeastKind{Name: BeastKind(f.Monster)}, true, nil
 	case rules.UnitCharFact:
 		return rules.UnitChar{Who: r.ID(r.S.Combatant(byte(f.Unit)))}, true, nil
 	}

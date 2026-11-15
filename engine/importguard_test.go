@@ -13,8 +13,8 @@ import (
 // (REFACTOR.md R2). The list only shrinks: a file not on it may not import
 // one, and a file that no longer does must leave it.
 var rulesetFiles = []string{
-	"bestiary.go", "combatrules_engine.go", "dataimport.go", "eclops2_engine.go", "eclops_engine.go",
-	"files_engine.go", "game_engine.go", "init.go", "newpool.go", "present_engine.go", "roster.go",
+	"combatrules_engine.go", "dataimport.go", "eclops2_engine.go", "eclops_engine.go",
+	"files_engine.go", "game_engine.go", "init.go", "newpool.go", "roster.go",
 	"rulesetseam.go", "savefile.go", "scriptvars_engine.go", "slots.go", "vault_engine.go", "view_engine.go",
 }
 

@@ -3,7 +3,6 @@ package engine
 import (
 	"gobox/game"
 	"gobox/rules"
-	"gobox/rules1e"
 )
 
 // present applies the effects recorded and not yet shown, then fx, in order.
@@ -100,26 +99,27 @@ func (e *Engine) apply(f rules.Effect) {
 // and pace: a weapon as attackAnimation (ovr14:26B0) chose, a spell or power
 // as its caller (hitColours slot, then flyMissile's frames and delay).
 func (e *Engine) missileArt(f rules.Shot) (frames, delay int) {
-	switch f.Spell {
-	case "":
-	case rules1e.SpellStoneGaze, rules1e.SpellCharmGaze:
-		e.hitColours(0x12)
-		return 4, 0x2D
-	case rules1e.SpellSpitAcid:
-		e.hitColours(0x17)
-		return 1, 0x1E
-	case rules1e.SpellBreathWeapon, rules1e.SpellLightningBolt, rules1e.SpellJavelinOfLightning:
-		e.hitColours(0x13)
-		return 4, 0x32
-	default:
-		e.hitColours(0x12)
-		return 4, 0x1E
+	if f.Spell != "" {
+		switch e.flight(f) {
+		case rules.FlightGaze:
+			e.hitColours(0x12)
+			return 4, 0x2D
+		case rules.FlightSpit:
+			e.hitColours(0x17)
+			return 1, 0x1E
+		case rules.FlightBolt:
+			e.hitColours(0x13)
+			return 4, 0x32
+		default:
+			e.hitColours(0x12)
+			return 4, 0x1E
+		}
 	}
 	dir := int(e.ruleset().Check(rules.ArcDir{Start: f.Start, To: f.To}, nil).Value)
-	typ := f.Item // an item with no flight art flies as the default
-	frames, delay, base := 1, 0xA, 0xD
-	switch {
-	case typ == rules1e.ItemIDDart || typ == rules1e.ItemIDJavelin || typ == rules1e.ItemIDQuarrel || typ == rules1e.ItemIDSpear || typ == rules1e.ItemIDArrow:
+	frames, delay, base := 1, 0xA, 0xD // an item with no flight art flies as the default
+	kind := e.flight(f)
+	switch kind {
+	case rules.FlightPointed:
 		switch {
 		case dir&1 == 1 && (dir == 3 || dir == 5):
 			e.iconToSprite(base+1, 1, 0, dir == 5)
@@ -128,14 +128,14 @@ func (e *Engine) missileArt(f rules.Shot) (frames, delay int) {
 		default:
 			e.iconToSprite(base+dir%4, dir>>2, 0, false)
 		}
-	case typ == rules1e.ItemIDHandAxe || typ == rules1e.ItemIDClub || typ == rules1e.ItemIDHammer:
+	case rules.FlightTumbling:
 		e.hitColours(base + 3)
 		frames, delay = 4, 0x32
-	case typ == rules1e.ItemIDHolyWater || typ == rules1e.ItemIDOil:
+	case rules.FlightFlask:
 		e.hitColours(base + 4)
 		frames, delay = 4, 0x32
 	default:
-		if typ == rules1e.ItemIDSling {
+		if kind == rules.FlightSlingStone {
 			base++
 		}
 		e.iconToSprite(base+7, 0, 0, false)
@@ -143,6 +143,11 @@ func (e *Engine) missileArt(f rules.Shot) (frames, delay int) {
 		frames, delay = 2, 0x14
 	}
 	return frames, delay
+}
+
+// flight is what the shot is in flight, as the ruleset says.
+func (e *Engine) flight(f rules.Shot) rules.FlightKind {
+	return e.fact(rules.NoChar, rules.FlightFact{Spell: f.Spell, Item: f.Item}).(rules.Flight).Kind
 }
 
 // spellNumber is the spell number of a dnd spell id.
