@@ -665,12 +665,9 @@ type Shop struct {
 }
 
 type Service struct {
-	Name     string
-	Price    int
-	Needs    []int          // party indices the service would help; the rest have no need of it
-	Not      map[int]string // party index to why the service is of no use ("is not blind.")
-	Declines bool           // the temple only says why, and does not offer to cast it anyway
-	Only     bool           // it cannot be chosen for one it would not help (the wound cures)
+	Name  string
+	Price int
+	Needs []int // party indices the service would help; gobox offers it to no one else
 }
 
 type Training struct {

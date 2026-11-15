@@ -142,7 +142,7 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note) bool {
 	}
 	inv.fill(inv.px.Rect, color.RGBA{A: 255})
 	inv.lines = inv.lines[:0]
-	bottom := (ch - 2) * 8 // the boxes' inner bottom: under them the menu row, the toast in its place while it shows
+	bottom := (ch - 2) * 8 // the boxes' inner bottom: under them the menu row
 
 	// the member: name, portrait between the arrows, hit points (the shop: its goods)
 	lx, lw := 8, (leftCells-2)*8
@@ -182,19 +182,15 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note) bool {
 		}
 	}
 
-	// the menu row under the boxes; the toast (noteLine) takes its place while it shows
+	// the menu row under the boxes
 	rowY := (ch - 1) * 8
 	inv.words = inv.menu()
-	toast := note.Show && note.Text != ""
-	if toast {
-		noteLine(inv.px, note, rowY)
-	}
 	x := 0
 	for _, w := range inv.words {
 		x += 8 * (len(w.text) + 1)
 	}
 	x = (inv.w - x + 8) / 2
-	if shop && !toast && in.member >= 0 && in.member < len(party) { // the shop: the choices left, the buyer right
+	if shop && in.member >= 0 && in.member < len(party) { // the shop: the choices left, the buyer right
 		x = 8
 		m := party[in.member]
 		s := m.Name + " " + m.Class
@@ -204,10 +200,6 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note) bool {
 	inv.focus = min(inv.focus, len(inv.words))
 	for i := range inv.words {
 		w := &inv.words[i]
-		if toast { // no words to see, none to click
-			w.r = image.Rectangle{}
-			continue
-		}
 		w.r = image.Rect(x-4, rowY-2, x+8*len(w.text)+4, rowY+10)
 		c, hc := green, white
 		switch {

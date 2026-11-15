@@ -269,14 +269,12 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note) {
 		tips = append(tips, tip{image.Rect(mid-4*8, vy-14, mid+4*8, vy+10), f[0], bottomHelp[j]})
 	}
 
-	// the powers on the bottom row; the toast takes it while it shows
+	// the powers on the bottom row
 	items := p.sheetItems()
 	rowY := (ch - 1) * 8
 	p.winRects = p.winRects[:0]
 	var words []image.Rectangle
-	if note.Show && note.Text != "" {
-		noteLine(sc.px, note, rowY)
-	} else {
+	{
 		n := 0
 		for _, it := range items {
 			n += 8 * (len(it.Text) + 1)

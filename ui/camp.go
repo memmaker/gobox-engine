@@ -26,7 +26,6 @@ const (
 	campDrop // the drop's confirmation
 
 	templeHeal // the temple's services (temple.go)
-	templeNot  // "is not blind": cure anyway?
 	templePay  // pay for the cure?
 	appraise   // the gems and jewelry (temple and shop)
 	shopID     // the items to identify (shop.go)

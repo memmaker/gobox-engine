@@ -23,9 +23,6 @@ func (p *Presenter) fullPage(dst *gpu.Image, sc *sheetCanvas, note Note, title s
 	}
 	draw.Draw(sc.px, sc.px.Rect, image.Black, image.Point{}, draw.Src)
 	body(sc.px, cw, ch)
-	if note.Show && note.Text != "" {
-		noteLine(sc.px, note, (ch-1)*8)
-	}
 	sc.img.WritePixels(sc.px.Pix)
 	window(sc.img, p.border.val.tiles, gpu.GeoM{}, cw, ch, nil)
 	if title != "" {

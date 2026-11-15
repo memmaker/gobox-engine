@@ -4,6 +4,7 @@ import (
 	"slices"
 	"testing"
 
+	"gobox/game"
 	"gobox/rules"
 	"gobox/rules1e"
 )
@@ -69,5 +70,30 @@ func TestWeaknessOnceAndCured(t *testing.T) {
 	s.Rv.Cure = 0
 	if !cured || count() != 0 || c.Stats[rules1e.StatStr] != was {
 		t.Errorf("cured %v: %d Weakened, Strength %d, want none and %d", cured, count(), c.Stats[rules1e.StatStr], was)
+	}
+}
+
+// TestTempleCuresWeakness: the temple's Cure Disease is offered for a
+// weakened, helpless member (by its index, as gobox sends it), takes both
+// affects off and gives the Strength back.
+func TestTempleCuresWeakness(t *testing.T) {
+	e := devPlay(t, "temple")
+	s := e.state()
+	c := s.Party[0]
+	was := c.Stats[rules1e.StatStr]
+	s.CallAffect(affWeakened, c, &rules1e.Affect{}, 0)
+	s.AddAffect(c, affHelpless, 0, 0xFF, 0)
+	s.Purse.Gold = 10000
+	e.rebuild()
+	tr := e.build().(game.Trading)
+	disease := slices.IndexFunc(s.T().Town.Temple, func(sv rules1e.TempleService) bool { return sv.Kind == rules1e.TempleDisease })
+	if disease < 0 || !slices.Contains(tr.Services[disease].Needs, 0) {
+		t.Fatalf("no disease cure offered for the member: %+v", tr.Services)
+	}
+	if _, err := e.doNow(game.Heal{Member: 0, Service: disease}); err != nil {
+		t.Fatal("Heal:", err)
+	}
+	if s.FindAffect(c, affWeakened) != nil || s.FindAffect(c, affHelpless) != nil || c.Stats[rules1e.StatStr] != was {
+		t.Errorf("after the cure: weakened %v, helpless %v, Strength %d (was %d)", s.FindAffect(c, affWeakened) != nil, s.FindAffect(c, affHelpless) != nil, c.Stats[rules1e.StatStr], was)
 	}
 }

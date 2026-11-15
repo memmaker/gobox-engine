@@ -267,6 +267,7 @@ func (f *Front) Draw(dst *gpu.Image) {
 		f.pic = f.P.Draw(dst, note)
 	}
 	f.P.drawFix(dst, note.Glyph) // camp's Fix: its fade and its box over whatever is up
+	f.P.drawToast(dst, note)     // the flash message: the screen's very bottom, in every view
 	f.drawn = f.screenSig()
 	if held := f.held; len(held) > 0 { // the keys pressed before this screen showed, now on it
 		f.held = nil

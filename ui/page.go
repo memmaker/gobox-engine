@@ -168,9 +168,6 @@ func (p *Presenter) pageImage(note Note) *gpu.Image {
 		pg.overs = c.overs
 	}
 	p.drawModal(m, note)
-	if note.Show {
-		noteLine(m, note, h-8)
-	}
 	pg.img.WritePixels(m.Pix)
 	return pg.img
 }

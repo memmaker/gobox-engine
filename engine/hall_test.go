@@ -148,8 +148,7 @@ func TestShopTemplePending(t *testing.T) {
 	}
 }
 
-// TestTempleWords: a game's temple data reaches the screen and the cure: the service the temple
-// declines to cast anyway (game.Service.Declines) and what it says of a member it helped (Done).
+// TestTempleWords: a game's temple data reaches the cure: what it says of a member it helped (Done).
 func TestTempleWords(t *testing.T) {
 	e := testEngine(t)
 	seed := uint32(7)
@@ -159,13 +158,13 @@ func TestTempleWords(t *testing.T) {
 	e.Start(e.Play)
 	tab := *e.state().T()
 	tab.Town.Temple = slices.Clone(tab.Town.Temple)
-	tab.Town.Temple[2].Declines, tab.Town.Temple[2].Done = true, "is healed"
+	tab.Town.Temple[2].Done = "is healed"
 	e.state().Tables = &tab
 	e.push(cont{kind: kNop})
 	e.Temple()
 	e.Advance()
 	tr, ok := e.build().(game.Trading)
-	if !ok || len(tr.Services) < 3 || !tr.Services[2].Declines || tr.Services[1].Declines || !tr.Services[2].Only || tr.Services[0].Only {
+	if !ok || len(tr.Services) < 3 {
 		t.Fatalf("services %+v (%T)", tr.Services, e.build())
 	}
 	e.state().Purse.Gold = 10000

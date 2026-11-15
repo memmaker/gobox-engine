@@ -183,7 +183,6 @@ func (p *Presenter) drawFightRows(dst *gpu.Image, note Note, b *combat.Board, k 
 		}
 	}
 	switch {
-	case note.Show: // a refusal (why the attack is not possible ...): the toast, as every view's (noteLine)
 	case b.Turn != nil && b.Turn.Aim && b.AimWhy != "":
 		put(b.AimWhy, inkRed, 0)
 	case b.Turn != nil && b.Turn.Aim && b.Turn.Casting != "":
@@ -233,9 +232,6 @@ func (p *Presenter) drawFightRows(dst *gpu.Image, note Note, b *combat.Board, k 
 		im := image.NewRGBA(image.Rect(0, 0, w, h))
 		for i := 3; i < len(im.Pix); i += 4 {
 			im.Pix[i] = 255
-		}
-		if note.Show {
-			noteLine(im, note, 0)
 		}
 		for _, t := range puts { // each where put placed it (pair's spacing)
 			DrawText(im, glyph, t.s, t.x, 0, asset.EGARGBA(t.c))

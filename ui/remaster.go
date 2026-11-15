@@ -568,17 +568,6 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 		}
 		p.asking(func() { p.drawMenu(dst, note.Glyph, p.askMenu().Prompt, lines, keys, nil, p.sel, mk, cx, top) })
 	}
-	if note.Show { // the toast: pageImage's bottom line (noteLine) on a black band along the very bottom of the screen, no border
-		h := int(k * 8) // at K, as every glyph
-		dst.SubImage(image.Rect(b.Min.X, b.Max.Y-h, b.Max.X, b.Max.Y)).(*gpu.Image).Fill(color.Black)
-		pw, _ := p.pageSize()
-		op := &gpu.DrawImageOptions{}
-		op.GeoM.Scale(k, k)
-		op.GeoM.Translate(float64(cx)-k*float64(pw)/2, float64(b.Max.Y-h))
-		m := image.NewRGBA(image.Rect(0, 0, pw, 8))
-		noteLine(m, note, 0)
-		dst.DrawImage(upload(&p.pg.toast, m), op)
-	}
 	if p.ctx > 0 && !p.campHome() { // the context menu: on top, nothing dimmed
 		p.drawCardTip(dst)
 	}
@@ -893,4 +882,23 @@ func picPlace(pic CellRect, pk, tk, mk, th float64, b image.Rectangle) (pp float
 		cy = py + int(pp*ph/2+gap+tk*th/2)
 	}
 	return pp, py, cy
+}
+
+// drawToast is the one flash message: the note in red, centred on a black
+// band along the very bottom of the screen, over whatever view is up (the
+// front draws it last, so no view places its own).
+func (p *Presenter) drawToast(dst *gpu.Image, note Note) {
+	if !note.Show || note.Text == "" {
+		return
+	}
+	b, k := dst.Bounds(), scale(dst)
+	h := int(k * 8) // at K, as every glyph
+	dst.SubImage(image.Rect(b.Min.X, b.Max.Y-h, b.Max.X, b.Max.Y)).(*gpu.Image).Fill(color.Black)
+	w := 8 * len(note.Text)
+	m := image.NewRGBA(image.Rect(0, 0, w, 8))
+	noteLine(m, note, 0)
+	op := &gpu.DrawImageOptions{}
+	op.GeoM.Scale(k, k)
+	op.GeoM.Translate(float64(b.Min.X+b.Max.X)/2-k*float64(w)/2, float64(b.Max.Y-h))
+	dst.DrawImage(upload(&p.pg.toast, m), op)
 }

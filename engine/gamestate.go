@@ -195,12 +195,11 @@ func (e *Engine) tradeState(mode game.Mode, cm game.Common) game.Trading {
 			if !ok {
 				break
 			}
-			sv := game.Service{Name: c.Name, Price: int(c.Price), Not: map[int]string{}, Declines: c.Declines, Only: c.Only}
+			sv := game.Service{Name: c.Name, Price: int(c.Price)}
 			for k, id := range e.partyIDs() {
 				if e.fact(id, rules.TempleCureFact{Cure: i}).(rules.TempleCure).Needed {
 					sv.Needs = append(sv.Needs, k)
 				}
-				sv.Not[k] = c.Not // the temple words it so for anyone it would not help
 			}
 			t.Services = append(t.Services, sv)
 		}

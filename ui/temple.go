@@ -25,32 +25,21 @@ func (p *Presenter) templeItems() (string, []MenuRow) {
 			if cu.Price != 0 {
 				cost = price(Money{Gold: cu.Price})
 			}
-			needed := serviceNeeded(cu, party, sel)
-			row := MenuRow{Text: fmt.Sprintf("%-20s %6s", cu.Name, cost), NoKey: true, Do: func() { // no digit: the prices stay in one column, the greyed rows' too
-				c.pick = i
-				if needed {
+			row := MenuRow{Text: fmt.Sprintf("%-20s %6s", cu.Name, cost), NoKey: true} // no digit: the prices stay in one column, the greyed rows' too
+			if serviceNeeded(cu, party, sel) {                                         // else greyed out (Felix's ruling: only what would help the member): no key, click or button picks it
+				row.Do = func() {
+					c.pick = i
 					c.to(templePay, 1)()
-				} else {
-					c.to(templeNot, 1)()
 				}
-			}}
-			if !needed && cu.Only { // greyed out: no key, click or button picks it
-				row.Do = nil
 			}
 			it = append(it, row)
 		}
 		return withGold(name+", how can we help you?", purse[Coin]), append(it, MenuRow{Text: "Exit", Key: 'E', Do: c.back(campMain)})
-	case templeNot:
-		not := cure.Not[sel]
-		if cure.Declines { // the temple only says why
-			return name + " " + not, []MenuRow{{Text: "OK", Key: 'O', Do: c.back(templeHeal)}}
-		}
-		return name + " " + not + " Cast cure anyway?", []MenuRow{{Text: "Yes", Key: 'Y', Do: c.to(templePay, 1)}, {Text: "No", Key: 'N', Do: c.back(templeHeal)}}
 	case templePay:
 		return withGold(fmt.Sprintf("%s will only cost %s. Pay for cure?", cure.Name, gold(cure.Price)), purse[Coin]), []MenuRow{
 			{Text: "Yes", Key: 'Y', Do: func() {
 				pick := c.pick
-				p.call(func(e *classicGame) { e.do(game.Heal{Member: -1, Service: pick}) })
+				p.call(func(e *classicGame) { e.do(game.Heal{Member: sel, Service: pick}) }) // the member by index, as Allowed lists it
 				c.back(templeHeal)()
 			}},
 			{Text: "No", Key: 'N', Do: c.back(templeHeal)}}
@@ -65,10 +54,9 @@ func (p *Presenter) templeItems() (string, []MenuRow) {
 	return "Temple", append(it, MenuRow{Text: "Exit", Key: 'E', Do: func() { p.send(ActClose, 0) }})
 }
 
-// serviceNeeded: the service would help the selected member (sel; no one
-// selected: all).
+// serviceNeeded: the service would help the selected member (sel).
 func serviceNeeded(sv game.Service, party []game.Member, sel int) bool {
-	return sel < 0 || sel >= len(party) || slices.Contains(sv.Needs, sel)
+	return sel >= 0 && sel < len(party) && slices.Contains(sv.Needs, sel)
 }
 
 // memberName is party[sel]'s name ("": none selected).

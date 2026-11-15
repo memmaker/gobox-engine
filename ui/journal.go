@@ -407,9 +407,6 @@ func (p *Presenter) drawJournal(dst *gpu.Image, note Note) {
 		}
 	}
 	draw.Draw(sc.px, j.pane, pg, image.Point{}, draw.Src)
-	if note.Show && note.Text != "" {
-		noteLine(sc.px, note, (ch-1)*8)
-	}
 
 	sc.img.WritePixels(sc.px.Pix)
 	t := p.border.val.tiles
