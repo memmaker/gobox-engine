@@ -79,7 +79,12 @@ touched() {
 # (ui and engine, minutes each, no longer one after the other).
 test_touched() {
   local repo="$1" mod pkgs
-  touched "$repo" | awk '{p[$1] = p[$1] " " $2} END {for (m in p) print m p[m]}' | while read -r mod pkgs; do
+  touched "$repo" | awk '{p[$1] = p[$1] " " $2} END {for (m in p) print m p[m]}' | while read -r mod all; do
+    local pkgs="" p
+    for p in $all; do # a directory whose files a build tag all excludes (cmd/fixture) is no package to test
+      if (cd "$mod" && go list "$p" >/dev/null 2>&1); then pkgs="$pkgs $p"; else echo "-- $repo: $p has no files to build here, not tested"; fi
+    done
+    [ -n "$pkgs" ] || continue
     echo "== $repo:$pkgs (touched)"
     local t=$SECONDS
     # shellcheck disable=SC2086  # pkgs is a list of package paths
