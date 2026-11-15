@@ -161,7 +161,8 @@ func (e *Engine) inSlot(name string, f func()) { e.inDir(e.store().Path(name), f
 func (e *Engine) inDir(dir string, f func()) {
 	old := e.Cfg.SaveDir
 	e.Cfg.SaveDir = dir
-	defer func() { e.Cfg.SaveDir = old }()
+	e.rosterChanged()
+	defer func() { e.Cfg.SaveDir = old; e.rosterChanged() }()
 	f()
 }
 

@@ -129,13 +129,16 @@ func (e *Engine) Unmark(x, y int) error {
 }
 
 // mapName is the current map's name in words, from the scripts' names of
-// the GEO blocks (names/pictures.txt), or "Map".
+// the GEO blocks (names/pictures.txt, read once), or "Map".
 func (e *Engine) mapName() string {
-	vals, err := ecl.ReadValues(os.DirFS(e.scriptDir()), "names/pictures.txt", nil)
-	if err != nil {
-		log.Printf("map names: %v", err)
+	if !e.mapNamesRead {
+		var err error
+		if e.mapNames, err = ecl.ReadValues(os.DirFS(e.scriptDir()), "names/pictures.txt", nil); err != nil {
+			log.Printf("map names: %v", err)
+		}
+		e.mapNamesRead = true
 	}
-	n := ecl.ValueName(vals, "Map", int(e.set), e.worldWord(rules.WordGeo))
+	n := ecl.ValueName(e.mapNames, "Map", int(e.set), e.worldWord(rules.WordGeo))
 	if n == "" {
 		return "Map"
 	}

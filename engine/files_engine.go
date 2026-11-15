@@ -72,25 +72,11 @@ func (e *Engine) removeSaved(path string) error {
 }
 
 // BuildCharList = ovr18:0010: names from charlist.txt, "* " for party
-// members.
+// members. The file is read when it changes (rosterNames), the party's
+// marks are put on per call (the party changes without the disk).
 func (e *Engine) BuildCharList() []string {
-	p := e.savePath("charlist.txt")
-	f, err := os.Open(p)
-	if err != nil {
-		return nil
-	}
-	defer f.Close()
-	var list, raw []string
-	sc := bufio.NewScanner(f)
-	for sc.Scan() {
-		name := strings.TrimRight(sc.Text(), "\r")
-		if len(name) > 40 {
-			name = name[:40]
-		}
-		if slices.Contains(raw, name) { // a name is one roster character (its .cha): listed once
-			continue
-		}
-		raw = append(raw, name)
+	var list []string
+	for _, name := range e.rosterNames() {
 		for _, id := range e.partyIDs() {
 			if e.ruleset().Sheet(id).Name == name {
 				name = "* " + name
@@ -102,12 +88,42 @@ func (e *Engine) BuildCharList() []string {
 		}
 		list = append(list, name)
 	}
-	if !slices.Equal(list, e.listed) {
-		e.migrateRoster(list)
-		e.listed = slices.Clone(list)
-	}
 	return list
 }
+
+// rosterNames are charlist.txt's names, each once, read when the cache was
+// emptied (rosterChanged).
+func (e *Engine) rosterNames() []string {
+	if e.rosterRead {
+		return e.roster
+	}
+	e.rosterRead = true
+	e.roster = nil
+	f, err := os.Open(e.savePath("charlist.txt"))
+	if err != nil {
+		return nil
+	}
+	defer f.Close()
+	sc := bufio.NewScanner(f)
+	for sc.Scan() {
+		name := strings.TrimRight(sc.Text(), "\r")
+		if len(name) > 40 {
+			name = name[:40]
+		}
+		if !slices.Contains(e.roster, name) { // a name is one roster character (its .cha): listed once
+			e.roster = append(e.roster, name)
+		}
+	}
+	if !slices.Equal(e.roster, e.listed) {
+		e.migrateRoster(e.roster)
+		e.listed = slices.Clone(e.roster)
+	}
+	return e.roster
+}
+
+// rosterChanged empties the roster cache: charlist.txt or a roster .cha was
+// written, or the save folder is another.
+func (e *Engine) rosterChanged() { e.rosterRead = false }
 
 // WriteCharList = ovr18:01B8: rewrite charlist.txt without "*" entries. A
 // write that fails shows "Cannot write" and is the error returned.
@@ -119,6 +135,7 @@ func (e *Engine) WriteCharList(list []string) error {
 		}
 		b.WriteString(n + "\r\n")
 	}
+	defer e.rosterChanged()
 	return e.writeFile(e.savePath("charlist.txt"), []byte(b.String()))
 }
 
