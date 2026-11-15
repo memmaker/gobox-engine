@@ -165,6 +165,7 @@ type Presenter struct {
 	icon        *IconUI                      // the icon editor up
 	ran         int                          // the picker's and editor's calls run: their pages are laid out again
 	slots       *SlotsUI                     // the save slots up (slots.go)
+	fix         fixMoment                    // camp's Fix under way: its fade and its box (refreshed.go)
 	intro       IntroUI                      // the title being played (title.go)
 	seqSong     string                       // the song the animation loaded last (vace cue "load")
 	seq         SequenceUI                   // the full-screen animation being played (Sequence)

@@ -37,7 +37,7 @@ type UI struct {
 	log        []string              // the fight's message log, from the outcomes' text
 	levels     map[string]savedLevel // gobox's slot files' party levels, by file (saveLevel)
 	note       game.Note             // the status line's toast: the last refusal
-	refreshed  *refreshed            // camp's Fix just done: the fade to black and its words (drawRefreshed)
+	refreshed  *refreshed            // camp's Fix just done: what its box says (the Presenter's fixMoment takes it)
 	toast      FrontNote             // the front's own toast (Added to journal, a refusal over the items)
 	lore       int                   // journal notes seen (State.Lore), +1; 0: none counted yet
 	title      titleStep             // the title as gobox steps it

@@ -256,6 +256,9 @@ func (e *Engine) campRest(kind int) error {
 	return nil
 }
 
+// fixSteps bounds fixAtOnce's five-minute ticks: a year of rest.
+const fixSteps = 365 * 24 * 12
+
 // fixAtOnce (extra) is camp's Fix done at once and unseen: the clerics'
 // cures, the rests that learn them and the planned spells, the natural
 // healing, each to its end with nothing shown and nothing sounding. Done,
@@ -272,13 +275,15 @@ func (e *Engine) fixAtOnce(out *game.Outcome) error {
 	e.unheard = true
 	r := e.runNative(func() error { return e.campRest(adventure.RestFix) })
 	e.report(&unseen, r)
-	for n := 0; r.Err == nil && e.resting != nil && n < maxSteps; n++ {
-		e.snap.quiet = true
-		e.Step()
-		e.advance()
-		e.snap.quiet = false
-		e.report(&unseen, e.noteResult())
+	e.snap.quiet = true
+	for n := 0; r.Err == nil && e.resting != nil && n < fixSteps; n++ { // the rest's ticks alone: no state built, nothing reported between them
+		if err := e.RestStep(); err != nil {
+			break
+		}
 	}
+	e.advance()
+	e.snap.quiet = false
+	e.report(&unseen, e.noteResult())
 	e.unheard = false
 	switch {
 	case r.Err != nil:

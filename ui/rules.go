@@ -1174,7 +1174,7 @@ func (r *frontState) outcome(a game.Action, out game.Outcome, err error) game.Re
 		case game.Refused:
 			r.note = game.Note{Text: e.Why, At: time.Now()}
 		case game.Refreshed:
-			r.refreshed = newRefreshed(e, now())
+			r.refreshed = newRefreshed(e)
 		case game.Narrated:
 			if fight {
 				r.log = append(r.log, e.Text)

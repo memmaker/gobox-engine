@@ -108,7 +108,7 @@ func (f *Front) Key(k uint16) {
 	if !f.started { // the game opens (on its -slot) before it takes a key: the first one is not for the screen before
 		f.Act()
 	}
-	if f.stopWalk() {
+	if f.stopWalk() || f.P.fixInput() {
 		return
 	}
 	if a := actOf(k); f.P.Playing() && a != input.Space && a != input.Enter && a != input.Esc && !f.P.CameraKey(k) { // a key while the fight's events play: kept for the screen after, never dropped (Space, Enter, Esc cut the moment short)
@@ -179,7 +179,7 @@ func (f *Front) Click(x, y int) bool {
 		f.Key('\r')
 		return true
 	}
-	if f.stopWalk() {
+	if f.stopWalk() || f.P.fixInput() {
 		return true
 	}
 	return f.P.Click(x, y)
@@ -266,7 +266,7 @@ func (f *Front) Draw(dst *gpu.Image) {
 	} else {
 		f.pic = f.P.Draw(dst, note)
 	}
-	f.P.drawRefreshed(dst, note.Glyph) // camp's Fix just done: its fade over whatever is up
+	f.P.drawFix(dst, note.Glyph) // camp's Fix: its fade and its box over whatever is up
 	f.drawn = f.screenSig()
 	if held := f.held; len(held) > 0 { // the keys pressed before this screen showed, now on it
 		f.held = nil

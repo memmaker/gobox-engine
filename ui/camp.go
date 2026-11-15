@@ -169,6 +169,9 @@ func (p *Presenter) campItems() (string, []MenuRow) {
 			text, key = r.Night, r.NightKey
 		}
 		do := act(ActRest, r.N)
+		if r.Fix { // its own moment: the fade first, the rest sent once the screen is black
+			do = func() { p.startFix(r.N) }
+		}
 		if r.Duration {
 			do = func() { p.askRest(r.N) }
 		}
