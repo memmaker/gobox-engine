@@ -20,7 +20,7 @@ import (
 // migrated package adds its module directory here.
 var leaves = []string{
 	"../rules1e",
-	"../../rulesxxvc",
+	"../rulesxxvc",
 }
 
 // foreign lists what the packages under dir depend on besides the standard

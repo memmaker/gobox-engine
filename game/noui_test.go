@@ -12,7 +12,7 @@ import (
 
 // engineSide are the packages behind the game contract: they decide what
 // happens, never where or how it is shown.
-var engineSide = []string{"game", "engine", "ecl", "adventure", "rules", "rules1e", "rules4e"}
+var engineSide = []string{"game", "engine", "ecl", "adventure", "rules", "rules1e", "rules4e", "rulesxxvc"}
 
 // TestEngineDrawsNothing: no engine-side package reaches a drawing or
 // presenting package, directly or not.

@@ -26,7 +26,6 @@ require (
 	github.com/jfreymuth/pulse v0.1.3 // indirect
 	github.com/jfreymuth/vorbis v1.0.2 // indirect
 	golang.org/x/sys v0.49.0 // indirect
-	rulesxxvc v0.0.0 // indirect
 )
 
 
@@ -45,4 +44,3 @@ replace buckrogers2 => ../buckrogers2-go
 
 replace ecl-br => ../buckrogers-core
 
-replace rulesxxvc => ../rulesxxvc
