@@ -266,6 +266,7 @@ func (f *Front) Draw(dst *gpu.Image) {
 	} else {
 		f.pic = f.P.Draw(dst, note)
 	}
+	f.P.drawRefreshed(dst, note.Glyph) // camp's Fix just done: its fade over whatever is up
 	f.drawn = f.screenSig()
 	if held := f.held; len(held) > 0 { // the keys pressed before this screen showed, now on it
 		f.held = nil

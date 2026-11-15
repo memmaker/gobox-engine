@@ -3,6 +3,7 @@ package engine
 import (
 	"testing"
 
+	"gobox/adventure"
 	"gobox/game"
 )
 
@@ -39,5 +40,40 @@ func TestCampSaysWhatRestDoes(t *testing.T) {
 	e.state().Party[0].HP--
 	if c := e.build().(game.Camping); !c.Heals {
 		t.Fatal("a wounded member: Heals is not set, Fix is not offered")
+	}
+}
+
+// TestFixAtOnce: camp's Fix is done in one go and unseen: the wounded are
+// healed and nothing is still resting when it returns, and all it says is
+// Refreshed: no sound, no line of the casts and rests it took.
+func TestFixAtOnce(t *testing.T) {
+	e := quickStarted(t)
+	e.CampMenu()
+	c := e.state().Party[0]
+	c.HP -= 2
+	out, err := e.doNow(game.CampRest{Kind: adventure.RestFix})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.HP != c.MaxHP || e.resting != nil {
+		t.Fatalf("after Fix: HP %d of %d, still resting %v", c.HP, c.MaxHP, e.resting != nil)
+	}
+	said := 0
+	for _, ev := range out.Events {
+		switch ev := ev.(type) {
+		case game.Refreshed:
+			said++
+			if !ev.Healed {
+				t.Errorf("Refreshed %+v: the healing is not named", ev)
+			}
+		case game.Sounded, game.Narrated, game.Said:
+			t.Errorf("Fix shows %T %+v", ev, ev)
+		}
+	}
+	if said != 1 {
+		t.Fatalf("Refreshed said %d times in %+v", said, out.Events)
+	}
+	if _, ok := e.build().(game.Camping); !ok {
+		t.Fatalf("after Fix: %T, want camp", e.build())
 	}
 }

@@ -436,6 +436,7 @@ type (
 		Way     DoorWay
 		Through bool
 	} // a locked door was tried (TryDoor), Exit included
+	Refreshed   struct{ Healed, Studied bool } // camp's Fix is done, all of it at once and unseen: who was hurt is healed, the planned spells are memorized
 	Ended       struct{ Won bool }
 	SaveOffered struct{} // a script offers to save the game
 	ShipShown   struct {
@@ -465,6 +466,7 @@ func (Lost) event()        {}
 func (JournalNote) event() {}
 func (Refused) event()     {}
 func (DoorTried) event()   {}
+func (Refreshed) event()   {}
 func (Ended) event()       {}
 func (SaveOffered) event() {}
 func (ShipShown) event()   {}

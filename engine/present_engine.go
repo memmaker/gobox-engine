@@ -53,6 +53,9 @@ func (e *Engine) apply(f rules.Effect) {
 		}
 		e.event(ev)
 	case rules.Sounded: // in a fight: when the presenter plays the events up to here; else now
+		if e.unheard {
+			return
+		}
 		if e.inFight() {
 			e.event(game.Sounded{Sound: string(f.Cue)})
 			return

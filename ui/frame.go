@@ -36,6 +36,7 @@ type UI struct {
 	seq        uint64         // counts the changes: the front redraws on a new one
 	log        []string       // the fight's message log, from the outcomes' text
 	note       game.Note      // the status line's toast: the last refusal
+	refreshed  *refreshed     // camp's Fix just done: the fade to black and its words (drawRefreshed)
 	toast      FrontNote      // the front's own toast (Added to journal, a refusal over the items)
 	lore       int            // journal notes seen (State.Lore), +1; 0: none counted yet
 	title      titleStep      // the title as gobox steps it

@@ -1173,6 +1173,8 @@ func (r *frontState) outcome(a game.Action, out game.Outcome, err error) game.Re
 		switch e := e.(type) {
 		case game.Refused:
 			r.note = game.Note{Text: e.Why, At: time.Now()}
+		case game.Refreshed:
+			r.refreshed = newRefreshed(e, now())
 		case game.Narrated:
 			if fight {
 				r.log = append(r.log, e.Text)
@@ -1461,6 +1463,8 @@ func eventsAt(es []game.Event, ms int, engaged func(game.Fighting) game.Report) 
 			out = append(out, game.Report{Kind: game.EvDoor, Door: &e})
 		case game.Refused:
 			out = append(out, game.Report{Kind: game.EvRefused, Text: e.Why})
+		case game.Refreshed: // its one sound; the fade and the words are the front's own (drawRefreshed)
+			out = append(out, game.Report{Kind: game.EvSound, Sound: refreshedCue})
 		case game.Ended:
 			out = append(out, game.Report{Kind: game.EvReset})
 		case game.SaveOffered:

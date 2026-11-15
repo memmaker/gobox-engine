@@ -180,12 +180,18 @@ func (e *Engine) PlaySound(n int) { e.playSound(n, string(daspFx[n])) }
 // the presenter plays it when it draws the View that follows
 // (PlayEventSound), as it does a fight's.
 func (e *Engine) cue(c rules.SoundCue) {
+	if e.unheard {
+		return
+	}
 	e.event(game.Sounded{Sound: string(c)})
 }
 
 // playSound is PlaySound with the sound pack's event (extra) in place of
 // sound n: the pack plays it, and the pacing stays the original's.
 func (e *Engine) playSound(n int, event string) {
+	if e.unheard {
+		return
+	}
 	if e.inFight() && !e.soundNow && n > sndUnmute && n != sndStop { // in a fight: when the presenter plays the events up to here (PlayEventSound)
 		cue := rules.SoundCue(event)
 		if cue == "" { // no pack event (a step): the number itself

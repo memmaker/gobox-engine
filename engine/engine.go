@@ -44,6 +44,7 @@ type Engine struct {
 	campSeq            int                    // when camp opened (top); the rules keep camp up (core.WordCampOn)
 	fx                 []rules.Effect         // the effects queued and not yet shown (emit, present)
 	resting            *restRun               // the camp rest going on (RestStep), nil none
+	unheard            bool                   // work done unseen (camp's Fix at once): nothing sounds
 	adv                string                 // New's adventure folder: scripts, art, data
 	data               string                 // New's host data directory: AssetsDir, AmigaDir, SaveDir
 

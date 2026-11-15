@@ -1390,8 +1390,11 @@ func (e *Engine) campDo(a game.Action, out *game.Outcome, native func(func() err
 		}
 		return true, err
 	case game.Fix:
-		return true, native(func() error { return e.campRest(adventure.RestFix) })
+		return true, e.fixAtOnce(out)
 	case game.CampRest:
+		if a.Kind == adventure.RestFix {
+			return true, e.fixAtOnce(out)
+		}
 		return true, native(func() error { return e.campRest(a.Kind) })
 	case game.Order:
 		return true, native(func() error {

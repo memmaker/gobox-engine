@@ -4,7 +4,7 @@ package engine
 // sound: false when it is off or has nothing for event.
 func (e *Engine) dasp(event string) bool {
 	s := &e.snd
-	if event == "" || !e.Dasp.Load() || s.d == nil || s.typ == sndNone || s.dasp == nil {
+	if e.unheard || event == "" || !e.Dasp.Load() || s.d == nil || s.typ == sndNone || s.dasp == nil {
 		return false
 	}
 	return s.dasp.Play(event)
