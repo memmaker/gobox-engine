@@ -2,7 +2,7 @@ package rules1e
 
 import "gobox/rules"
 
-// Looks in flight and bestiary kinds, as the engine asks them (rules/r2b.go).
+// Looks in flight, as the engine asks them (rules.FlightFact).
 
 // spellFlights is the flight kind of the spells that have one; others are FlightDefault.
 var spellFlights = map[rules.SpellID]rules.FlightKind{
