@@ -205,7 +205,10 @@ func (e *Engine) varField(r ecl.Ref) *ecl.Field {
 func (e *Engine) getVar(r ecl.Ref) int64 {
 	f := e.varField(r)
 	if f.Owner == ecl.OwnerConst { // a table in the script's own code (the code image at OriginalSave.CodeBase)
-		e.inField(f, r.Index)
+		// No bound on the index: the original reads the code byte at base plus
+		// index, and its scripts lay tables over one another (POR area 29's
+		// three exits-by-facing tables are 3 bytes apart and read by 4 facings:
+		// the fourth entry is the next table's first).
 		return int64(e.vm.CodeByte(uint16(f.From + r.Index)))
 	}
 	ef, bi, bound := e.binding(f, r.Index)
