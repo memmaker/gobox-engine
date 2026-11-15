@@ -170,7 +170,20 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
       original); the ship record and the foe summary are bound to typed ship state; BR2's debug
       poke of any Area byte is refused. Not: all of BR's memory as byte arrays; not: rewriting
       the scripts at import.
-      Still to do here: BR2's layout; the layouts wired into the importer (with B1c)
+      BR1's layout is done and proven (track b1b2l, landed):
+      importer/br1/scripts/layout/global.txt, 296 fields; the two buffers are `EntryBytes`
+      (4C00, 32) and `NewGameBytes` (7F79, 10), named from buckroger-re types.pas, owner `local`
+      (the engine clears locals at a script load unless a save was just loaded, as EclInit; it
+      also saves them, the original does not: unchecked). importer/br1_layout_test.go: all 25
+      blocks, 7456 variable operands resolve, at their field's width, none past a buffer; the
+      import writes and reloads all 25 areas with it. Not wired in: the import still writes the
+      partial layout, the BR engines run raw addresses.
+      Open: four texts longer than the gap to the next field (7B04, 7B18, 7B2C, 7B90: the
+      original overwrites what follows, the engine keeps each field's own cells; whether a
+      script relies on it is unknown); `Word4BE6` (BR's area kind is not the engine's
+      `AreaKind`), `WordC04D` (facing 0..7 raw), `Word7EB1` (selected member) to bind; the ship
+      record 4D00..4D6B and the foe summary 4D6C..4D82 to bind to typed ship state (B1e);
+      `MsgDelay` means the same but BR pauses 100 ms a unit, the engine 225; BR2's layout
     - [x] B1b3 the store by dialect (track b1b3, landed): `Ref.As` is the operand's width
       (`Ref.Cell()` for "the same cell"); `Behaviour.StoreByOperand` (V4): a store keeps the
       operand's bytes, a read takes them (1 and 2 zero-extended, 4 signed); the layout's `bytes`
