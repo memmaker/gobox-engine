@@ -261,10 +261,14 @@ var V4 = func() *Version {
 	}
 	// BR's skip() (buckrogers-go/rules/ecl.go, pO0B8_1BEB): the counts its
 	// table gives, not the commands' Fixed; every other command steps on by 0.
+	// But 59 and 60: its rows for them (3 and 1) are never reached. Both
+	// decode to OpNothing, as 68 does, and BR's executor runs every OpNothing
+	// as 68, stepping over none (eclbr.VM.SetVersion takes the highest byte
+	// of an op). The scripts hold Nothing() (ten in BR1), so they skip 0 here too.
 	skip := skips(map[byte][]byte{
-		1: {1, 2, 10, 14, 17, 18, 32, 45, 50, 52, 54, 56, 57, 60, 67, 72, 75},
+		1: {1, 2, 10, 14, 17, 18, 32, 45, 50, 52, 54, 56, 57, 67, 72, 75},
 		2: {3, 8, 9, 15, 16, 31, 65, 64, 29, 63, 69, 70, 76},
-		3: {4, 5, 6, 7, 11, 12, 33, 40, 42, 47, 48, 53, 55, 59, 34, 35},
+		3: {4, 5, 6, 7, 11, 12, 33, 40, 42, 47, 48, 53, 55, 34, 35},
 		4: {20}, 5: {46}, 6: {30, 73},
 	})
 	// opSpecial's addresses (buckrogers-go/rules/eclops.go): 11723 redraws the

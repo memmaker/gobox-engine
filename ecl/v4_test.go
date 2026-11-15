@@ -130,9 +130,9 @@ func TestV4SkipDiffers(t *testing.T) {
 			t.Errorf("command %d: Skip %d, want %d", c.cmd, V4.Skip[c.cmd], c.n)
 		}
 	}
-	// 59 and 60 share one canonical op (OpNothing): the table is BR's.
-	if V4.Skip[59] != 3 || V4.Skip[60] != 1 {
-		t.Errorf("Skip 59: %d, 60: %d", V4.Skip[59], V4.Skip[60])
+	// 59, 60 and 68 are one op (OpNothing): skipped by none, as BR's executor runs them.
+	if V4.Skip[59] != 0 || V4.Skip[60] != 0 || V4.Skip[68] != 0 {
+		t.Errorf("Skip 59: %d, 60: %d, 68: %d", V4.Skip[59], V4.Skip[60], V4.Skip[68])
 	}
 }
 
