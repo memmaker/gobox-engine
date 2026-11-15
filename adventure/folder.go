@@ -131,7 +131,8 @@ func WriteGameData(dir string, d game.Data) error {
 
 // ReadGameData reads the game's data from the adventure folder adv, as its
 // import wrote it. An Amiga music set (AmigaMusic) whose files the folder's sound/
-// lacks is dropped; with the files, the AdLib music gives way to it.
+// lacks is dropped; with the files the game has both the DOS release's music
+// (AdLib) and the Amiga's, and the player picks (the Music option).
 func ReadGameData(adv string) (game.Data, error) {
 	b, err := os.ReadFile(filepath.Join(adv, DataDir, GameDataFile))
 	if err != nil {
@@ -151,9 +152,7 @@ func ReadGameData(adv string) (game.Data, error) {
 				have = false
 			}
 		}
-		if have {
-			d.AdLib = nil
-		} else {
+		if !have {
 			d.AmigaMusic = nil
 		}
 	}

@@ -63,7 +63,7 @@ func NewFront(g *Game, data game.Data, snd ...game.Sound) *Front {
 	if d, ok := f.P.Snd.(*audio.Driver); ok && adLib != nil { // the AdLib songs are the driver's soundtrack, its effects over them
 		if a, err := audio.NewAdLib(*adLib); err == nil {
 			f.P.AdLib = a
-			d.Attach(nil, nil, a, nil, nil, nil)
+			d.SetTracks(a) // beside the Amiga's player, when the game has both (the Music option picks)
 			d.SetSoundtrack(true, 0, 0)
 		}
 	}

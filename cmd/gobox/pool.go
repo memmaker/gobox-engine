@@ -67,7 +67,9 @@ func playPool(s start) (ui.Launch, error) {
 		eng.FullIntro.Store(h.FullIntro && !s.Explore)
 		eng.HandIn(engine.Settings{PathSearch: h.PathSearch, Combat4e: h.Combat4e && f.Combat4e})
 		eng.Dasp.Store(h.Dasp)
-		eng.SetSoundtrack(h.Soundtrack)
+		if !ui.TwoMusics() { // else the Music option picks a release's music (HostOptions.DOSMusic), and there are no recordings
+			eng.SetSoundtrack(h.Soundtrack)
+		}
 		eng.NoSteps.Store(!h.Steps)
 		engine.SetVolumes(h.Music, h.Effects, h.Voice)
 	}

@@ -13,6 +13,7 @@ type HostOptions struct {
 	Music, Effects, Voice float64 // the volumes, 0 to 1
 	Dasp                  bool    // the Dubtrain sound pack effects in place of the original's
 	Soundtrack            bool    // the music from the recordings instead of the original's
+	DOSMusic              bool    // the DOS release's music (AdLib) instead of the Amiga's, in a game with both
 	Steps                 bool    // the step and turn sound
 	Combat4e              bool    // the fights under the 4e rule set laid over the original's
 	PathSearch            bool    // the computer's creatures walk by a path search instead of the original's step towards the target
@@ -34,6 +35,10 @@ var HostSettings = DefaultHostOptions
 // row At, the Audio page is new. voice toggles the voice-over when its
 // argument is true and reports whether it is on (nil: no voice-over row).
 func HostOptionRows(h *HostOptions, voice func(toggle bool) bool) []HostRow {
+	music := HostRow{Page: "Audio", Label: "Music", Flag: &h.Soundtrack, Names: [2]string{"Original", "Soundtrack"}}
+	if TwoMusics() { // a game with both releases' music: which plays, in place of the recordings' row (it has none)
+		music = HostRow{Page: "Audio", Label: "Music", Flag: &h.DOSMusic, Names: [2]string{"Amiga", "DOS"}}
+	}
 	rows := []HostRow{
 		{Page: "Graphics", Label: "Artwork", At: 4, Flag: &h.DOSArt, Names: [2]string{"Amiga", "DOS"}},
 		{Page: "Gameplay", Label: "Explicit Interactions", At: 3, Flag: &h.Explicit},
@@ -43,7 +48,7 @@ func HostOptionRows(h *HostOptions, voice func(toggle bool) bool) []HostRow {
 		{Page: "Gameplay", Label: "Quick search", At: 4, Flag: &h.QuickSearch},
 		{Page: "Gameplay", Label: "Day sky by clock", At: 4, Flag: &h.DaySky},
 		{Page: "Gameplay", Label: "Full intro", At: 4, Flag: &h.FullIntro},
-		{Page: "Audio", Label: "Music", Flag: &h.Soundtrack, Names: [2]string{"Original", "Soundtrack"}},
+		music,
 		{Page: "Audio", Label: "DASP Sfx", Flag: &h.Dasp},
 		{Page: "Audio", Label: "Step sounds", Flag: &h.Steps},
 		{Page: "Audio", Label: "Music volume", Level: &h.Music},
@@ -55,3 +60,7 @@ func HostOptionRows(h *HostOptions, voice func(toggle bool) bool) []HostRow {
 	}
 	return rows
 }
+
+// TwoMusics: the game in play has the DOS release's music (AdLib) and the
+// Amiga's (Music-X), so HostOptions.DOSMusic picks.
+func TwoMusics() bool { return adLib != nil && amigaMX != nil }

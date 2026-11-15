@@ -619,7 +619,7 @@ func (p *Presenter) adLibEffect(n int) bool {
 		return false
 	}
 	if on, _ := p.Snd.Track(); !on {
-		return true // sound off: nothing plays, no fallback either
+		return !TwoMusics() // sound off: nothing plays, no fallback either; the Amiga's music picked: its effects, the driver's
 	}
 	p.AdLib.Reset()
 	return p.AdLib.Effect(n)

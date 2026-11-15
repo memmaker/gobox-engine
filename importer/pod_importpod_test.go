@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"gobox/asset"
-	"gobox/asset/orig"
 )
 
 // TestImportEqualsDecode imports the originals in ../data/dos and checks the
@@ -22,11 +21,6 @@ func TestPodImportEqualsDecode(t *testing.T) {
 		t.Fatal(err)
 	}
 	dst := filepath.Join(root, "pod")
-	for _, f := range []string{"1.mid", "1.opl.json", "8.mid"} { // MUSIC.DAX's songs (glbr.WriteSongs; TestMIDIEqualsAdLib checks them)
-		if _, err := os.Stat(filepath.Join(dst, orig.MusicDir, f)); err != nil {
-			t.Error(err)
-		}
-	}
 	if err := CheckContents(dst); err != nil {
 		t.Fatal(err)
 	}

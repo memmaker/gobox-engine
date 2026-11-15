@@ -64,6 +64,7 @@ type Driver struct {
 	fx       []int // the Amiga's effect for Effect n, at n-2
 	stBuf    []byte
 	stSong   int  // the soundtrack song playing
+	amSong   int  // the Amiga's song started last
 	stNext   int  // the song that follows when a one-shot ends
 	stOn     bool // the soundtrack option
 	stPlay   bool // the option is on and there are recordings
@@ -104,6 +105,16 @@ func (d *Driver) Attach(am Amiga, fx []int, t Tracks, p Pack, speaking func() bo
 	if vol != nil {
 		d.vol = vol
 	}
+	d.stPlay = d.stOn && d.tracks() > 0
+	d.on = true
+}
+
+// SetTracks swaps in the soundtrack player t (a game's AdLib songs), keeping
+// what else Attach gave.
+func (d *Driver) SetTracks(t Tracks) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	d.t = t
 	d.stPlay = d.stOn && d.tracks() > 0
 	d.on = true
 }
@@ -345,7 +356,33 @@ func (d *Driver) AmigaSong(n int) {
 	defer d.mu.Unlock()
 	if d.am != nil && d.on {
 		d.am.Song(n)
+		d.amSong = n
 	}
+}
+
+// MusicFrom picks whose songs play where a game has two releases' music:
+// the Tracks player's (tracks: the DOS release's AdLib) or the Amiga's. The
+// song playing starts again on the other; both number their songs alike.
+func (d *Driver) MusicFrom(tracks bool) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	d.stOn = tracks
+	if !d.on || d.t == nil || d.am == nil || d.stPlay == tracks {
+		return
+	}
+	n := d.amSong
+	if d.stPlay {
+		n = d.stSong
+	}
+	d.stPlay, d.stSong, d.stNext = tracks, 0, 0
+	d.t.Reset()
+	d.am.Song(0)
+	if tracks {
+		d.playSong(n, false)
+	} else {
+		d.am.Song(n)
+	}
+	d.amSong = n
 }
 
 // SetSoundtrack turns the soundtrack on or off: on starts song n, off gives

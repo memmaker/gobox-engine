@@ -31,7 +31,7 @@ func GameData(adv string) game.Data {
 		Commands:     game.CommandEntries(sotsbPartyCommands),
 		Border:       &game.Border{File: "8X8D1", Block: 202, Pieces: [8]int{55, 55, 55, 55, 55, 55, 53, 53}, Caps: []int{52, 54, 52, 54}, Amiga: sotsbAmigaFrame()},
 		SoundTables:  soundData,
-		AdLib:        &game.AdLib{Music: "SOUND.DAX", Tempo: sotsbAdLibTempo},
+		AdLib:        &game.AdLib{Music: "SOUND.DAX", Tempo: 0x76},
 		DungeonTiles: adventure.DungeonTiles,
 		// camp's rests: the timed one in days and hours (Rest), and Fix (CampRest Kind restFix)
 		Rests:     []game.RestKind{{Text: "Rest", Key: 'R', N: 0, Duration: true}, {Text: "Fix", Key: 'F', N: restFix, Fix: true}},
@@ -43,7 +43,7 @@ func GameData(adv string) game.Data {
 		VerbOrder:  []string{"Move", "View", "Aim", "Use", "Cast", "Quick", "Done"},
 	}
 	if _, err := os.Stat(filepath.Join(adv, adventure.SoundDir, SotsbAmigaMusic.Songs)); err == nil {
-		d.AdLib, d.AmigaMusic = nil, SotsbAmigaMusic
+		d.AmigaMusic = SotsbAmigaMusic // beside the AdLib's: the player picks
 	}
 	return d
 }
@@ -221,6 +221,3 @@ func sotsbAmigaFrame() *game.AmigaFrame {
 	return &game.AmigaFrame{File: "ALWAYS", Screens: [][]game.FrameBlit{full, view, ruled}, Pieces: framePieces(sotsbFullFrame),
 		Edges: frameEdges(sotsbFullFrame, sotsbRuleFrame, sotsbViewFrame), Mask: alwaysMask}
 }
-
-// sotsbAdLibTempo is the tempo divisor of SOUND.DAX's driver (audio.AdLibData.Tempo).
-const sotsbAdLibTempo = 0x76

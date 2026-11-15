@@ -1,7 +1,6 @@
 // glbr.go is SOUND.COM's AdLib song sequencer (GLBR/SLBR song blocks,
-// pod-go docs/MUSIC.md) and its SID twin, as register writes, and the songs
-// as data (MIDI plus OPLVoice records, midi.go). It needs only the standard
-// library, so importers use it; gobox/audio puts the writes on the chips.
+// pod-go docs/MUSIC.md) and its SID twin, as register writes. It needs only the
+// standard library; gobox/audio puts the writes on the chips.
 
 package orig
 
@@ -29,10 +28,6 @@ type Sequencer struct {
 	mask  int
 	oplch [6]int
 	ins   [6]int
-
-	rec   func(scoreEvent) // SongMIDI: each call on a track's voice
-	score []scoreEvent     // a song MIDI's calls, played in place of tr (NewMIDI)
-	end   int              // ... and the tick it ends on
 }
 
 // NewSequencer parses a song block (song 0) and writes the init registers; nil if malformed.
@@ -140,9 +135,6 @@ func (s *Sequencer) setInst(t, i int) {
 		s.sid.setInst(s.w, t, i)
 		return
 	}
-	if s.rec != nil {
-		s.rec(scoreEvent{Track: t, Kind: scoreProgram, Vel: i})
-	}
 	s.mask &^= 1 << s.oplch[t]
 	c := s.alloc(i)
 	if c > 6 {
@@ -157,13 +149,6 @@ func (s *Sequencer) note(t, note, vel int) {
 	if s.sid != nil {
 		s.sid.note(s.w, t, note, vel)
 		return
-	}
-	if s.rec != nil {
-		if vel < 0 {
-			s.rec(scoreEvent{Track: t, Kind: scoreOff})
-		} else {
-			s.rec(scoreEvent{Track: t, Kind: scoreOn, Note: note, Vel: vel})
-		}
 	}
 	if vel >= 0 && t >= 3 {
 		vel = vel * 100 >> 7
@@ -210,9 +195,6 @@ func (s *Sequencer) Silence() {
 // track has ended (the caller silences).
 func (s *Sequencer) Tick() bool {
 	s.now++
-	if s.score != nil || s.end != 0 {
-		return s.replay()
-	}
 	if s.now&1 != 0 {
 		return true
 	}
@@ -285,23 +267,6 @@ func (s *Sequencer) Tick() bool {
 		}
 	}
 	return false
-}
-
-// replay makes this tick's calls of a song MIDI's score; false at its end.
-func (s *Sequencer) replay() bool {
-	for len(s.score) > 0 && s.score[0].Tick <= s.now {
-		e := s.score[0]
-		s.score = s.score[1:]
-		switch e.Kind {
-		case scoreOn:
-			s.note(e.Track, e.Note, e.Vel)
-		case scoreOff:
-			s.note(e.Track, 0, -1)
-		case scoreProgram:
-			s.setInst(e.Track, e.Vel)
-		}
-	}
-	return s.now < s.end
 }
 
 // Writer is the register write s plays through.

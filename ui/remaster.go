@@ -199,6 +199,11 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note) Rect {
 	if d, ok := p.Snd.(*audio.Driver); ok && p.AdLib != nil && p.AdLib.SID() != Host.SIDMusic { // the Music card option
 		d.Do(func() { p.AdLib.SetSID(Host.SIDMusic) })
 	}
+	if d, ok := p.Snd.(*audio.Driver); ok && p.AdLib != nil && TwoMusics() { // the Music option: the DOS release's songs or the Amiga's
+		if on, _ := d.Track(); on != HostSettings.DOSMusic {
+			d.MusicFrom(HostSettings.DOSMusic)
+		}
+	}
 	if f := SequenceStep(p, &p.seq, p.sequenceUp(), false); p.sequenceUp() != "" { // the animation: full screen, over everything
 		p.seqMusic(p.seq.Cues)
 		dst.Fill(color.Black)
