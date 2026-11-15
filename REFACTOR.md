@@ -266,17 +266,31 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
         Duel; the engine fills only Duel and the party's square and facing. By owner: the clock,
         the party's count and the acting member are the rules' own state, to be read as facts,
         not words; "in a fight" the rules know from BeginFight and EndFight
-      - [x] B1f0b the 19 engine-only words: a typed `world` struct in the engine, saved by the
-        engine; the rules' fields and their `wordPtr` rows go; an old slot's words are read from
-        the rules' blob once; a test loads every shipped slot
-      - [ ] B1f0c the three outputs: the engine sets CombatEnd and Beaten from `FightResult`,
-        AttackedAlly from a typed result
-      - [ ] B1f0d the inputs a fight, a rest and training take: handed in `FightTerms`, the
-        camping and training situations (Morale, Surprise, the hit and move bonuses, NoMagic,
-        NoLoot, Duel, MonsterDist, RestEvery, RestChance, Trainable, Debug)
-      - [ ] B1f0e the map inputs (MapX, MapY, Boss, the Mark words, Sky, SkyInside, In3D): in
-        `BuildGround` and the checks that read them
-      - [ ] B1f0f the rules' own: the clock, the party's count, the acting member as facts;
+      - [x] B1f0b the 19 engine-only words (track w1, landed): `rules.World` (the type is in
+        `rules` because the 1e reader of an original save fills it and `adventure` imports
+        `rules1e`), kept as `e.world`, bound for scripts by `World.Cells()`, saved as
+        `adventure.Save.World`. `TestShippedSlotsLoad`: the words of all 13 shipped slots,
+        recorded before the change
+      - [x] B1f0c, B1f0d (fight) (track w2, landed): the eleven words of a fight. `fightTerms()`
+        is the one builder of `rules.FightTerms` (Morale, Surprised, MonsterHit, PartyHit,
+        PartyMove, NoItemLoot, Duel, DuelOpponent, MonsterDist, NoMagic, In3D); the 1e rules keep
+        the terms of the running fight (`RuleState.Terms`, BeginFight to EndFight);
+        `FightResult.AttackedAlly`; the engine caps Morale at a fight's start, zeroes Surprise
+        after the first BeginRound, sets CombatEnd and Beaten from the result.
+        Changed: the hit and move bonuses reach the rules only during a fight; the rules' inner
+        ally-attacked flag is cleared at BeginFight (it never was). `engine/fightwords_test.go`
+      - [x] B1f0d (rest, hall), B1f0e (track w3, landed): NoMagic, In3D, MapX, MapY, Boss, the five
+        marks, Sky, SkyInside, RestEvery, RestChance, PartyExp in `rules.World`; Debug is the
+        engine's `FreeTraining`. Handed with the question: `SkyDay`, `AreaTileIs.Marks`
+        (`rules.AreaMarks`), `BuildGround.MapX/MapY/Boss`, `CampOpen.RestEvery/RestChance`,
+        `rules.HallTerms{Teaches, Free}` on `OpenHall`, `Train`, `TrainFact`, `Training`,
+        `NoMagic` on `UsingItem`, `InventoryFact`, `OpenCast`, `SpellsAllowed`, `CastCures`,
+        `In3D` on `CampCast`, `UseItem`. `engine/placewords_test.go`.
+        A save of any step loads whole: a word the ruleset's part of a save still has comes from
+        there, the rest from `World` (`wordsInOldBlob`, by the one table `Cells()`;
+        `TestLoadWorldMergesOldBlob`)
+      - [ ] B1f0f the nine left (BeginFlag, TenMinutes, Hours, ClockMinutes, PartyCount, Training,
+        Who, Effect, CampOn; about 55 engine sites): the clock, the party's count, the acting member as facts;
         BeginFlag, Training, CampOn split into the engine's screen state and what the rules know
         of their own fight, hall and camp
       - [ ] B1f0g `WordIs`, `SetWord` and `rules.WorldWord` are gone
