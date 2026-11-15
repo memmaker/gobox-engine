@@ -10,3 +10,24 @@ func TestThousands(t *testing.T) {
 		}
 	}
 }
+
+// TestOverviewColumns: the overview's level column comes after the name's
+// full width; the columns keep their order, fit the page and take up the
+// room a wide page has; the 40-column page keeps the old layout, no level.
+func TestOverviewColumns(t *testing.T) {
+	if c := overviewColumns(40); c != (overviewCols{hp: 19, ac: 27, status: 31}) {
+		t.Errorf("40 columns: %+v, want the old page", c)
+	}
+	narrow, wide := overviewColumns(60), overviewColumns(120)
+	for cols, c := range map[int]overviewCols{60: narrow, 120: wide} {
+		if c.lv != 2+15+2 || !(c.lv < c.hp && c.hp < c.ac && c.ac < c.status && c.status < c.spells) {
+			t.Errorf("%d columns: %+v, want the level right after the name, then HP, AC, Status, Spells", cols, c)
+		}
+		if last := max(c.spells+6, c.xp+10); last > cols-1 {
+			t.Errorf("%d columns: %+v runs off the page", cols, c)
+		}
+	}
+	if narrow.xp != 0 || wide.xp == 0 || wide.status-wide.ac <= narrow.status-narrow.ac {
+		t.Errorf("60: %+v, 120: %+v: want XP only on the wide page, its columns further apart", narrow, wide)
+	}
+}

@@ -282,17 +282,20 @@ func (p *Presenter) drawModal(m *image.RGBA, note Note) {
 		const title = "Party"
 		str((cols-1-len(title))/2, 1, inkWhite, title)
 		y := 3
-		// Spells and XP to the next level only where the window has room for them
-		str(2, y, inkWhite, "Lv")
-		str(overviewName, y, inkWhite, "Name")
-		str(19, y, inkWhite, "HP")
-		str(27, y, inkWhite, "AC")
-		str(31, y, inkWhite, "Status")
-		if cols >= 50 {
-			str(43, y, inkWhite, "Spells")
+		// the level, Spells and XP to the next level only where the window has room for them
+		oc := overviewColumns(cols)
+		str(2, y, inkWhite, "Name")
+		if oc.lv > 0 {
+			str(oc.lv, y, inkWhite, "Lv")
 		}
-		if cols >= 61 {
-			str(50, y, inkWhite, "XP to next")
+		str(oc.hp, y, inkWhite, "HP")
+		str(oc.ac, y, inkWhite, "AC")
+		str(oc.status, y, inkWhite, "Status")
+		if oc.spells > 0 {
+			str(oc.spells, y, inkWhite, "Spells")
+		}
+		if oc.xp > 0 {
+			str(oc.xp, y, inkWhite, "XP to next")
 		}
 		y += 2
 		for i, c := range p.party() {
@@ -303,10 +306,10 @@ func (p *Presenter) drawModal(m *image.RGBA, note Note) {
 			if i == p.selectedIndex() {
 				colour = inkWhite
 			}
-			if lv := slices.Max(append([]int{0}, c.Levels...)); lv > 0 { // the highest of its classes, right aligned under "Lv"
-				str(2, y, inkGreen, fmt.Sprintf("%2d", lv))
+			str(2, y, colour, c.Name[:min(len(c.Name), 15)])
+			if lv := slices.Max(append([]int{0}, c.Levels...)); lv > 0 && oc.lv > 0 { // the highest of its classes, right aligned under "Lv"
+				str(oc.lv, y, inkGreen, fmt.Sprintf("%2d", lv))
 			}
-			str(overviewName, y, colour, c.Name[:min(len(c.Name), 19-1-overviewName)])
 			hpc := inkGreen
 			switch {
 			case c.HP <= 0:
@@ -314,18 +317,18 @@ func (p *Presenter) drawModal(m *image.RGBA, note Note) {
 			case c.HP*2 < c.MaxHP:
 				hpc = inkYellow
 			}
-			str(19, y, hpc, strconv.Itoa(c.HP)+"/"+strconv.Itoa(c.MaxHP))
-			str(27, y, inkGreen, strconv.Itoa(c.AC))
-			str(31, y, inkGreen, c.Status)
-			if cols >= 50 {
-				str(43, y, inkGreen, c.SpellsReady)
+			str(oc.hp, y, hpc, strconv.Itoa(c.HP)+"/"+strconv.Itoa(c.MaxHP))
+			str(oc.ac, y, inkGreen, strconv.Itoa(c.AC))
+			str(oc.status, y, inkGreen, c.Status)
+			if oc.spells > 0 {
+				str(oc.spells, y, inkGreen, c.SpellsReady)
 			}
-			if cols >= 61 {
+			if oc.xp > 0 {
 				xp := "-"
 				if c.NextExp > 0 {
-					xp = strconv.Itoa(max(c.NextExp-expOf(c), 0))
+					xp = thousands(max(c.NextExp-expOf(c), 0))
 				}
-				str(50, y, inkGreen, xp)
+				str(oc.xp, y, inkGreen, xp)
 			}
 			w := 0 // the hit point bar under the name, 32 steps
 			if c.MaxHP > 0 && c.HP > 0 {
@@ -634,8 +637,55 @@ func (p *Presenter) paneBox(dst *gpu.Image, note Note, k float64, cx, cy int) {
 	p.noteBtn = image.Rect(int(x), int(y), int(x+k*float64(m.Rect.Dx())), int(y+k*8))
 }
 
-// overviewName is the party overview's name column: after the level's.
-const overviewName = 5
+// overviewCols are the party overview's columns after the name's (at 2,
+// 15 wide), 0 for one the page has no room for.
+type overviewCols struct{ lv, hp, ac, status, spells, xp int }
+
+// overviewColumns lays the overview's columns out on a page cols wide: the
+// level after the name, then HP, AC and the status; Spells and "XP to next"
+// where they fit, spread over the width the page has to spare. A page too
+// narrow for the level (the original's 40 columns) has none.
+func overviewColumns(cols int) overviewCols {
+	const (
+		name   = 2 + 15 + 2 // the first column after the name
+		lv     = 4          // "Lv" and a gap
+		hp     = 8          // "999/999"
+		ac     = 4          // "-10"
+		status = 12         // "Unconscious"
+		spells = 7          // "Spells", "12/12"
+		xp     = 10         // "XP to next"
+	)
+	if cols-2 < name+lv+hp+ac+status { // no room for the level: the old page
+		return overviewCols{hp: name, ac: name + hp, status: name + hp + ac}
+	}
+	c := overviewCols{lv: name}
+	fits := func(w int) bool { return w <= cols-2 }
+	need := name + lv + hp + ac + status
+	if fits(need + spells) {
+		need += spells
+		c.spells = 1
+	}
+	if c.spells > 0 && fits(need+xp) {
+		need += xp
+		c.xp = 1
+	}
+	gap := min((cols-2-need)/5, 6) // what is to spare, shared between the columns
+	at := name + lv + gap
+	c.hp = at
+	at += hp + gap
+	c.ac = at
+	at += ac + gap
+	c.status = at
+	at += status + gap
+	if c.spells > 0 {
+		c.spells = at
+		at += spells + gap
+	}
+	if c.xp > 0 {
+		c.xp = at
+	}
+	return c
+}
 
 // thousands is n with a comma between its thousands ("51,211").
 func thousands(n int) string {
