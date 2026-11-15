@@ -343,21 +343,38 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
       `SelSideFlags`, `SelPartyIndex`, bound to typed facts `rulesxxvc` answers (`rules.FlagFact`,
       `FactCompanion` new); encodings `BrSelStatus`, `BrSelCompanion` (`engine/codecs_br.go`,
       `adventure/encodings.go`); command 59 runs as nothing; `TestBR1Clinic`, `TestBR1NoMember`.
-    - Open after B1f3:
-      - two names for one thing: the Pool layouts' `SelHpMax`, `SelHpCur`, `SelGender`,
-        `SelCharClass` (pod: `SelRace` too) are NOT bound: a Pool script reading them reads one
-        global cell, not the member. BR got new bound names so the Pool games did not change.
-        Check the Pool scripts' uses against the originals, bind, and keep one name each;
-        likewise `SelStatus` (active or not) beside `SelStatusKind` (the typed status)
-      - `rules.Status` has no poisoned, comatose, not-here: BR1 areas 32 and 33 write status 8
-        (`SelStatusKind = 136`) and panic in the encoding; reads of 7 and 8 come back as 5
-      - `Purse` (7C2B) is a plain cell: scripts do not see the ruleset's credits (read:
-        `CoinFact`; write: a lower value is paid across the members, a higher one goes to the
-        selected member: a rule, needs an Action)
-      - `PickMember` (V4 57) has no handler: panics as not ported; it also ends "no member"
+    - [x] B1f4 after B1f3 (2026-11-16):
+      - the Pool games' unbound member fields (a script read one global cell, not the member):
+        bound in `engine/scriptvars_member.go` to typed facts with the originals' SpecialReadZ1 /
+        SpecialWriteZ1 as evidence: pod `SelHpCur`, `SelHpMax`, `SelGender`, `SelCharClass`,
+        `SelStats`, `SelCharisma`, `SelClassLevels`, `SelOldLevels`, five thief skills; cotab
+        `SelGender`, `SelInt`, `SelCharClass`, `SelMageLevel`, `SelFlag1`; sotsb `SelCha`,
+        `SelHpMax`, `SelHpCur`, `SelGems`, `SelRangerLevel` (its `SelWindow*` named); por
+        `SelWindowF2` reads 0. New `rules` kinds `OwnScoreFact`, `OwnLevelFact`,
+        `FormerLevelFact`, `Catalog.ClassSets`. BR1 takes the Pool's names (`SelHpCur`,
+        `SelHpMax`, `SelGender`, `SelCharClass enc=BrSelCharClass`). Guard:
+        `importer` `TestMemberFieldsBound` (every member field of every game's layout is bound).
+        cotab and sotsb import version 23; `data/cotab`, `data/sotsb` re-imported here, other
+        checkouts must re-import.
+      - `rules.StatusPoisoned`, `StatusComatose`, `StatusNotHere` (XXVc); BR1's status write 136
+        stores comatose
+      - `PartyCredits` (7C2B) bound: read the party's purse, write `rules.SetCredits` (the
+        selected member pays first, then party order; a higher total goes to the selected one)
+      - V4 57 is `Who`; `Behaviour.WhoEndsNoMember` (BR only: cotab's EclWho leaves the flag)
+    - Open after B1f4:
+      - `SelStatus` and `SelStatusKind` are still two names. Blocked on a ruling: a Pool script's
+        write of 0 to `SelStatus` sets the engine's `memberDied` (the DS:84D2 cleanup), 0x80 and
+        up means inactive; BR's write of 0 is "no status". The Pascal does not show that the
+        Pool's write 0 equals a typed dead. Reads differ too (POR, cotab: active or not; pod,
+        sotsb, BR: the status, three numberings)
+      - unverified: pod's heal test goes through the field's get/set, not the script file; the
+        cotab and sotsb bindings were tested on a pod engine before the re-import; whether pod's
+        imported records carry base scores, old levels and HP as the record's bytes
+      - the engine names AD&D classes and skills for these bindings (`rules/adnd.go` grew: R2f)
+      - hirelings that do not pool credits (BR record byte 231): `rulesxxvc` has none, all pool
+      - what POR, pod, sotsb's originals do to "no member" on Who: not checked
       - `ConvertBRCharacter` drops `isQuickfight`; a quickfight member imports as the party's side
-      - `adventure.StatusKinds` is a number by place in a list between an encoding and its
-        binding: reorder it and both still agree, but it is an untyped channel
+      - `adventure.StatusKinds` is a number by place in a list between an encoding and its binding
     - Open after slice 2:
       - V4 76's rocket view (2) and Program 9 (BR's rest menu: holds the script, which goes on;
         the Pool games' camp ends it) panic as not ported
