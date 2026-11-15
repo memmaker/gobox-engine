@@ -249,9 +249,37 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
       (where the party is, 3D or overland, clock, search, encounter distance, ...) leave the
       1e ruleset's records; the engine keeps one store and hands a ruleset the values a fight,
       a rest or a check needs; `WordIs`/`SetWord` go. Not: a store each ruleset embeds.
-      - [ ] B1f0a inventory: per word who writes it (engine, script, rules), who reads it, stored
-        or computed, saved where; the 1e rules' own reads and writes
-      - [ ] B1f0b..: per the inventory
+      - [x] B1f0a inventory (an agent's read, 2026-11-15). 56 words (WordNoExpAward is dead).
+        19 are the engine's alone (AreaKind/LastBlock, PrevX, PrevY, RiverOpen, Search, HoldMove,
+        LeftMap, Geo, WallSplitA/B, NoCoords, MsgDelay, ViewFlags, MaxDist, Portrait, Temple,
+        Shop, SymbolSet); 21 the 1e rules read but never write (MonsterHit, PartyHit, PartyMove,
+        NoMagic, NoLoot, In3D, MapX, MapY, Boss, the five Mark words, Sky, SkyInside,
+        MonsterDist, RestEvery, RestChance, Duel, Debug); 3 the rules write for the scripts
+        (CombatEnd, Beaten, AttackedAlly); 10 both sides write (Morale, Surprise, Trainable,
+        BeginFlag, TenMinutes, Hours, PartyCount, Training, Who, CampOn); 2 are computed
+        (Effect, ClockMinutes). A write has no side effect in the rules. The unnamed script
+        cells are the engine's already (`e.vars`); `AreaVars.Word(i)` serves only the import of
+        an original save. Saves: GAME.JSON holds the rules' blob {Area, Game, Purse} with the
+        words under their field names, no version, no migration; 13 shipped slots (12 por, 1
+        sotsb); BeginFlag is saved by the engine, Who, Debug, Training, CampOn by nobody.
+        `FightTerms` already has Morale, Surprised, MonsterHit, PartyHit, PartyMove, NoMagic,
+        Duel; the engine fills only Duel and the party's square and facing. By owner: the clock,
+        the party's count and the acting member are the rules' own state, to be read as facts,
+        not words; "in a fight" the rules know from BeginFight and EndFight
+      - [ ] B1f0b the 19 engine-only words: a typed `world` struct in the engine, saved by the
+        engine; the rules' fields and their `wordPtr` rows go; an old slot's words are read from
+        the rules' blob once; a test loads every shipped slot
+      - [ ] B1f0c the three outputs: the engine sets CombatEnd and Beaten from `FightResult`,
+        AttackedAlly from a typed result
+      - [ ] B1f0d the inputs a fight, a rest and training take: handed in `FightTerms`, the
+        camping and training situations (Morale, Surprise, the hit and move bonuses, NoMagic,
+        NoLoot, Duel, MonsterDist, RestEvery, RestChance, Trainable, Debug)
+      - [ ] B1f0e the map inputs (MapX, MapY, Boss, the Mark words, Sky, SkyInside, In3D): in
+        `BuildGround` and the checks that read them
+      - [ ] B1f0f the rules' own: the clock, the party's count, the acting member as facts;
+        BeginFlag, Training, CampOn split into the engine's screen state and what the rules know
+        of their own fight, hall and camp
+      - [ ] B1f0g `WordIs`, `SetWord` and `rules.WorldWord` are gone
     - [ ] B1f1 slice 1, the opening: the import's engine files and the full layout for the shared
       engine; a builder for `rulesxxvc` with its tables; the start-up actions; the words;
       a roster from the imported characters; the facts the state build asks; the op AreaKind and
