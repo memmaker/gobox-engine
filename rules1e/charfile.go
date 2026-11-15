@@ -551,3 +551,10 @@ func slots285(s SpellSlots) (r [6]Count) {
 	copy(r[3:6], s[SpellClassMage][:3])
 	return r
 }
+
+// layout's bytes), as copy does.
+func bytesOf[T ~uint8](dst []byte, src []T) {
+	for i := range min(len(dst), len(src)) {
+		dst[i] = byte(src[i])
+	}
+}

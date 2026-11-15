@@ -100,7 +100,7 @@ test_touched gobox-engine
 
 # Other games build against gobox-engine outside core, from what is staged in them (their HEAD when nothing is).
 if [ -n "${GATE_ALL:-}" ] || git -C "$projects/gobox-engine" diff --cached --name-only | grep -qv '^rules/\|\.md$\|^gate.sh$'; then
-  # The games and the rest are packages of the one gobox module (rules is the nested one, checked above).
+  # The games, rules and the rest are packages of the one gobox module.
   echo "== gobox-engine (all packages)"
   (cd "$out/gobox-engine" && go build ./... && go vet ./...)
   for repo in "${games[@]}"; do

@@ -35,6 +35,7 @@ var daspAffects = map[AffectType]string{
 	affInvisible:       "teleport",
 	affBlink:           "teleport",
 	affEnfeebled:       "drain_stat",
+	affWeakened:        "drain_stat",
 	affCauseDisease:    "drain_stat",
 	affCoughing:        "drugged",
 	affHelpless:        "paralyzed",
