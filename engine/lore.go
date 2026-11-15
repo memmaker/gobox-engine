@@ -31,7 +31,7 @@ func (e *Engine) journalTexts() map[string][]string {
 		return e.jtexts
 	}
 	out := map[string][]string{}
-	j := e.book("JOURNAL.TXT")
+	j := e.book(journalBook)
 	if j == nil {
 		return out // the game has no journal texts
 	}

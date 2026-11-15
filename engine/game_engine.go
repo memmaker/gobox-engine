@@ -50,6 +50,7 @@ func (e *Engine) gameBegan(fresh bool) {
 		e.AreaChange()
 		return
 	}
+	e.markScriptBlock()
 	if e.phase != rules.PhaseExploring {
 		if r.needFrame == 1 {
 			e.DrawMainScreen()
@@ -146,7 +147,7 @@ func (e *Engine) stepDone() {
 		e.ret()
 		return
 	}
-	e.RunECL(e.es.events[0])
+	e.runMoveEntry()
 }
 
 // stepPre: the pre-step script is done.
@@ -208,7 +209,7 @@ func (e *Engine) preStep(p *preStep) {
 		e.ret()
 		return
 	}
-	e.RunECL(e.es.events[0])
+	e.runMoveEntry()
 }
 
 // preEnd: the pre-step script is done (kept: the facing before it).
@@ -293,7 +294,7 @@ func (e *Engine) areaStart(sel rules.CharID) {
 	}
 	r.areaChanged = false
 	e.push(cont{kind: kAreaStep, sel: sel})
-	e.RunECL(e.es.events[0])
+	e.runMoveEntry()
 }
 
 // areaStep: the new area's step events are done.
@@ -353,6 +354,18 @@ func (e *Engine) commandBegin() {
 		e.loadAreaIcon(2, 0xB)
 		e.areaMapIcons() // 00BA:2B5E
 	}
+	if e.world.Scripted != 0 { // no input: the move entry runs again, which asks (BR1 pO0CA input's default, mode 10)
+		if e.ext.opened != e.run.scriptedOpened {
+			e.run.scriptedOpened, e.run.scriptedSpins = e.ext.opened, 0
+		}
+		if e.run.scriptedSpins++; e.run.scriptedSpins > scriptedSpinsMost {
+			panic(fmt.Sprintf("the scripts of block %d loop without asking", e.gs.areaKind))
+		}
+		e.commandEnd()
+		e.push(cont{kind: kStepEnd}, cont{kind: kAreaChanged})
+		e.runMoveEntry()
+		return
+	}
 	if e.viewMode >= 1 && e.viewMode <= 4 {
 		e.awaitCommand()
 		return
@@ -360,6 +373,9 @@ func (e *Engine) commandBegin() {
 	e.commandEnd()
 	e.afterCommand(false)
 }
+
+// scriptedSpinsMost is how often a scripted place's move entry may run without asking (buckrogers-go input: 1000).
+const scriptedSpinsMost = 1000
 
 // awaitCommand: the explore screen waits for the next command.
 func (e *Engine) awaitCommand() {

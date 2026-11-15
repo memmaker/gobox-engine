@@ -42,6 +42,7 @@ type World struct {
 	// question that needs them (AreaMarks, BuildGround, SkyDay, HallTerms, CampOpen ...).
 	NoMagic     uint16 // nonzero: no spellcasting here
 	In3D        uint16 // nonzero: a 3D area; zero: the overland map
+	Scripted    uint16 // nonzero: the place is run by its script: no walking, the move entry runs again until it asks (BR view kind 3)
 	MapX, MapY  uint16 // the party's square on the overland map
 	Boss        uint16 // > 0xFD: map marks 8 and 9; 0xFE: the river ending; 0xFF: the combat terrain kind
 	MarkFlags4  uint16 // bit 3: area map mark 4 shown

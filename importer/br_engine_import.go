@@ -68,6 +68,9 @@ func ImportBREngine(id string, e BREXE, dos, dst string) error {
 	if _, err := ecl.Import(ecl.V4, orig.DAXSource(l), os.DirFS(scripts), scripts, ecl.FoldGates, nil); err != nil {
 		return err
 	}
+	if err := ImportJournal(id, filepath.Join(dst, adventure.JournalDir)); err != nil {
+		return err
+	}
 	data := filepath.Join(dst, adventure.DataDir)
 	if err := adventure.WriteGameData(data, game.Data{Series: brSeries, ID: id}); err != nil {
 		return err
@@ -76,7 +79,8 @@ func ImportBREngine(id string, e BREXE, dos, dst string) error {
 		Dialect:      rules.DialectBR,
 		FirstBlock:   brFirstBlock,
 		GameSet:      brGameSet,
-		PictureSets:  br1PictureSets, // ponytail: BR1's; BR2 has no full layout yet and returns above
+		Logbook:      &adventure.Logbook{Box: "Log Book", Title: "Log Entry "}, // the journal's titles (importer/br1/journal, from the printed Log Book)
+		PictureSets:  br1PictureSets,                                           // ponytail: BR1's; BR2 has no full layout yet and returns above
 		BigPictures:  adventure.BigPictures{First: brFirstBigPicture},
 		OriginalSave: rules1e.SaveLayout{CodeBase: brCodeBase, CodeSize: brCodeSize}, // eclLayout reads only these two
 		Symbols: []adventure.SymbolLoad{

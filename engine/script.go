@@ -25,8 +25,7 @@ func (e *Engine) loadScript(area int) {
 		panic(err) // the import must run (ImportScripts): no area plays without its script
 	}
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "script:", err)
-		s = &ecl.Script{Area: area, Code: []ecl.Instr{{Op: 0}}, Labels: map[string]int{}, At: map[int]string{}}
+		panic(fmt.Sprintf("script: area %d: %v", area, err)) // a broken game folder, never an area that quietly does nothing
 	}
 	e.vm.Script = s
 	e.bindWords()

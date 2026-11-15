@@ -50,7 +50,6 @@ const (
 	OpSkillAll     byte = 0x93
 	OpHasItem      byte = 0x94
 	OpNPCJoin      byte = 0x95
-	OpMenuCall     byte = 0x96
 	OpPickMember   byte = 0x97
 	OpLogbook      byte = 0x98
 	OpOp64         byte = 0x99
@@ -85,7 +84,7 @@ var opNames = map[byte]string{
 	OpMenuKeys: "MenuKeys", OpFindNPC: "FindNPC", OpItemSet: "ItemSet", OpSpriteOff: "SpriteOff", OpDump: "Dump",
 	OpFindAffect: "FindAffect", OpDestroy: "DestroyItems", OpGainExp: "GainExperience", OpTreasureOf: "TreasureOf", OpShade: "Shade",
 	OpPartyStat: "PartyStat", OpSpaceFight: "SpaceFight", OpSkill: "Skill", OpSkillAll: "SkillAll", OpHasItem: "HasItem",
-	OpNPCJoin: "NPCJoin", OpMenuCall: "MenuCall", OpPickMember: "PickMember", OpLogbook: "Logbook", OpOp64: "Op64",
+	OpNPCJoin: "NPCJoin", OpPickMember: "PickMember", OpLogbook: "Logbook", OpOp64: "Op64",
 	OpWallDist: "WallDistance", OpFor: "For", OpNext: "Next", OpOp72: "Op72", OpDuel: "Duel", OpShop: "Shop", OpAreaKind: "AreaKind",
 	OpDamage6: "Damage6", OpNothing: "Nothing", OpLoadArea: "LoadArea", OpQuest: "Quest", OpCastKnock: "CastKnock", OpTavernGamble: "TavernGame",
 }

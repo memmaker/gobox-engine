@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"gobox/adventure"
@@ -58,7 +59,7 @@ func (e *Engine) journalReadTexts(name string, titles []string, voiced bool) []g
 
 // journalPicture is a picture of the game's journal (Data.Scans); nil if missing.
 func (e *Engine) journalPicture(name string) image.Image {
-	if b := e.book("JOURNAL.TXT"); b != nil {
+	if b := e.book(journalBook); b != nil {
 		return b.Picture(name)
 	}
 	return nil
@@ -88,6 +89,28 @@ func (e *Engine) opJournal() {
 	e.showEntry(ecl.EntryID(e.vm.Arg(1, e.host)))
 }
 
+// opLogbook = BR1 command 63 (text, n; pO035_2DCC 24B7): the original names entry n of the printed Log
+// Book and waits for a key. Extra: the entry itself in the pager, noted in the journal, when the
+// adventure's journal has it.
+func (e *Engine) opLogbook() {
+	e.vm.ReadArgs(2)
+	lb := e.game().Logbook
+	if lb == nil {
+		panic("script: Logbook in a game without one (GameTables.Logbook)") // a broken game folder
+	}
+	n := strconv.Itoa(int(uint16(e.vm.Arg(2, e.host))))
+	if title := lb.Title + n; e.journalTexts()[title] != nil {
+		e.noteJournal(title)
+		e.showJournal(lb.Box, e.journalReadTexts(journalBook, []string{title}, false))
+		return
+	}
+	e.scriptText(false, " and you record "+e.vm.Text[1]+" as logbook entry "+n+".")
+	e.askContinue(askDone{})
+}
+
+// journalBook is the journal's texts in the adventure's journal folder.
+const journalBook = "JOURNAL.TXT"
+
 // showEntry shows entry id in the pager, after the entries already up in the
 // same box (one script's Journal commands are read together), and notes a
 // journal text (noteJournal). The text window stays as the script left it.
@@ -108,7 +131,7 @@ func (e *Engine) showEntry(id ecl.EntryID) {
 			}
 		}
 	}
-	if en.Book == "JOURNAL.TXT" {
+	if en.Book == journalBook {
 		e.noteJournal(en.Title)
 	}
 	if r := e.ext.read; r != nil && r.Title == en.Box {

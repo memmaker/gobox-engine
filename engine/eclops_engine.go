@@ -230,6 +230,7 @@ const (
 	viewKind3D       = 0 // the 3D view
 	viewKindKeep     = 1 // the view stays as it is: only the picture changes
 	viewKindRocket   = 2
+	viewKindScripted = 3 // a place run by its script (a base's menus): no walking
 	viewKindOverland = 4 // the overland map
 )
 
@@ -238,11 +239,13 @@ func (e *Engine) opAreaKind() {
 	e.vm.ReadArgs(2)
 	switch k := int(byte(e.vm.Arg(1, e.host))); k {
 	case viewKind3D:
-		e.world.In3D = 1
+		e.world.In3D, e.world.Scripted = 1, 0
 	case viewKindOverland:
-		e.world.In3D = 0
+		e.world.In3D, e.world.Scripted = 0, 0
+	case viewKindScripted:
+		e.world.Scripted = 1
 	case viewKindKeep:
-	default: // the rocket's view (2) and kind 3: REFACTOR.md B1e
+	default: // the rocket's view (2): REFACTOR.md B1e
 		panic(fmt.Sprintf("ecl: view kind %d not ported", k))
 	}
 	e.showPicture(int(byte(e.vm.Arg(2, e.host))))
@@ -779,25 +782,27 @@ var eclOps map[byte]eclOp
 
 // eclRun holds the ovr04 globals that are not part of the ovr08 interpreter.
 type eclRun struct {
-	restoreSel     bool         // DS:4430: put DS:4436 back as the selected character
-	savedSel       rules.CharID // DS:4436
-	scriptLoad     byte         // DS:4431
-	needFrame      byte         // DS:4432: main screen not drawn yet
-	walldefSet     byte         // DS:4433
-	geoSet         byte         // DS:4434
-	monCount       byte         // DS:4435: monsters appended to the party list
-	areaChanged    bool         // DS:442F
-	quit           bool         // DS:49FF
-	searchSave     byte         // DS:84DD
-	textInBox      byte         // DS:84DE
-	textCleared    byte         // DS:84E4
-	monstersLoaded byte         // monsters were loaded; DS:84E7
-	duelMode       byte         // DS:84D4
-	sprite         int          // DS:6F81
-	closeup        int          // DS:6F82
-	doorTry        [3]byte      // DS:6DDE..6DE0: bash, pick, knock still allowed
-	lineHasText    byte         // DS:84DF
-	monsterSides   byte         // SetupMonster's sides (pod; bits 0..3): where the monsters come from in combat
+	restoreSel bool         // DS:4430: put DS:4436 back as the selected character
+	savedSel   rules.CharID // DS:4436
+	// a scripted place (World.Scripted): the questions opened when its move entry last ran, and the runs since without one
+	scriptedOpened, scriptedSpins int
+	scriptLoad                    byte    // DS:4431
+	needFrame                     byte    // DS:4432: main screen not drawn yet
+	walldefSet                    byte    // DS:4433
+	geoSet                        byte    // DS:4434
+	monCount                      byte    // DS:4435: monsters appended to the party list
+	areaChanged                   bool    // DS:442F
+	quit                          bool    // DS:49FF
+	searchSave                    byte    // DS:84DD
+	textInBox                     byte    // DS:84DE
+	textCleared                   byte    // DS:84E4
+	monstersLoaded                byte    // monsters were loaded; DS:84E7
+	duelMode                      byte    // DS:84D4
+	sprite                        int     // DS:6F81
+	closeup                       int     // DS:6F82
+	doorTry                       [3]byte // DS:6DDE..6DE0: bash, pick, knock still allowed
+	lineHasText                   byte    // DS:84DF
+	monsterSides                  byte    // SetupMonster's sides (pod; bits 0..3): where the monsters come from in combat
 }
 
 func init() {
@@ -826,7 +831,7 @@ func init() {
 		ecl.OpSpriteOff: (*Engine).opRedrawView, ecl.OpNoOp: (*Engine).opNoOp, ecl.OpPressKey: (*Engine).opPressKey,
 		ecl.OpYesNo: (*Engine).opYesNo, ecl.OpClearExit: (*Engine).opClearExit, ecl.OpGainExp: (*Engine).opGainExperience,
 		ecl.OpSpell: (*Engine).opSpell, ecl.OpDestroy: (*Engine).opDestroyItems, ecl.OpDump: (*Engine).opDump,
-		ecl.OpFindNPC: (*Engine).opFindNPC, ecl.OpAreaKind: (*Engine).opAreaKind, ecl.OpSound: (*Engine).opSound, ecl.OpMenuKeys: (*Engine).opMenuKeys,
+		ecl.OpFindNPC: (*Engine).opFindNPC, ecl.OpAreaKind: (*Engine).opAreaKind, ecl.OpLogbook: (*Engine).opLogbook, ecl.OpSound: (*Engine).opSound, ecl.OpMenuKeys: (*Engine).opMenuKeys,
 	}
 }
 

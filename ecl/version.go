@@ -86,6 +86,7 @@ const (
 	ProgramCamp                // camp (pod: with its camp events)
 	ProgramQuit                // leave the game
 	ProgramSaveQuit            // save, then the ending
+	ProgramUnported            // a sub-command the original has and the engine lacks: it stops the game, never silently nothing
 )
 
 // CallFn is an engine routine a script CALLs, by name.
@@ -257,7 +258,7 @@ var V4 = func() *Version {
 	}{
 		{12, 0x0C, 4, 0}, {29, OpShade, 2, 0}, {30, OpPartyStat, 6, 0}, {31, OpSpaceFight, 4, 0}, {34, OpSkill, 3, 0}, {35, OpSkillAll, 3, 0},
 		{39, OpTreasureOf, 2, 2}, {41, OpPressKey, 0, 0}, {44, OpYesNo, 0, 0}, {45, OpCall, 1, 0}, {46, 0x2E, 5, 0}, {49, OpMenuKeys, 2, 2},
-		{50, OpHasItem, 1, 0}, {52, 0x34, 2, 0}, {54, OpNPCJoin, 2, 0}, {55, OpLoadWalls, 3, 0}, {56, OpMenuCall, 1, 0}, {57, OpPickMember, 1, 0},
+		{50, OpHasItem, 1, 0}, {52, 0x34, 2, 0}, {54, OpNPCJoin, 2, 0}, {55, OpLoadWalls, 3, 0}, {56, OpProgram, 1, 0}, {57, OpPickMember, 1, 0},
 		{58, 0x3A, 0, 0}, {59, OpNothing, 0, 0}, {60, OpNothing, 0, 0}, {61, 0x31, 0, 0}, {62, OpDump, 0, 0}, {63, OpLogbook, 2, 0}, {64, OpOp64, 2, 0},
 		{65, OpGainExp, 2, 0}, {66, OpClearExit, 0, 0}, {67, OpSound, 1, 0}, {68, OpNothing, 0, 0}, {69, OpWallDist, 2, 0}, {70, OpFor, 2, 0}, {71, OpNext, 0, 0},
 		{72, OpOp72, 1, 0}, {73, OpDamage6, 6, 0}, {74, OpDuel, 0, 0}, {75, OpShop, 1, 0}, {76, OpAreaKind, 2, 0},
@@ -281,7 +282,11 @@ var V4 = func() *Version {
 	// is the sound and 26627 the picture's animation, which V2 maps to
 	// CallDuelSound and CallPause: BR's own meaning, so named separately.
 	calls := map[uint16]CallFn{11723: CallRedrawView, 49182: CallStepForward, 49176: CallWallAhead, 45571: CallSound, 26627: CallPictureAnimation}
-	return &Version{ID: 4, Base: 32768, Cmds: t, Skip: skip, Calls: calls, Behaviour: Behaviour{ReturnEndsScript: true, StoreByOperand: true, ClearExitText: true}}
+	return &Version{ID: 4, Base: 32768, Cmds: t, Skip: skip, Calls: calls,
+		// BR1 pO035_2DCC case 56 (buckrogers-go opMenuCall): 0 the team menu, 9 the rest menu (holds the script, which
+		// goes on after it: not the Pool games' camp, which ends it)
+		Programs:  map[byte]ProgramFn{0: ProgramPartyMenu, 9: ProgramUnported},
+		Behaviour: Behaviour{ReturnEndsScript: true, StoreByOperand: true, ClearExitText: true}}
 }()
 
 // Versions are the dialects by ID.

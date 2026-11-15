@@ -30,9 +30,14 @@ type GameTables struct {
 	Walls                      *WallTextures        // the 3D view's remastered wall textures; nil: none
 	GameSet                    rules.Set            // the set the party menu's game starts in (DS:5376: POR 3; cotab, sotsb, pod 2)
 	FirstBlock                 int                  // the ECL block a new game starts on, with no last block saved (POR 0, cotab 1, sotsb 17, pod 16)
+	Logbook                    *Logbook             // the Logbook command's book (BR); nil: the game has none
 	PictureSets                map[int]rules.Set    // a PIC block kept in another set's file than the one in play (BR1 pO124_02D0: 62 in PIC9); nil: none
 	BigPictures                BigPictures          // the Picture command's whole-screen BIGPIC pictures; zero: none (POR)
 }
+
+// Logbook is the printed book the Logbook command names entries of by number: entry n is the journal
+// text titled Title followed by n, read under the box title Box.
+type Logbook struct{ Box, Title string }
 
 // BigPictures are the Picture command's numbers that show BIGPIC<set> block n
 // instead of PIC<set>'s view-window picture.

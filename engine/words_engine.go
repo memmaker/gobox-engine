@@ -16,6 +16,7 @@ const (
 	fieldLoopCounter = "LoopCounter"     // FOR/NEXT's counter (Buck Rogers); the Pool games have none
 	fieldLoopLimit   = "LoopLimit"       // FOR/NEXT's limit (Buck Rogers); the Pool games have none
 	fieldPriceScale  = "PriceScale"      // the shops' price factor (cotab, sotsb, pod); POR has none
+	fieldScriptBlock = "ScriptBlock"     // the block whose move entry last ran (Buck Rogers: its start script still reads the block left, a loaded game its own); the Pool games have none
 	fieldTravelKind  = "TravelKind"      // the area's kind of travel, 0 while FacingOrRaw reads the eight-way facing (Buck Rogers); the Pool games have none
 	fieldVault       = "VaultRequest"    // 1: Combat with no monsters opens the vault (pod); the others have none
 )
@@ -48,10 +49,25 @@ func (e *Engine) setLastBlock(block int) {
 	e.world.AreaKind = uint16(block)
 }
 
+// markScriptBlock sets the layout's ScriptBlock to the block in play: once its start script has run (a
+// begun game's, BR1 pO0CA 3209) and before every run of its move entry.
+func (e *Engine) markScriptBlock() {
+	if r, ok := e.layoutField(fieldScriptBlock); ok {
+		e.host.Set(r, int64(e.gs.areaKind))
+	}
+}
+
+// runMoveEntry runs the block's move entry (events[0]: before a step, after a block's start, a scripted
+// place's every pass; BR1 pO0CA: Area[242] = the block at 3209's loop, 0FE4's step and input's default).
+func (e *Engine) runMoveEntry() {
+	e.markScriptBlock()
+	e.RunECL(e.es.events[0])
+}
+
 // BoundFields are the canonical script field names the engine gives a meaning: a game's
 // layout names a field so when, and only when, it has that field (each game's layout test).
 func BoundFields() []string {
-	names := []string{fieldLastBlock, fieldRemainder, fieldLoopCounter, fieldLoopLimit, fieldPriceScale, fieldTravelKind, fieldVault, fieldHours, tourDone}
+	names := []string{fieldLastBlock, fieldRemainder, fieldLoopCounter, fieldLoopLimit, fieldPriceScale, fieldScriptBlock, fieldTravelKind, fieldVault, fieldHours, tourDone}
 	for n := range (&Engine{}).newEngineFields() {
 		names = append(names, n)
 	}

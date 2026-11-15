@@ -606,6 +606,8 @@ func (e *Engine) opProgram() {
 	case ecl.ProgramSaveQuit: // pod 1 (O043:0000): the save screen (the player picks the slot), then the ending
 		e.event(game.SaveOffered{})
 		e.ending(true)
+	case ecl.ProgramUnported:
+		panic(fmt.Sprintf("ecl: program %d on line %d not ported", v, e.vm.Script.Code[e.vm.PC].Line))
 	}
 }
 

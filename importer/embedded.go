@@ -12,7 +12,7 @@ import (
 // of gobox ecl Library.Data) and its Adventurer's Journal books with
 // the pictures they show (gobox's journal format).
 //
-//go:embed br1/scripts cotab/scripts pod/scripts sotsb/scripts cotab/journal pod/journal por/journal sotsb/journal
+//go:embed br1/scripts br1/journal cotab/scripts pod/scripts sotsb/scripts cotab/journal pod/journal por/journal sotsb/journal
 var gameFiles embed.FS
 
 // embeddedScripts is game's scripts' data.
