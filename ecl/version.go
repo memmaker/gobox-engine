@@ -70,7 +70,10 @@ type Behaviour struct {
 	// StoreByOperand: a variable operand's type says how many bytes a read or write takes (BR ecl.go
 	// Width, GetN, PutN; buckrogers-go rules/ecl.go val, getVar, setVar); otherwise a cell is a word
 	// whatever the operand (Pool's WriteGbvm)
-	StoreByOperand  bool
+	StoreByOperand bool
+	// WhoEndsNoMember: a picked member ends the "no member" state a SelectMember that matched nobody left (BR
+	// pO0D2_2F14 case 57, buckrogers-go opPickMember: noChar = false); the Pool's Who leaves it (cotab eclvm.pas EclWho does not touch characterNotFound)
+	WhoEndsNoMember bool
 	ClearExitText   bool // ClearExit empties the text pane too (BR pO035_2DCC case 66, 2837); otherwise only the view comes back (pod O040:24AE)
 	PictureAnimates bool // Picture marks the view drawn, so a wait under it cycles the picture's frames (cotab's and sotsb's b8B7D, pod's alike); otherwise only a step or Picture(255) does (POR's picDrawn, eclvm.pas:371, 1874)
 }
@@ -258,7 +261,7 @@ var V4 = func() *Version {
 	}{
 		{12, 0x0C, 4, 0}, {29, OpShade, 2, 0}, {30, OpPartyStat, 6, 0}, {31, OpSpaceFight, 4, 0}, {34, OpSkill, 3, 0}, {35, OpSkillAll, 3, 0},
 		{39, OpTreasureOf, 2, 2}, {41, OpPressKey, 0, 0}, {44, OpYesNo, 0, 0}, {45, OpCall, 1, 0}, {46, 0x2E, 5, 0}, {49, OpMenuKeys, 2, 2},
-		{50, OpHasItem, 1, 0}, {52, 0x34, 2, 0}, {54, OpNPCJoin, 2, 0}, {55, OpLoadWalls, 3, 0}, {56, OpProgram, 1, 0}, {57, OpPickMember, 1, 0},
+		{50, OpHasItem, 1, 0}, {52, 0x34, 2, 0}, {54, OpNPCJoin, 2, 0}, {55, OpLoadWalls, 3, 0}, {56, OpProgram, 1, 0}, {57, OpWho, 1, 0},
 		{58, 0x3A, 0, 0}, {59, OpNothing, 0, 0}, {60, OpNothing, 0, 0}, {61, 0x31, 0, 0}, {62, OpDump, 0, 0}, {63, OpLogbook, 2, 0}, {64, OpOp64, 2, 0},
 		{65, OpGainExp, 2, 0}, {66, OpClearExit, 0, 0}, {67, OpSound, 1, 0}, {68, OpNothing, 0, 0}, {69, OpWallDist, 2, 0}, {70, OpFor, 2, 0}, {71, OpNext, 0, 0},
 		{72, OpOp72, 1, 0}, {73, OpDamage6, 6, 0}, {74, OpDuel, 0, 0}, {75, OpShop, 1, 0}, {76, OpAreaKind, 2, 0},
@@ -286,7 +289,7 @@ var V4 = func() *Version {
 		// BR1 pO035_2DCC case 56 (buckrogers-go opMenuCall): 0 the team menu, 9 the rest menu (holds the script, which
 		// goes on after it: not the Pool games' camp, which ends it)
 		Programs:  map[byte]ProgramFn{0: ProgramPartyMenu, 9: ProgramUnported},
-		Behaviour: Behaviour{ReturnEndsScript: true, StoreByOperand: true, ClearExitText: true}}
+		Behaviour: Behaviour{ReturnEndsScript: true, StoreByOperand: true, ClearExitText: true, WhoEndsNoMember: true}}
 }()
 
 // Versions are the dialects by ID.

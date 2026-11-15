@@ -7,6 +7,9 @@ import (
 	"strings"
 	"testing"
 
+	"gobox/adventure"
+	"gobox/game"
+	"gobox/importer"
 	"gobox/rules"
 )
 
@@ -75,5 +78,44 @@ func TestBR1Credits(t *testing.T) {
 	}
 	if got := purse(); got != 120000-1234 {
 		t.Errorf("purse %d", got)
+	}
+}
+
+// TestBR1PickMember: V4's command 57 is the Pool's Who (BR pO0D2_2F14 case 57: noChar = false, the text
+// cleared, the player picks the current member, no Exit). After a SelectMember that matched nobody the pick asks
+// with its prompt, offers no Esc, and the member answered is selected and read by the member fields again.
+func TestBR1PickMember(t *testing.T) {
+	e := br1Begun(t)
+	files, err := filepath.Glob(filepath.Join(e.adv, adventure.DataDir, importer.CharactersDir, "*.json"))
+	if err != nil || len(files) < 2 {
+		t.Fatal("no second imported character", err)
+	}
+	b, err := os.ReadFile(files[1])
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := e.ruleset().Import(b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	e.join(second)
+	first := e.partyIDs()[0]
+	const prompt = "WHICH TEAM MEMBER?"
+	br1OwnBlock(t, e, 203, "    SelectMember(9)\n    Who(\""+prompt+"\")\n    NewGameBytes = SelStatusKind")
+	c := commonOf(e.build())
+	if c.Ask == nil || e.eclWait == nil || e.eclWait.ask.Text != prompt || !c.Ask.List || len(c.Ask.Replies) != 2 || c.Ask.Esc != 0 {
+		t.Fatalf("ask %+v wait %+v", c.Ask, e.eclWait)
+	}
+	if !e.es.memberMissing {
+		t.Fatal("the pick ended the no-member state before it was answered")
+	}
+	if _, err := e.doNow(game.Reply{N: 0}); err != nil {
+		t.Fatal(err)
+	}
+	if e.selected() != first || e.es.memberMissing {
+		t.Fatalf("selected %d (want %d), missing %v", e.selected(), first, e.es.memberMissing)
+	}
+	if got := br1Cell(t, e, "NewGameBytes"); got != 1 { // the member's status (okay), not 0 of no member
+		t.Fatalf("status read %d", got)
 	}
 }

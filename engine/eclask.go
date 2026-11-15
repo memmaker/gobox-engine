@@ -416,6 +416,9 @@ func (e *Engine) complete(d askDone, v ansv) {
 			who = d.who
 		}
 		e.selectChar(who)
+		if e.eclVersion.Behaviour.WhoEndsNoMember {
+			e.es.memberMissing = false
+		}
 	case dYesNo:
 		e.vm.Flags = [6]bool{v.n == 1, v.n != 1}
 	case dPauseKey: // was PromptRow24's any key
