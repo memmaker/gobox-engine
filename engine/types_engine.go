@@ -73,6 +73,7 @@ type SheetPage struct {
 	Weapon, Armour     string   // extra: the readied weapon and armour ("": none shown; POR shows them on its inventory)
 	Encumbrance, Coins string   // extra: the load carried and the coins held, as the game writes them ("": not shown)
 	Effects            string   // the spell effects, as many as fit the row
+	DualClass          string   // a dual-classed member's class left and how it stands ("": none)
 	PortraitAt         CellRect // the portrait's box (zero: no portrait)
 	Portrait           []byte   // a dropped PNG's bytes in the box, in place of the DAX portrait (nil: none)
 	IconPNG            []byte   // the creation's combat icon from a PNG, its bytes, in IconBox (nil: the DAX icon among the pictures)

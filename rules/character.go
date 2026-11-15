@@ -28,6 +28,7 @@ type Sheet struct {
 	Burden    Burden               // zero under Options.PartyInventory
 	Slots     map[string]SlotCount // by level group, as the ruleset words it ("cleric 1")
 	Effects   []string             // the spell effects on it, as the ruleset words them
+	DualClass string               // a dual-classed character's class left and how it stands, as the ruleset words it ("": none)
 	Health    Health               // how fit it is, behind its status word
 	Figures   []Figure             // what a ruleset adds to the sheet (CombatRules.Sheet)
 	CanCast   bool

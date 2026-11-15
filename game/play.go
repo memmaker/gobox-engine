@@ -547,7 +547,7 @@ type (
 	Reroll           struct{ Minimal bool } // Minimal: the lowest roll the class allows
 	KeepCharacter    struct{}
 	DiscardCharacter struct{}
-	ChangeClass      struct{ Member, Class int }
+	ChangeClass      struct{ Member int } // the game asks which class, then whether (what it costs)
 	SetDifficulty    struct{ N int }
 	Begin            struct{}
 	QuickStart       struct{}
@@ -872,10 +872,6 @@ func ByPositionState(s State) State {
 	}
 	return s
 }
-
-// ClassAsked is a ChangeClass's Class before the player picks one: the
-// game asks which.
-const ClassAsked = -1
 
 // ChangeClassFunction is the training hall's Change Class (dual-classing),
 // its one label and key in every game.

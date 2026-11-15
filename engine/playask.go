@@ -24,7 +24,7 @@ const (
 	callPower                      // UsePower
 	callLoot                       // LootLeave
 	callDrop                       // dropping a member, target the questions still to ask
-	callClass                      // newClass, target the class
+	callClass                      // newClass
 	callCastChoice                 // the reply to a spell's own question (SpellAim.Choose): the waiting cast goes off
 )
 
@@ -74,7 +74,7 @@ func (e *Engine) makeCall(p pendingCall) error {
 	case callLoot:
 		return e.LootLeave(p.sure)
 	case callClass:
-		return e.newClass(p.member, p.class)
+		return e.newClass(p.member, p.class, p.sure)
 	case callCastChoice:
 		e.castChosen(p.choice)
 	case callDrop:

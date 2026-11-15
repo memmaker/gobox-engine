@@ -248,7 +248,7 @@ func (r *frontState) askOf(ps game.State) *FrontAsk {
 	services, _ := templeOf(ps)
 	menu, _ := PartyMenu(mode, trainingOf(ps), pending, false)
 	if menu == nil && mode != game.ModeCamp && services == nil && shopOf(ps) == nil && r.inventoryKind(ps) == invNone && lootOf(ps) == nil && trainingOf(ps) == nil &&
-		pending != nil && mode >= game.ModeCamp && mode <= game.ModeLoot {
+		pending != nil && (mode == game.ModeParty || mode >= game.ModeCamp && mode <= game.ModeLoot) { // ModeParty: a question over the party menu (the hall's Pick New Class:)
 		if q, ok := Ask(game.ModeAsk, pending); ok {
 			return q
 		}

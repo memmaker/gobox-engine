@@ -10,7 +10,13 @@ import (
 
 // frameFront is por as main starts it, headless, past the title: -explore
 // (a Quick Start party in the 3D view) or a dev scene (autocombat: a fight).
-func frameFront(b *testing.B, dev string) *ui.Front {
+func frameFront(b testing.TB, dev string) *ui.Front {
+	f, _ := frontAndEngine(b, dev)
+	return f
+}
+
+// frontAndEngine is frameFront with its engine, for a test that reads the State.
+func frontAndEngine(b testing.TB, dev string) (*ui.Front, *engine.Engine) {
 	eng, err := engine.NewPool("../../data/por", "../../data/por/sources")
 	if err != nil {
 		b.Skip(err)
@@ -30,7 +36,7 @@ func frameFront(b *testing.B, dev string) *ui.Front {
 	f.Game.SequenceDone("intro")
 	f.Game.TitleDone()
 	f.Game.Settle()
-	return f
+	return f, eng
 }
 
 // A frame of walking the 3D view: a step or a turn every 60 frames. A

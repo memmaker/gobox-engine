@@ -250,6 +250,7 @@ type SheetPage struct {
 	Status                      string
 	Weapon, Armour              string
 	Encumbrance, Coins, Effects string
+	DualClass                   string // a dual-classed member's class left and how it stands ("": none)
 	HasPortrait                 bool   // the member has a portrait (a head and body, or a dropped PNG): the sheet shows its box
 	Portrait                    []byte // a dropped PNG in the box, its bytes (gobox decodes it)
 	IconPNG                     []byte // the creation's combat icon from a PNG, its bytes (gobox cuts the ready and action poses)

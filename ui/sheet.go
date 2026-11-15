@@ -247,13 +247,18 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note) {
 			r++
 		}
 	}
-	if sp.Effects != "" && fits(r+2) {
-		text("Effects", rx, row(r+1), white)
-		for j, l := range WrapWords(sp.Effects, cw-leftCells-2) {
-			if fits(r + 2 + j) {
-				text(l, rx, row(r+2+j), green)
+	for _, f := range [][2]string{{"Dual Class", sp.DualClass}, {"Effects", sp.Effects}} { // a label over its wrapped text, a blank line before
+		if f[1] == "" || !fits(r+2) {
+			continue
+		}
+		text(f[0], rx, row(r+1), white)
+		r++
+		for _, l := range WrapWords(f[1], cw-leftCells-2) {
+			if r++; fits(r) {
+				text(l, rx, row(r), green)
 			}
 		}
+		r++
 	}
 
 	// AC, THAC0 and Damage on the pane's bottom: three columns, each label

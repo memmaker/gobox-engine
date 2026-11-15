@@ -13,6 +13,7 @@ type Offer struct {
 	Coin   Coin
 	Not    string
 	Name   string // its label, in the rules' words ("Cure Light Wounds")
+	Note   string // what taking it costs, in the rules' words (a class change's consequences)
 }
 
 // Aimed is an action that takes squares (play.Aimed).

@@ -137,6 +137,30 @@ func mayTakeClass(c *Character, cur, class int) bool {
 	return slices.Contains(CareerAlignments(Career(class)), AlignmentNumber(c.Alignment))
 }
 
+// classChangeNote is what ChangeClass to class costs c, said before it is taken.
+func classChangeNote(c *Character, class int) string {
+	old, lv := ClassNames[c.Class], int(c.Levels[c.Class])
+	return c.Name() + " becomes a 1st level " + ClassNames[class] + " with 0 experience. " +
+		old + " level " + strconv.Itoa(lv) + " is lost until " + ClassNames[class] + " level " + strconv.Itoa(lv+1) + " and never rises again. " +
+		"Memorized spells are lost. This is final."
+}
+
+// DualClassLine is the sheet's line on the class c left ("": none): its
+// levels, and whether they are dormant or back.
+func DualClassLine(c *Character) string {
+	for i, old := range c.OldLevels {
+		if !Dormant(c, i) {
+			continue
+		}
+		s := ClassNames[i] + " " + strconv.Itoa(int(old))
+		if c.Levels[i] == 0 {
+			return s + ", dormant until " + ClassNames[c.Class] + " " + strconv.Itoa(int(old)+1)
+		}
+		return s + ", in use again, never advances"
+	}
+	return ""
+}
+
 // classOffers: in a hall that allows it, a ChangeClass for every party
 // member and class it may change to, named by the class.
 func (r *Rules) classOffers(t rules.Training) rules.Allowed {
@@ -150,7 +174,7 @@ func (r *Rules) classOffers(t rules.Training) rules.Allowed {
 			continue
 		}
 		for _, cl := range NewClasses(c) {
-			out.Offers = append(out.Offers, rules.Offer{Action: rules.ChangeClass{Who: id, To: PorClass[cl]}, Name: ClassNames[cl]})
+			out.Offers = append(out.Offers, rules.Offer{Action: rules.ChangeClass{Who: id, To: PorClass[cl]}, Name: ClassNames[cl], Note: classChangeNote(c, cl)})
 		}
 	}
 	return out

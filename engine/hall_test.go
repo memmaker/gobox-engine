@@ -218,7 +218,7 @@ func TestHallChangeClass(t *testing.T) {
 	if offered() {
 		t.Error("Change Class on the title's party menu")
 	}
-	if _, err := e.doNow(game.ChangeClass{Member: 0, Class: game.ClassAsked}); err == nil {
+	if _, err := e.doNow(game.ChangeClass{Member: 0}); err == nil {
 		t.Error("Change Class done on the title's party menu")
 	}
 	e.push(cont{kind: kDrawMain})
@@ -233,10 +233,34 @@ func TestHallChangeClass(t *testing.T) {
 	}
 	e.selectMember(0)
 	offered()
-	if _, err := e.doNow(game.ChangeClass{Member: 0, Class: game.ClassAsked}); err != nil {
+	if _, err := e.doNow(game.ChangeClass{Member: 0}); err != nil {
 		t.Fatalf("Change Class: %v", err)
 	}
 	if pq := e.ext.pq; pq == nil || len(pq.calls) == 0 || pq.calls[0].kind != callClass {
-		t.Errorf("Change Class asks %+v, want the class", pq)
+		t.Fatalf("Change Class asks %+v, want the class", pq)
+	}
+	// the class picked: what it costs is asked, No (where it starts) changes nothing, Yes changes the class
+	for _, yes := range []int{0, 1} {
+		if _, err := e.doNow(game.Reply{N: 0}); err != nil {
+			t.Fatal(err)
+		}
+		pq := e.ext.pq
+		if pq == nil || !pq.q.YesNo || pq.q.Default != 0 || !strings.Contains(pq.q.Text, "This is final.") {
+			t.Fatalf("the class picked asks %+v, want the yes/no with what it costs, on No", pq)
+		}
+		if _, err := e.doNow(game.Reply{N: yes}); err != nil {
+			t.Fatal(err)
+		}
+		if changed := rules1e.DualClassed(dual); changed != (yes == 1) || e.ext.pq != nil {
+			t.Fatalf("reply %d: changed %v, question %+v", yes, changed, e.ext.pq)
+		}
+		if yes == 0 {
+			if _, err := e.doNow(game.ChangeClass{Member: 0}); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	if got := e.ruleset().Sheet(e.charID(dual)).DualClass; !strings.Contains(got, "dormant until") {
+		t.Errorf("the sheet's dual class line %q", got)
 	}
 }

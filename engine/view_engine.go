@@ -54,6 +54,7 @@ func (e *Engine) sheetPage(id rules.CharID) *SheetPage {
 		}
 		sp.Status = e.statusName(id)
 		sp.Effects, _ = e.effectsLine(id)
+		sp.DualClass = sh.DualClass
 	}
 	return sp
 }

@@ -390,7 +390,7 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 			case partyQuit:
 				add(game.Quit{})
 			case partyNewClass: // the selected member's, offered only when it qualifies (partyFunctions)
-				add(game.ChangeClass{Member: e.sel, Class: game.ClassAsked})
+				add(game.ChangeClass{Member: e.sel})
 			}
 			for n := range cm.Party {
 				switch k {
@@ -715,9 +715,6 @@ func allows(al game.Allowed, a game.Action) bool {
 		base = game.IconPNG{}
 	case game.AdvanceTimeBy: // any length: gobox paces camp's rest in chunks
 		base = game.AdvanceTimeBy{D: time.Hour}
-	case game.ChangeClass: // any class: the hall asks which (askClass)
-		v.Class = game.ClassAsked
-		base = v
 	case game.UseItem:
 		v.Ats, v.Target, v.Spell = nil, 0, 0
 		base = v
@@ -1204,7 +1201,7 @@ func (e *Engine) partyDo(a game.Action, st game.State, native func(func() error)
 	case game.Modify:
 		return true, native(func() error { return e.modifyCharacter(a.Member) })
 	case game.ChangeClass:
-		return true, native(func() error { return e.runCall(pendingCall{kind: callClass, member: a.Member, target: a.Class}) })
+		return true, native(func() error { return e.runCall(pendingCall{kind: callClass, member: a.Member}) })
 	case game.Reroll:
 		return true, native(func() error { return e.roll(false, "") })
 	case game.PointBuy:
