@@ -522,7 +522,7 @@ func (e *RuleState) aiFleeCheck(c *Character) bool {
 	}
 	e.fleeRoll = e.FoesHealth
 	e.AffectGroup(c, 0x11)
-	t2 := uint16(100 - e.Game.Morale)
+	t2 := uint16(100 - e.Terms.Morale)
 	if !(uint16(e.fleeRoll) < t2 || e.fleeRoll == 0 || c.Side == SideParty) {
 		return r
 	}

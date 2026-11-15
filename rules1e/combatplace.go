@@ -39,7 +39,7 @@ func (r *Rules) combatBlocks() {
 		}
 		m := c.Control & 0x7F
 		if c.Side == SideParty && c.Combat.Delay == 1 && (m == 0 || m > 0x66) {
-			c.Control = byte(r.S.Game.Morale + 0x80)
+			c.Control = byte(r.S.Terms.Morale + 0x80)
 		}
 	}
 }
@@ -88,7 +88,7 @@ func (r *Rules) placeCombatants(m rules.MapSides) []rules.Effect {
 	p := &r.S.Place
 	p.Ox[0], p.Oy[0] = 0, 0
 	p.Dir[0] = Dir(byte(r.S.Facing / 2))
-	dist := int(r.S.Game.MonsterDist)
+	dist := int(r.S.Terms.MonsterDist)
 	p.Ox[1] = int8(dist*DirDX[r.S.Facing] + int(p.Ox[0]))
 	p.Oy[1] = int8(dist*DirDY[r.S.Facing] + int(p.Oy[0]))
 	p.Dir[1] = Dir(byte((r.S.Facing + 4) % 8 / 2))
@@ -125,7 +125,7 @@ func (r *Rules) placeCombatants(m rules.MapSides) []rules.Effect {
 		if r.placeOne(m, idx) {
 			if c.Okay == 0 {
 				r.S.Cpos[idx].Size = 0
-				if !r.duel && c.Combat.Extra == 0 {
+				if !r.S.Terms.Duel && c.Combat.Extra == 0 {
 					x, y := r.S.Cpos[idx].X, r.S.Cpos[idx].Y
 					r.S.Nbodies++
 					r.S.Bodies[r.S.Nbodies] = Body{C: c, X: x, Y: y, Ground: byte(r.S.Cmap.Ground[y][x])}

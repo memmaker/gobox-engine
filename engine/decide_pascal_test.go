@@ -75,7 +75,7 @@ func aiTurnVector(e *Engine, v aiVaried, seed, dist, hp, lvl, flank int) string 
 	e.state().Cpos[2] = rules1e.CombatPos{X: byte(10 + dist), Y: v.startY, Size: 1}
 	e.state().Occ[v.startY][10], e.state().Occ[v.startY][10+dist] = 1, 2
 	e.state().BeginFlag = 5
-	e.state().Game.Morale, e.facing = 50, 0 // TFix: threshold 50, StartCombat(NORTH)
+	e.state().Terms.Morale, e.facing = 50, 0 // TFix: threshold 50, StartCombat(NORTH)
 	e.state().RandSeed = uint32(int32(seed))
 	if v.breath != nil {
 		e.state().BreathWeapon(a, v.breath, 0)

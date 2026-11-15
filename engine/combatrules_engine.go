@@ -62,7 +62,7 @@ func (e *Engine) maneuver(cID rules.CharID, id int, walks map[int]rules.BoardPos
 // not a target (ErrNotNow).
 func (e *Engine) maneuverDo(cID rules.CharID, a rules.Maneuver) (done, ok bool) {
 	e.as(e.sel)
-	out, err := e.ruleset().Resolve(rules.Fight{Actor: cID}, a, nil)
+	out, err := e.ruleset().Resolve(e.fightBy(cID), a, nil)
 	if errors.Is(err, rules.ErrNotNow) {
 		return false, false
 	}

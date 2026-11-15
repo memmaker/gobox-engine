@@ -37,8 +37,8 @@ func straightFight(t *testing.T, straight bool, east byte, dist uint16) *rules1e
 		}
 		s.Party = append(s.Party, ch)
 	}
-	s.Game.PartyCount, s.Game.MonsterDist = 6, dist
-	e.ruleset().BeginFight(rules.Fight{Board: rules.Board{Straight: straight}, Terms: rules.FightTerms{PartyAt: image.Pt(8, 8), PartyFacing: 2}}, nil)
+	s.Game.PartyCount = 6
+	e.ruleset().BeginFight(rules.Fight{Board: rules.Board{Straight: straight}, Terms: rules.FightTerms{MonsterDist: int32(dist), PartyAt: image.Pt(8, 8), PartyFacing: 2}}, nil)
 	for _, a := range []rules.Action{rules.BuildGround{Walls: e.gmap(), Dungeon: true}, rules.PlaceFight{Walls: e.gmap()}} {
 		if _, err := e.ruleset().Resolve(rules.Fight{}, a, nil); err != nil {
 			t.Fatal(err)

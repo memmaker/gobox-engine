@@ -42,7 +42,6 @@ type Rules struct {
 	tmplID   rules.MonsterID
 	view     *SaveView // SetSaveView
 	straight bool      // BeginFight's Board.Straight: the board is deskewed
-	duel     bool      // BeginFight's Terms.Duel
 }
 
 // ID is c's CharID, given at its first use and kept while c lives. Until the
@@ -454,7 +453,7 @@ func (r *Rules) BeginRound(rules.Fight, *rules.RNG) rules.Outcome {
 	for _, c := range r.S.Party {
 		r.S.TurnSetup(c)
 	}
-	r.S.Game.Surprise = 0
+	r.S.Terms.Surprised = nil
 	return rules.Outcome{}
 }
 

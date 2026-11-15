@@ -15,7 +15,7 @@ func (e *Engine) takeKey() rules.AutoKey {
 // computerTurn plays c's turn as core.Rules decides it, the key pressed
 // for it carried in the action.
 func (e *Engine) computerTurn(cID rules.CharID) {
-	f := rules.Fight{Actor: cID}
+	f := e.fightBy(cID)
 	a := e.ruleset().Decide(f, f.Actor, nil)
 	if t, ok := a.(rules.AutoTurn); ok {
 		t.Key = e.takeKey()

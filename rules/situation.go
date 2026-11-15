@@ -101,18 +101,23 @@ type AreaEvent int32
 
 // FightTerms are the script words a fight depends on.
 type FightTerms struct {
-	Morale     int32
-	Surprised  []Side // WordSurprise
-	MonsterHit int32
-	PartyHit   int32
-	PartyMove  int32
+	Morale     int32  // the monsters' flee threshold, 0..100
+	Surprised  []Side // the sides surprised in the first round
+	MonsterHit int32  // the monsters' signed to-hit bonus
+	PartyHit   int32  // the party's signed to-hit bonus
+	PartyMove  int32  // the party's signed movement bonus
 	NoMagic    bool
 	Duel       bool
-	NoExpAward bool // WordNoExpAward
+	// DuelOpponent is DuelSetup's n (por game.Duel): 1 keeps a lost duel's party from
+	// quitting; nonzero in a duel gives the member's level times 100 as the experience.
+	DuelOpponent int32
+	// MonsterDist is the squares the monsters stand off the party when the fight is placed.
+	MonsterDist int32
+	NoExpAward  bool // WordNoExpAward
 	// BR zone1: the downed party stands up with 1 HP (revivesParty); the
 	// beaten keep their items (skipsCombatItems).
 	RevivesParty bool
-	NoItemLoot   bool
+	NoItemLoot   bool     // the beaten keep their items (por game.NoLoot == 1: the monsters drop none; BR skipsCombatItems)
 	Area         AreaKind // the sort of place the fight is in
 	// The party's map facing when the fight began (BR partyPosition.facing:
 	// a fleeing monster runs from it).
@@ -212,7 +217,7 @@ const (
 )
 
 // FightResult is what the rules made of a finished fight (por AfterCombat
-// giveExp, the BR loot page). Script words the engine sets from it: Beaten, CombatEnd.
+// giveExp, the BR loot page). The engine sets the script words from it: Beaten, CombatEnd, AttackedAlly.
 type FightResult struct {
 	Effects []Effect
 	Beaten  int32
@@ -223,6 +228,8 @@ type FightResult struct {
 	Foes    bool         // there were foes to beat (por's "The party has won.")
 	Shared  bool         // hired NPCs took their shares of the money (por hiredShare's page)
 	Sharers []CharID     // who took one
+	// AttackedAlly: the party attacked an ally in the fight (por's script word).
+	AttackedAlly bool
 }
 
 // Turn is what BeginTurn says of the actor.

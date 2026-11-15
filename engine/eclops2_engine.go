@@ -115,23 +115,23 @@ func (e *Engine) opEncounterMenu() {
 	}
 	e.es.enc = &encounter{dst: dst, react: react, texts: texts, hi: hi, lo: lo,
 		fleeAt: int(byte(e.vm.Arg(13, e.host))), strength: int(byte(e.vm.Arg(14, e.host)))}
-	e.setWorldWord(rules.WordMonsterDist, int(e.FreeSteps(e.posX, e.posY, e.facing)))
-	if int(e.world.MaxDist) < e.worldWord(rules.WordMonsterDist) {
-		e.setWorldWord(rules.WordMonsterDist, int(e.world.MaxDist))
+	e.world.MonsterDist = uint16(e.FreeSteps(e.posX, e.posY, e.facing))
+	if int(e.world.MaxDist) < int(e.world.MonsterDist) {
+		e.world.MonsterDist = uint16(e.world.MaxDist)
 	}
 	e.encShow()
 	e.encRound()
 }
 
 func (e *Engine) encShow() {
-	e.ShowEncounter(e.run.sprite, e.run.closeup, int(byte(e.worldWord(rules.WordMonsterDist))), &e.es.encounterShown)
+	e.ShowEncounter(e.run.sprite, e.run.closeup, int(byte(e.world.MonsterDist)), &e.es.encounterShown)
 }
 
 func (e *Engine) encApproach() bool {
-	if e.worldWord(rules.WordMonsterDist) == 0 {
+	if int(e.world.MonsterDist) == 0 {
 		return false
 	}
-	e.setWorldWord(rules.WordMonsterDist, e.worldWord(rules.WordMonsterDist)-1)
+	e.world.MonsterDist--
 	e.encShow()
 	return true
 }
@@ -150,7 +150,7 @@ func (e *Engine) encFlee() {
 // (again after WAIT or a step closer).
 func (e *Engine) encRound() {
 	en := e.es.enc
-	dist := func() int { return e.worldWord(rules.WordMonsterDist) }
+	dist := func() int { return int(e.world.MonsterDist) }
 	txt := ""
 	anim := e.es.picShown != 0 && e.es.picAnimating != 0
 	clear := true
@@ -208,7 +208,7 @@ func (e *Engine) encounterAnswered(choice int) {
 	again := false
 	// advance: PARLAY at distance 0, else one step closer.
 	advance := func() {
-		if e.worldWord(rules.WordMonsterDist) == 0 {
+		if int(e.world.MonsterDist) == 0 {
 			e.host.Set(dst, 3)
 			return
 		}

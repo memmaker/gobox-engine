@@ -55,11 +55,12 @@ var aiKeys = map[rules.AutoKey]AiKey{
 }
 
 // BeginFight = por combatSetup's rules opening (ovr11:1E31): the rule set's
-// CombatStart, the last fight's state cleared, morale capped at 100.
+// CombatStart, the last fight's state cleared. The words it reads are f.Terms
+// (the engine capped the morale).
 func (r *Rules) BeginFight(f rules.Fight, _ *rules.RNG) rules.Outcome {
 	s := r.S
 	s.Fight = FightState{On: true} // por pushCombat's, before combatSetup
-	r.straight, r.duel = f.Board.Straight, f.Terms.Duel
+	r.straight, s.Terms = f.Board.Straight, f.Terms
 	s.PosX, s.PosY, s.Facing = f.Terms.PartyAt.X, f.Terms.PartyAt.Y, int(f.Terms.PartyFacing) // the Engine's, given for the fight
 	s.Rules().CombatStart(s)
 	s.MagicOn, s.CombatRound, s.Rv.HitRoll = 0, 0, 0
@@ -67,10 +68,7 @@ func (r *Rules) BeginFight(f rules.Fight, _ *rules.RNG) rules.Outcome {
 	s.Clouds = nil
 	s.ThrownCopy = nil
 	s.Bodies = [10]Body{}
-	s.Game.AttackedAlly = 0
-	if s.Game.Morale > 0x64 {
-		s.Game.Morale = 0x64
-	}
+	s.AttackedAlly = 0
 	return rules.Outcome{}
 }
 
@@ -90,23 +88,23 @@ func (r *Rules) fightPlaced() {
 
 // EndFight = por AfterCombat's rules part (ovr06): combatResult (who won,
 // the experience given, the fallen and the fled dealt with), then
-// cleanupCombatants (the monsters leave, Game.Beaten counts the beaten,
+// cleanupCombatants (the monsters leave, the beaten are counted,
 // the members drop their combat blocks). The actor (Who) is the engine's
 // selected member (a duel's experience is its level).
 func (r *Rules) EndFight(f rules.Fight, _ *rules.RNG) rules.FightResult {
 	s := r.S
-	s.Game.CombatEnd = 0
+	s.Terms = f.Terms
+	defer func() { s.Terms = rules.FightTerms{} }() // the words are the fight's: out of it a bonus is none
 	if s.ageCheckDue {
 		s.oldAgeDeaths()
 	}
 	res := r.combatResult(f.Terms.Duel)
-	s.Game.Beaten = 0
 	for i := 0; i < len(s.Party); {
 		c := s.Party[i]
 		extra := c.Combat != nil && c.Combat.Extra == 1
 		if extra || c.Side == SideMonsters {
 			if c.Okay != 1 && c.Status != StatusReserve {
-				s.Game.Beaten++
+				res.Beaten++
 			}
 			r.remove(i, extra)
 			continue
@@ -118,7 +116,7 @@ func (r *Rules) EndFight(f rules.Fight, _ *rules.RNG) rules.FightResult {
 		}
 		i++
 	}
-	res.Beaten = int32(s.Game.Beaten)
+	res.AttackedAlly = s.AttackedAlly != 0
 	if res.Verdict != rules.PartyLost || f.Terms.Duel {
 		res.Shared, res.Sharers = r.HiredShare()
 	}
@@ -192,7 +190,7 @@ func (r *Rules) combatResult(duel bool) rules.FightResult {
 	if !duel {
 		for _, c := range s.CombatParty() {
 			st := c.Status
-			if (st == StatusRunning || st == StatusAnimated || st == StatusOkay || s.Game.Duel == 1) &&
+			if (st == StatusRunning || st == StatusAnimated || st == StatusOkay || s.Terms.DuelOpponent == 1) &&
 				c.Side == SideParty && c.Control < 0x80 {
 				quit = false
 			}
@@ -220,7 +218,6 @@ func (r *Rules) combatResult(duel bool) rules.FightResult {
 					}
 				}
 			} else {
-				s.Game.CombatEnd = 0x81
 				for i := 0; i < len(s.CombatParty()); {
 					c := s.Party[i]
 					if c.Status == StatusRunning {
@@ -280,7 +277,7 @@ func verdict(lost, fled, won bool) rules.Verdict {
 // foes: there were monsters to beat.
 func (r *Rules) computeExp(duel bool, idle int) (exp int32, foes bool) {
 	s := r.S
-	if duel && s.Game.Duel != 0 {
+	if duel && s.Terms.DuelOpponent != 0 {
 		sel := &Character{}
 		if len(s.Party) > 0 {
 			sel = s.Party[s.Who]
@@ -301,7 +298,7 @@ func (r *Rules) computeExp(duel bool, idle int) (exp int32, foes bool) {
 		s.Loot.Add(CoinsToPurse(coins), rules.GoldBoxRates)
 		// the byte product is a 16-bit mul, sign-extended
 		total += int32(c.ExpValue) + int32(int16(uint16(c.HPRoll)*uint16(c.ExpPerHP)))
-		if s.Game.NoLoot == 1 {
+		if s.Terms.NoItemLoot {
 			continue
 		}
 		for _, it := range c.Items {

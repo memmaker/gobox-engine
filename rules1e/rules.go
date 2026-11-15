@@ -364,9 +364,9 @@ func (e *RuleState) attackDie() bool {
 // invisibility; d20 + THAC0 + the side's modifier must reach need. w is
 // what att strikes with (its THAC0).
 func (e *RuleState) AttackHits(att, def *Character, w Wield, need int) bool {
-	adj := int(int8(byte(e.Game.PartyHit)))
+	adj := int(e.Terms.PartyHit)
 	if att.Side != SideParty {
-		adj = int(int8(byte(e.Game.MonsterHit)))
+		adj = int(e.Terms.MonsterHit)
 	}
 	e.removeInvisibility(att)
 	if !e.attackDie() {

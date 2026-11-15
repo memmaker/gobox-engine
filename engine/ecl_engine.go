@@ -48,7 +48,7 @@ func (e *Engine) LoadArea(areaID int) {
 // FreeSteps = ovr08:0482.
 func (e *Engine) FreeSteps(x, y, dir int) int {
 	if e.worldWord(rules.WordIn3D) == 0 {
-		e.setWorldWord(rules.WordMonsterDist, 2)
+		e.world.MonsterDist = 2
 		return 2
 	}
 	n := 0

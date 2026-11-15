@@ -28,7 +28,7 @@ func (e *RuleState) TurnSetup(c *Character) {
 		if int8(cb.Delay) < 1 {
 			cb.Delay = 1
 		}
-		if byte((int(int8(c.Side))+1)&int(e.Game.Surprise)) != 0 { // only the low byte is tested
+		if e.surprised(c) {
 			cb.Delay -= 6
 		}
 		if int8(cb.Delay) < 0 || int8(cb.Delay) > 0x14 {
@@ -46,7 +46,7 @@ func (e *RuleState) TurnSetup(c *Character) {
 func (e *RuleState) MoveRate(c *Character) int {
 	v := c.Move
 	if c.Side == SideParty {
-		v += byte(e.Game.PartyMove)
+		v += byte(e.Terms.PartyMove)
 	}
 	e.modMoves = 1
 	if v < 1 || v > 0x60 {
@@ -680,4 +680,14 @@ func (e *RuleState) RangePenalty(a, b *Character, w Wield, need *int) {
 		d -= f
 		*need += 3
 	}
+}
+
+// surprised: c's side is surprised in the first round (the engine's Surprise
+// word, its bit side+1, handed as Terms.Surprised).
+func (e *RuleState) surprised(c *Character) bool {
+	side := rules.SideParty
+	if c.Side == SideMonsters {
+		side = rules.SideMonsters
+	}
+	return slices.Contains(e.Terms.Surprised, side)
 }

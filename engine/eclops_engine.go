@@ -198,14 +198,14 @@ func (e *Engine) opSetupMonster() {
 	e.run.sprite = int(byte(e.vm.Arg(1, e.host)))
 	e.world.MaxDist = uint16(e.vm.Arg(2, e.host))
 	e.run.closeup = int(byte(e.vm.Arg(3, e.host)))
-	e.setWorldWord(rules.WordMonsterDist, int(e.FreeSteps(e.posX, e.posY, e.facing)))
+	e.world.MonsterDist = uint16(e.FreeSteps(e.posX, e.posY, e.facing))
 	if sides && e.worldWord(rules.WordIn3D) == 0 { // outdoors the distance asked becomes 2 (pod O055:03D7)
 		e.world.MaxDist = uint16(maxEncounterDist)
 	}
-	if int(e.world.MaxDist) < e.worldWord(rules.WordMonsterDist) {
-		e.setWorldWord(rules.WordMonsterDist, int(e.world.MaxDist))
+	if int(e.world.MaxDist) < int(e.world.MonsterDist) {
+		e.world.MonsterDist = uint16(e.world.MaxDist)
 	}
-	e.ShowEncounter(e.run.sprite, e.run.closeup, int(byte(e.worldWord(rules.WordMonsterDist))), &e.es.encounterShown)
+	e.ShowEncounter(e.run.sprite, e.run.closeup, int(byte(e.world.MonsterDist)), &e.es.encounterShown)
 }
 
 // maxEncounterDist: an encounter is at most two squares away (FreeSteps).
@@ -213,9 +213,9 @@ const maxEncounterDist = 2
 
 // opApproach = ovr04:0817: the monster comes one step closer.
 func (e *Engine) opApproach() {
-	if d := e.worldWord(rules.WordMonsterDist); d > 0 {
-		e.setWorldWord(rules.WordMonsterDist, int(d-1))
-		e.ShowEncounter(e.run.sprite, e.run.closeup, int(byte(e.worldWord(rules.WordMonsterDist))), &e.es.encounterShown)
+	if d := int(e.world.MonsterDist); d > 0 {
+		e.world.MonsterDist = uint16(d - 1)
+		e.ShowEncounter(e.run.sprite, e.run.closeup, int(byte(e.world.MonsterDist)), &e.es.encounterShown)
 	}
 	e.vm.PC++
 }
@@ -578,7 +578,7 @@ func (e *Engine) opSurprise() {
 	if d2 <= s2 {
 		r = 2
 	}
-	e.setWorldWord(rules.WordSurprise, int(r))
+	e.world.Surprise = uint16(r)
 }
 
 // opCombat = ovr04:179B: run the fight (or the shop/temple/after-combat
@@ -598,8 +598,8 @@ func (e *Engine) opCombat() {
 	}
 	e.addReserve()
 	d := e.FreeSteps(e.posX, e.posY, e.facing)
-	if d < e.worldWord(rules.WordMonsterDist) {
-		e.setWorldWord(rules.WordMonsterDist, int(d))
+	if d < int(e.world.MonsterDist) {
+		e.world.MonsterDist = uint16(d)
 	}
 	e.push(cont{kind: kOpFought})
 	e.pushCombat() // ovr09:007A

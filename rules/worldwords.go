@@ -24,6 +24,20 @@ type World struct {
 	Temple     uint16 // 1: opCombat opens the temple
 	Shop       uint16 // 1: opCombat opens the shop
 	SymbolSet  uint16 // the 8X8D<n> symbol set
+
+	// The fight's words: the engine hands the inputs to the rules in FightTerms
+	// and sets the outputs from FightResult.
+	Morale       uint16 // 0..100 (the engine caps it when a fight begins), the monsters' flee threshold
+	Surprise     uint16 // bit side+1: that side is surprised, the first round only
+	MonsterHit   uint16 // low byte: signed to-hit bonus of the monsters
+	PartyHit     uint16 // low byte: signed to-hit bonus of the party
+	PartyMove    uint16 // movement bonus of the party
+	NoLoot       uint16 // 1: the monsters drop no items
+	Duel         uint16 // DuelSetup's n
+	MonsterDist  uint16 // the encounter's distance, counted down by opApproach
+	CombatEnd    uint16 // 0x80 the party died, 0x81 it fled
+	Beaten       uint16 // monsters beaten
+	AttackedAlly uint16 // 1: the party attacked an ally this fight
 }
 
 // Cells are the world's cells by their script field names (a layout names a
@@ -35,5 +49,8 @@ func (w *World) Cells() map[string]*uint16 {
 		"WallSplitA": &w.WallSplitA, "WallSplitB": &w.WallSplitB, "NoCoords": &w.NoCoords,
 		"MsgDelay": &w.MsgDelay, "ViewFlags": &w.ViewFlags, "MaxDist": &w.MaxDist,
 		"Portrait": &w.Portrait, "Temple": &w.Temple, "Shop": &w.Shop, "SymbolSet": &w.SymbolSet,
+		"Morale": &w.Morale, "Surprise": &w.Surprise, "MonsterHit": &w.MonsterHit, "PartyHit": &w.PartyHit,
+		"PartyMove": &w.PartyMove, "NoLoot": &w.NoLoot, "Duel": &w.Duel, "MonsterDist": &w.MonsterDist,
+		"CombatEnd": &w.CombatEnd, "Beaten": &w.Beaten, "AttackedAlly": &w.AttackedAlly,
 	}
 }

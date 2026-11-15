@@ -37,32 +37,10 @@ func (r *Rules) wordPtr(w rules.WorldWord) *uint16 {
 		return &a.SkyInside
 	case rules.WordTrainable:
 		return &g.PartyExp
-	case rules.WordMonsterDist:
-		return &g.MonsterDist
-	case rules.WordMorale:
-		return &g.Morale
-	case rules.WordCombatEnd:
-		return &g.CombatEnd
-	case rules.WordBeaten:
-		return &g.Beaten
-	case rules.WordSurprise:
-		return &g.Surprise
 	case rules.WordRestEvery:
 		return &g.RestEvery
 	case rules.WordRestChance:
 		return &g.RestChance
-	case rules.WordNoLoot:
-		return &g.NoLoot
-	case rules.WordDuel:
-		return &g.Duel
-	case rules.WordAttackedAlly:
-		return &g.AttackedAlly
-	case rules.WordMonsterHit:
-		return &g.MonsterHit
-	case rules.WordPartyHit:
-		return &g.PartyHit
-	case rules.WordPartyMove:
-		return &g.PartyMove
 	}
 	return nil
 }

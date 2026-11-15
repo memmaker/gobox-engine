@@ -4,14 +4,17 @@ import (
 	"fmt"
 	"gobox/game"
 	"gobox/rules"
-	"image"
 	"slices"
 )
 
 // combatSetup = ovr11:1E31.
 func (e *Engine) combatSetup() {
 	e.as(e.sel)
-	e.ruleset().BeginFight(rules.Fight{Board: rules.Board{Straight: e.Deskew.Load()}, Terms: rules.FightTerms{Duel: e.duel(), PartyAt: image.Pt(e.posX, e.posY), PartyFacing: rules.Facing(e.facing)}}, nil)
+	e.world.Morale = min(e.world.Morale, moraleCap) // ovr11:1E31
+	e.world.AttackedAlly = 0
+	f := e.fight()
+	f.Board = rules.Board{Straight: e.Deskew.Load()}
+	e.ruleset().BeginFight(f, nil)
 	e.FreeAnimPic()
 	e.port = portrait{headID: 0xFF, bodyID: 0xFF} // 0464:2595 x2
 	e.clearPrompt()
@@ -23,7 +26,7 @@ func (e *Engine) combatSetup() {
 	e.spr = nil // 0464:248E (1, 4, 3, 0x18): iconToSprite sizes it
 	e.combatUseHook()
 	e.as(e.sel)
-	if _, err := e.ruleset().Resolve(rules.Fight{}, rules.FightPlaced{}, nil); err != nil {
+	if _, err := e.ruleset().Resolve(e.fight(), rules.FightPlaced{}, nil); err != nil {
 		panic(fmt.Sprintf("combat setup: %v", err))
 	}
 	e.setWorldWord(rules.WordBeginFlag, 5)
@@ -39,7 +42,7 @@ func (e *Engine) combatMapSetup() {
 	for _, l := range lays {
 		e.LayTiles(l)
 	}
-	if _, err := e.ruleset().Resolve(rules.Fight{}, e.groundTerms(), nil); err != nil {
+	if _, err := e.ruleset().Resolve(e.fight(), e.groundTerms(), nil); err != nil {
 		panic(fmt.Sprintf("combat ground: %v", err))
 	}
 }
@@ -65,7 +68,7 @@ func (e *Engine) placeCombatants() {
 	if e.viewMode <= 1 {
 		walls = e.gmap()
 	}
-	o, err := e.ruleset().Resolve(rules.Fight{}, rules.PlaceFight{Walls: walls}, nil)
+	o, err := e.ruleset().Resolve(e.fight(), rules.PlaceFight{Walls: walls}, nil)
 	if err != nil {
 		panic(fmt.Sprintf("combat placement: %v", err))
 	}

@@ -12,7 +12,7 @@ import (
 // combatEnd = ovr09:0000: free the clouds, the map and the sprite.
 func (e *Engine) combatEnd() {
 	e.as(e.sel)
-	if _, err := e.ruleset().Resolve(rules.Fight{}, rules.FightCleared{}, nil); err != nil {
+	if _, err := e.ruleset().Resolve(e.fight(), rules.FightCleared{}, nil); err != nil {
 		panic(err)
 	}
 	e.cs = combatState{}
@@ -26,7 +26,7 @@ func (e *Engine) combatEnd() {
 // for them.
 func (e *Engine) takeTurn(cID rules.CharID) bool {
 	e.as(e.sel) // the turn's actor
-	t := e.ruleset().BeginTurn(rules.Fight{}, cID, nil)
+	t := e.ruleset().BeginTurn(e.fight(), cID, nil)
 	if t.Skipped {
 		return false // no cursor erase when the turn is skipped
 	}
@@ -46,7 +46,7 @@ func (e *Engine) takeTurn(cID rules.CharID) bool {
 // turnVerb resolves a of c's turn through core.Rules; true when the turn is used.
 func (e *Engine) turnVerb(cID rules.CharID, a rules.Action) bool {
 	e.as(e.sel)
-	out, err := e.ruleset().Resolve(rules.Fight{Actor: cID}, a, nil)
+	out, err := e.ruleset().Resolve(e.fightBy(cID), a, nil)
 	if err != nil {
 		panic(fmt.Sprintf("turn %T: %v", a, err))
 	}
@@ -55,7 +55,7 @@ func (e *Engine) turnVerb(cID rules.CharID, a rules.Action) bool {
 
 // turnAsk is the question a of c's turn asks first (Outcome.Confirm), "" for none.
 func (e *Engine) turnAsk(cID rules.CharID, a rules.Action) string {
-	out, err := e.ruleset().Resolve(rules.Fight{Actor: cID}, a, nil)
+	out, err := e.ruleset().Resolve(e.fightBy(cID), a, nil)
 	if err != nil {
 		panic(fmt.Sprintf("turn %T: %v", a, err))
 	}
@@ -164,7 +164,7 @@ func (e *Engine) turnWeapons(cID rules.CharID, t *Turn) {
 func (e *Engine) turnChoices(cID rules.CharID) map[int]rules.BoardPos {
 	e.as(e.sel)
 	e.resolve(rules.OpenTurn{Actor: cID}) // the menu runs affect group 0xF and disarms first
-	allowed := e.ruleset().Allowed(rules.Fight{Actor: cID})
+	allowed := e.ruleset().Allowed(e.fightBy(cID))
 	t := &Turn{Unit: e.unit(cID), Moves: e.fightCard(cID).Moves >> 1}
 	e.turnWeapons(cID, t)
 	for _, o := range allowed.Offers {
@@ -279,10 +279,10 @@ func (e *Engine) attackUnit(cID rules.CharID, n int, walks map[int]rules.BoardPo
 // endRound = ovr09:0880 (var done): the clock, the dying, the end check.
 func (e *Engine) endRound() (done bool) {
 	e.as(e.sel) // the round's actor
-	for _, f := range e.ruleset().EndRound(rules.Fight{}, nil).Effects {
+	for _, f := range e.ruleset().EndRound(e.fight(), nil).Effects {
 		e.BottomMessage(f.(rules.Narrated).Text)
 	}
-	v := e.ruleset().Verdict(rules.Fight{})
+	v := e.ruleset().Verdict(e.fight())
 	e.cmapShown()
 	done = v != rules.FightOn
 	return

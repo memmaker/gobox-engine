@@ -15,9 +15,9 @@ func (e *RuleState) HitChance(a, b *Character, w Wield) int {
 	bonus := int(need)
 	e.RangePenalty(a, b, w, &bonus)
 	need = ArmourClass(e.Rules().HitNeed(e, a, b, bonus))
-	adj := int(int8(byte(e.Game.PartyHit)))
+	adj := int(e.Terms.PartyHit)
 	if a.Side != SideParty {
-		adj = int(int8(byte(e.Game.MonsterHit)))
+		adj = int(e.Terms.MonsterHit)
 	}
 	n := 0
 	for r := 2; r <= 20; r++ {

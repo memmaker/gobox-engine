@@ -104,13 +104,7 @@ type Copper int64
 type WorldWord int
 
 const (
-	WordMorale     WorldWord = iota + 1 // por game.Morale
-	WordSurprise                        // por game.Surprise
-	WordMonsterHit                      // por game.MonsterHit
-	WordPartyHit                        // por game.PartyHit
-	WordPartyMove                       // por game.PartyMove
-	WordNoMagic                         // por area.NoMagic
-	WordNoLoot                          // por game.NoLoot
+	WordNoMagic    WorldWord = iota + 1 // por area.NoMagic
 	WordNoExpAward                      // sotsb noXpAward; pod offset 30: this Combat() only hands out loot
 	WordTrainable                       // por game.PartyExp: classes a hall teaches
 	// the game and area record words por's scripts and engine read and
@@ -129,13 +123,8 @@ const (
 	WordMark4        // por area.Mark4
 	WordSky          // por area.Sky: a write redraws the portrait
 	WordSkyInside    // por area.SkyInside: the same
-	WordMonsterDist  // por game.MonsterDist
-	WordCombatEnd    // por game.CombatEnd
-	WordBeaten       // por game.Beaten
 	WordRestEvery    // por game.RestEvery
 	WordRestChance   // por game.RestChance
-	WordDuel         // por game.Duel
-	WordAttackedAlly // por game.AttackedAlly
 	WordPartyCount   // por game.PartyCount (read: the party's size)
 	WordDebug        // por: the debug flag (Yes)
 	WordTraining     // por: the training hall is open (Yes; SetWord opens or closes it)

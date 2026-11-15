@@ -57,6 +57,7 @@ type RuleState struct {
 	MinStats                        [6]int                        // "Minimal stats": per-stat floor, STR as st*100+str00
 	EffTick                         [MaxCombatants + 1]Flag       // DS:471D: member i has timed effects to run down
 	Fight                           FightState                    // the fight's rule part (combatflow.go)
+	Terms                           rules.FightTerms              // the engine's words a fight reads, handed at BeginFight and EndFight, clear after EndFight; Surprised only until the first round's start
 	FoesHealth                      byte                          // DS:6E2F
 }
 

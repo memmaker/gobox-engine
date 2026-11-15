@@ -14,7 +14,8 @@ import (
 // worldNames are the engine's own world words (their script field names), in
 // the order of the recorded table below.
 var worldNames = [...]string{"AreaKind", "PrevX", "PrevY", "RiverOpen", "Search", "HoldMove", "LeftMap", "Geo",
-	"WallSplitA", "WallSplitB", "NoCoords", "MsgDelay", "ViewFlags", "MaxDist", "Portrait", "Temple", "Shop", "SymbolSet"}
+	"WallSplitA", "WallSplitB", "NoCoords", "MsgDelay", "ViewFlags", "MaxDist", "Portrait", "Temple", "Shop", "SymbolSet",
+	"Morale", "Surprise", "MonsterHit", "PartyHit", "PartyMove", "NoLoot", "Duel", "MonsterDist", "CombatEnd", "Beaten", "AttackedAlly"}
 
 // engineWords are the world words as the engine sees them, in worldNames' order.
 func engineWords(e *Engine) [len(worldNames)]int {
@@ -24,6 +25,9 @@ func engineWords(e *Engine) [len(worldNames)]int {
 		int(e.world.WallSplitA), int(e.world.WallSplitB), int(e.world.NoCoords), int(e.world.MsgDelay),
 		int(e.world.ViewFlags), int(e.world.MaxDist), int(e.world.Portrait), int(e.world.Temple),
 		int(e.world.Shop), int(e.world.SymbolSet),
+		int(e.world.Morale), int(e.world.Surprise), int(e.world.MonsterHit), int(e.world.PartyHit),
+		int(e.world.PartyMove), int(e.world.NoLoot), int(e.world.Duel), int(e.world.MonsterDist),
+		int(e.world.CombatEnd), int(e.world.Beaten), int(e.world.AttackedAlly),
 	}
 }
 
@@ -86,19 +90,19 @@ func slotEngine(t *testing.T, key, dir string) *Engine {
 // before they moved from the ruleset's records into the engine (recorded
 // with RECORD_WORLD=1), in worldNames' order.
 var shippedWords = map[string][len(worldNames)]int{
-	"por/back-for-good": {18, 3, 13, 0, 0, 0, 0, 18, 0, 0, 0, 1, 3, 1, 255, 0, 0, 1},
-	"por/CAPTURE":       {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3, 0, 255, 0, 0, 3},
-	"por/Hobgoblins":    {2, 4, 14, 0, 0, 0, 0, 2, 0, 0, 0, 1, 3, 1, 255, 0, 0, 4},
-	"por/in-Slums":      {20, 14, 4, 0, 0, 0, 0, 20, 0, 0, 0, 1, 3, 2, 255, 0, 0, 2},
-	"por/library":       {15, 11, 14, 0, 1, 0, 0, 15, 0, 0, 0, 1, 3, 1, 255, 0, 0, 2},
-	"por/Podol":         {18, 12, 6, 0, 0, 0, 0, 18, 0, 0, 0, 1, 3, 2, 255, 0, 0, 1},
-	"por/SHOPPING":      {0, 13, 9, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3, 2, 42, 0, 0, 3},
-	"por/Sokol Keep":    {21, 8, 5, 0, 1, 0, 0, 21, 0, 0, 0, 1, 3, 1, 255, 0, 0, 4},
-	"por/STARTER":       {0, 13, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3, 1, 255, 0, 0, 3},
-	"por/tavern":        {0, 15, 9, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3, 2, 255, 0, 0, 3},
-	"por/weird-scribe":  {29, 1, 5, 0, 1, 0, 0, 32, 0, 0, 0, 1, 3, 2, 255, 0, 0, 8},
-	"por/WORLDMAP":      {25, 15, 11, 0, 1, 0, 0, 18, 0, 0, 0, 1, 3, 0, 255, 0, 0, 6},
-	"sotsb/GAME A":      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 1},
+	"por/back-for-good": {18, 3, 13, 0, 0, 0, 0, 18, 0, 0, 0, 1, 3, 1, 255, 0, 0, 1, 60, 1, 0, 0, 0, 0, 0, 0, 0, 6, 0},
+	"por/CAPTURE":       {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3, 0, 255, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	"por/Hobgoblins":    {2, 4, 14, 0, 0, 0, 0, 2, 0, 0, 0, 1, 3, 1, 255, 0, 0, 4, 60, 1, 0, 0, 0, 0, 0, 0, 0, 6, 0},
+	"por/in-Slums":      {20, 14, 4, 0, 0, 0, 0, 20, 0, 0, 0, 1, 3, 2, 255, 0, 0, 2, 100, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0},
+	"por/library":       {15, 11, 14, 0, 1, 0, 0, 15, 0, 0, 0, 1, 3, 1, 255, 0, 0, 2, 99, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	"por/Podol":         {18, 12, 6, 0, 0, 0, 0, 18, 0, 0, 0, 1, 3, 2, 255, 0, 0, 1, 40, 0, 0, 0, 0, 0, 0, 2, 0, 14, 0},
+	"por/SHOPPING":      {0, 13, 9, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3, 2, 42, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	"por/Sokol Keep":    {21, 8, 5, 0, 1, 0, 0, 21, 0, 0, 0, 1, 3, 1, 255, 0, 0, 4, 50, 0, 0, 0, 0, 0, 0, 1, 0, 39, 0},
+	"por/STARTER":       {0, 13, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3, 1, 255, 0, 0, 3, 50, 0, 0, 0, 0, 0, 0, 0, 0, 17, 0},
+	"por/tavern":        {0, 15, 9, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3, 2, 255, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	"por/weird-scribe":  {29, 1, 5, 0, 1, 0, 0, 32, 0, 0, 0, 1, 3, 2, 255, 0, 0, 8, 70, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	"por/WORLDMAP":      {25, 15, 11, 0, 1, 0, 0, 18, 0, 0, 0, 1, 3, 0, 255, 0, 0, 6, 60, 0, 0, 0, 0, 0, 0, 2, 0, 3, 0},
+	"sotsb/GAME A":      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 }
 
 // TestShippedSlotsLoad: every shipped slot loads with the world words it

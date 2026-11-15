@@ -25,7 +25,7 @@ func (e *Engine) pushCombat() {
 	if f, ok := e.build().(game.Fighting); ok { // the board before the first turn: the step's fight events play from it
 		e.event(game.Engaged{At: f})
 	}
-	if e.ruleset().Verdict(rules.Fight{}) != rules.FightOn {
+	if e.ruleset().Verdict(e.fight()) != rules.FightOn {
 		e.cs.phase = fightOver
 	}
 	e.wait(PendFight)
@@ -54,17 +54,18 @@ func (e *Engine) stepFight() bool {
 			return true
 		case fightRound:
 			e.as(e.sel) // the round's actor
-			e.ruleset().BeginRound(rules.Fight{}, nil)
+			e.ruleset().BeginRound(e.fight(), nil)
+			e.world.Surprise = 0 // the first round only, as the rules' copy
 			e.cs.phase = fightTurn
 		case fightTurn:
-			id, ok := e.ruleset().NextActor(rules.Fight{}, nil)
+			id, ok := e.ruleset().NextActor(e.fight(), nil)
 			if !ok {
 				e.cs.phase = fightEnd
 				continue
 			}
 			m := e.ext.opened
 			if !e.takeTurn(id) {
-				e.ruleset().EndTurn(rules.Fight{}, id, nil)
+				e.ruleset().EndTurn(e.fight(), id, nil)
 				e.sidesCheck()
 				continue
 			}
@@ -77,7 +78,7 @@ func (e *Engine) stepFight() bool {
 		case fightEnd:
 			e.cs.phase = fightRound
 			if e.endRound() {
-				if e.ruleset().Verdict(rules.Fight{}) == rules.PartyWon { // ovr09:0971: the foes gone, "Continue Battle:" (Yes plays on)
+				if e.ruleset().Verdict(e.fight()) == rules.PartyWon { // ovr09:0971: the foes gone, "Continue Battle:" (Yes plays on)
 					e.cs.phase = fightAsk
 					e.askYesNo(yesNo("Continue Battle:", true), false, askDone{kind: dContinueFight}) // ovr09:099E asks through ovr26:10D1, Y/N only
 					e.openAsk()
@@ -94,13 +95,13 @@ func (e *Engine) stepFight() bool {
 
 // endTurn = takeTurn's end: the cursor off; the last one down ends the round.
 func (e *Engine) endTurn(cID rules.CharID) {
-	e.ruleset().EndTurn(rules.Fight{}, cID, nil) // extra: the rule set's
+	e.ruleset().EndTurn(e.fight(), cID, nil) // extra: the rule set's
 	e.sidesCheck()
 }
 
 // sidesCheck: extra: the last one down ends the battle at once (the round ends).
 func (e *Engine) sidesCheck() {
-	if e.ruleset().Verdict(rules.Fight{}) != rules.FightOn {
+	if e.ruleset().Verdict(e.fight()) != rules.FightOn {
 		e.cs.phase = fightEnd
 	}
 }
@@ -281,7 +282,7 @@ func (e *Engine) castRun(w castWhat, aims []rules.Aim) {
 		a = u
 	}
 	e.as(e.sel)
-	out, err := e.ruleset().Resolve(rules.Fight{Actor: w.c}, a, nil)
+	out, err := e.ruleset().Resolve(e.fightBy(w.c), a, nil)
 	if err != nil {
 		panic(fmt.Sprintf("cast %T: %v", a, err))
 	}

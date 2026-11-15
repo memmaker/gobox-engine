@@ -23,12 +23,21 @@ func (e *Engine) endFight() {
 		icons[i] = e.fact(id, rules.IconFact{}).(rules.Number)
 	}
 	e.as(e.sel) // a duel's experience is the selected member's level
-	res := e.ruleset().EndFight(rules.Fight{Terms: rules.FightTerms{Duel: e.duel()}}, nil)
+	res := e.ruleset().EndFight(e.fight(), nil)
 	after := e.partyIDs()
 	for i, id := range before {
 		if !slices.Contains(after, id) {
 			e.freeIcon(byte(icons[i])) // ovr33:014E
 		}
+	}
+	e.world.Beaten = uint16(res.Beaten)
+	e.world.CombatEnd = 0
+	if res.Verdict == rules.PartyFled {
+		e.world.CombatEnd = combatEndFled
+	}
+	e.world.AttackedAlly = 0
+	if res.AttackedAlly {
+		e.world.AttackedAlly = 1
 	}
 	e.run.quit = res.Verdict == rules.PartyLost && !e.duel()
 	e.ac.won = res.Verdict == rules.PartyWon
@@ -162,7 +171,7 @@ func (e *Engine) TakeLoot(h rules.ItemHandle, all bool) error {
 }
 
 func (e *Engine) takeLoot(a rules.TakeLoot) error {
-	_, err := e.ruleset().Resolve(rules.Fight{}, a, nil)
+	_, err := e.ruleset().Resolve(e.fight(), a, nil)
 	return err
 }
 
@@ -204,7 +213,7 @@ func (e *Engine) pushAfterCombat() {
 		e.hiredShare()
 		return
 	}
-	e.setWorldWord(rules.WordCombatEnd, 0x80)
+	e.world.CombatEnd = combatEndDied
 	e.Music(5) // Amiga 0x4602E
 	e.newPage()
 	e.clearWindow()
@@ -235,9 +244,8 @@ func (e *Engine) afterResults() {
 
 // afterEnd ends AfterCombat; then what follows it.
 func (e *Engine) afterEnd() {
-	for _, w := range []rules.WorldWord{rules.WordMonsterHit, rules.WordPartyHit, rules.WordPartyMove, rules.WordNoLoot, rules.WordDuel} {
-		e.setWorldWord(w, 0)
-	}
+	w := &e.world
+	w.MonsterHit, w.PartyHit, w.PartyMove, w.NoLoot, w.Duel = 0, 0, 0, 0, 0
 	e.ret()
 }
 

@@ -69,14 +69,14 @@ type GameVars struct {
 	PartyExp     uint16        // +0x550 the classes a training hall teaches (bits)
 	V6DA9        [0x17]uint16  `json:"-"`
 	MaxDist      uint16        `json:"-"` // +0x580 opSetupMonster's distance (ovr04:03B4)
-	MonsterDist  uint16        // +0x582 the encounter's distance, counted down by opApproach
+	MonsterDist  uint16        `json:"-"` // +0x582 the encounter's distance, counted down by opApproach
 	V6DC2        [4]uint16     `json:"-"`
-	Morale       uint16        // +0x58C 0..100, the monsters' flee threshold (ovr09)
-	CombatEnd    uint16        // +0x58E 0x80 the party died, 0x81 it fled (ovr06:1527)
-	Beaten       uint16        // +0x590 monsters beaten (ovr06:11AC)
+	Morale       uint16        `json:"-"` // +0x58C 0..100, the monsters' flee threshold (ovr09)
+	CombatEnd    uint16        `json:"-"` // +0x58E 0x80 the party died, 0x81 it fled (ovr06:1527)
+	Beaten       uint16        `json:"-"` // +0x590 monsters beaten (ovr06:11AC)
 	HoldMove     uint16        `json:"-"` // +0x592 >= 0xFF: the next move is skipped (ovr15:0D6D)
 	Search       uint16        `json:"-"` // +0x594 bit 0 sweeping, bit 1 search this square
-	Surprise     uint16        // +0x596 bit side+1: that side is surprised (ovr14)
+	Surprise     uint16        `json:"-"` // +0x596 bit side+1: that side is surprised (ovr14)
 	V6DCC        [6]uint16     `json:"-"`
 	RestEvery    uint16        // +0x5A4 rest encounter check every n turns (ovr21)
 	RestChance   uint16        // +0x5A6 its percent chance
@@ -85,21 +85,21 @@ type GameVars struct {
 	V6DD6        [0xB]uint16   `json:"-"`
 	Portrait     uint16        `json:"-"` // +0x5C2 HEAD/BODY pair shown instead of a picture, 0xFF none
 	Temple       uint16        `json:"-"` // +0x5C4 1: opCombat opens the temple
-	NoLoot       uint16        // +0x5C6 1: the monsters drop no items
+	NoLoot       uint16        `json:"-"` // +0x5C6 1: the monsters drop no items
 	V6DE4        [2]uint16     `json:"-"`
-	Duel         uint16        // +0x5CC DuelSetup's n (ovr08:1A6F)
+	Duel         uint16        `json:"-"` // +0x5CC DuelSetup's n (ovr08:1A6F)
 	V6DE7        [0x2B]uint16  `json:"-"`
 	SymbolSet    uint16        `json:"-"` // +0x624 the 8X8D<n> symbol set
 	V6E13        [0x20]uint16  `json:"-"`
-	AttackedAlly uint16        // +0x666 the party attacked an ally this fight
+	AttackedAlly uint16        `json:"-"` // +0x666 the party attacked an ally this fight
 	V6E34        [0xA]uint16   `json:"-"`
 	PartyCount   uint16        // +0x67C
 	V6E3F        [0x2D]uint16  `json:"-"`
 	Shop         uint16        `json:"-"` // +0x6D8 1: opCombat opens the shop
 	V6E6D        [3]uint16     `json:"-"`
-	MonsterHit   uint16        // +0x6E0 low byte: signed to-hit bonus of the monsters
-	PartyHit     uint16        // +0x6E2 low byte: signed to-hit bonus of the party
-	PartyMove    uint16        // +0x6E4 movement bonus of the party
+	MonsterHit   uint16        `json:"-"` // +0x6E0 low byte: signed to-hit bonus of the monsters
+	PartyHit     uint16        `json:"-"` // +0x6E2 low byte: signed to-hit bonus of the party
+	PartyMove    uint16        `json:"-"` // +0x6E4 movement bonus of the party
 	V6E73        [0x8D]uint16  `json:"-"`
 }
 

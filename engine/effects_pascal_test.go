@@ -77,7 +77,7 @@ func effectVector(e *Engine, kind string, k []int) string {
 			e.state().AddAffect(d, rules1e.AffectType(eff), 0, 0, 0)
 		}
 		d.Move, d.Side = byte(base), byte(side)
-		e.state().Game.PartyMove = uint16(int16(modifier))
+		e.state().Terms.PartyMove = int32(int16(modifier))
 		return strconv.Itoa(int(byte(e.state().MoveRate(d))))
 	}
 	eff, seed, sv, con, al, mask, st := k[0], k[1], k[2], k[3], k[4], k[5], k[6]

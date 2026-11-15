@@ -288,7 +288,6 @@ func (e *RuleState) AsksAlly(c, target *Character) bool {
 // AllyAttacked: mayAttack's yes.
 func (e *RuleState) AllyAttacked() {
 	e.AttackedAlly = 1
-	e.Game.AttackedAlly = 1
 	for _, m := range e.Party {
 		if m.Status == StatusOkay && m.Control > 0x7F {
 			m.Side = SideMonsters

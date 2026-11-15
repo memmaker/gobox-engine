@@ -101,7 +101,7 @@ func (e *Engine) recolourSquare(from, to []byte, v byte, random bool) {
 // copies of the member's items, in reverse order.
 func (e *Engine) DuelSetup(n int) {
 	e.run.duelMode = 1
-	e.setWorldWord(rules.WordDuel, int(int16(int8(n))))
+	e.world.Duel = uint16(int16(int8(n)))
 	selName := e.ruleset().Sheet(e.selected()).Name // selected() is never NoChar
 	for _, id := range e.partyIDs() {
 		if e.ruleset().Sheet(id).Name != selName { // 0AF8:0C10 compares the name strings

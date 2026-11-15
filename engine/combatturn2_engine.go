@@ -19,7 +19,7 @@ func (e *Engine) aimConfirm(cID, candID rules.CharID, mode int, ranged bool) (fo
 			a = rules.Confirmed{Action: a}
 		}
 		e.as(e.sel)
-		out, err := e.ruleset().Resolve(rules.Fight{Actor: cID}, a, nil)
+		out, err := e.ruleset().Resolve(e.fightBy(cID), a, nil)
 		if err != nil {
 			panic(fmt.Sprintf("attack: %v", err))
 		}
