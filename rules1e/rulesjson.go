@@ -49,6 +49,7 @@ type rulesJSON struct {
 	CombatGround *GroundGen                 `json:"combatGround"`     // the importer's: how the game lays its combat ground
 	Kinds        ItemKinds                  `json:"itemKinds"`        // the importer's: the dnd id of each base item type
 	Words        []string                   `json:"itemWords"`        // the game's item name words, by WordID
+	Named        []NamedItem                `json:"namedItems"`       // the importer's: the named items' ids, by their words
 	Morale       *bool                      `json:"moraleUncapped"`   // the importer's: a morale roll above 102 stands (PoD)
 	GroundIDs    *GroundIDs                 `json:"groundIds"`        // the importer's: the grounds the rules lay
 	ImportFlag   *bool                      `json:"importFlag"`       // the importer's: the game flags a character added from another game
@@ -218,6 +219,9 @@ func (base Tables) WithRules(src io.Reader, l Layout) (Tables, error) {
 	}
 	if r.CombatGround != nil {
 		t.Gen = *r.CombatGround
+	}
+	if r.Named != nil {
+		t.Named = namedTable(r.Named)
 	}
 	if r.Kinds != nil {
 		t.Kinds = r.Kinds

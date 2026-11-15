@@ -303,7 +303,7 @@ func (r *Rules) itemCard(c *Character, it *Item) rules.ItemCard {
 	s := r.S
 	s.ItemName(c, it, false)
 	g := rules.ItemCard{Item: r.Handle(it), Name: it.Name(), Readied: it.Readied != 0, Identified: !it.Unknown(), Price: int32(it.Price), Weight: int32(it.Weight),
-		Type: int32(it.Type), Kind: s.kind(it.Type), Count: int32(it.Count), Usable: s.Usable(it), Sale: rules.Copper(it.SellValue()), Words: s.wordNames(it), Casts: int32(it.Spells[1])}
+		Type: int32(it.Type), Kind: s.iconKind(it), Count: int32(it.Count), Usable: s.Usable(it), Sale: rules.Copper(it.SellValue()), Words: s.wordNames(it), Casts: int32(it.Spells[1])}
 	if c != nil {
 		g.CannotUse = !s.CanUseItem(c, it)
 		g.Look = s.ItemLines(it, s.ReadiedLike(c, it))

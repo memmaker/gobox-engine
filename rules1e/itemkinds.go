@@ -37,8 +37,8 @@ var SotsbItemKinds = ItemKinds{
 	75: ItemIDCloakProtection,
 }
 
-// kinds is the game's ItemKinds.
-func (e *RuleState) kinds() ItemKinds {
+// Kinds is the game's ItemKinds.
+func (e *RuleState) Kinds() ItemKinds {
 	if e.T().Kinds != nil {
 		return e.T().Kinds
 	}
@@ -46,7 +46,24 @@ func (e *RuleState) kinds() ItemKinds {
 }
 
 // kind is the dnd id of item type t (0: the game names none).
-func (e *RuleState) kind(t ItemType) rules.ItemID { return e.kinds()[t] }
+func (e *RuleState) kind(t ItemType) rules.ItemID { return e.Kinds()[t] }
+
+// porNamed is POR's named items, as the rules look them up.
+var porNamed = namedTable(PorNamedItems)
+
+// iconKind is the id that picks it's icon: its own when it is one of the
+// game's named items and identified (an unidentified one never shows what it
+// is), else its base kind.
+func (e *RuleState) iconKind(it *Item) rules.ItemID {
+	named := e.T().Named
+	if named == nil && e.T().Words == nil { // POR's own words: POR's items
+		named = porNamed
+	}
+	if id, ok := named[it.Words]; ok && !it.Unknown() {
+		return id
+	}
+	return e.kind(it.Type)
+}
 
 // isKind: item type t is one of ids.
 func (e *RuleState) isKind(t ItemType, ids ...rules.ItemID) bool {

@@ -13,7 +13,6 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
-	"slices"
 	"strconv"
 	"strings"
 
@@ -103,7 +102,7 @@ func (inv *inventory) drawPane(pn *pane, items []game.Item, sel rules.ItemHandle
 		case inv.hover.In(r) && !busy: // the row under the pointer: the selection's ink as an outline, never a second selection
 			selectOutline(r, 1, func(r image.Rectangle, _ color.RGBA) { inv.fill(r, col(inkBlue)) })
 		}
-		inv.drawIcon(iconOf(*it), image.Rect(x0, y, x0+rowH, y+rowH))
+		inv.drawIcon(it.Base, image.Rect(x0, y, x0+rowH, y+rowH))
 		tc := green
 		if it.Wrong {
 			tc = red
@@ -166,43 +165,13 @@ func decodePNG(b []byte) image.Image {
 	return im
 }
 
-// itemIcon names an item icon: the base kind's, or with name the one of an
-// item of that kind by its own name (a kind many different things share:
-// the valuables, the curios).
-type itemIcon struct {
-	kind rules.ItemID
-	name string // the name's words, as the game's data spells them ("": any of the kind)
-}
-
-// iconOf is the icon it shows: its kind's, its own by its name's words
-// once it is identified (an unidentified one never shows what it is).
-func iconOf(it game.Item) itemIcon { return iconNamed(it.Base, it.Words, it.Identified) }
-
-// iconNamed is the icon of an item of kind base named by words, its own
-// when known.
-func iconNamed(base rules.ItemID, words []string, known bool) itemIcon {
-	k := itemIcon{kind: base}
-	if !known {
-		return k
-	}
-	var w []string
-	for _, s := range slices.Backward(words) { // the name reads from the last word to the first
-		if s = strings.TrimSpace(s); s != "" {
-			w = append(w, s)
-		}
-	}
-	k.name = strings.Join(w, " ")
-	return k
-}
-
 // readIcons parses items.rec (remapper's classic format): records of
 // "field: value" lines between blank lines, comments starting with #;
-// internal_name is the rules.ItemID, or "<ItemID>/<name>" for one item of
-// that kind by name, icon its atlas cell (name, the remapper's label, is
-// not read).
-func readIcons(rec string) (map[itemIcon]int, error) {
-	m := map[itemIcon]int{}
-	var id itemIcon
+// internal_name is the rules.ItemID, icon its atlas cell (name, the
+// remapper's label, is not read).
+func readIcons(rec string) (map[rules.ItemID]int, error) {
+	m := map[rules.ItemID]int{}
+	id := rules.ItemID(0)
 	s := bufio.NewScanner(strings.NewReader(rec))
 	for s.Scan() {
 		k, v, ok := strings.Cut(s.Text(), ":")
@@ -210,19 +179,18 @@ func readIcons(rec string) (map[itemIcon]int, error) {
 		switch {
 		case !ok || strings.HasPrefix(k, "#"):
 		case k == "internal_name":
-			kind, name, _ := strings.Cut(v, "/")
-			n, err := strconv.Atoi(kind)
+			n, err := strconv.Atoi(v)
 			if err != nil {
 				return nil, fmt.Errorf("items.rec: internal_name %q: %w", v, err)
 			}
-			id = itemIcon{kind: rules.ItemID(n), name: name}
+			id = rules.ItemID(n)
 		case k == "icon":
 			n, err := strconv.Atoi(v)
 			if err != nil {
-				return nil, fmt.Errorf("items.rec: item %v icon %q: %w", id, v, err)
+				return nil, fmt.Errorf("items.rec: item %d icon %q: %w", id, v, err)
 			}
 			if _, dup := m[id]; dup {
-				return nil, fmt.Errorf("items.rec: item %v twice", id)
+				return nil, fmt.Errorf("items.rec: item %d twice", id)
 			}
 			m[id] = n
 		}
@@ -244,13 +212,9 @@ func (inv *inventory) load() {
 	}
 }
 
-// icon is the atlas cell of k: the item's own by name where items.rec has
-// one, else its base kind's; -1 for none.
-func (inv *inventory) icon(k itemIcon) int {
+// icon is the atlas cell of an item of base kind k; -1 for none.
+func (inv *inventory) icon(k rules.ItemID) int {
 	if n, ok := inv.icons[k]; ok {
-		return n
-	}
-	if n, ok := inv.icons[itemIcon{kind: k.kind}]; ok {
 		return n
 	}
 	return -1
@@ -258,7 +222,7 @@ func (inv *inventory) icon(k itemIcon) int {
 
 // iconImage is the item's atlas cell (nil: none), at the atlas's size:
 // a cell is the atlas's width / atlasCols, whatever the series draws.
-func (inv *inventory) iconImage(k itemIcon) image.Image {
+func (inv *inventory) iconImage(k rules.ItemID) image.Image {
 	inv.load()
 	n := inv.icon(k)
 	if n < 0 || inv.atlas == nil {
@@ -272,7 +236,7 @@ func (inv *inventory) iconImage(k itemIcon) image.Image {
 }
 
 // drawIcon draws the item's atlas cell scaled to iconSlot, in the middle of r (cut to r).
-func (inv *inventory) drawIcon(k itemIcon, r image.Rectangle) {
+func (inv *inventory) drawIcon(k rules.ItemID, r image.Rectangle) {
 	ic := inv.iconImage(k)
 	if ic == nil {
 		inv.text("?", r.Min.X+r.Dx()/2-4, r.Min.Y+r.Dy()/2-4, gray)

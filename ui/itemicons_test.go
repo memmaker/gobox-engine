@@ -3,7 +3,6 @@ package ui
 import (
 	"bufio"
 	"gobox/asset"
-	"gobox/game"
 	"gobox/rules/xxvc"
 	"strconv"
 	"strings"
@@ -60,42 +59,10 @@ func TestItemIconRecs(t *testing.T) {
 		}
 		if s == "buck-rogers" {
 			for ty, k := range xxvc.ItemKinds {
-				if n, ok := icons[itemIcon{kind: k}]; !ok || n < 0 {
+				if n, ok := icons[k]; !ok || n < 0 {
 					t.Errorf("buck-rogers item type %d (kind %d): no icon", ty, k)
 				}
 			}
 		}
-	}
-}
-
-// TestItemIconByName: an item of a kind many things share (a valuable) has
-// its own icon record by its name, so the remapper maps it alone; it shows
-// it once identified, the kind's icon until then or with no record.
-func TestItemIconByName(t *testing.T) {
-	_, rec, err := asset.ItemIcons("pool")
-	if err != nil {
-		t.Fatal(err)
-	}
-	icons, err := readIcons(rec)
-	if err != nil {
-		t.Fatal(err)
-	}
-	const valuable, potion = 63, 64
-	for _, k := range []itemIcon{{valuable, "Gold Banded Wand"}, {valuable, "Jewel Studded Bowl"}, {potion, "Jewelled Dragon Statuette"}} {
-		if _, ok := icons[k]; !ok {
-			t.Errorf("no icon record for %+v", k)
-		}
-	}
-	inv := inventory{icons: map[itemIcon]int{{kind: valuable}: 1, {valuable, "Gold Banded Wand"}: 2}}
-	wand := game.Item{Base: valuable, Words: []string{"Wand", "Banded ", "Gold"}, Identified: true}
-	if n := inv.icon(iconOf(wand)); n != 2 {
-		t.Errorf("the identified wand shows cell %d, want its own", n)
-	}
-	wand.Identified = false
-	if n := inv.icon(iconOf(wand)); n != 1 {
-		t.Errorf("the unidentified wand shows cell %d, want the kind's", n)
-	}
-	if n := inv.icon(iconOf(game.Item{Base: valuable, Words: []string{"Chalice"}, Identified: true})); n != 1 {
-		t.Errorf("a valuable with no record of its own shows cell %d, want the kind's", n)
 	}
 }

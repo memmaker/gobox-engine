@@ -323,7 +323,7 @@ func (p *Presenter) drawCamp(dst *gpu.Image, glyph func(byte) [8]byte, k float64
 		s := p.state()
 		for _, u := range p.eng.r.derived().unknown {
 			it := itemOf(partyOf(s), u)
-			icons = append(icons, p.inv.iconImage(iconOf(*it)))
+			icons = append(icons, p.inv.iconImage(it.Base))
 		}
 	}
 	if icons != nil {
