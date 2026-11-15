@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"gobox/adventure"
 	"gobox/rules"
-	"gobox/rules1e"
 	"log"
 	"slices"
 
@@ -51,16 +50,16 @@ func (e *Engine) newEngineFields() map[string]engineField {
 			setText: func(s string) { e.setSelValue(rules.FactName, rules.Text(s)) },
 		},
 		"SelCon":  reads(func() uint16 { return uint16(e.selFact(rules.AbilityFact{Ability: rules.Constitution})) }),
-		"SelRace": reads(func() uint16 { return uint16(selIndex(e, rules.FactRace, rules1e.RecordRace[:])) }), // a fix of the Pascal's (SpecialReadZ1): the race checks read 0
+		"SelRace": reads(func() uint16 { return uint16(selIndex(e, rules.FactRace, e.ruleset().Catalog().Races)) }), // a fix of the Pascal's (SpecialReadZ1): the race checks read 0
 		"SelMemorized": {stored: true, set: func(i int, v int64) { // slot i+1 (slot 0 has no address)
 			if k := i + 1; k < rules.MemoSlots {
 				e.setSelValue(rules.MemoFact{Slot: k}, rules.Number(byte(v))) // the byte as SpecialWriteZ1 stores it
 			}
 		}},
-		"SelSaveVsPetrify": reads(func() uint16 { return uint16(e.selFact(rules.SaveFact{Save: rules1e.SavePetrify})) }),
-		"SelPickPockets":   reads(func() uint16 { return uint16(e.selFact(rules.SkillFact{Skill: rules1e.PickPockets})) }),
-		fieldSelFindTraps:  reads(func() uint16 { return uint16(e.selFact(rules.SkillFact{Skill: rules1e.FindTraps})) }),
-		"SelThiefSkill6":   reads(func() uint16 { return uint16(e.selFact(rules.SkillFact{Skill: rules1e.Climb})) }),
+		"SelSaveVsPetrify": reads(func() uint16 { return uint16(e.selFact(rules.SaveFact{Save: rules.SavePetrify})) }),
+		"SelPickPockets":   reads(func() uint16 { return uint16(e.selFact(rules.SkillFact{Skill: rules.PickPockets})) }),
+		fieldSelFindTraps:  reads(func() uint16 { return uint16(e.selFact(rules.SkillFact{Skill: rules.FindTraps})) }),
+		"SelThiefSkill6":   reads(func() uint16 { return uint16(e.selFact(rules.SkillFact{Skill: rules.Climb})) }),
 		"SelControl": {stored: true, get: func(int) (int64, bool) { return e.selFact(rules.FactControl), true },
 			set: func(_ int, v int64) {
 				if v > 0xB2 {
@@ -74,7 +73,7 @@ func (e *Engine) newEngineFields() map[string]engineField {
 			}
 		}},
 		"SelAlignment": {stored: true, get: func(int) (int64, bool) {
-			return int64(signedByte(selIndex(e, rules.FactAlignment, rules1e.RecordAlignment[:]))), true
+			return int64(signedByte(selIndex(e, rules.FactAlignment, e.ruleset().Catalog().Alignments))), true
 		}, set: func(_ int, v int64) { e.setSelFact(rules.FactAlignment, int64(uint8(v))) }}, // the record's byte (alignmentNameTable index)
 		"SelExpValue": {stored: true, get: func(int) (int64, bool) { return e.selFact(rules.FactExpValue), true },
 			set: func(_ int, v int64) { e.setSelFact(rules.FactExpValue, v) }},
@@ -409,9 +408,9 @@ func fact(r func() uint16, w func(v uint16)) engineField {
 func selCoin(i int) (rules.Fact, bool) {
 	switch i {
 	case 0:
-		return rules.CoinFact{Coin: rules1e.Copper}, true
+		return rules.CoinFact{Coin: rules.CoinCopper}, true
 	case 6:
-		return rules.CoinFact{Coin: rules1e.Gold}, true
+		return rules.CoinFact{Coin: rules.CoinGold}, true
 	case 10:
 		return rules.PiecesFact{}, true
 	case 12:

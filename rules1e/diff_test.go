@@ -15,10 +15,10 @@ import (
 // The vectors come from the pure Pascal (por-re bugfixed-rules, vectors-pure.sh).
 // A difference is a bug, or a row of gobox-engine/CHANGES-FROM-ORIGINAL.md.
 var (
-	vecClass = [8]rules.Class{ClassCleric, ClassDruid, ClassFighter, ClassPaladin, ClassRanger, ClassMage, ClassThief, ClassMonk}
+	vecClass = [8]rules.Class{ClassCleric, ClassDruid, ClassFighter, ClassPaladin, rules.ClassRanger, ClassMage, ClassThief, ClassMonk}
 	vecRace  = [8]rules.Race{RaceMonster, RaceDwarf, RaceElf, RaceGnome, RaceHalfElf, RaceHalfling, RaceHalfOrc, RaceHuman}
 	vecCon   = 19 // the Pascal's stat vectors read no constitution; 19 shows the bonus every race gets
-	vecSave  = [5]rules.Save{SaveParalysis, SavePetrify, SaveRod, SaveBreath, SaveSpell}
+	vecSave  = [5]rules.Save{rules.SaveParalysis, rules.SavePetrify, rules.SaveRod, rules.SaveBreath, rules.SaveSpell}
 )
 
 // documented says whether a difference is a row of CHANGES-FROM-ORIGINAL.md:
@@ -40,7 +40,7 @@ func documented(key []string, want, got []int) bool {
 			spells := vecClass[k[0]] == ClassCleric || vecClass[k[0]] == ClassMage
 			return got[0] == xp && (!spells || slices.Equal(want[1:], got[1:]))
 		}
-		return (vecClass[k[0]] == ClassPaladin || vecClass[k[0]] == ClassRanger) && want[0] == -1
+		return (vecClass[k[0]] == ClassPaladin || vecClass[k[0]] == rules.ClassRanger) && want[0] == -1
 	case "damage":
 		// ruling 3 (cotab's DAMAGE for all): with flags 0x80 and 0x10 a made
 		// save still hurts; POR's Pascal reads 0x10 as save bonus only. No
@@ -89,7 +89,7 @@ func statDocumented(k, want, got []int) bool {
 		return 0
 	}
 	fixed := slices.Clone(want)
-	if level(ClassPaladin) > 6 || level(ClassRanger) > 7 {
+	if level(ClassPaladin) > 6 || level(rules.ClassRanger) > 7 {
 		fixed[2] = 3 // COTAB's attacks
 	}
 	copied := level(ClassPaladin) > 0 && level(ClassPaladin) <= 8
@@ -113,7 +113,7 @@ func statDocumented(k, want, got []int) bool {
 		}
 	}
 	// 3. a ranger from level 8 gains magic-user spells (RangerSpells columns 4, 5); without magic-user levels the held slots go.
-	if add := rowSum(POR.RangerSpells, level(ClassRanger)); add != ([5]int{}) {
+	if add := rowSum(POR.RangerSpells, level(rules.ClassRanger)); add != ([5]int{}) {
 		if level(ClassMage) <= 0 {
 			copy(fixed[6:9], []int{0, 0, 0})
 		}

@@ -3,7 +3,6 @@ package engine
 import (
 	"gobox/adventure"
 	"gobox/rules"
-	"gobox/rules1e"
 	"testing"
 )
 
@@ -29,7 +28,7 @@ func TestPodCodecs(t *testing.T) {
 		}
 	}
 	coin := func(i int) rules.Fact { f, _ := selCoin(i); return f }
-	if c := codecs["PodSelCoins"].element; coin(c(0)) != rules.Fact(rules.CoinFact{Coin: rules1e.Gold}) || coin(c(2)) != rules.Fact(rules.PiecesFact{}) || coin(c(4)) != rules.Fact(rules.PiecesFact{Jewel: true}) || c(1)%2 != 1 {
+	if c := codecs["PodSelCoins"].element; coin(c(0)) != rules.Fact(rules.CoinFact{Coin: rules.CoinGold}) || coin(c(2)) != rules.Fact(rules.PiecesFact{}) || coin(c(4)) != rules.Fact(rules.PiecesFact{Jewel: true}) || c(1)%2 != 1 {
 		t.Error("coins: gold (the import's), gems, jewelry")
 	}
 	if codecs["PodSelMemorized"].element(0) != -1 {

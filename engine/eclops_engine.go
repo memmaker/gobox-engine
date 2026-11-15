@@ -6,7 +6,6 @@ import (
 	"gobox/ecl"
 	"gobox/game"
 	"gobox/rules"
-	"gobox/rules1e"
 	"os"
 	"slices"
 	"strconv"
@@ -549,7 +548,7 @@ func (e *Engine) opCheckParty() {
 func (e *Engine) opPartySurprise() {
 	e.vm.ReadArgs(2)
 	var a byte
-	if e.ruleset().Check(rules.HasClass{Party: e.partyIDs(), Class: rules1e.ClassRanger}, nil).Yes {
+	if e.ruleset().Check(rules.HasClass{Party: e.partyIDs(), Class: rules.ClassRanger}, nil).Yes {
 		a = 1
 	}
 	e.host.Set(e.vm.Ref(1), int64(uint16(a)))
@@ -735,9 +734,9 @@ const (
 // (por SelFindTraps 0x6BA7, SelMove 0x6C1B; cotab's census covers all eight
 // thief skills, cvThiefFirst..Last).
 var censusFacts = map[string]rules.Fact{
-	"SelPickPockets":  rules.SkillFact{Skill: rules1e.PickPockets},
-	fieldSelFindTraps: rules.SkillFact{Skill: rules1e.FindTraps},
-	"SelThiefSkill6":  rules.SkillFact{Skill: rules1e.Climb},
+	"SelPickPockets":  rules.SkillFact{Skill: rules.PickPockets},
+	fieldSelFindTraps: rules.SkillFact{Skill: rules.FindTraps},
+	"SelThiefSkill6":  rules.SkillFact{Skill: rules.Climb},
 	fieldSelMove:      rules.FactMove,
 }
 

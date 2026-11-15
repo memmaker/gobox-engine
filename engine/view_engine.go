@@ -2,7 +2,6 @@ package engine
 
 import (
 	"gobox/rules"
-	"gobox/rules1e"
 	"strconv"
 	"strings"
 )
@@ -49,7 +48,7 @@ func (e *Engine) sheetPage(id rules.CharID) *SheetPage {
 		if need := sh.NextExp; need > 0 { // extra: the experience the next level takes, green once it is there
 			sp.Next = int(need)
 		}
-		for i, v := range [...]rules.Save{rules1e.SaveParalysis, rules1e.SavePetrify, rules1e.SaveRod, rules1e.SaveBreath, rules1e.SaveSpell} { // extra: the saving throws
+		for i, v := range e.ruleset().Catalog().Saves { // extra: the saving throws
 			sp.Saves[i] = int(e.fact(id, rules.SaveFact{Save: v}).(rules.Number))
 		}
 		sp.Status = e.statusName(id)

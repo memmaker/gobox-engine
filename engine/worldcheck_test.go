@@ -95,7 +95,7 @@ func TestCheckPartyThiefSkills(t *testing.T) {
 	e.vm.Fetch()
 	e.opCheckParty()
 	party := e.partyIDs()
-	a := e.ruleset().Check(rules.Census{Party: party, Fact: rules.SkillFact{Skill: rules1e.PickPockets}}, nil)
+	a := e.ruleset().Check(rules.Census{Party: party, Fact: rules.SkillFact{Skill: rules.PickPockets}}, nil)
 	if got := [4]int64{e.host.Get(out[0]), e.host.Get(out[1]), e.host.Get(out[2]), e.host.Get(out[3])}; got != [4]int64{int64(byte(a.Low)), int64(byte(a.High)), int64(byte(a.Avg)), int64(len(party))} {
 		t.Errorf("CheckParty pick pockets: %v, census %+v of %d", got, a, len(party))
 	}

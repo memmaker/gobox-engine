@@ -7,6 +7,7 @@ type Catalog struct {
 	Conditions []Condition
 	Traits     []Trait
 	Races      []Race
+	Alignments []Alignment
 	Classes    []Class
 	Skills     []Skill
 	Saves      []Save

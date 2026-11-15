@@ -15,15 +15,10 @@ import (
 var rulesetFiles = []string{
 	"combatrules_engine.go",
 	"dataimport.go",
-	"eclops2_engine.go",
-	"eclops_engine.go",
-	"game_engine.go",
 	"init.go",
 	"newpool.go",
 	"rulesetseam.go",
-	"scriptvars_engine.go",
 	"vault_engine.go",
-	"view_engine.go",
 }
 
 // TestPoolImportsNoRuleset: the engine reaches the rules only through

@@ -22,7 +22,6 @@ const (
 	ClassDruid   rules.Class = "druid"
 	ClassFighter rules.Class = "fighter"
 	ClassPaladin rules.Class = "paladin"
-	ClassRanger  rules.Class = "ranger"
 	ClassMage    rules.Class = "mage"
 	ClassThief   rules.Class = "thief"
 	ClassMonk    rules.Class = "monk"
@@ -42,23 +41,14 @@ const (
 
 // por Thief[0..7].
 const (
-	PickPockets   rules.Skill = "pick-pockets"
 	OpenLocks     rules.Skill = "open-locks"
-	FindTraps     rules.Skill = "find-traps"
 	MoveQuietly   rules.Skill = "move-quietly"
 	Hide          rules.Skill = "hide"
 	Hear          rules.Skill = "hear"
-	Climb         rules.Skill = "climb"
 	ReadLanguages rules.Skill = "read-languages"
 )
 
-const (
-	SaveParalysis rules.Save = "paralysis"
-	SavePetrify   rules.Save = "petrification"
-	SaveRod       rules.Save = "rod"
-	SaveBreath    rules.Save = "breath"
-	SaveSpell     rules.Save = "spell"
-)
+const ()
 
 // The conditions scripts ask about; the 125-142 others stay private to the ruleset.
 const (

@@ -73,7 +73,10 @@ var _ rules.Rules = (*Rules)(nil)
 // ErrNotPorted is a core.Rules method whose por code is still in the Engine.
 var ErrNotPorted = errors.New("rules1e: not behind core.Rules yet")
 
-func (r *Rules) Catalog() rules.Catalog { return rules.Catalog{} }
+// Catalog: what the records number (the engine reads the tables by place): the races and alignments in record order, the saving throws in sheet order.
+func (r *Rules) Catalog() rules.Catalog {
+	return rules.Catalog{Races: RecordRace[:], Alignments: RecordAlignment[:], Saves: SaveOrder[:]}
+}
 
 func (r *Rules) Begin(c rules.Campaign, o rules.Options) { r.campaign, r.options = c, o }
 

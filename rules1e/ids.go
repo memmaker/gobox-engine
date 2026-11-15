@@ -38,7 +38,7 @@ var SpellIDs = [146]rules.SpellID{
 	28:  SpellSpiritualHammer,
 	29:  SpellDetectInvisibility,
 	30:  SpellInvisibility,
-	31:  SpellKnock,
+	31:  rules.SpellKnock,
 	32:  SpellMirrorImage,
 	33:  SpellRayOfEnfeeblement,
 	34:  SpellStinkingCloud,

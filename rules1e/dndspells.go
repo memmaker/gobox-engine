@@ -81,7 +81,6 @@ const (
 	SpellIronSkin                      rules.SpellID = "iron-skin"
 	SpellJavelinOfLightning            rules.SpellID = "javelin-of-lightning"
 	SpellKeoghtomsOintment             rules.SpellID = "keoghtoms-ointment"
-	SpellKnock                         rules.SpellID = "knock"
 	SpellLightningBolt                 rules.SpellID = "lightning-bolt"
 	SpellMagicMissile                  rules.SpellID = "magic-missile"
 	SpellManualOfBodilyHealth          rules.SpellID = "manual-of-bodily-health"

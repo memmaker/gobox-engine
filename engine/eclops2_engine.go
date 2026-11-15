@@ -6,7 +6,6 @@ import (
 	"gobox/ecl"
 	"gobox/game"
 	"gobox/rules"
-	"gobox/rules1e"
 	"slices"
 )
 
@@ -458,8 +457,8 @@ func (e *Engine) opDamage() {
 			d.BySelected = true
 			typ-- // 0: no save
 		}
-		if typ >= 0 && typ < len(rules1e.SaveOrder) {
-			d.Save = rules1e.SaveOrder[typ]
+		if saves := e.ruleset().Catalog().Saves; typ >= 0 && typ < len(saves) {
+			d.Save = saves[typ]
 		}
 	}
 	o, err := e.ruleset().Resolve(rules.Scripted{Party: e.partyIDs()}, d, nil)
