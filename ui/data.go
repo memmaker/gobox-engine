@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"log"
 	"os"
 	"path/filepath"
 	"slices"
@@ -304,7 +305,11 @@ func gameData(g game.Data) {
 		music, _ := os.ReadFile(filePath(dir, g.AdLib.Music))
 		snd, _ := os.ReadFile(filePath(dir, g.AdLib.Sounds))
 		if music != nil {
-			adLib = &audio.AdLibData{Music: music, Sounds: snd, Effects: g.AdLib.Effects, Rate: g.AdLib.Rate, Tempo: g.AdLib.Tempo, Named: map[string][]byte{}}
+			songs, err := orig.ReadSongs(filepath.Join(dir, filepath.Base(orig.MusicDir))) // the import's MIDI songs
+			if err != nil {                                                                // a broken import: said, and Music's own blocks play
+				log.Printf("songs: %v", err)
+			}
+			adLib = &audio.AdLibData{Music: music, Songs: songs, Sounds: snd, Effects: g.AdLib.Effects, Rate: g.AdLib.Rate, Tempo: g.AdLib.Tempo, Named: map[string][]byte{}}
 			for _, sq := range []*adventure.SequenceStep{startSeq.LeadingAnim(), endSeq.LeadingAnim()} { // the songs the animations cue (NAME.SMS beside them)
 				if sq == nil || sq.Song == "" {
 					continue

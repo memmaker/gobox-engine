@@ -234,3 +234,38 @@ func WriteSongs(music []byte, tempo int, dir string) ([]int, error) {
 	}
 	return ids, nil
 }
+
+// Song is one imported song: its MIDI and the OPL voices beside it.
+type Song struct {
+	MIDI   []byte
+	Voices []OPLVoice
+}
+
+// ReadSongs is the songs WriteSongs wrote into dir, by block number; none
+// when dir is not there.
+func ReadSongs(dir string) (map[int]Song, error) {
+	names, err := filepath.Glob(filepath.Join(dir, "*.mid"))
+	if err != nil {
+		return nil, err
+	}
+	songs := map[int]Song{}
+	for _, name := range names {
+		var id int
+		if _, err := fmt.Sscanf(filepath.Base(name), "%d.mid", &id); err != nil {
+			return nil, fmt.Errorf("%s: no song number", name)
+		}
+		var sg Song
+		if sg.MIDI, err = os.ReadFile(name); err != nil {
+			return nil, err
+		}
+		js, err := os.ReadFile(filepath.Join(dir, fmt.Sprint(id, ".opl.json")))
+		if err != nil {
+			return nil, err
+		}
+		if err := json.Unmarshal(js, &sg.Voices); err != nil {
+			return nil, fmt.Errorf("%s: %w", name, err)
+		}
+		songs[id] = sg
+	}
+	return songs, nil
+}

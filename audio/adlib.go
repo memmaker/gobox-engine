@@ -3,6 +3,7 @@ package audio
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"slices"
 
 	"github.com/memmaker/opl2"
@@ -26,6 +27,7 @@ type AdLib struct {
 	named map[string]int // AdLibData.Named: name -> block
 	tempo int            // AdLibData.Tempo
 	seq   *orig.Sequencer
+	songs map[int]orig.Song // AdLibData.Songs
 
 	acc int // PIT ticks accumulated, in 1193182/(outRate*16384) units
 	fx  []byte
@@ -35,6 +37,7 @@ type AdLib struct {
 // AdLibData is what the game supplies.
 type AdLibData struct {
 	Music   []byte            // MUSIC.DAX: song n is block n
+	Songs   map[int]orig.Song // the imported songs (MIDI and OPL voices) by block: played on the OPL2 in place of Music's (the SID's instruments are Music's alone)
 	Sounds  []byte            // ZOUNDS.DAX; may be nil
 	Effects map[int]int       // effect number -> Sounds block id
 	Rate    int               // effect playback rate, Hz (9000 for PoD)
@@ -67,7 +70,7 @@ func (a *AdLib) SID() bool { return a.sidOn }
 
 // NewAdLib parses the DAX containers.
 func NewAdLib(d AdLibData) (*AdLib, error) {
-	a := &AdLib{effects: map[int][]byte{}, rate: d.Rate, tempo: d.Tempo}
+	a := &AdLib{effects: map[int][]byte{}, rate: d.Rate, tempo: d.Tempo, songs: d.Songs}
 	var err error
 	if a.music, err = orig.GlbrBlocks(d.Music); err != nil {
 		return nil, err
@@ -82,6 +85,11 @@ func NewAdLib(d AdLibData) (*AdLib, error) {
 			continue
 		}
 		a.effects[n] = a.sounds[id] // raw u8 PCM, as the original hands it to DigPak
+	}
+	for n, sg := range d.Songs {
+		if _, err := orig.NewMIDI(sg.MIDI, sg.Voices, func(int, byte) {}); err != nil {
+			return nil, fmt.Errorf("song %d: %w", n, err)
+		}
 	}
 	a.named = map[string]int{}
 	for name, b := range d.Named { // an .SMS file is a song block: reuse an equal one
@@ -135,10 +143,23 @@ func (a *AdLib) Start(n int) {
 		a.sc = New(MOS6581, sidClock, adlibRate)
 		w = func(r int, v byte) { a.sc.Write(byte(r), v) }
 	}
-	if a.seq = orig.NewSequencer(a.music[n], a.tempo, w, a.sidOn); a.seq == nil { // a song without SID instruments: the OPL2
-		a.seq = orig.NewSequencer(a.music[n], a.tempo, func(r int, v byte) { a.chip.Write(r, v) }, false)
+	if a.seq = a.sequencer(n, w, a.sidOn); a.seq == nil { // a song without SID instruments: the OPL2
+		a.seq = a.sequencer(n, func(r int, v byte) { a.chip.Write(r, v) }, false)
 	}
 	a.song, a.acc = n, 0
+}
+
+// sequencer plays song n through w: on the OPL2 its imported MIDI when there
+// is one, else Music's block (nil: no song, or none for the SID).
+func (a *AdLib) sequencer(n int, w func(int, byte), sid bool) *orig.Sequencer {
+	if sg, ok := a.songs[n]; ok && !sid {
+		s, err := orig.NewMIDI(sg.MIDI, sg.Voices, w)
+		if err != nil {
+			panic(err) // NewAdLib read it
+		}
+		return s
+	}
+	return orig.NewSequencer(a.music[n], a.tempo, w, sid)
 }
 
 // Effect plays effect n (PCM) over whatever plays; false if unknown. The caller decides
@@ -162,7 +183,7 @@ func (a *AdLib) Mix(m []byte, loop bool) {
 				if !a.seq.Tick() {
 					a.seq.Silence()
 					if loop {
-						a.seq = orig.NewSequencer(a.music[a.song], a.tempo, a.seq.Writer(), a.seq.SID())
+						a.seq = a.sequencer(a.song, a.seq.Writer(), a.seq.SID())
 					} else {
 						a.seq = nil
 					}
