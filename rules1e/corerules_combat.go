@@ -360,7 +360,7 @@ func (r *Rules) turnVerb(sit rules.Situation, a rules.Action) (rules.Outcome, er
 			return rules.Outcome{Confirm: "Flee:"}, nil // ovr09:0C17
 		}
 	case rules.Attack:
-		return r.attack(c, a.Target, false)
+		return r.attack(c, a, false)
 	case rules.Confirmed:
 		switch q := a.Action.(type) {
 		case rules.Flee: // answered Yes
@@ -369,7 +369,7 @@ func (r *Rules) turnVerb(sit rules.Situation, a rules.Action) (rules.Outcome, er
 				done = s.TryFlee(c)
 			}
 		case rules.Attack:
-			return r.attack(c, q.Target, true)
+			return r.attack(c, q, true)
 		}
 	case rules.Delay: // Done's Wait
 		c.Combat.Delay = 1
@@ -399,11 +399,18 @@ func (r *Rules) turnVerb(sit rules.Situation, a rules.Action) (rules.Outcome, er
 // attack = por aimConfirm/aimTake's blow (ovr14:2C3D, mode 1): an ally
 // asks "Attack Ally?" first (sure: answered Yes); a sweep, or the full
 // attack with the ammunition it takes. TurnOver: the attack was made.
-func (r *Rules) attack(c *Character, target rules.CharID, sure bool) (rules.Outcome, error) {
+func (r *Rules) attack(c *Character, a rules.Attack, sure bool) (rules.Outcome, error) {
 	s := r.S
-	t := r.chars[target]
+	t := r.chars[a.Target]
 	if t == nil {
 		return rules.Outcome{}, errNoChar
+	}
+	w := s.Hand(c)
+	if a.Ranged { // extra: the Ranged action, with the Launcher or Missiles slot's weapon
+		var ok bool
+		if w, ok = s.Ranged(c); !ok {
+			return rules.Outcome{}, ErrNotNow
+		}
 	}
 	if s.AsksAlly(c, t) {
 		if !sure {
@@ -416,10 +423,10 @@ func (r *Rules) attack(c *Character, target rules.CharID, sure bool) (rules.Outc
 	}
 	var res *Item
 	s.CountAttackTurn(c, t)
-	if s.RangedWeapon(c) && s.AmmoFor(c, &res) && s.Throwable(c) && s.RangeTo(c, t) == 1 {
+	if s.RangedWeapon(w) && s.AmmoFor(c, w, &res) && s.Throwable(w) && s.RangeTo(c, t) == 1 {
 		res = nil
 	}
-	return rules.Outcome{TurnOver: s.FullAttack(c, t, 0, res)}, nil
+	return rules.Outcome{TurnOver: s.FullAttack(c, t, w, 0, res)}, nil
 }
 
 // aims hands the player's aims to the cast (Fight.Aims, aimNow takes them).
@@ -482,7 +489,7 @@ func (r *Rules) useItem(sit rules.Situation, a rules.UseItem) (rules.Outcome, er
 	defer func() { s.Fight.Aims = nil }()
 	s.UsingItem = own
 	quit := s.UseItem(it, SpellID(n), CastReply{Fight: true})
-	s.SetSpeed(c)
+	s.SetSpeed(c, s.Hand(c))
 	return rules.Outcome{TurnOver: quit}, nil
 }
 
@@ -554,7 +561,7 @@ func (r *Rules) fightAllowed(f rules.Fight) rules.Allowed {
 	offer := func(x rules.Action, name string) { a.Offers = append(a.Offers, rules.Offer{Action: x, Name: name}) }
 	ci := c.Combat
 	offer(rules.Attack{}, "")
-	if !s.RangedWeapon(c) || s.Throwable(c) {
+	if w := s.Hand(c); !s.RangedWeapon(w) || s.Throwable(w) {
 		offer(rules.Guard{}, "")
 	}
 	if len(s.Carried(c)) > 0 { // ovr09:06E1: Use with any item carried (char +0xC7; extra: the party's pool among them)
@@ -631,7 +638,7 @@ func (r *Rules) fightTargets(a *rules.Allowed, c *Character, reach map[[2]int][]
 			continue
 		}
 		p := s.PathNextTo(c, f, reach)
-		if !s.CanTarget(c, f, s.WeaponRange(c), 1) && p == nil {
+		if w := s.Hand(c); !s.CanTarget(c, f, w, s.WeaponRange(w), 1) && p == nil {
 			continue
 		}
 		t := rules.Aimed{Action: rules.Attack{Target: r.ID(f)}, Targets: 1}

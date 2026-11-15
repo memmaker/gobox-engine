@@ -43,7 +43,7 @@ func effectVector(e *Engine, kind string, k []int) string {
 		e.state().CombatRound = byte(v)
 		e.state().RandSeed = uint32(int32(seed))
 		e.state().Rv.HitRoll = 0
-		hit := e.state().AttackHits(a, d, 50)
+		hit := e.state().AttackHits(a, d, e.state().Hand(a), 50)
 		return fmt.Sprintf("%s%d %d %d %d", b2iVec(hit), e.state().Rv.HitRoll, e.state().Rv.Damage, e.state().AffectVeto, holder.Affects[0].Data)
 	}
 	switch kind {
@@ -59,7 +59,7 @@ func effectVector(e *Engine, kind string, k []int) string {
 		d.Kind = 4
 		a.Dice[0], a.Sides[0], a.Bonus[0] = rules1e.Count(dice), rules1e.Count(sides), rules1e.Modifier(bonus)
 		e.state().RandSeed = uint32(int32(seed))
-		e.state().DamageRoll(a, d, 1)
+		e.state().DamageRoll(a, d, e.state().Hand(a), 1)
 		return fmt.Sprintf("%d %d %d", e.state().Rv.Damage, e.state().Rv.DmgType, int32(e.state().RandSeed))
 	case "effplain":
 		eff, seed, dmg, mask, mode, saved, hp := k[0], k[1], k[2], k[3], k[4], k[5], k[6]

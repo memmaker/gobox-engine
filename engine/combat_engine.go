@@ -101,10 +101,9 @@ func (e *Engine) turnChoice(cID rules.CharID, a TurnAct, walks map[int]rules.Boa
 	case VerbWalk:
 		done = e.turnVerb(cID, rules.Move{To: rules.BoardPos{X: a.X, Y: a.Y}})
 	case VerbAttack:
-		done = e.attackUnit(cID, a.N, walks)
-	case VerbShoot: // extra: Attack's aim with the Launcher or Missiles slot's weapon in hand
-		e.must(rules.Draw{Who: cID, Ranged: true})
-		done = e.attackUnit(cID, 0, walks)
+		done = e.attackUnit(cID, a.N, walks, false)
+	case VerbShoot: // extra: Attack's aim with the Launcher or Missiles slot's weapon
+		done = e.attackUnit(cID, 0, walks, true)
 	case VerbManeuver:
 		done = e.maneuver(cID, a.N, walks)
 	case VerbCast:
@@ -165,7 +164,6 @@ func (e *Engine) turnWeapons(cID rules.CharID, t *Turn) {
 func (e *Engine) turnChoices(cID rules.CharID) map[int]rules.BoardPos {
 	e.as(e.sel)
 	e.resolve(rules.OpenTurn{Actor: cID}) // the menu runs affect group 0xF and disarms first
-	e.must(rules.Draw{Who: cID})          // extra: the menu offers with the weapon in hand (a Ranged attack drew another)
 	allowed := e.ruleset().Allowed(rules.Fight{Actor: cID})
 	t := &Turn{Unit: e.unit(cID), Moves: e.fightCard(cID).Moves >> 1}
 	e.turnWeapons(cID, t)
@@ -236,12 +234,13 @@ func (e *Engine) turnChoices(cID rules.CharID) map[int]rules.BoardPos {
 	return walks
 }
 
-// attackUnit (extra): verbAttack. Unit 0 aims first (combatMenu's Aim);
+// attackUnit (extra): verbAttack. Unit 0 aims first (combatMenu's Aim),
+// ranged with the Launcher or Missiles slot's weapon;
 // a foe of the turn's targets is attacked, a melee fighter walking up to
 // it first (Allowed's Walk, pathNextTo) when it stands out of reach.
-func (e *Engine) attackUnit(cID rules.CharID, n int, walks map[int]rules.BoardPos) bool {
+func (e *Engine) attackUnit(cID rules.CharID, n int, walks map[int]rules.BoardPos, ranged bool) bool {
 	if n == 0 {
-		e.playerAim(cID, 0xFF, 1, 0, aimThen{kind: atTurn}) // as the original: Tab cycles allies too, no foe needed
+		e.playerAim(cID, 0xFF, 1, 0, aimThen{kind: atTurn, ranged: ranged}) // as the original: Tab cycles allies too, no foe needed
 		return false
 	}
 	t := e.unitID(n)
@@ -261,7 +260,7 @@ func (e *Engine) attackUnit(cID rules.CharID, n int, walks map[int]rules.BoardPo
 			return false
 		}
 	}
-	found, _ := e.aimConfirm(cID, t, 1)
+	found, _ := e.aimConfirm(cID, t, 1, false)
 	e.later(resume{kind: rBool, ok: found})
 	return false
 }

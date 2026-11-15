@@ -47,7 +47,6 @@ type RuleState struct {
 	Area                            AreaVars                      // DS:49D2
 	Treasure                        []*Item                       // DS:6810 list: the items a fight or a script leaves to take
 	loadouts                        map[*Character]*loadout       // extra: weapons to give back after the battle (restoreLoadouts)
-	drawn                           *Character                    // extra: whose attacks this turn are ranged (Draw)
 	readyTo                         rules.ReadyTo                 // extra: where the player's Ready under way puts a weapon thrown or used in melee
 	Camp                            campState                     // ovr16/ovr21 globals
 	Training                        bool                          // the training hall is open (OpenTraining)

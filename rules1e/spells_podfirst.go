@@ -148,7 +148,7 @@ func (e *RuleState) fxOttosDancePod() {
 	t := e.tgt(1)
 	e.ApplyItems(t)
 	e.AffectGroup(t, grpArmour)
-	if e.AttackHits(e.Acting(), t, int(t.AC[0])) {
+	if e.AttackHits(e.Acting(), t, e.Hand(e.Acting()), int(t.AC[0])) {
 		e.AddAffectMsg(t, affDancingPod, e.spellAmount(int(spOttosIrresistibleDance)),
 			byte(e.cappedCasterLevel(int(spOttosIrresistibleDance))), 0, 0, false, "begins to dance wildly")
 	}

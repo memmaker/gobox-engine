@@ -176,10 +176,10 @@ func (e *RuleState) Adjacent(c *Character) []*Character {
 // Mod is c's 4e modifier for the ability, (score-10)/2 rounded down (PHB p. 17).
 func (e *RuleState) Mod(c *Character, a Ability) int { return (int(c.Stats[a]) - 10) >> 1 }
 
-// WeaponAbility is what c's scores add to its readied weapon's THAC0 and
-// damage (weaponStats), and whether it shoots.
-func (e *RuleState) WeaponAbility(c *Character) (hit, dmg int, missile bool) {
-	w := c.Slots[SlotWeapon]
+// WeaponAbility is what c's scores add to the THAC0 and damage of the
+// weapon it wields (weaponBlow), and whether it shoots.
+func (e *RuleState) WeaponAbility(c *Character, with Wield) (hit, dmg int, missile bool) {
+	w := with.Weapon
 	if w == nil {
 		return int(strHit(c)), int(strDamage(c)), false
 	}
@@ -272,32 +272,35 @@ func (e *RuleState) Shield(c *Character) bool {
 	return it != nil && e.Base(it.Type).Slot == SlotShield
 }
 
-// TwoHanded: c's weapon in hand takes both hands.
-func (e *RuleState) TwoHanded(c *Character) bool {
-	it := c.Slots[SlotWeapon]
-	return it != nil && e.Base(it.Type).Hands > 1
+// TwoHanded: the weapon wielded takes both hands.
+func (e *RuleState) TwoHanded(w Wield) bool {
+	return w.Weapon != nil && e.Base(w.Weapon.Type).Hands > 1
 }
 
 // Strike is one weapon attack of a on b outside a's attacks (a power's
 // second attack): its number to hit as attackSlots's, its damage dealt.
-func (e *RuleState) Strike(a, b *Character) (hit bool) {
+// w is what a strikes with.
+func (e *RuleState) Strike(a, b *Character, w Wield) (hit bool) {
+	by, was := e.Rv.By, e.Rv.With
+	e.Rv.By, e.Rv.With = a, w
+	defer func() { e.Rv.By, e.Rv.With = by, was }()
 	need := int(b.AC[0])
-	if e.RangedFacing(a, b) {
+	if e.RangedFacing(a, b, w) {
 		need = int(b.AC[1]) - 2
 	}
-	e.RangePenalty(a, b, &need)
+	e.RangePenalty(a, b, w, &need)
 	need = e.Rules().HitNeed(e, a, b, need)
 	mode := 1
-	if e.RangedFacing(a, b) {
+	if e.RangedFacing(a, b, w) {
 		mode = 2
 	}
-	if !e.AttackHits(a, b, need) {
+	if !e.AttackHits(a, b, w, need) {
 		e.Sound(string(rules.CueMiss))
 		e.attackText(a, b, mode, 0, 0, 0)
 		return false
 	}
 	e.Sound(e.hitEvent(b, "hit"))
-	e.DamageRoll(a, b, 1)
+	e.DamageRoll(a, b, w, 1)
 	e.attackText(a, b, mode, int(e.Rv.Damage), int(e.Rv.Damage), 1)
 	return true
 }
@@ -478,11 +481,7 @@ func (e *RuleState) StrikeOff(a, b *Character) bool {
 	if off == nil {
 		return false
 	}
-	main, thac0, dice, sides, bonus := a.Slots[SlotWeapon], a.THAC0, a.Dice, a.Sides, a.Bonus
-	a.Slots[SlotWeapon] = off
-	e.weaponStats(a)
-	defer func() { a.Slots[SlotWeapon], a.THAC0, a.Dice, a.Sides, a.Bonus = main, thac0, dice, sides, bonus }()
-	return e.Strike(a, b)
+	return e.Strike(a, b, Wield{Weapon: off})
 }
 
 // offHand: it, unreadied, would go into c's off hand: a one-handed weapon
@@ -495,7 +494,7 @@ func (e *RuleState) offHand(c *Character, it *Item) bool {
 }
 
 // Reach is how many squares c's weapon in hand strikes (1: next to it).
-func (e *RuleState) Reach(c *Character) int { return max(e.WeaponRange(c), 1) }
+func (e *RuleState) Reach(c *Character) int { return max(e.WeaponRange(e.Hand(c)), 1) }
 
 // afflictions are the lasting affects a 4e saving throw may end (Divine Mettle).
 var afflictions = []AffectType{AffHeld, affHeldFast, affParalyse2d8, affParalyseNotElf, affParalyse1d9, AffCharmed, affCharmGaze, affSnakeCharm, affFear, AffBlind, AffSlow}

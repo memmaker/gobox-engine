@@ -211,10 +211,10 @@ func (e *RuleState) CastTurnSpell(spell, a int, quit *bool) {
 // RangedFacing = ovr14:2574 (c, target): c may backstab the target: a thief
 // with no armour or leather, no weapon or a club, dagger or broad, long or
 // short sword, standing behind it (the direction from c to it is the one it faces).
-func (e *RuleState) RangedFacing(c, target *Character) bool {
+func (e *RuleState) RangedFacing(c, target *Character, with Wield) bool {
 	flag := false
-	w, armor := c.Slots[SlotWeapon], c.Slots[SlotArmor] // +0xCC, +0xD4
-	var wt ItemType                                     // uninitialised in the original when there is no weapon
+	w, armor := with.Weapon, c.Slots[SlotArmor] // +0xCC, +0xD4
+	var wt ItemType                             // uninitialised in the original when there is no weapon
 	if w != nil {
 		wt = w.Type
 	}
@@ -303,14 +303,14 @@ func (e *RuleState) AllyAttacked() {
 // CanTarget (aimPrompt's test, ovr14:2AA0): is Target offered for cand?
 // In range, and with a missile weapon: ammunition, and no foe adjacent
 // unless the weapon is thrown.
-func (e *RuleState) CanTarget(c, cand *Character, rng, showRange int) bool {
-	return e.TargetWhy(c, cand, rng, showRange) == ""
+func (e *RuleState) CanTarget(c, cand *Character, w Wield, rng, showRange int) bool {
+	return e.TargetWhy(c, cand, w, rng, showRange) == ""
 }
 
 // TargetWhy (extra) is canTarget's test with the reason it fails ("" when
 // it does not): in range, and with a missile weapon: ammunition, and no foe
 // adjacent unless the weapon is thrown.
-func (e *RuleState) TargetWhy(c, cand *Character, rng, showRange int) string {
+func (e *RuleState) TargetWhy(c, cand *Character, w Wield, rng, showRange int) string {
 	if e.RangeTo(c, cand) > rng {
 		return outOfRange(rng)
 	}
@@ -320,11 +320,11 @@ func (e *RuleState) TargetWhy(c, cand *Character, rng, showRange int) string {
 		return ""
 	case cand == c:
 		return "Not a target"
-	case !e.RangedWeapon(c):
+	case !e.RangedWeapon(w):
 		return ""
-	case !e.AmmoFor(c, &tmp):
+	case !e.AmmoFor(c, w, &tmp):
 		return "No ammunition"
-	case e.NearEnemies(c, 1) > 0 && !e.Throwable(c):
+	case e.NearEnemies(c, 1) > 0 && !e.Throwable(w):
 		return "A foe is too close to shoot"
 	}
 	return ""
@@ -341,12 +341,12 @@ func outOfRange(rng int) string {
 // AimCheck (extra) is aimPrompt's and aimManual's test of the square
 // (x, y) as the aim: who would be the target, and why it cannot be taken
 // ("" when it can). A combatant in sight (list) is tested as aimPrompt
-// does, any other square as aimManual's cursor.
-func (e *RuleState) AimCheck(c *Character, list []NearEntry, x, y, rng, showRange, allowGround int) (*Character, string) {
+// does, any other square as aimManual's cursor. w is what c aims with.
+func (e *RuleState) AimCheck(c *Character, w Wield, list []NearEntry, x, y, rng, showRange, allowGround int) (*Character, string) {
 	who, ground := e.MapAt(x, y)
 	if who > 0 && slices.ContainsFunc(list, func(n NearEntry) bool { return n.Index == byte(who) }) {
 		cand := e.Combatant(byte(who))
-		if why := e.TargetWhy(c, cand, rng, showRange); why != "" {
+		if why := e.TargetWhy(c, cand, w, rng, showRange); why != "" {
 			return cand, why
 		}
 		if !e.MayActAgainst(c, cand) {
@@ -385,11 +385,11 @@ func (e *RuleState) AimCheck(c *Character, list []NearEntry, x, y, rng, showRang
 	case cand == c || who == 0 && ground == e.grounds().Body:
 		return cand, "Not a target"
 	}
-	if e.RangedWeapon(c) {
+	if e.RangedWeapon(w) {
 		var tmp *Item
-		if !e.AmmoFor(c, &tmp) {
+		if !e.AmmoFor(c, w, &tmp) {
 			return cand, "No ammunition"
-		} else if e.NearEnemies(c, 1) > 0 && !e.Throwable(c) {
+		} else if e.NearEnemies(c, 1) > 0 && !e.Throwable(w) {
 			return cand, "A foe is too close to shoot"
 		}
 	}
@@ -453,7 +453,7 @@ func (e *RuleState) rake(c *Character, a *Affect, flag byte) {
 		c.Combat.AttackSlot = 2
 		c.Attacks[1], c.Dice[1], c.Sides[1], c.Attacks[0] = 2, 2, 4, 0
 		e.CombatSay(c, "Rakes...", true)
-		e.FullAttack(c, c.Combat.Target, 0, nil)
+		e.FullAttack(c, c.Combat.Target, e.Hand(c), 0, nil)
 		e.ClearCombatInfo(c)
 	}
 }
@@ -472,7 +472,7 @@ func (e *RuleState) strikeTied(c *Character, a *Affect, flag byte) {
 		return
 	}
 	c.Attacks[0], c.Attacks[1], c.Dice[0], c.Sides[0] = 1, 0, 3, 4
-	e.FullAttack(c, e.tiedTarget, 1, nil)
+	e.FullAttack(c, e.tiedTarget, e.Hand(c), 1, nil)
 	e.ClearCombatInfo(c)
 	if e.tiedTarget.Okay == 0 {
 		e.RemoveAffect(c, affStrikeTied, a)

@@ -372,7 +372,7 @@ func (e *RuleState) AiAttackLoop(c *Character) bool {
 		}
 		engaged := false
 		rng := 1
-		if w := c.Slots[SlotWeapon]; w != nil {
+		if w := e.aiWield(c).Weapon; w != nil {
 			rng = int(e.Base(w.Type).Range - 1)
 		}
 		if rng == 0 || rng == 0xFF {
@@ -405,10 +405,10 @@ func (e *RuleState) AiAttackLoop(c *Character) bool {
 				if tgt = e.Rules().Target(e, c, foes); tgt == nil { // extra: the rule set's pick
 					tgt = e.Combatant(byte(e.Targets[e.Dice(1, n)]))
 				}
-				if e.RangedWeapon(c) && !e.Throwable(c) && e.NearEnemies(c, 1) > 0 {
+				if w := e.aiWield(c); e.RangedWeapon(w) && !e.Throwable(w) && e.NearEnemies(c, 1) > 0 {
 					e.AiPickWeapon(c)
 					stop = true
-					if e.RangedWeapon(c) && !e.Throwable(c) { // the swap was refused (cursed): the round ends (the Pascal's fix of a soft lock)
+					if w := e.aiWield(c); e.RangedWeapon(w) && !e.Throwable(w) { // the swap was refused (cursed): the round ends (the Pascal's fix of a soft lock)
 						stop = e.aiGiveUp(c)
 					}
 					continue
@@ -427,13 +427,14 @@ func (e *RuleState) AiAttackLoop(c *Character) bool {
 		}
 		e.CountAttackTurn(c, tgt)
 		var weapon *Item
-		if e.RangedWeapon(c) {
-			e.AmmoFor(c, &weapon)
-			if e.Throwable(c) && e.RangeTo(c, tgt) == 1 {
+		with := e.aiWield(c)
+		if e.RangedWeapon(with) {
+			e.AmmoFor(c, with, &weapon)
+			if e.Throwable(with) && e.RangeTo(c, tgt) == 1 {
 				weapon = nil
 			}
 		}
-		stop = e.FullAttack(c, tgt, 0, weapon)
+		stop = e.FullAttack(c, tgt, with, 0, weapon)
 		if stop {
 			cont = false
 		} else if tgt.Okay == 0 {
@@ -446,7 +447,7 @@ func (e *RuleState) AiAttackLoop(c *Character) bool {
 // aiGiveUp = ovr10:0F4F (char): the turn ends; a combatant that cannot go
 // on is cleared, otherwise 00BA:2686 finishes it.
 func (e *RuleState) aiGiveUp(c *Character) bool {
-	if e.IsHelpless(c) || e.RangedWeapon(c) || c.Combat.Delay == 0 {
+	if e.IsHelpless(c) || e.RangedWeapon(e.aiWield(c)) || c.Combat.Delay == 0 {
 		return e.ClearCombatInfo(c)
 	}
 	return e.Guard(c)
@@ -578,7 +579,7 @@ func (e *RuleState) weaponScore(c *Character, it *Item) int {
 // weapon, and the best second item, and ready them.
 func (e *RuleState) AiPickWeapon(c *Character) {
 	e.saveLoadout(c)
-	e.undraw() // extra: the weapon in hand, as the scoring expects
+	c.Combat.Ranged = false // extra: chosen anew
 	b := func(it *Item) *ItemBase { return e.Base(it.Type) }
 	if w := c.Slots[SlotWeapon]; w != nil {
 		c.Hands -= b(w).Hands
@@ -661,7 +662,7 @@ func (e *RuleState) AiPickWeapon(c *Character) {
 		done = true
 	}
 	e.ApplyItems(c)
-	e.SetSpeed(c)
+	e.SetSpeed(c, e.Hand(c))
 	ok = true
 	if w := c.Slots[SlotShield]; w != nil && (w == best3 || w.Cursed != 0) {
 		ok = false
@@ -693,7 +694,8 @@ func (e *RuleState) AiPickWeapon(c *Character) {
 
 // aiDrawRanged (extra): a chosen launcher or thrown-only weapon readies
 // into its own slot (no hands: the weapon in hand and the shield stay) and
-// is drawn for the turn's attacks (Draw); false for a weapon of the hand.
+// is what the turn's attacks are made with (Combat.Ranged, aiWield); false
+// for a weapon of the hand.
 func (e *RuleState) aiDrawRanged(c *Character, chosen *Item) bool {
 	if s := e.readySlot(chosen.Type); s != SlotLauncher && s != SlotMissiles {
 		return false
@@ -706,10 +708,14 @@ func (e *RuleState) aiDrawRanged(c *Character, chosen *Item) bool {
 		e.ReadyItem(chosen)
 	}
 	e.ApplyItems(c)
-	e.Draw(c, true)
-	e.SetSpeed(c)
+	c.Combat.Ranged = true
+	e.SetSpeed(c, e.aiWield(c))
 	return true
 }
+
+// aiWield (extra) is what the computer strikes with this turn: its
+// Launcher or Missiles slot when it chose it (AiPickWeapon), else its hand.
+func (e *RuleState) aiWield(c *Character) Wield { return e.Wielding(c, c.Combat.Ranged) }
 
 // AiPathDir (extra) is the first step of the cheapest walk (A*, in
 // moves: 2 a step, 3 diagonally, times the ground's cost) that brings c

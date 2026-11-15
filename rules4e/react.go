@@ -89,12 +89,12 @@ func (r *Rules) immediate(c *rules1e.Character) bool {
 func (r *Rules) Attacking(e *rules1e.RuleState, a, b *rules1e.Character) {
 	if f := r.marks[a]; f != nil && f != b && f.Level(fighter) > 0 && f.Side != a.Side && r.has(a, marked) && e.Distance(f, a) == 1 && r.immediate(f) {
 		e.Say(f, "answers the challenge")
-		e.Strike(f, a)
+		e.Strike(f, a, e.WieldOf(f))
 	}
 	if t := r.riposte[a]; t == b && a.Okay != 0 && e.Distance(a, b) == 1 && r.immediate(b) {
 		delete(r.riposte, a)
 		e.Say(b, "ripostes")
-		e.Strike(b, a)
+		e.Strike(b, a, e.WieldOf(b))
 	}
 }
 
@@ -158,7 +158,7 @@ func (r *Rules) react(e *rules1e.RuleState, a, b *rules1e.Character, hit bool) {
 		e.Say(b, "uses fox's cunning")
 		shift(e, b, 1, a)
 		r.bonus[b] = max(e.Mod(b, rules1e.Wisdom), 0)
-		e.Strike(b, a)
+		e.Strike(b, a, e.WieldOf(b))
 		delete(r.bonus, b)
 	}
 }

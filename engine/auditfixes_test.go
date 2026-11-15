@@ -31,7 +31,7 @@ func TestAuditCSpeedNoExtraAttacks(t *testing.T) {
 	e.initVM()
 	c := &rules1e.Character{Combat: &rules1e.CombatInfo{Attacked: 1}}
 	c.BaseAttack[0], c.Attacks[0] = 2, 0
-	e.state().SetSpeed(c)
+	e.state().SetSpeed(c, e.state().Hand(c))
 	if c.Attacks[0] != 0 {
 		t.Fatalf("attacks %d", c.Attacks[0])
 	}

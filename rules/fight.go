@@ -142,6 +142,7 @@ type FightCard struct {
 type AimFact struct {
 	Range, ShowRange int
 	FoesOnly         bool
+	Ranged           bool // a weapon aim (Range 0xFF) with the Launcher or Missiles slot's weapon, not the one in hand
 }
 
 // AimOffer: the resolved Range, the fighters in sight (Near, the order
@@ -160,6 +161,7 @@ type AimCheckFact struct {
 	At               BoardPos
 	Range, ShowRange int
 	Ground           bool // a bare square may be taken
+	Ranged           bool // as AimFact's
 }
 
 // AimCheck: who stands at the square (NoChar: nobody, or a body's owner),

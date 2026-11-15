@@ -50,7 +50,7 @@ func (e *Engine) maneuver(cID rules.CharID, id int, walks map[int]rules.BoardPos
 	case rules.AimWeapon:
 		if m.Move == 0 {
 			e.maneuverArm(cID, id)
-			return e.attackUnit(cID, 0, walks)
+			return e.attackUnit(cID, 0, walks, false)
 		}
 		from := e.at(cID)
 		if len(e.squares(cID, m.Move)) == 0 { // nowhere to move: straight to the attack's aim

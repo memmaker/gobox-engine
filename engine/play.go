@@ -501,11 +501,7 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 				add(game.Attack{Target: t})
 			}
 			if e.battle().Turn.Missile != nil { // Ranged: only with a launcher and its ammunition, or a missile, readied (WeaponFact Ranged)
-				c := e.unitID(b.Turn.Unit)
-				e.must(rules.Draw{Who: c, Ranged: true}) // the reach is the Ranged weapon's: drawn as VerbShoot draws it, the weapon in hand again after (turnChoices)
-				sq := e.aimSquares(b, 0xFF, 1, false, false) // attackUnit's aim
-				e.must(rules.Draw{Who: c})
-				a.Aimed = append(a.Aimed, game.Aimed{Action: game.Shoot{}, Squares: sq, Targets: 1})
+				a.Aimed = append(a.Aimed, game.Aimed{Action: game.Shoot{}, Squares: e.aimSquares(b, aimOf{rng: 0xFF, showRange: 1, ranged: true}), Targets: 1}) // attackUnit's Ranged aim
 			}
 		}
 		if slices.Contains(can, VerbManeuver) {
@@ -514,7 +510,7 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 				case rules.AimSelf, rules.AimWeapon:
 					add(game.DoManeuver{ID: int(m.ID)})
 				default: // maneuver's aims: a square of the area, else a foe or an ally
-					sq := e.aimSquares(b, m.Range, 0, m.Aim == rules.AimFoe, m.Aim == rules.AimArea)
+					sq := e.aimSquares(b, aimOf{rng: m.Range, foesOnly: m.Aim == rules.AimFoe, ground: m.Aim == rules.AimArea})
 					a.Aimed = append(a.Aimed, game.Aimed{Action: game.DoManeuver{ID: int(m.ID)}, Squares: sq, Targets: 1, Area: m.Area})
 				}
 			}
@@ -636,19 +632,26 @@ func (e *Engine) spellReach(b *game.Combat, spell int) []rules.BoardPos {
 	c := e.unitID(b.Turn.Unit)
 	e.as(e.sel)
 	aim := e.fact(c, rules.SpellAimFact{Spell: e.spellID(spell)}).(rules.SpellAim)
-	return e.aimSquares(b, aim.Range, 0, aim.FoesOnly, aim.Kind == rules.SpellAimArea)
+	return e.aimSquares(b, aimOf{rng: aim.Range, foesOnly: aim.FoesOnly, ground: aim.Kind == rules.SpellAimArea})
+}
+
+// aimOf is an aim as playerAim takes it: its range (0xFF: the weapon's)
+// and showRange (1: a weapon aim), foes only, a bare square taken (ground),
+// and for a weapon aim the Launcher or Missiles slot's weapon (ranged).
+type aimOf struct {
+	rng, showRange           int
+	foesOnly, ground, ranged bool
 }
 
 // aimSquares is the squares the turn's fighter can aim at, by the rules'
-// own offer and check as the aim itself runs them (playerAim's rangeArg and
-// showRange; ground: a bare square may be taken). Gobox offers only these:
-// none is no target in reach.
-func (e *Engine) aimSquares(b *game.Combat, rangeArg, showRange int, foesOnly, ground bool) []rules.BoardPos {
+// own offer and check as the aim itself runs them. Gobox offers only
+// these: none is no target in reach.
+func (e *Engine) aimSquares(b *game.Combat, a aimOf) []rules.BoardPos {
 	c := e.unitID(b.Turn.Unit)
 	e.as(e.sel)
-	o := e.fact(c, rules.AimFact{Range: rangeArg, ShowRange: showRange, FoesOnly: foesOnly}).(rules.AimOffer)
+	o := e.fact(c, rules.AimFact{Range: a.rng, ShowRange: a.showRange, FoesOnly: a.foesOnly, Ranged: a.ranged}).(rules.AimOffer)
 	return slices.DeleteFunc(inRange(b, o.Range), func(at rules.BoardPos) bool {
-		return e.fact(c, rules.AimCheckFact{Near: o.Near, At: at, Range: o.Range, ShowRange: showRange, Ground: ground}).(rules.AimCheck).Why != ""
+		return e.fact(c, rules.AimCheckFact{Near: o.Near, At: at, Range: o.Range, ShowRange: a.showRange, Ground: a.ground, Ranged: a.ranged}).(rules.AimCheck).Why != ""
 	})
 }
 

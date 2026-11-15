@@ -116,7 +116,7 @@ func (e *RuleState) applySpell(spell, level, call, dmg, dmgType int, msg string)
 		if e.SpellRec(e.CurSpell, 2) == 0xFF {
 			e.ApplyItems(t)
 			e.AffectGroup(t, 0xB)
-			if !e.AttackHits(e.Acting(), t, int(t.AC[0])) {
+			if !e.AttackHits(e.Acting(), t, e.Hand(e.Acting()), int(t.AC[0])) {
 				dmg = 0
 				saved = true
 			}

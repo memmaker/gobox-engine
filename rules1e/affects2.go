@@ -651,7 +651,7 @@ func (e *RuleState) halveVsMagicWeapon(c *Character, a *Affect, flag byte) {
 // holyWaterDamage = ovr13:2B20 (c, a, flag): holy water readied by the
 // selected character makes the damage 1d6+1.
 func (e *RuleState) holyWaterDamage(c *Character, a *Affect, flag byte) {
-	if w := e.Acting().Slots[SlotWeapon]; w != nil && e.isKind(w.Type, ItemIDHolyWater) {
+	if w := e.WieldOf(e.Acting()).Weapon; w != nil && e.isKind(w.Type, ItemIDHolyWater) {
 		e.Rv.Damage = int16(e.RollDice(1, 6) + 1)
 	}
 }
@@ -678,7 +678,7 @@ func (e *RuleState) onlyMagicOrStrong(c *Character, a *Affect, flag byte) {
 // dodgeBoulders = ovr13:2BC8 (c, a, flag): a boulder or giant boulder thrown
 // by the selected character may be avoided (50%) from afar.
 func (e *RuleState) dodgeBoulders(c *Character, a *Affect, flag byte) {
-	if w := e.Acting().Slots[SlotWeapon]; w != nil && e.isKind(w.Type, ItemIDBoulder, ItemIDGiantBoulder) {
+	if w := e.WieldOf(e.Acting()).Weapon; w != nil && e.isKind(w.Type, ItemIDBoulder, ItemIDGiantBoulder) {
 		e.avoidDistantAttack(c, 0x32)
 	}
 }
@@ -706,7 +706,7 @@ func (e *RuleState) SpitAcid(c *Character, a *Affect, flag byte) {
 // oilDamage = ovr13:2D38 (c, a, flag): oil readied by the selected character
 // makes the damage 3d8; fire or magic types (mask 9) add the dice count.
 func (e *RuleState) oilDamage(c *Character, a *Affect, flag byte) {
-	if w := e.Acting().Slots[SlotWeapon]; w != nil && e.isKind(w.Type, ItemIDOil) {
+	if w := e.WieldOf(e.Acting()).Weapon; w != nil && e.isKind(w.Type, ItemIDOil) {
 		e.Rv.Damage = int16(e.RollDice(3, 8))
 	}
 	if e.Rv.DmgType&(DmgFire|DmgMagic) != 0 {

@@ -150,16 +150,16 @@ func TestDevMissileShoots(t *testing.T) {
 			continue
 		}
 		a := e.member(e.cs.actor)
-		e.must(rules.Draw{Who: e.cs.actor, Ranged: true}) // the Launcher slot's weapon, as Shoot draws it
-		rng := e.state().WeaponRange(a)
+		w, _ := e.state().Ranged(a) // the Launcher slot's weapon, as Shoot uses it
+		rng := e.state().WeaponRange(w)
 		var foe *rules1e.Character
 		for i := 1; i <= e.state().Ncomb; i++ {
-			if f := e.state().CombatantSlots[i-1]; f != nil && f.Side != a.Side && e.state().CanTarget(a, f, rng, 1) {
+			if f := e.state().CombatantSlots[i-1]; f != nil && f.Side != a.Side && e.state().CanTarget(a, f, w, rng, 1) {
 				foe = f
 			}
 		}
-		if !e.state().RangedWeapon(a) || foe == nil {
-			if rng < 3 && e.state().RangedWeapon(a) {
+		if !e.state().RangedWeapon(w) || foe == nil {
+			if rng < 3 && e.state().RangedWeapon(w) {
 				t.Fatalf("%s's launcher reaches %d squares", a.Name(), rng)
 			}
 			e.doNow(game.Delay{}) // the foes come closer

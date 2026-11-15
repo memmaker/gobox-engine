@@ -117,7 +117,7 @@ func TestFixesAgainstPascal(t *testing.T) {
 			c.Combat = &rules1e.CombatInfo{Attacked: byte(k[3])}
 			e.state().CombatRound = byte(k[0])
 			c.BaseAttack[0], c.Attacks[0] = rules1e.Count(k[1]), rules1e.Count(k[2])
-			e.state().SetSpeed(c)
+			e.state().SetSpeed(c, e.state().Hand(c))
 			got = fmt.Sprint(c.Attacks[0])
 		}
 		if got != val {

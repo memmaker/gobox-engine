@@ -80,7 +80,7 @@ func ready(r *rules1e.RuleState, c *rules1e.Character, ty rules1e.ItemType) *rul
 // TestLauncherMissilesSlots (extra): a bow readies into the Launcher slot
 // and a thrown-only weapon into the Missiles slot, by their base records,
 // beside sword and shield (they take no hands); Attack uses the sword,
-// Ranged (Draw) the bow with its arrows, or the thrown flask once it has
+// Ranged (Wield) is the bow with its arrows, or the thrown flask once it has
 // taken the arrows' Missiles box.
 func TestLauncherMissilesSlots(t *testing.T) {
 	e := quickStarted(t)
@@ -100,14 +100,9 @@ func TestLauncherMissilesSlots(t *testing.T) {
 	if tw.Weapon == nil || tw.Missile == nil || tw.Weapon.Item != e.r1e().Handle(sword) || tw.Missile.Item != e.r1e().Handle(bow) {
 		t.Errorf("turn weapons %+v / %+v", tw.Weapon, tw.Missile)
 	}
-	e.must(rules.Draw{Who: cID, Ranged: true})
 	var ammo *rules1e.Item
-	if c.Slots[rules1e.SlotWeapon] != bow || !r.AmmoFor(c, &ammo) || ammo != arrows {
-		t.Errorf("Ranged: bow in hand %v, ammo arrows %v", c.Slots[rules1e.SlotWeapon] == bow, ammo == arrows)
-	}
-	e.must(rules.Draw{Who: cID})
-	if c.Slots[rules1e.SlotWeapon] != sword {
-		t.Error("Attack: the sword not in hand")
+	if w, ok := r.Ranged(c); !ok || w.Weapon != bow || !r.AmmoFor(c, w, &ammo) || ammo != arrows || r.Hand(c).Weapon != sword {
+		t.Errorf("Ranged: the bow %v, ammo arrows %v, the sword still in hand %v", w.Weapon == bow, ammo == arrows, r.Hand(c).Weapon == sword)
 	}
 	oil := r.AddItemCopy(c, r.RandomItem(rules1e.ItemOil))
 	r.SwapReady(c, oil) // the Missiles box: the arrows come off
@@ -115,13 +110,8 @@ func TestLauncherMissilesSlots(t *testing.T) {
 	if c.Slots[rules1e.SlotMissiles] != oil || c.Slots[rules1e.SlotArrows] != nil || c.Slots[rules1e.SlotWeapon] != sword || c.Slots[rules1e.SlotShield] != shield {
 		t.Fatalf("oil in Missiles %v, arrows %v, sword %v (%s)", c.Slots[rules1e.SlotMissiles] == oil, c.Slots[rules1e.SlotArrows], c.Slots[rules1e.SlotWeapon] == sword, e.ext.note)
 	}
-	e.must(rules.Draw{Who: cID, Ranged: true})
-	if c.Slots[rules1e.SlotWeapon] != oil || !r.AmmoFor(c, &ammo) || ammo != oil {
-		t.Errorf("Ranged: the flask in hand %v, used up %v", c.Slots[rules1e.SlotWeapon] == oil, ammo == oil)
-	}
-	e.must(rules.OpenTurn{Actor: cID}) // the next turn: the weapon in hand again
-	if c.Slots[rules1e.SlotWeapon] != sword {
-		t.Error("a new turn kept the flask in hand")
+	if w, ok := r.Ranged(c); !ok || w.Weapon != oil || !r.AmmoFor(c, w, &ammo) || ammo != oil || r.Hand(c).Weapon != sword {
+		t.Errorf("Ranged: the flask %v, used up %v, the sword still in hand %v", w.Weapon == oil, ammo == oil, r.Hand(c).Weapon == sword)
 	}
 }
 

@@ -52,7 +52,7 @@ func testAimOffersAccepted(t *testing.T, mk func(*testing.T) *Engine) {
 		e.aimApply(TurnAct{Verb: VerbClose})
 	}
 	check("attack", 0xFF, 1, 0) // as the original: allies too, with or without a foe at hand
-	e.attackUnit(e.charID(c), 0, nil)
+	e.attackUnit(e.charID(c), 0, nil, false)
 	if e.cs.aim == nil { // parity: no "No foe in reach" before the aim
 		t.Fatal("Attack opened no aim")
 	}
@@ -69,9 +69,8 @@ func testAimOffersAccepted(t *testing.T, mk func(*testing.T) *Engine) {
 	if c.Slots[rules1e.SlotMissiles] != j && c.Slots[rules1e.SlotWeapon] != j {
 		t.Fatalf("thrown weapon readied %d, not in the Missiles slot or in hand", j.Readied)
 	}
-	e.must(rules.Draw{Who: e.charID(c), Ranged: true})
-	e.attackUnit(e.charID(c), 0, nil)
-	if e.cs.aim == nil || c.Slots[rules1e.SlotWeapon] != j {
+	e.attackUnit(e.charID(c), 0, nil, true)
+	if e.cs.aim == nil {
 		t.Fatal("Ranged with a thrown weapon opened no aim")
 	}
 	e.aimApply(TurnAct{Verb: VerbClose})

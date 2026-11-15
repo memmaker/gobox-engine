@@ -16,7 +16,8 @@ import (
 func (e *RuleState) TurnSetup(c *Character) {
 	cb := c.Combat
 	cb.Spell, cb.CanCast, cb.CanUse, cb.Attacked, cb.AttackSlot = 0, 1, 1, 0, 2
-	e.SetSpeed(c)
+	cb.Ranged = false
+	e.SetSpeed(c, e.Hand(c))
 	e.turnValue = byte(c.BaseAttack[1])
 	e.modMoves = 0
 	e.AffectGroup(c, 0x12)
@@ -60,22 +61,40 @@ func (e *RuleState) MoveRate(c *Character) int {
 // DamageRoll = ovr14:0191 (att, vic, slot): damage roll of the attack slot (1 or 2)
 // (the rule set's Dealt), tripled-or-so for a backstab, then the
 // affects of groups 4 (attacker) and 5 (victim) may change DS:6818.
-func (e *RuleState) DamageRoll(a, b *Character, slot int) {
+func (e *RuleState) DamageRoll(a, b *Character, w Wield, slot int) {
 	h := Hit{Dice: int(a.Dice[slot-1]), Sides: int(a.Sides[slot-1]), Bonus: int(int8(a.Bonus[slot-1]))}
+	if slot == 1 && !w.own { // extra: not the weapon hand's: the weapon's own figures, the fighter's untouched
+		bl := e.weaponBlow(a, w.Weapon)
+		if largeTarget(b) {
+			bl = e.largeBlow(bl, w.Weapon)
+		}
+		h = Hit{Dice: int(bl.dice), Sides: int(bl.sides), Bonus: int(int8(bl.bonus))}
+	}
 	h.Roll = e.RollDice(h.Dice, h.Sides)
-	if slot == 1 { // weaponStats: the strength adds to the readied weapon's hand
-		_, h.Ability, _ = e.WeaponAbility(a)
+	if slot == 1 { // weaponBlow: the strength adds to the weapon's hand
+		_, h.Ability, _ = e.WeaponAbility(a, w)
 	}
 	// extra: the rule set's; the original holds it in a byte and compares it
 	// with 0 "above or equal": a negative roll wraps (kept, T4d)
 	e.Rv.Damage = int16(byte(e.Rules().Dealt(e, a, b, h)))
-	if e.RangedFacing(a, b) && e.Rules().Backstabs(e) {
+	if e.RangedFacing(a, b, w) && e.Rules().Backstabs(e) {
 		// thief level div 4 + 2, as the original (Felix's ruling 17: the higher multiple)
 		e.Rv.Damage = int16(int(e.Rv.Damage) * (int(a.Levels[ClsThief])>>2 + 2))
 	}
 	e.Rv.DmgType = 0
 	e.AffectGroup(a, 4)
 	e.AffectGroup(b, 5)
+}
+
+// largeTarget: b is one the weapons have their own dice for (attackSlots' test of the size).
+func largeTarget(b *Character) bool { return b.Size > 0x80 || b.Size&7 > 1 }
+
+// largeBlow is bl with weapon w's dice for a large target.
+func (e *RuleState) largeBlow(bl blow, w *Item) blow {
+	base := e.Base(w.Type)
+	bl.dice, bl.sides = Count(base.LargeDice), Count(base.LargeSides)
+	bl.bonus = Modifier(int(int8(bl.bonus)) - int(int8(base.Bonus)) + int(int8(base.LargeBonus)))
+	return bl
 }
 
 // attackText = ovr14:02F9 (att, vic, kind, damage, shown, hit): the attack text. kind 1 is
@@ -152,7 +171,7 @@ func (e *RuleState) waitingFoesStrike(c *Character) {
 		}
 		t.Combat.Guarding = 0
 		e.CountAttackTurn(t, c)
-		e.FullAttack(t, c, 0, nil)
+		e.FullAttack(t, c, e.Hand(t), 0, nil)
 	}
 }
 
@@ -258,7 +277,7 @@ func (e *RuleState) freeAttacksOnLeave(c *Character, dir int) {
 			tcb.AttackSlot = byte(w)
 			saved := t.Combat.Target
 			e.Fight.free = true // extra: Opportunity
-			e.FullAttack(t, c, 1, nil)
+			e.FullAttack(t, c, e.Hand(t), 1, nil)
 			e.Fight.free = false
 			attacked = true
 			t.Combat.Target = saved
@@ -292,16 +311,16 @@ func (e *RuleState) TryFlee(c *Character) bool {
 
 // SetSpeed = ovr14:0D23 (char): the character's speed in +0x113 from its movement base
 // (+0xA1) or the readied weapon's speed (DS:5582 record +5, at least 2).
-func (e *RuleState) SetSpeed(c *Character) {
+func (e *RuleState) SetSpeed(c *Character, w Wield) {
 	flag := false
 	old := c.Attacks[0]
 	c.Attacks[0] = c.BaseAttack[0]
 	var it *Item
-	if e.RangedWeapon(c) && e.AmmoFor(c, &it) {
+	if e.RangedWeapon(w) && e.AmmoFor(c, w, &it) {
 		flag = true
 		v := byte(0) // (the original reads the item at +0xCC unchecked)
-		if c.Slots[SlotWeapon] != nil {
-			v = e.Base(c.Slots[SlotWeapon].Type).Speed
+		if w.Weapon != nil {
+			v = e.Base(w.Weapon.Type).Speed
 		}
 		if v < 2 {
 			v = 2
@@ -365,7 +384,7 @@ func (e *RuleState) Sweep(a, b *Character) bool {
 					if t.MaxLevel == 0 {
 						e.CountAttackTurn(a, t)
 						a.Attacks[0] = 1
-						e.FullAttack(a, t, 0, nil)
+						e.FullAttack(a, t, e.Hand(a), 0, nil)
 						cnt--
 					}
 				}
@@ -479,8 +498,12 @@ func (e *RuleState) canTurn(c *Character) bool {
 const turnDie = 0x14
 
 // attackSlots = ovr14:1406 (att, vic, w, var done): the attacker's attack slots against the
-// victim; done is 1 when the attacker has used all its attacks.
-func (e *RuleState) attackSlots(a, b *Character, w int) (done bool) {
+// victim; done is 1 when the attacker has used all its attacks. with is
+// what the attacker strikes with.
+func (e *RuleState) attackSlots(a, b *Character, with Wield, w int) (done bool) {
+	by, was := e.Rv.By, e.Rv.With
+	e.Rv.By, e.Rv.With = a, with
+	defer func() { e.Rv.By, e.Rv.With = by, was }()
 	acb := a.Combat
 	done = false
 	e.slotHits[1], e.slotHits[2] = 0, 0
@@ -507,17 +530,15 @@ func (e *RuleState) attackSlots(a, b *Character, w int) (done bool) {
 		any = true
 		done = true
 	} else {
-		if a.Slots[SlotWeapon] != nil && (b.Size > 0x80 || b.Size&7 > 1) {
-			typ := a.Slots[SlotWeapon].Type
-			a.Dice[0] = Count(e.Base(typ).LargeDice)
-			a.Sides[0] = Count(e.Base(typ).LargeSides)
-			a.Bonus[0] = Modifier(int(int8(a.Bonus[0])) - int(int8(e.Base(typ).Bonus)) + int(int8(e.Base(typ).LargeBonus)))
+		if with.own && with.Weapon != nil && largeTarget(b) { // the weapon hand's figures are the fighter's own, changed as the original's (until ApplyItems); another weapon's are worked out in DamageRoll
+			bl := e.largeBlow(blow{dice: a.Dice[0], sides: a.Sides[0], bonus: a.Bonus[0]}, with.Weapon)
+			a.Dice[0], a.Sides[0], a.Bonus[0] = bl.dice, bl.sides, bl.bonus
 		}
 		e.ApplyItems(b)
 		e.AffectGroup(b, 0xB)
 		hand := 0
 		var need byte
-		if e.RangedFacing(a, b) {
+		if e.RangedFacing(a, b, with) {
 			need = byte(b.AC[1] - 2)
 		} else {
 			if b.Combat.Attackers > 1 && byte(e.directionTo(a, b)) == b.Combat.Facing && b.Combat.Flank > 4 {
@@ -529,13 +550,13 @@ func (e *RuleState) attackSlots(a, b *Character, w int) (done bool) {
 			need = byte(b.AC[hand])
 		}
 		bonus := int(need)
-		e.RangePenalty(a, b, &bonus)
+		e.RangePenalty(a, b, with, &bonus)
 		need = byte(e.Rules().HitNeed(e, a, b, bonus))
 		mode := 0
 		if w != 0 {
 			mode = 1
 		}
-		if e.RangedFacing(a, b) {
+		if e.RangedFacing(a, b, with) {
 			mode = 2
 		}
 		for s := int(acb.AttackSlot); s >= 1; s-- {
@@ -543,11 +564,11 @@ func (e *RuleState) attackSlots(a, b *Character, w int) (done bool) {
 				a.Attacks[s-1]--
 				acb.AttackSlot = byte(s)
 				e.SlotShots[s]++
-				if e.AttackHits(a, b, int(need)) || e.IsHelpless(b) {
+				if e.AttackHits(a, b, with, int(need)) || e.IsHelpless(b) {
 					e.slotHits[s]++
 					e.Sound(e.hitEvent(b, "hit")) // extra: the weapon-hit sound (the original's bump is barely audible)
 					any = true
-					e.DamageRoll(a, b, s)
+					e.DamageRoll(a, b, with, s)
 					e.attackText(a, b, mode, int(e.Rv.Damage), int(e.Rv.Damage), 1)
 					if b.Okay != 0 && e.Rules().Special(e, a) {
 						e.AffectGroup(a, s+1)
@@ -593,9 +614,9 @@ func (e *RuleState) CountAttackTurn(att, vic *Character) {
 }
 
 // FullAttack = ovr14:1884 (att, vic, flag, item, var done): a full attack of att on vic
-// (turning both, then the slots of attackSlots). item is a thrown item that is
-// spent; done is set when the attacker's turn ends.
-func (e *RuleState) FullAttack(a, b *Character, flag int, it *Item) (done bool) {
+// (turning both, then the slots of attackSlots). w is what a strikes with;
+// item is a thrown item that is spent; done is set when the attacker's turn ends.
+func (e *RuleState) FullAttack(a, b *Character, w Wield, flag int, it *Item) (done bool) {
 	if b.Combat.Attackers < 3 && flag == 0 {
 		e.TurnTo(b, byte(e.directionTo(b, a)))
 	}
@@ -605,8 +626,8 @@ func (e *RuleState) FullAttack(a, b *Character, flag int, it *Item) (done bool) 
 	if it != nil {
 		e.attackAnimation(a, b, it)
 	}
-	if a.Slots[SlotWeapon] != nil && e.isKind(a.Slots[SlotWeapon].Type, ItemIDSling) {
-		e.attackAnimation(a, b, a.Slots[SlotWeapon])
+	if w.Weapon != nil && e.isKind(w.Weapon.Type, ItemIDSling) {
+		e.attackAnimation(a, b, w.Weapon)
 	}
 	done = true
 	if a.Attacks[0] > 0 || a.Attacks[1] > 0 {
@@ -616,13 +637,13 @@ func (e *RuleState) FullAttack(a, b *Character, flag int, it *Item) (done bool) 
 				e.Who = i
 			}
 		}
-		done = e.attackSlots(a, b, flag)
+		done = e.attackSlots(a, b, w, flag)
 		if it != nil {
 			if it.Count > 0 {
 				it.Count -= byte(e.SlotShots[1])
 			}
 			if it.Count == 0 {
-				if e.Throwable(a) && it.Spells[2] != ItemPower(affEndsSpiritualHammer) {
+				if e.Throwable(w) && it.Spells[2] != ItemPower(affEndsSpiritualHammer) {
 					cp := *it
 					n := &cp
 					e.Treasure = append([]*Item{n}, e.Treasure...)
@@ -645,11 +666,11 @@ func (e *RuleState) FullAttack(a, b *Character, flag int, it *Item) (done bool) 
 
 // RangePenalty = ovr14:1B1E (att, vic, var need): the attacker's range band: every full
 // weapon range band beyond the first adds 2, then 3, to the number to hit.
-func (e *RuleState) RangePenalty(a, b *Character, need *int) {
+func (e *RuleState) RangePenalty(a, b *Character, w Wield, need *int) {
 	d := e.RangeTo(a, b)
 	f := d
-	if e.RangedWeapon(a) {
-		f = (int(e.Base(a.Slots[SlotWeapon].Type).Range) - 1) / 3
+	if e.RangedWeapon(w) {
+		f = (int(e.Base(w.Weapon.Type).Range) - 1) / 3
 	}
 	if d-f > 0 {
 		d -= f

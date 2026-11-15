@@ -488,10 +488,11 @@ type spellAim struct {
 
 // aimThen is what the results of an aim go on with.
 type aimThen struct {
-	kind aimThenKind
-	c    rules.CharID
-	id   int            // the maneuver
-	from rules.BoardPos // the square the maneuver began on
+	kind   aimThenKind
+	ranged bool // a weapon aim: with the Launcher or Missiles slot's weapon (the Ranged action), not the one in hand
+	c      rules.CharID
+	id     int            // the maneuver
+	from   rules.BoardPos // the square the maneuver began on
 }
 
 type aimThenKind byte

@@ -245,7 +245,7 @@ var powers = []power{
 	{Maneuver: m(20, "Reaping Strike", "On a miss, half your Strength modifier in damage (all of it with a two-handed weapon).", rules1e.AimWeapon, 0), classes: []rules1e.Class{fighter}, kind: atWill,
 		onMiss: func(_ *Rules, e *rules1e.RuleState, a, b *rules1e.Character) {
 			d := e.Mod(a, rules1e.Strength)
-			if !e.TwoHanded(a) {
+			if !e.TwoHanded(e.WieldOf(a)) {
 				d /= 2
 			}
 			if d > 0 {
@@ -284,7 +284,7 @@ var powers = []power{
 			}
 			if f := pick(others); f != nil {
 				r.second[a] = true
-				e.Strike(a, f)
+				e.Strike(a, f, e.WieldOf(a))
 				delete(r.second, a)
 			}
 		}},
@@ -342,7 +342,7 @@ var powers = []power{
 		use: func(_ *Rules, e *rules1e.RuleState, c, _ *rules1e.Character) bool {
 			e.Say(c, "whirls like a dire wolverine")
 			for _, f := range e.Adjacent(c) {
-				e.Strike(c, f)
+				e.Strike(c, f, e.WieldOf(c))
 			}
 			return true
 		}},
@@ -354,7 +354,7 @@ var powers = []power{
 			}
 			hit := false
 			if missile(e, a) {
-				hit = e.Strike(a, b)
+				hit = e.Strike(a, b, e.WieldOf(a))
 			} else {
 				hit = e.StrikeOff(a, b)
 			}
@@ -366,7 +366,7 @@ var powers = []power{
 		},
 		onMiss: func(_ *Rules, e *rules1e.RuleState, a, b *rules1e.Character) {
 			if missile(e, a) {
-				e.Strike(a, b)
+				e.Strike(a, b, e.WieldOf(a))
 			} else {
 				e.StrikeOff(a, b)
 			}
@@ -790,13 +790,13 @@ func (r *Rules) once(c *rules1e.Character, id int) bool {
 
 // lightBlade: c wields a light blade (a dagger, a short sword).
 func lightBlade(e *rules1e.RuleState, c *rules1e.Character) bool {
-	k := e.KindOf(e.Wielded(c, false))
+	k := e.KindOf(e.WieldOf(c).Weapon)
 	return k == rules1e.Dagger || k == rules1e.ShortSword
 }
 
 // rogueWeapon: c wields a light blade, a crossbow or a sling.
 func rogueWeapon(e *rules1e.RuleState, c *rules1e.Character) bool {
-	k := e.KindOf(e.Wielded(c, false))
+	k := e.KindOf(e.WieldOf(c).Weapon)
 	return lightBlade(e, c) || k == rules1e.Crossbow || k == rules1e.Sling
 }
 
@@ -826,7 +826,7 @@ func second(e *rules1e.RuleState, a, b *rules1e.Character) {
 	switch {
 	case f == nil:
 	case missile(e, a):
-		e.Strike(a, f)
+		e.Strike(a, f, e.WieldOf(a))
 	default:
 		e.StrikeOff(a, f)
 	}
@@ -847,7 +847,7 @@ func (r *Rules) OffHand(e *rules1e.RuleState, c *rules1e.Character, it *rules1e.
 
 // missile: c wields a bow or crossbow.
 func missile(e *rules1e.RuleState, c *rules1e.Character) bool {
-	_, _, m := e.WeaponAbility(c)
+	_, _, m := e.WeaponAbility(c, e.WieldOf(c))
 	return m
 }
 
@@ -855,10 +855,10 @@ func missile(e *rules1e.RuleState, c *rules1e.Character) bool {
 // Talent, Rogue Weapon Talent (a dagger), Prime Shot.
 func (r *Rules) talent(e *rules1e.RuleState, a, b *rules1e.Character, missile bool) int {
 	n := 0
-	if picked(a, oneHanded) && !e.TwoHanded(a) && e.Wielded(a, false) != nil || picked(a, twoHanded) && e.TwoHanded(a) {
+	if picked(a, oneHanded) && !e.TwoHanded(e.WieldOf(a)) && e.WieldOf(a).Weapon != nil || picked(a, twoHanded) && e.TwoHanded(e.WieldOf(a)) {
 		n++
 	}
-	if a.Level(thief) > 0 && e.KindOf(e.Wielded(a, false)) == rules1e.Dagger {
+	if a.Level(thief) > 0 && e.KindOf(e.WieldOf(a).Weapon) == rules1e.Dagger {
 		n++
 	}
 	if a.Level(ranger) > 0 && missile && !slices.ContainsFunc(within(e, b, e.Distance(a, b)-1, true), func(f *rules1e.Character) bool { return f.Side == a.Side }) {
@@ -893,7 +893,7 @@ func (r *Rules) sneak(e *rules1e.RuleState, a, b *rules1e.Character) bool {
 	if a.Foe() || a.Level(thief) == 0 || r.sneaked[a] || !r.advantage(e, a, b) {
 		return false
 	}
-	switch e.KindOf(e.Wielded(a, false)) {
+	switch e.KindOf(e.WieldOf(a).Weapon) {
 	case rules1e.Dagger, rules1e.ShortSword, rules1e.Crossbow, rules1e.Sling:
 		return true
 	}
@@ -935,7 +935,7 @@ func (r *Rules) attack(e *rules1e.RuleState, c, t *rules1e.Character, a rules1e.
 		defer delete(r.bonus, c)
 	}
 	need := r.need(e, c, t, int(t.AC[0])+defence(e, t, d)) + int(c.THAC0) - int(c.Thac0Base) - e.Mod(c, a)
-	if !e.AttackHits(c, t, need) {
+	if !e.AttackHits(c, t, e.Hand(c), need) {
 		e.Say(c, "misses")
 		return false
 	}
@@ -1155,7 +1155,7 @@ func (r *Rules) weapon(e *rules1e.RuleState, a *rules1e.Character) *power {
 
 func (r *Rules) HitNeed(e *rules1e.RuleState, a, b *rules1e.Character, need int) int {
 	if p := r.weapon(e, a); p != nil {
-		abHit, _, missile := e.WeaponAbility(a)
+		abHit, _, missile := e.WeaponAbility(a, e.WieldOf(a))
 		need += abHit - e.Mod(a, p.atk.of(missile)) + defence(e, b, p.vs)
 		if p.hit != nil {
 			need -= p.hit(r, e, a)
@@ -1253,7 +1253,7 @@ func weaponDamage(e *rules1e.RuleState, a *rules1e.Character, p *power, h rules1
 	if abl == nil {
 		abl = []ab{p.atk}
 	}
-	_, _, missile := e.WeaponAbility(a)
+	_, _, missile := e.WeaponAbility(a, e.WieldOf(a))
 	for _, x := range abl {
 		dmg += e.Mod(a, x.of(missile))
 	}

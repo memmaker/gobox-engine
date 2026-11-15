@@ -465,14 +465,14 @@ func (e *RuleState) magicResist15Cotab(c *Character, a *Affect, flag byte) { e.r
 
 // slingStonesCotab = O064:22F9: a sling does d6+1.
 func (e *RuleState) slingStonesCotab(c *Character, a *Affect, flag byte) {
-	if w := e.Acting().Slots[SlotWeapon]; w != nil && w.Type == itemTypeSlingCotab {
+	if w := e.WieldOf(e.Acting()).Weapon; w != nil && w.Type == itemTypeSlingCotab {
 		e.Rv.Damage = int16(e.RollDice(1, 6) + 1)
 	}
 }
 
 // avoidsBowsCotab = O064:23A2.
 func (e *RuleState) avoidsBowsCotab(c *Character, a *Affect, flag byte) {
-	if w := e.Acting().Slots[SlotWeapon]; w != nil && (w.Type == itemTypeLongBowCotab || w.Type == itemTypeShortBowCotab) {
+	if w := e.WieldOf(e.Acting()).Weapon; w != nil && (w.Type == itemTypeLongBowCotab || w.Type == itemTypeShortBowCotab) {
 		e.avoidDistantAttack(c, 50)
 	}
 }
@@ -503,7 +503,7 @@ func (e *RuleState) magicImmuneCotab(c *Character, a *Affect, flag byte) {
 // slainByArrowCotab = O064:2643: an arrow of slaying kills outright.
 func (e *RuleState) slainByArrowCotab(c *Character, a *Affect, flag byte) {
 	var it *Item
-	if e.AmmoFor(e.Acting(), &it) && it != nil && it.Type == itemTypeArrowCotab && it.Words[2] == slayingArrowWordCotab {
+	if e.AmmoFor(e.Acting(), e.WieldOf(e.Acting()), &it) && it != nil && it.Type == itemTypeArrowCotab && it.Words[2] == slayingArrowWordCotab {
 		c.Status = StatusGone
 		c.Okay = 0
 		c.HP = 0
@@ -638,7 +638,7 @@ func (e *RuleState) holdTargetCotab(c *Character, a *Affect, flag byte, self Aff
 	c.Attacks[1] = 0
 	c.Dice[0] = grabDiceCotab
 	c.Sides[0] = grabSidesCotab
-	e.FullAttack(c, t, 1, nil)
+	e.FullAttack(c, t, e.Hand(c), 1, nil)
 	e.ClearCombatInfo(c)
 	if t.Okay == 0 {
 		e.RemoveAffect(c, self, nil)

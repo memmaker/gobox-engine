@@ -103,7 +103,7 @@ const (
 	SlotBolts       = 12
 	// extra: the Missiles slot (a thrown-only weapon: a dart, a javelin, a
 	// flask of oil) and the Launcher slot (a bow, crossbow or sling). Both
-	// take no hands; the Ranged action shoots or throws from them (Draw).
+	// take no hands; the Ranged action shoots or throws straight from them (Ranged, Wield).
 	SlotMissiles = 13
 	SlotLauncher = 14
 	slotCount    = 15
@@ -314,22 +314,47 @@ func (e *RuleState) rangedItem(c *Character) *Item {
 	return m
 }
 
-// Draw (extra) makes c's attacks this turn ranged (the Ranged action: the
-// launcher or the thrown weapon stands in the weapon hand) or melee again.
-func (e *RuleState) Draw(c *Character, ranged bool) {
-	e.undraw()
-	if ranged && e.rangedItem(c) != nil {
-		e.drawn = c
-		e.ApplyItems(c)
-	}
+// Wield (extra) is what a fighter attacks with: the weapon in hand (nil:
+// bare hands), the off hand's, or the Launcher or Missiles slot's (the
+// Ranged action). Every combat rule takes the Wield of its attack; nothing
+// ever stands in the weapon hand for another.
+type Wield struct {
+	Weapon *Item
+	own    bool // the weapon hand's: its figures are the fighter's own (THAC0, Dice, Sides, Bonus, kept by ApplyItems)
 }
 
-// undraw (extra): whoever drew a ranged weapon (Draw) holds the melee one again.
-func (e *RuleState) undraw() {
-	if d := e.drawn; d != nil {
-		e.drawn = nil
-		e.ApplyItems(d)
+// Hand is c's attack with the weapon in hand (bare hands without one).
+func (e *RuleState) Hand(c *Character) Wield { return Wield{Weapon: c.Slots[SlotWeapon], own: true} }
+
+// Ranged is c's attack with its Launcher or Missiles slot (rangedItem);
+// false when it has none to shoot or throw.
+func (e *RuleState) Ranged(c *Character) (Wield, bool) {
+	it := e.rangedItem(c)
+	return Wield{Weapon: it}, it != nil
+}
+
+// Wielding is c's Ranged attack when ranged and it has one, else its Hand.
+func (e *RuleState) Wielding(c *Character, ranged bool) Wield {
+	if w, ok := e.Ranged(c); ranged && ok {
+		return w
 	}
+	return e.Hand(c)
+}
+
+// blow is the figures c strikes with (attack slot 1) wielding w, at a
+// large target (attackSlots' test) the weapon's dice for one.
+type blow struct {
+	thac0       byte
+	dice, sides Count
+	bonus       Modifier
+}
+
+// thac0 is c's to-hit figure wielding w.
+func (e *RuleState) thac0(c *Character, w Wield) byte {
+	if w.own {
+		return c.THAC0
+	}
+	return e.weaponBlow(c, w.Weapon).thac0
 }
 
 // ApplyItems = 00BA:0BB8: everything that follows from the items carried
@@ -378,11 +403,6 @@ func (e *RuleState) ApplyItems(c *Character) {
 		}
 		c.Hands += e.itemHands(c, it)
 	}
-	if e.drawn == c && e.BeginFlag == 5 { // extra: the Ranged action's launcher or thrown weapon in hand
-		if r := e.rangedItem(c); r != nil {
-			c.Slots[SlotWeapon] = r
-		}
-	}
 	c.Dice, c.Sides, c.Bonus = c.BaseDice, c.BaseSides, c.BaseBonus
 	var ac [5]int8
 	ringOnly := false
@@ -391,11 +411,13 @@ func (e *RuleState) ApplyItems(c *Character) {
 	c.Move = c.BaseMove
 	c.THAC0 = c.Thac0Base
 	ac[0] = rules.DexAC(byte(c.Stats[StatDex]))
-	if c.Slots[SlotWeapon] == nil {
+	if w := c.Slots[SlotWeapon]; w == nil {
 		c.THAC0 += byte(strHit(c))
 		c.Bonus[0] += Modifier(strDamage(c))
+	} else {
+		b := e.weaponBlow(c, w)
+		c.THAC0, c.Dice[0], c.Sides[0], c.Bonus[0] = b.thac0, b.dice, b.sides, b.bonus
 	}
-	e.weaponStats(c)
 	for _, it := range c.Items {
 		if it.Readied == 0 {
 			continue
@@ -426,22 +448,20 @@ func (e *RuleState) ApplyItems(c *Character) {
 	}
 }
 
-// weaponStats = 00BA:0000: to-hit and damage of the readied weapon.
-func (e *RuleState) weaponStats(c *Character) {
-	w := c.Slots[SlotWeapon]
-	if w == nil {
-		return
-	}
+// weaponBlow = 00BA:0000: to-hit and damage of c with the weapon w, by c's
+// scores and the ammunition readied (the original worked them out for the
+// readied weapon, into the character).
+func (e *RuleState) weaponBlow(c *Character, w *Item) blow {
 	typ := w.Type
 	flags := e.Base(typ).Usage
-	c.THAC0 = c.Thac0Base
+	out := blow{thac0: c.Thac0Base}
 	if flags&2 != 0 { // missile
-		c.THAC0 += byte(rules.DexMissile(byte(c.Stats[StatDex])))
+		out.thac0 += byte(rules.DexMissile(byte(c.Stats[StatDex])))
 	}
-	c.Bonus[0] = Modifier(e.Base(typ).Bonus)
+	out.bonus = Modifier(e.Base(typ).Bonus)
 	if flags&4 != 0 { // strength applies
-		c.THAC0 += byte(strHit(c))
-		c.Bonus[0] += Modifier(strDamage(c))
+		out.thac0 += byte(strHit(c))
+		out.bonus += Modifier(strDamage(c))
 	}
 	plus := int8(w.Plus)
 	if flags > 0x7F && c.Slots[SlotBolts] != nil {
@@ -450,13 +470,14 @@ func (e *RuleState) weaponStats(c *Character) {
 	if flags&1 != 0 && c.Slots[SlotArrows] != nil && e.isKind(c.Slots[SlotArrows].Type, ItemIDArrow) { // not a missile in the slot
 		plus += int8(c.Slots[SlotArrows].Plus)
 	}
-	c.Bonus[0] += Modifier(plus)
+	out.bonus += Modifier(plus)
 	if c.Race == RaceElf && (e.isBow(w.Type) || e.isKind(w.Type, ItemIDShortSword, ItemIDLongSword)) {
 		plus++ // elves with bows and swords
 	}
-	c.THAC0 += byte(plus)
-	c.Dice[0] = Count(e.Base(typ).Dice)
-	c.Sides[0] = Count(e.Base(typ).Sides)
+	out.thac0 += byte(plus)
+	out.dice = Count(e.Base(typ).Dice)
+	out.sides = Count(e.Base(typ).Sides)
+	return out
 }
 
 // armourMove = 00BA:01FB (char, item): body armour sets the movement by

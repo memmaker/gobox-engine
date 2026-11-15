@@ -10,11 +10,11 @@ import (
 // aimConfirm = ovr14:2C3D (c, cand, mode): take cand as the target. With
 // mode 1 (a missile attack) the attack is made at once, after "Attack
 // Ally?" (mayAttack) for a friend; the results are found and the target.
-func (e *Engine) aimConfirm(cID, candID rules.CharID, mode int) (found bool, t aimTarget) {
+func (e *Engine) aimConfirm(cID, candID rules.CharID, mode int, ranged bool) (found bool, t aimTarget) {
 	t = aimTarget{C: candID, At: e.at(candID)}
 	found = true
 	if mode == 1 { // the blow is core.Rules Resolve(Attack); an ally asks first
-		var a rules.Action = rules.Attack{Target: candID}
+		var a rules.Action = rules.Attack{Target: candID, Ranged: ranged}
 		if e.cs.sure { // the call asks first (cs.ask: turnActs makes it the pending one)
 			a = rules.Confirmed{Action: a}
 		}
@@ -50,7 +50,7 @@ type aimTarget struct {
 // phase of the turn (cs.aim): then gets the results once it is gone (aimFinished).
 func (e *Engine) playerAim(cID rules.CharID, rangeArg, showRange, allowGround int, then aimThen) {
 	e.as(e.sel)
-	o := e.fact(cID, rules.AimFact{Range: rangeArg, ShowRange: showRange, FoesOnly: e.ext.enemiesOnly}).(rules.AimOffer)
+	o := e.fact(cID, rules.AimFact{Range: rangeArg, ShowRange: showRange, FoesOnly: e.ext.enemiesOnly, Ranged: then.ranged}).(rules.AimOffer)
 	if len(o.Near) == 0 { // extra: nobody to aim at
 		e.aimFinished(then, false, aimTarget{})
 		return
@@ -97,7 +97,7 @@ type aimRun struct {
 
 // check is the rules' word on the aim at at: who would be the target and why not.
 func (h *aimRun) check(at rules.BoardPos) rules.AimCheck {
-	return h.e.fact(h.c, rules.AimCheckFact{Near: h.list, At: at, Range: h.rng, ShowRange: h.showRange, Ground: h.allowGround != 0}).(rules.AimCheck)
+	return h.e.fact(h.c, rules.AimCheckFact{Near: h.list, At: at, Range: h.rng, ShowRange: h.showRange, Ground: h.allowGround != 0, Ranged: h.then.ranged}).(rules.AimCheck)
 }
 
 // squares is the squares of b the aim takes (check): what gobox offers.
@@ -140,7 +140,7 @@ func (h *aimRun) apply(a TurnAct) bool {
 	}
 	h.t = aimTarget{C: ck.Target, At: rules.BoardPos{X: a.X, Y: a.Y}}
 	if h.showRange == 1 || ck.Target != rules.NoChar && ck.Occupied {
-		f, at := e.aimConfirm(h.c, ck.Target, h.showRange) // ovr14:2C3D: the target's own square; a weapon strikes
+		f, at := e.aimConfirm(h.c, ck.Target, h.showRange, h.then.ranged) // ovr14:2C3D: the target's own square; a weapon strikes
 		h.found, h.finished = f, f
 		if f {
 			h.t = at

@@ -30,6 +30,7 @@ type CombatInfo struct {
 	Extra      byte       // +0x13 not one of the saved party
 	Fleeing    byte       // +0x14
 	Pattern    byte       // +0x15 AI move pattern, row of DS:02AE
+	Ranged     bool       // extra: the computer chose its Launcher or Missiles slot for this turn's attacks (AiPickWeapon)
 }
 
 // Rule globals (DS:6816..682A).
@@ -44,6 +45,11 @@ type ruleVars struct {
 	// Critical (PoD A7E9): the last attack roll was above criticalAbove and
 	// hit (a natural 1 leaves it as it was). Only PoD's vorpal blade reads it.
 	Critical bool
+	// extra: the attack under way (attackSlots, Strike): who strikes and what
+	// with. The affects and the rule set's hooks called during it read them
+	// (WieldOf); outside an attack By is nil.
+	By   *Character
+	With Wield
 }
 
 // criticalAbove: an attack roll above it that hits is critical (PoD).
@@ -335,8 +341,9 @@ func (e *RuleState) attackDie() bool {
 }
 
 // AttackHits = ovr25:0CB7 (attacker, defender, need): attacking ends
-// invisibility; d20 + THAC0 + the side's modifier must reach need.
-func (e *RuleState) AttackHits(att, def *Character, need int) bool {
+// invisibility; d20 + THAC0 + the side's modifier must reach need. w is
+// what att strikes with (its THAC0).
+func (e *RuleState) AttackHits(att, def *Character, w Wield, need int) bool {
 	adj := int(int8(byte(e.Game.PartyHit)))
 	if att.Side != SideParty {
 		adj = int(int8(byte(e.Game.MonsterHit)))
@@ -348,7 +355,7 @@ func (e *RuleState) AttackHits(att, def *Character, need int) bool {
 	e.Rv.Critical = e.Rv.HitRoll > criticalAbove
 	e.AffectGroup(att, grpAttacker)
 	e.AffectGroup(def, grpDefender)
-	roll, thac0, need := int(e.Rv.HitRoll), int(att.THAC0), int(byte(need))
+	roll, thac0, need := int(e.Rv.HitRoll), int(e.thac0(att, w)), int(byte(need))
 	hit := AttackHits(roll, thac0, adj, need) &&
 		(e.Rv.HitRoll == 100 || e.Rules().Hits(e, att, def, roll+thac0+adj-need)) // extra: the rule set may turn the hit away
 	e.Rv.Critical = e.Rv.Critical && hit

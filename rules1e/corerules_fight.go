@@ -44,13 +44,6 @@ func (r *Rules) resolveFight(sit rules.Situation, a rules.Action) (rules.Outcome
 	case rules.CombatSay:
 		s.CombatSay(r.chars[a.Who], a.Text, true)
 		return rules.Outcome{}, true, nil
-	case rules.Draw:
-		c := r.chars[a.Who]
-		if c == nil {
-			return rules.Outcome{}, true, errNoChar
-		}
-		s.Draw(c, a.Ranged)
-		return rules.Outcome{}, true, nil
 	case rules.AutoTurn:
 		o, err := r.autoTurn(sit, a)
 		return o, true, err
@@ -109,7 +102,7 @@ func (r *Rules) resolveFight(sit rules.Situation, a rules.Action) (rules.Outcome
 		if c == nil {
 			return rules.Outcome{}, true, errNoChar
 		}
-		s.SetSpeed(c)
+		s.SetSpeed(c, s.Hand(c))
 	case rules.SetLoot:
 		s.SetLootCoins(a.Coins)
 	case rules.AddLoot:
@@ -194,7 +187,7 @@ func (r *Rules) factFight(id rules.CharID, f rules.Fact) (rules.Value, bool, err
 		if b == nil {
 			return nil, true, errNoChar
 		}
-		return rules.Number(s.HitChance(c, b)), true, nil
+		return rules.Number(s.HitChance(c, b, s.Hand(c))), true, nil
 	case rules.MayActFact:
 		return rules.Yes(s.MayActAgainst(c, r.chars[f.Target])), true, nil
 	case rules.RangeToFact:
@@ -222,7 +215,7 @@ func (r *Rules) factFight(id rules.CharID, f rules.Fact) (rules.Value, bool, err
 		if f.Ground {
 			ground = 1
 		}
-		cand, why := s.AimCheck(c, list, f.At.X, f.At.Y, f.Range, f.ShowRange, ground)
+		cand, why := s.AimCheck(c, s.Wielding(c, f.Ranged), list, f.At.X, f.At.Y, f.Range, f.ShowRange, ground)
 		return rules.AimCheck{Target: r.ID(cand), Why: why, Occupied: s.Occ[f.At.Y][f.At.X] > 0}, true, nil
 	}
 	return nil, true, errNoFact
@@ -282,7 +275,7 @@ func (r *Rules) fightFact(c *Character, f rules.Fact) (rules.Value, error) {
 		if t == nil {
 			return nil, errNoChar
 		}
-		return rules.Text(s.TargetWhy(c, t, s.WeaponRange(c), 1)), nil
+		return rules.Text(s.TargetWhy(c, t, s.Hand(c), s.WeaponRange(s.Hand(c)), 1)), nil
 	case rules.ManeuversFact:
 		var out rules.ManeuverCards
 		for _, m := range s.Rules().Maneuvers(s, c) {
@@ -300,8 +293,9 @@ func (r *Rules) fightFact(c *Character, f rules.Fact) (rules.Value, error) {
 func (r *Rules) aimOffer(c *Character, f rules.AimFact) rules.AimOffer {
 	s := r.S
 	rng := byte(f.Range)
+	with := s.Wielding(c, f.Ranged)
 	if rng == 0xFF {
-		if w := c.Slots[SlotWeapon]; w != nil {
+		if w := with.Weapon; w != nil {
 			rng = s.Base(w.Type).Range - 1
 		} else {
 			rng = 1
@@ -320,16 +314,16 @@ func (r *Rules) aimOffer(c *Character, f rules.AimFact) rules.AimOffer {
 	offer := func(t *Character) bool { return t != nil && !f.FoesOnly || foe(t) }
 	hitOnly := false
 	for _, n := range list {
-		if t := s.Combatant(n.Index); offer(t) && s.CanTarget(c, t, int(rng), f.ShowRange) {
+		if t := s.Combatant(n.Index); offer(t) && s.CanTarget(c, t, with, int(rng), f.ShowRange) {
 			hitOnly = true
 		}
 	}
 	for _, n := range list {
 		t := s.Combatant(n.Index)
-		if offer(t) && (!hitOnly || s.CanTarget(c, t, int(rng), f.ShowRange)) {
+		if offer(t) && (!hitOnly || s.CanTarget(c, t, with, int(rng), f.ShowRange)) {
 			hit := -1
 			if hitOnly && f.ShowRange != 0 && foe(t) {
-				hit = s.HitChance(c, t)
+				hit = s.HitChance(c, t, with)
 			}
 			out.Targets, out.Hits = append(out.Targets, r.ID(t)), append(out.Hits, hit)
 		}
@@ -401,7 +395,6 @@ func (r *Rules) openTurn(a rules.OpenTurn) error {
 	if c == nil {
 		return nil // as Allowed: nobody to offer to
 	}
-	r.S.undraw() // extra: a turn begins with the weapon in hand
 	r.S.AffectGroup(c, 0xF)
 	r.S.Fight.Armed = Armed{}
 	return nil

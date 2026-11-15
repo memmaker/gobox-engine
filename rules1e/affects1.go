@@ -79,20 +79,30 @@ func (e *RuleState) killWithMessage(c *Character, status byte, msg string) {
 // the first readied item.
 func (e *RuleState) readiedWeapon(c *Character) *Item {
 	var it *Item
-	if c.Slots[SlotWeapon] != nil {
-		ok := e.AmmoFor(c, &it)
+	if w := e.WieldOf(c); w.Weapon != nil {
+		ok := e.AmmoFor(c, w, &it)
 		if !ok || it == nil {
-			it = c.Slots[SlotWeapon]
+			it = w.Weapon
 		}
 	}
 	return it
+}
+
+// WieldOf (extra) is what c strikes with in the attack under way (Rv.By,
+// Rv.With: its hand, its off hand or its Launcher or Missiles slot), its
+// Hand outside one. The affects' handlers read the attacker's weapon by it.
+func (e *RuleState) WieldOf(c *Character) Wield {
+	if e.Rv.By == c {
+		return e.Rv.With
+	}
+	return e.Hand(c)
 }
 
 // avoidDistantAttack = ovr13:0FAC (char, percent): the selected character
 // holding a ranged weapon may avoid an attack from afar.
 func (e *RuleState) avoidDistantAttack(c *Character, pct byte) {
 	sel := e.Acting()
-	if sel.Slots[SlotWeapon] != nil && e.RangeTo(sel, c) > 1 && e.Dice(1, 100) <= int(pct) {
+	if e.WieldOf(sel).Weapon != nil && e.RangeTo(sel, c) > 1 && e.Dice(1, 100) <= int(pct) {
 		e.CombatSay(c, "Avoids it", true)
 		e.Rv.Damage = 0
 		e.Rv.HitRoll = -1

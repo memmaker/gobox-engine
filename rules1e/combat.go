@@ -47,10 +47,10 @@ func (e *RuleState) FleeDir(c *Character) int {
 	return -1
 }
 
-// WeaponRange is the squares the readied weapon reaches (1: melee).
-func (e *RuleState) WeaponRange(c *Character) int {
-	if w := c.Slots[SlotWeapon]; w != nil && e.Base(w.Type).Range > 1 {
-		return int(e.Base(w.Type).Range) - 1
+// WeaponRange is the squares the weapon wielded reaches (1: melee).
+func (e *RuleState) WeaponRange(w Wield) int {
+	if e.RangedWeapon(w) {
+		return int(e.Base(w.Weapon.Type).Range) - 1
 	}
 	return 1
 }
@@ -179,17 +179,16 @@ func (e *RuleState) provokes(c *Character, at [2]int, d int) bool {
 	return false
 }
 
-// RangedWeapon = 00BA:2E03 (char): the readied weapon shoots (base item
+// RangedWeapon = 00BA:2E03 (char): the weapon wielded shoots (base item
 // +0xC above 1).
-func (e *RuleState) RangedWeapon(c *Character) bool {
-	w := c.Slots[SlotWeapon]
-	return w != nil && e.Base(w.Type).Range > 1
+func (e *RuleState) RangedWeapon(w Wield) bool {
+	return w.Weapon != nil && e.Base(w.Weapon.Type).Range > 1
 }
 
 // Throwable = 00BA:2E46 (char): a ranged weapon that also works in melee
 // (base item flags 0x14).
-func (e *RuleState) Throwable(c *Character) bool {
-	return e.RangedWeapon(c) && e.Base(c.Slots[SlotWeapon].Type).Usage&0x14 == 0x14
+func (e *RuleState) Throwable(w Wield) bool {
+	return e.RangedWeapon(w) && e.Base(w.Weapon.Type).Usage&0x14 == 0x14
 }
 
 // WeaponRules (extra) tell how it attacks in combat (the bar's tooltip):
@@ -217,8 +216,8 @@ func (e *RuleState) WeaponRules(it *Item) []string {
 // AmmoFor = 00BA:2E8B (char, var item): the item a ranged attack uses up
 // (the weapon itself, the arrows in slot 11 or the bolts in slot 12); true
 // when there is one or the weapon needs none (flags 0x0A).
-func (e *RuleState) AmmoFor(c *Character, it **Item) bool {
-	return e.ammoWith(c, c.Slots[SlotWeapon], it)
+func (e *RuleState) AmmoFor(c *Character, w Wield, it **Item) bool {
+	return e.ammoWith(c, w.Weapon, it)
 }
 
 // ammoWith is ammoFor with w as the weapon (extra: the Launcher slot's).
@@ -282,7 +281,7 @@ func (e *RuleState) QuickOne(c *Character) {
 // next to where it ends, then fewest steps (nil: t is in reach of its
 // weapon already, c shoots, or no square next to t can be reached).
 func (e *RuleState) PathNextTo(c, t *Character, reach map[[2]int][]int) []int {
-	if e.RangedWeapon(c) || e.RangeTo(c, t) <= 1 {
+	if e.RangedWeapon(e.Hand(c)) || e.RangeTo(c, t) <= 1 {
 		return nil
 	}
 	tx, ty := e.CombatX(t), e.CombatY(t)
@@ -352,7 +351,6 @@ func (e *RuleState) saveLoadout(c *Character) {
 // RestoreLoadouts (extra): after the battle everyone the computer fought
 // for gets the weapons it had back (those not used up); cursed ones stay.
 func (e *RuleState) RestoreLoadouts() {
-	e.undraw() // extra: the weapons in hand, not a drawn launcher
 	for c, l := range e.loadouts {
 		keep := func(it *Item) bool {
 			for _, x := range l {

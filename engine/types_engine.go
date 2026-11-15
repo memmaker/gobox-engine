@@ -382,7 +382,7 @@ const (
 	VerbPoint // the aim: preview a square
 	VerbAim   // the aim: take a square
 	VerbClose // the aim: give up
-	VerbShoot // extra: Ranged, an attack with the Launcher or Missiles slot's weapon (rules.Draw), aimed
+	VerbShoot // extra: Ranged, an attack with the Launcher or Missiles slot's weapon (rules.Attack's Ranged), aimed
 )
 
 // TurnAct is one decision of the turn: Verb with its unit, spell or
