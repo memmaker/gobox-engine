@@ -9,6 +9,7 @@ import (
 	"gobox/ui/blobber"
 	"gobox/ui/input"
 	"log"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -263,12 +264,22 @@ func (f *Front) Draw(dst *gpu.Image) {
 	note := Note{Text: n.Text, Show: time.Since(n.At) < time.Second+time.Duration(len(n.Text))*80*time.Millisecond, Glyph: f.Glyph, Font: f.Font}
 	if f.P.Inventory(dst, note) { // the inventory screen
 		f.pic = Rect{}
+		f.P.asksDrawn = true // the items are the game's screen here (a shop's wares, the treasure): its rows show what it asks
+		f.P.markSeen()
 	} else {
 		f.pic = f.P.Draw(dst, note)
 	}
 	f.P.drawFix(dst, note.Glyph) // camp's Fix: its fade and its box over whatever is up
 	f.P.drawToast(dst, note)     // the flash message: the screen's very bottom, in every view
 	f.drawn = f.screenSig()
+	if f.P.stuck() { // a dead screen: the game's question on no screen, nothing of gobox's over it
+		what := fmt.Sprintf("%T asks %s on no screen", f.Game.r.g.State(), f.P.asksID())
+		if OnStuck != nil {
+			OnStuck(what)
+		} else if traceOn {
+			fmt.Fprintln(os.Stderr, "trace", traceStamp(), "stuck:", what)
+		}
+	}
 	if held := f.held; len(held) > 0 { // the keys pressed before this screen showed, now on it
 		f.held = nil
 		for _, k := range held {

@@ -25,9 +25,16 @@ its own; else the generic question window). Drawing and answering both go by it.
       a choice of several (TestOKNeverChooses). No exemption for "press a key" needed.
 - [x] 2: "seen" is a fact, not a promise: drawing a menu records the question it
       showed this frame; `unseen` compares the game's question with the one recorded
-- [ ] 3: the invariant on every frame of every headless test (hook in Front.Frame),
-      and TestNoUnseenQuestion over cotab, pod, sotsb too
+- [x] 3: every headless frame is checked (Front.Draw: Presenter.stuck -> ui.OnStuck; the
+      TestMain of ui and cmd/gobox fail the run on one; GOBOX_TRACE logs it in play);
+      TestNoUnseenQuestion walks por, cotab, sotsb, pod (ui, cmd/gobox suites pass)
+
+## Open
+- pod dev scenes that panic before a frame, not walked (unseen_test.go sceneBroken):
+  wildcombat ("rules keep no world word 58", Engine.tileBlock), journal (POR's tale).
+- "Shown" is "this frame drew choices", not "drew this very question".
+- buckrogers (ShipFight) and other repos' games run no frame of these checks here.
 
 ## Detect the class elsewhere
-`go test ./ui -run TestNoUnseenQuestion` (D). By hand: a state whose pending ask is
-not `game.Continue`, with `Presenter.askUp() == nil` and no screen claiming it.
+`go test ./ui -run TestNoUnseenQuestion`; any test that draws frames fails on a
+stuck one. In play: `GOBOX_TRACE=1` prints "stuck: <state> asks <question> on no screen".

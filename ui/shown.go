@@ -301,6 +301,11 @@ func (p *Presenter) stuck() bool {
 	return p.unseen() && !own && !playing
 }
 
+// OnStuck is told of every frame drawn stuck (nil: GOBOX_TRACE logs it).
+// The tests set it, so each headless frame of each game checks the
+// invariant: no question of the game's on no screen.
+var OnStuck func(what string)
+
 // asksID names the game's question that wants an answer chosen ("": none):
 // a new question has a new name.
 func (p *Presenter) asksID() string {

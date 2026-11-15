@@ -12,14 +12,31 @@ var devScenes = []string{"shop", "hall", "hallpoor", "temple", "appraise", "comb
 	"talljournal", "runes", "inventory", "lockeddoor", "dual", "camp", "resting", "sheet", "items", "usable", "paladin", "drop", "learn",
 	"loot", "lootdetect"}
 
-// TestNoUnseenQuestion: in every dev scene, and on each screen Enter and
-// then Esc lead to from it, a question the game asks is on screen: a
-// screen's own or the question window's (Presenter.unseen; bug class: the
-// hall's undrawn "Pick New Class:", answered by any key).
+// sceneBroken are the dev scenes that panic before a frame is drawn, by
+// game/scene with the panic: open bugs of the scene or the game, not walked.
+var sceneBroken = map[string]string{
+	"pod/wildcombat": "rules keep no world word 58 (Engine.tileBlock reads rules.WordAreaScreen, POD's rules keep none)",
+	"pod/journal":    "no text entry TavernTale3 (the scene names a POR tale)",
+}
+
+// TestNoUnseenQuestion: in every dev scene of every Pool game imported
+// here, and on each screen Enter and then Esc lead to from it, a question
+// the game asks is on screen (Presenter.stuck; bug class: the hall's
+// undrawn "Pick New Class:", answered by any key).
 func TestNoUnseenQuestion(t *testing.T) {
+	for _, g := range []string{"por", "cotab", "sotsb", "pod"} {
+		t.Run(g, func(t *testing.T) { noUnseenQuestion(t, g) })
+	}
+}
+
+func noUnseenQuestion(t *testing.T, g string) {
 	for _, name := range devScenes {
+		if why := sceneBroken[g+"/"+name]; why != "" {
+			t.Logf("%s %s not walked: %s", g, name, why)
+			continue
+		}
 		for _, key := range []uint16{13, 27} {
-			eng, err := engine.NewPool("../data/por", "../data/por/sources")
+			eng, err := engine.NewPool("../data/"+g, "../data/"+g+"/sources")
 			if err != nil {
 				t.Skip(err)
 			}
@@ -44,7 +61,7 @@ func TestNoUnseenQuestion(t *testing.T) {
 				}
 				if f.P.stuck() {
 					st := eng.State()
-					t.Errorf("%s, %d keys %#x in: %T asks %+v on no screen", name, step, key, st, f.Game.r.asking(st))
+					t.Errorf("%s, %d keys %#x in: %T asks %s on no screen", name, step, key, st, f.P.asksID())
 					break
 				}
 				f.Key(key)
