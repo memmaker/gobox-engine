@@ -38,7 +38,7 @@ func (e *Engine) openTraining(n int) error {
 	if open, _ := e.hallOpen(); open || !e.menu.on || !slices.Contains(e.partyFunctions(), partyTraining) {
 		return rules.ErrNotNow
 	}
-	_, err := e.ruleset().Resolve(nil, rules.OpenHall{Who: e.actor(n)}, nil)
+	_, err := e.ruleset().Resolve(nil, rules.OpenHall{Who: e.actor(n), Hall: e.hallTerms()}, nil)
 	return err
 }
 
@@ -48,7 +48,7 @@ func (e *Engine) train() error {
 	if open, learning := e.hallOpen(); !open || learning {
 		return rules.ErrNotNow
 	}
-	o, err := e.ruleset().Resolve(nil, rules.Train{Who: e.selected()}, nil)
+	o, err := e.ruleset().Resolve(nil, rules.Train{Who: e.selected(), Hall: e.hallTerms()}, nil)
 	for _, f := range o.Effects {
 		if n, ok := f.(rules.Narrated); ok { // the hall's words for a Refused{NotTrainable}
 			e.say(n.Text)

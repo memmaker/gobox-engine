@@ -98,7 +98,7 @@ func (e *Engine) whereState() (game.Where, game.Automap) {
 	w := game.Where{
 		Area: strconv.Itoa(int(AreaID(int(e.world.Geo)))), X: px, Y: py, Facing: int(Dir(e.facing/2&3)) * 2,
 		Inside: inside, Searching: e.exploring() && e.world.Search&1 != 0,
-		Mode: map[bool]string{true: "dungeon", false: "wilderness"}[e.worldWord(rules.WordIn3D) != 0],
+		Mode: map[bool]string{true: "dungeon", false: "wilderness"}[e.world.In3D != 0],
 	}
 	m := e.mapState(&w)
 	w.Hour, w.Minute = e.worldWord(rules.WordClockMinutes)/60, e.worldWord(rules.WordClockMinutes)%60
@@ -223,7 +223,7 @@ func (e *Engine) trainingState() *game.Training {
 	}
 	t := &game.Training{Cost: int(e.ruleset().Check(rules.TrainFee{}, nil).Value), Trains: map[int]string{}, Becomes: map[int][]string{}, Why: map[int]string{}, Learning: learning}
 	for i, id := range e.partyIDs() {
-		card := e.fact(id, rules.TrainFact{}).(rules.TrainCard)
+		card := e.fact(id, rules.TrainFact{Hall: e.hallTerms()}).(rules.TrainCard)
 		if t.Becomes[i] = card.Becomes; card.Why != "" {
 			t.Why[i] = card.Why
 			continue
@@ -303,12 +303,13 @@ func gameItem(h rules.ItemHandle, card rules.ItemCard) game.Item {
 // player's) as Marked and Notes, Area the map's name.
 func (e *Engine) mapState(w *game.Where) game.Automap {
 	if !e.mapView() {
-		if e.worldWord(rules.WordIn3D) == 0 && e.adventure() { // the overland: its terrain
+		if e.world.In3D == 0 && e.adventure() { // the overland: its terrain
 			m := game.Automap{Area: e.mapName(), Size: rules.Size{W: 44, H: 36}}
+			marks := e.areaMarks()
 			for y := range 36 {
 				for x := range 44 {
 					m.Known = append(m.Known, rules.MapPos{X: x, Y: y}) // the whole map is shown
-					m.Terrain = append(m.Terrain, int(e.ruleset().Check(rules.AreaTileIs{X: int32(x), Y: int32(y)}, nil).Value))
+					m.Terrain = append(m.Terrain, int(e.ruleset().Check(rules.AreaTileIs{X: int32(x), Y: int32(y), Marks: marks}, nil).Value))
 				}
 			}
 			w.X, w.Y = e.overlandSquare().X, e.overlandSquare().Y
@@ -526,5 +527,5 @@ func (e *Engine) iconState(id rules.CharID, m *game.Member) {
 // overlandSquare is the party's square on the overland (Where.X, Y there);
 // PosX, PosY stay the 3D view's.
 func (e *Engine) overlandSquare() image.Point {
-	return image.Pt(int(ViewModeShift[e.viewMode])+e.worldWord(rules.WordMapX), e.worldWord(rules.WordMapY))
+	return image.Pt(int(ViewModeShift[e.viewMode])+int(e.world.MapX), int(e.world.MapY))
 }

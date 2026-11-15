@@ -39,9 +39,9 @@ type (
 	// Training: a hall is open.
 	Training struct {
 		Party     Party
-		Price     Copper  // per level
-		Allows    []Class // WordTrainable
-		DualClass bool    // the adventure lets a dual-class change start here
+		Price     Copper // per level
+		Hall      HallTerms
+		DualClass bool // the adventure lets a dual-class change start here
 	}
 	// Looting: treasure on the ground.
 	Looting struct {
@@ -57,6 +57,16 @@ type (
 	// Scripted: a script's command, no screen of its own.
 	Scripted struct{ Party Party }
 )
+
+// ClassBits are the classes a hall teaches, as the ruleset numbers them; the engine
+// carries the script's word as it is.
+type ClassBits uint16
+
+// HallTerms are what the training hall offers, handed in with each question about it.
+type HallTerms struct {
+	Teaches ClassBits // the classes it teaches (the script's PartyExp)
+	Free    bool      // training costs nothing and asks no experience (the debug switch)
+}
 
 // ShopTerms is the zone's pricing a ruleset prices goods by (BR zone1
 // priceMultiplier, sixteenths of the value).
@@ -107,13 +117,14 @@ type FightTerms struct {
 	PartyHit   int32  // the party's signed to-hit bonus
 	PartyMove  int32  // the party's signed movement bonus
 	NoMagic    bool
+	In3D       bool // the area is a 3D one, not the overland map (not Board.Dungeon: the 3D view up)
 	Duel       bool
 	// DuelOpponent is DuelSetup's n (por game.Duel): 1 keeps a lost duel's party from
 	// quitting; nonzero in a duel gives the member's level times 100 as the experience.
 	DuelOpponent int32
 	// MonsterDist is the squares the monsters stand off the party when the fight is placed.
 	MonsterDist int32
-	NoExpAward  bool // WordNoExpAward
+	NoExpAward  bool // the adventure's word that this fight only hands out loot (sotsb, pod); nobody fills or reads it yet
 	// BR zone1: the downed party stands up with 1 HP (revivesParty); the
 	// beaten keep their items (skipsCombatItems).
 	RevivesParty bool

@@ -42,7 +42,7 @@ func (r *Rules) resolveSpells(sit rules.Situation, a rules.Action) (rules.Outcom
 		}
 		s.SpellCaster = nil // DS:6DB5
 		s.Who = s.PartyIndex(c)
-		if !s.CanStudy(1) {
+		if !s.CanStudy(1, a.NoMagic) {
 			return rules.Outcome{}, true, rules.ErrNotNow
 		}
 	case rules.CampCast:
@@ -56,7 +56,7 @@ func (r *Rules) resolveSpells(sit rules.Situation, a rules.Action) (rules.Outcom
 		}
 		s.Who = s.PartyIndex(c)
 		var quit bool
-		s.CastSpell(SpellID(n), 0, 1, CastReply{Fight: s.Fight.On, Yes: a.Sure, On: r.chars[a.Target]}, &quit)
+		s.CastSpell(SpellID(n), 0, 1, CastReply{Fight: s.Fight.On, Yes: a.Sure, On: r.chars[a.Target], In3D: a.In3D}, &quit)
 	case rules.Learn:
 		return rules.Outcome{}, true, r.learn(a)
 	case rules.Cast:

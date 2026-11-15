@@ -232,6 +232,9 @@ func worldOfRecords(a *AreaVars, g *GameVars) rules.World {
 		Morale: g.Morale, Surprise: g.Surprise, MonsterHit: g.MonsterHit, PartyHit: g.PartyHit, PartyMove: g.PartyMove,
 		NoLoot: g.NoLoot, Duel: g.Duel, MonsterDist: g.MonsterDist, CombatEnd: g.CombatEnd, Beaten: g.Beaten,
 		AttackedAlly: g.AttackedAlly,
+		NoMagic:      a.NoMagic, In3D: a.In3D, MapX: a.MapX, MapY: a.MapY, Boss: a.Boss, MarkFlags4: a.MarkFlags4,
+		Mark3: a.Mark3, Mark4Off: a.Mark4Off, MarkFlags57: a.MarkFlags57, Mark4: a.Mark4, Sky: a.Sky, SkyInside: a.SkyInside,
+		RestEvery: g.RestEvery, RestChance: g.RestChance, PartyExp: g.PartyExp,
 	}
 }
 

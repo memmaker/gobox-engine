@@ -165,8 +165,8 @@ func (e *Engine) newEngineFields() map[string]engineField {
 			m[name] = cellField(cell)
 		}
 	}
-	for name, w := range portraitWords {
-		f := e.wordField(w) // ovr08:0C77: writing the HEAD/BODY words redraws the portrait
+	for _, name := range portraitFields {
+		f := m[name] // ovr08:0C77: writing the HEAD/BODY words redraws the portrait
 		set := f.set
 		f.set = func(i int, v int64) { set(i, v); e.es.portraitChanged = 1 }
 		m[name] = f
@@ -645,22 +645,9 @@ func (e *Engine) partyIndex(id rules.CharID) int {
 // scriptWords are the plain record words a script reads and writes, by the
 // name its layout gives them (data -> the typed word, once, here).
 var scriptWords = map[string]rules.WorldWord{
-	"MapX":        rules.WordMapX,
-	"MapY":        rules.WordMapY,
-	"TenMinutes":  rules.WordTenMinutes,
-	"Hours":       rules.WordHours,
-	"NoMagic":     rules.WordNoMagic,
-	"In3D":        rules.WordIn3D,
-	"MarkFlags4":  rules.WordMarkFlags4,
-	"Mark3":       rules.WordMark3,
-	"Mark4Off":    rules.WordMark4Off,
-	"MarkFlags57": rules.WordMarkFlags57,
-	"Boss":        rules.WordBoss,
-	"Mark4":       rules.WordMark4,
-	"PartyExp":    rules.WordTrainable,
-	"RestEvery":   rules.WordRestEvery,
-	"RestChance":  rules.WordRestChance,
+	"TenMinutes": rules.WordTenMinutes,
+	"Hours":      rules.WordHours,
 }
 
-// portraitWords are the sky words: a write redraws the portrait.
-var portraitWords = map[string]rules.WorldWord{"Sky": rules.WordSky, "SkyInside": rules.WordSkyInside}
+// portraitFields are the sky words' fields (world cells): a write redraws the portrait.
+var portraitFields = [...]string{"Sky", "SkyInside"}

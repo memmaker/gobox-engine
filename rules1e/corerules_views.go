@@ -220,7 +220,6 @@ func (r *Rules) fixture(f rules.Fixture) error {
 			s.Party[2].Items = append(s.Party[2].Items, s.devItems(ItemLeatherArmor, ItemBillGuisarme)...)
 		}
 	case rules.FixtureHall, rules.FixtureHallPoor:
-		s.Game.PartyExp = 0xFF
 		s.Party[0].Exp, s.Purse.Gold = 1<<20, 1<<20
 		if f.ID == rules.FixtureHallPoor {
 			s.Purse.Gold = 0

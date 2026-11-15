@@ -256,12 +256,12 @@ func flagValue(f TerrainFlag, def int, list []FlagValue) int {
 // TerrainFlags = ovr11:08A4: what the wilderness square holds (the game's
 // Tables.Terrain by the fight's terrain; past its end the original reads
 // what follows it, here 0).
-func (e *RuleState) TerrainFlags() TerrainFlag {
+func (e *RuleState) TerrainFlags(boss uint16) TerrainFlag {
 	var k TerrainFlag
 	if t := e.T().Terrain; int(e.Terrain) < len(t) {
 		k = t[e.Terrain]
 	}
-	if w := e.T().Gen.Wild; w != nil && w.BossHides && k&TerrainBare != 0 && e.Area.Boss == 0xFF {
+	if w := e.T().Gen.Wild; w != nil && w.BossHides && k&TerrainBare != 0 && boss == 0xFF {
 		k = k - TerrainBare | 1
 	}
 	return k
@@ -285,7 +285,7 @@ func (r *Rules) wildMap(g rules.BuildGround) {
 	}
 	switch w.Terrain {
 	case TerrainFromMap:
-		a, b := int(byte(r.S.Area.MapX)), int(byte(r.S.Area.MapY))
+		a, b := int(byte(g.MapX)), int(byte(g.MapY))
 		a += g.MapShift
 		r.S.Terrain = Terrain(byte(TerrainMap[b][a])) // DS:465A
 	case TerrainFromGiven:
@@ -331,7 +331,7 @@ func (r *Rules) lean(col int) int {
 // road: a diagonal road (0x32/0x33), maybe with stones.
 func (r *Rules) road(sg *StripGen) {
 	var stones int
-	if r.S.Dice(1, 100) > flagValue(r.S.TerrainFlags(), 0, sg.Chance) {
+	if r.S.Dice(1, 100) > flagValue(r.S.TerrainFlags(r.boss), 0, sg.Chance) {
 		return
 	}
 	col := int(int8(byte(0x22 - r.S.Dice(5, 4))))
@@ -372,7 +372,7 @@ func (r *Rules) road(sg *StripGen) {
 // cliff (CotAB O05D:0A00): a cliff face down the map with a fallen block at
 // its foot here and there.
 func (r *Rules) cliff(sg *StripGen) {
-	if r.S.Dice(1, 100) > flagValue(r.S.TerrainFlags(), 0, sg.Chance) {
+	if r.S.Dice(1, 100) > flagValue(r.S.TerrainFlags(r.boss), 0, sg.Chance) {
 		return
 	}
 	g := &r.S.Cmap.Ground
@@ -446,7 +446,7 @@ func (r *Rules) groves(w *WildGen) {
 	if gg == nil {
 		return
 	}
-	chance := flagValue(r.S.TerrainFlags(), gg.Default, gg.Chance)
+	chance := flagValue(r.S.TerrainFlags(r.boss), gg.Default, gg.Chance)
 	g := &r.S.Cmap.Ground
 	for x := 0; x <= 0x31; x++ {
 		for y := 1; y <= 0x18; y++ {
@@ -459,7 +459,7 @@ func (r *Rules) groves(w *WildGen) {
 			} else {
 				v = (v + 1) >> 1
 			}
-			if r.S.TerrainFlags()&gg.RoughFlag != 0 {
+			if r.S.TerrainFlags(r.boss)&gg.RoughFlag != 0 {
 				v = r.S.Dice(1, 3) + 3
 			}
 			g[y][x] = gg.Base + Ground(v)
@@ -477,7 +477,7 @@ func (r *Rules) trees(w *WildGen) {
 	if tg == nil {
 		return
 	}
-	t := r.S.TerrainFlags()
+	t := r.S.TerrainFlags(r.boss)
 	if t&tg.Bare != 0 {
 		return
 	}
@@ -508,7 +508,7 @@ func (r *Rules) plants(w *WildGen) {
 		return
 	}
 	odds := pg.Odds
-	f := r.S.TerrainFlags()
+	f := r.S.TerrainFlags(r.boss)
 	for _, pf := range pg.Flags {
 		if f&pf.Flag != 0 {
 			odds[pf.Index] = pf.Value
@@ -556,7 +556,7 @@ func (r *Rules) scatter(w *WildGen) {
 	if sg == nil {
 		return
 	}
-	rough := flagSum(r.S.TerrainFlags(), sg.Start, sg.Rough)
+	rough := flagSum(r.S.TerrainFlags(r.boss), sg.Start, sg.Rough)
 	var percent []int
 	for _, o := range sg.Odds {
 		if rough >= o.Lo && rough <= o.Hi {
@@ -634,6 +634,8 @@ var rubbleSpread = [4][2]int{{0, -1}, {1, 0}, {0, 1}, {-1, 0}}
 // the dungeon's walls or the wilderness' terrain, then clutter.
 func (r *Rules) buildGround(g rules.BuildGround) {
 	r.S.Cmap = &CombatMap{}
+	r.boss = g.Boss // TerrainFlags' Boss word, for this call
+	defer func() { r.boss = 0 }()
 	r.S.Dungeon = g.Dungeon
 	if g.Dungeon {
 		r.dungeonMap(g)

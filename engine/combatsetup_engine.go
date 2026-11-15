@@ -49,7 +49,7 @@ func (e *Engine) combatMapSetup() {
 
 // groundTerms is what the rules lay the combat ground from.
 func (e *Engine) groundTerms() rules.BuildGround {
-	g := rules.BuildGround{Walls: e.gmap(), Dungeon: e.viewMode == 1, NoRemains: e.gs.areaKind == 0xA}
+	g := rules.BuildGround{Walls: e.gmap(), Dungeon: e.viewMode == 1, NoRemains: e.gs.areaKind == 0xA, MapX: e.world.MapX, MapY: e.world.MapY, Boss: e.world.Boss}
 	switch e.viewMode {
 	case 3:
 		g.MapShift = 0xD

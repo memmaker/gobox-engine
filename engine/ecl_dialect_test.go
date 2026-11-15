@@ -23,7 +23,7 @@ func runOp(e *Engine, v *ecl.Version, op func(), args ...int) {
 // TestLoadAreaOp: pod's LoadFiles (map, walls) loads the 3D map, and none from 127 on.
 func TestLoadAreaOp(t *testing.T) {
 	e := quickStarted(t)
-	e.setWorldWord(rules.WordIn3D, 1)
+	e.world.In3D = 1
 	e.world.Geo = 9
 	runOp(e, ecl.V3, e.opLoadArea, geoNone, wallsNone)
 	if g := int(e.world.Geo); g != 9 {
@@ -38,7 +38,7 @@ func TestLoadAreaOp(t *testing.T) {
 // TestSetupMonsterSides: pod's 4th operand is the sides; outdoors the asked distance becomes 2.
 func TestSetupMonsterSides(t *testing.T) {
 	e := quickStarted(t)
-	e.setWorldWord(rules.WordIn3D, 0)
+	e.world.In3D = 0
 	runOp(e, ecl.V3, e.opSetupMonster, 1, 1, 1, 5)
 	if e.run.monsterSides != 5 || e.vm.PC != 1 {
 		t.Fatalf("sides %d, PC %d", e.run.monsterSides, e.vm.PC)

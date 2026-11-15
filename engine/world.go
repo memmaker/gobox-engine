@@ -17,44 +17,36 @@ func (e *Engine) savedWorld() *rules.World {
 	return &w
 }
 
-// loadWorld takes the world a save holds; a save older than the engine's
-// world has none and keeps its words in the ruleset's part.
+// loadWorld takes the world a save holds. A word the ruleset's part still
+// carries wins: the save was written while the ruleset kept that word (the
+// words moved to the engine in steps; once one moved, no ruleset part has it).
 func (e *Engine) loadWorld(g adventure.Save) {
+	e.world = rules.World{}
 	if g.World != nil {
 		e.world = *g.World
-		return
 	}
-	e.world = worldInOldBlob(g.Rules)
+	wordsInOldBlob(g.Rules, &e.world)
 }
 
-// worldInOldBlob reads the world words out of the ruleset's blob of a save
-// written before the engine kept them (rules1e's SaveBlob: the area record's
-// and the game record's words under their field names); no blob has none.
-func worldInOldBlob(blob json.RawMessage) rules.World {
+// wordsInOldBlob puts into w the world words the ruleset's blob of an older
+// save holds (rules1e's SaveBlob: the area record's and the game record's
+// words under their field names, which are the cells' names).
+func wordsInOldBlob(blob json.RawMessage, w *rules.World) {
 	if len(blob) == 0 {
-		return rules.World{}
+		return
 	}
-	var old struct {
-		Area struct {
-			AreaKind, PrevX, PrevY, RiverOpen, Geo, WallSplitA, WallSplitB, NoCoords, MsgDelay, ViewFlags uint16
-		}
-		Game struct {
-			MaxDist, HoldMove, Search, LeftMap, Portrait, Temple, Shop, SymbolSet                                         uint16
-			Morale, Surprise, MonsterHit, PartyHit, PartyMove, NoLoot, Duel, MonsterDist, CombatEnd, Beaten, AttackedAlly uint16
-		}
-	}
+	var old struct{ Area, Game map[string]json.RawMessage }
 	if err := json.Unmarshal(blob, &old); err != nil {
 		panic("save: the ruleset's blob: " + err.Error()) // the ruleset's Load read the same bytes
 	}
-	a, g := old.Area, old.Game
-	return rules.World{
-		AreaKind: a.AreaKind, PrevX: a.PrevX, PrevY: a.PrevY, RiverOpen: a.RiverOpen, Geo: a.Geo,
-		WallSplitA: a.WallSplitA, WallSplitB: a.WallSplitB, NoCoords: a.NoCoords, MsgDelay: a.MsgDelay, ViewFlags: a.ViewFlags,
-		MaxDist: g.MaxDist, HoldMove: g.HoldMove, Search: g.Search, LeftMap: g.LeftMap,
-		Portrait: g.Portrait, Temple: g.Temple, Shop: g.Shop, SymbolSet: g.SymbolSet,
-		Morale: g.Morale, Surprise: g.Surprise, MonsterHit: g.MonsterHit, PartyHit: g.PartyHit, PartyMove: g.PartyMove,
-		NoLoot: g.NoLoot, Duel: g.Duel, MonsterDist: g.MonsterDist, CombatEnd: g.CombatEnd, Beaten: g.Beaten,
-		AttackedAlly: g.AttackedAlly,
+	for name, cell := range w.Cells() {
+		for _, record := range []map[string]json.RawMessage{old.Area, old.Game} {
+			if raw, ok := record[name]; ok {
+				if err := json.Unmarshal(raw, cell); err != nil {
+					panic("save: the ruleset's " + name + ": " + err.Error())
+				}
+			}
+		}
 	}
 }
 
@@ -85,6 +77,8 @@ func (e *Engine) fightTerms() rules.FightTerms {
 		DuelOpponent: int32(w.Duel),
 		NoItemLoot:   w.NoLoot == 1,
 		MonsterDist:  int32(w.MonsterDist),
+		NoMagic:      e.noMagic(),
+		In3D:         e.in3D(),
 		PartyAt:      image.Pt(e.posX, e.posY),
 		PartyFacing:  rules.Facing(e.facing),
 	}

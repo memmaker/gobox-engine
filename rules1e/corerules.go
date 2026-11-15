@@ -42,6 +42,7 @@ type Rules struct {
 	tmplID   rules.MonsterID
 	view     *SaveView // SetSaveView
 	straight bool      // BeginFight's Board.Straight: the board is deskewed
+	boss     uint16    // buildGround's BuildGround.Boss, while it runs
 }
 
 // ID is c's CharID, given at its first use and kept while c lives. Until the

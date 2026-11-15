@@ -152,6 +152,7 @@ type CastReply struct {
 	Fight bool       // the fight's targeting (chooseSpellTargets), else spellTargetSetup's
 	Yes   bool       // yes to "Lose it?" / "Use it?"
 	On    *Character // the member the spell goes on (nil: none)
+	In3D  bool       // out of a fight: the area is a 3D one (a fight's is its Terms')
 }
 
 // spellTargetHook = lcall [DS:6B84].
@@ -221,6 +222,7 @@ func (e *RuleState) applySpellToSide(side int, msg string) {
 func (e *RuleState) CastSpell(spell SpellID, mode, b byte, r CastReply, quit *bool) (cancelled bool) {
 	caster := e.Acting()
 	ok := true
+	e.castIn3D = r.In3D || e.Fight.On && e.Terms.In3D
 	if e.BeginFlag != 5 && e.SpellRec(spell, 7) == 0 { // the yes/no was asked before (castAsk)
 		yes := r.Yes
 		if !e.UsingItem {
@@ -326,7 +328,7 @@ func (e *RuleState) affects(level, call int, msg string) {
 
 // fxFireball = ovr23:266B: a burst of radius 2 round the target square,
 // level d6 of fire (spFireballPower rolls its own level); the near list only
-// becomes the target list when the area holds no word at +0x1CC.
+// becomes the target list when the area holds no word at +0x1CC (castIn3D).
 func (e *RuleState) fxFireball() {
 	var lvl int
 	if e.CurSpell == spFireballPower {
@@ -334,7 +336,7 @@ func (e *RuleState) fxFireball() {
 	} else {
 		lvl = e.casterLevel(int(e.CurSpell))
 	}
-	if e.Area.In3D == 0 {
+	if !e.castIn3D {
 		e.BuildNear(e.TgtX, e.TgtY, 2, 0xFF, 1)
 		for i, n := range e.Near {
 			e.SetTgt(i+1, e.Combatant(n.Index))

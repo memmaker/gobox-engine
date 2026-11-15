@@ -19,7 +19,7 @@ func TestHallTrain(t *testing.T) {
 	e.Init()
 	e.Start(e.Play)
 	x, y, n := e.posX, e.posY, e.top()
-	e.state().Game.PartyExp = 0xFF
+	e.world.PartyExp = devHallTeaches
 	e.state().Party[0].Exp, e.state().Purse.Gold = 1<<20, 1<<20 // Train is offered only to a member who would rise
 	e.push(cont{kind: kDrawMain})
 	e.partyMenu(true, true)

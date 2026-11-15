@@ -2,6 +2,7 @@ package rules1e
 
 import (
 	"errors"
+	"gobox/rules"
 	"slices"
 	"strconv"
 )
@@ -19,6 +20,8 @@ type campState struct {
 	RestMins int                      // extra: minutes of this rest (a long rest: LongRest)
 	RestHour int                      // extra: five-minute steps of this rest toward the hour (hourTick)
 	StopRest bool                     // extra: StopRest: the rest ends at its next step
+
+	RestEvery, RestChance uint16 // CampOpen's: the rest's encounter check every n steps, its percent (until camp closes)
 
 	scriber map[*Item][3]*Character // extra: who chose to scribe each scroll spell (the party inventory is shared)
 
@@ -154,13 +157,13 @@ func (e *RuleState) ClearStudy() {
 	}
 }
 
-// CanStudy = ovr16:036C (mode 1 cast, 2 memorize, 3 scribe): area +0x1CA
-// forbids casting; the dead (status 1) and the fallen cannot study.
-func (e *RuleState) CanStudy(mode int) bool {
+// CanStudy = ovr16:036C (mode 1 cast, 2 memorize, 3 scribe): noMagic (area +0x1CA,
+// handed in) forbids casting; the dead (status 1) and the fallen cannot study.
+func (e *RuleState) CanStudy(mode int, noMagic bool) bool {
 	msg := ""
 	c := e.Acting()
 	switch {
-	case mode == 1 && e.Area.NoMagic > 0:
+	case mode == 1 && noMagic:
 		msg = "cannot cast spells here"
 	case c.Status == StatusAnimated || c.Okay == 0: // extra: shorter than the original's "is in no condition to cast any spells", so it fits a note
 		msg = [...]string{"cannot cast now", "cannot memorize now", "cannot scribe now"}[mode-1]
@@ -281,13 +284,10 @@ func (e *RuleState) MemorizeCures(c *Character) {
 	c.Memorized = m
 }
 
-// SpellsAllowed: the area allows spells.
-func (e *RuleState) SpellsAllowed() bool { return e.Area.NoMagic == 0 }
-
 // CastCures (extra): every cleric able to cast spends memorized Cure Light
 // Wounds on the most wounded member while someone needs it.
-func (e *RuleState) CastCures() {
-	if !e.SpellsAllowed() {
+func (e *RuleState) CastCures(noMagic bool) {
+	if noMagic {
 		return
 	}
 	for _, c := range e.Party {
@@ -334,12 +334,12 @@ func (e *RuleState) ClockMinutes() int {
 // but dark grey (8, the night the scripts set after 14:00, and the
 // graveyard's sky at any hour). Off the 3D view, or before a script set
 // one, the clock decides (isDay).
-func (e *RuleState) SkyDay(inside bool) bool {
-	sky := e.Area.Sky
-	if inside {
-		sky = e.Area.SkyInside
+func (e *RuleState) SkyDay(k rules.SkyDay) bool {
+	sky := k.Sky
+	if k.Inside {
+		sky = k.SkyInside
 	}
-	if e.Area.In3D == 0 || sky == 0 {
+	if !k.In3D || sky == 0 {
 		return e.IsDay()
 	}
 	return sky != 8
@@ -538,7 +538,7 @@ func (e *RuleState) inBook(c *Character, s SpellID) bool {
 // or once less, as far as c's slots for its level go.
 func (e *RuleState) PlanSpell(c *Character, spell, delta int) {
 	s := SpellID(spell)
-	if !e.learnable(c, s) || c.SpellBook[s-1] == 0 || !e.CanStudy(2) {
+	if !e.learnable(c, s) || c.SpellBook[s-1] == 0 || !e.CanStudy(2, false) {
 		return
 	}
 	if delta < 0 {
@@ -561,7 +561,7 @@ func (e *RuleState) PlanSpell(c *Character, spell, delta int) {
 // the next rest, or no longer when it is being scribed.
 func (e *RuleState) Scribe(c *Character, spell int) {
 	s := SpellID(spell)
-	if !e.learnable(c, s) || !e.CanStudy(3) {
+	if !e.learnable(c, s) || !e.CanStudy(3, false) {
 		return
 	}
 	for _, it := range e.Carried(c) {
@@ -781,11 +781,11 @@ func (e *RuleState) stepRest() (s restStep) {
 			e.Rules().Rested(e, c)
 		}
 	}
-	if every := e.Game.RestEvery; every > 0 {
+	if every := e.Camp.RestEvery; every > 0 {
 		e.Camp.Interval++
 		if e.Camp.Interval >= int(every) {
 			e.Camp.Interval = 0
-			if e.Dice(1, 100) <= int(e.Game.RestChance) {
+			if e.Dice(1, 100) <= int(e.Camp.RestChance) {
 				e.narrate("The Party is rudely interrupted!")
 				s.Over, s.Interrupted = true, true
 				return

@@ -196,7 +196,11 @@ type CastCard struct {
 
 // OpenCast: Who opens camp's Cast (por CastMenu's start); refused
 // (ErrNotNow) when Who cannot cast here, as the rules word it to the party.
-type OpenCast struct{ Who CharID }
+// NoMagic: the area forbids spells.
+type OpenCast struct {
+	Who     CharID
+	NoMagic bool
+}
 
 // CampCast: Who casts memorized spell Spell out of a fight; Sure answers
 // a combat-only spell's "Lose it?", Target is the member it goes on (NoChar: none).
@@ -204,6 +208,7 @@ type CampCast struct {
 	Who, Target CharID
 	Spell       SpellID
 	Sure        bool
+	In3D        bool // the area is a 3D one, not the overland map
 }
 
 func (CastCardFact) fact() {}

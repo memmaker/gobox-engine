@@ -104,32 +104,15 @@ type Copper int64
 type WorldWord int
 
 const (
-	WordNoMagic    WorldWord = iota + 1 // por area.NoMagic
-	WordNoExpAward                      // sotsb noXpAward; pod offset 30: this Combat() only hands out loot
-	WordTrainable                       // por game.PartyExp: classes a hall teaches
-	// the game and area record words por's scripts and engine read and
-	// write (fold E-R6; WordIs, SetWord)
-	WordBeginFlag    // por DS:49F3: 0 the party menu, 3 exploring, 4 an area starting, 5 a fight's setup
-	WordIn3D         // por area.In3D: nonzero a 3D area
-	WordMapX         // por area.MapX: the overland square
-	WordMapY         // por area.MapY
-	WordBoss         // por area.Boss
-	WordTenMinutes   // por area.Clock[2]
-	WordHours        // por area.Clock[3]
-	WordMarkFlags4   // por area.MarkFlags4
-	WordMark3        // por area.Mark3
-	WordMark4Off     // por area.Mark4Off
-	WordMarkFlags57  // por area.MarkFlags57
-	WordMark4        // por area.Mark4
-	WordSky          // por area.Sky: a write redraws the portrait
-	WordSkyInside    // por area.SkyInside: the same
-	WordRestEvery    // por game.RestEvery
-	WordRestChance   // por game.RestChance
-	WordPartyCount   // por game.PartyCount (read: the party's size)
-	WordDebug        // por: the debug flag (Yes)
-	WordTraining     // por: the training hall is open (Yes; SetWord opens or closes it)
-	WordWho          // por DS:5D92: the member the rules act for
-	WordEffect       // por: the party's affect table, entry WordIs.Index (read only)
-	WordClockMinutes // por: the area clock as minutes of the day (read only)
-	WordCampOn       // por: camp is up (CampMenu; flag)
+	// the words still read and written through the ruleset (WordIs, SetWord;
+	// REFACTOR.md B1f0f: the rules' own state, to become facts)
+	WordBeginFlag    WorldWord = iota + 1 // por DS:49F3: 0 the party menu, 3 exploring, 4 an area starting, 5 a fight's setup
+	WordTenMinutes                        // por area.Clock[2]
+	WordHours                             // por area.Clock[3]
+	WordPartyCount                        // por game.PartyCount (read: the party's size)
+	WordTraining                          // por: the training hall is open (Yes; SetWord opens or closes it)
+	WordWho                               // por DS:5D92: the member the rules act for
+	WordEffect                            // por: the party's affect table, entry WordIs.Index (read only)
+	WordClockMinutes                      // por: the area clock as minutes of the day (read only)
+	WordCampOn                            // por: camp is up (CampMenu; flag)
 )

@@ -44,8 +44,9 @@ var DollNames = [DollSlots]string{DollWeapon: "weapon", DollShield: "shield", Do
 // Name the spell's); one Offer with Not set (its refusal, as the rules word
 // it) when the item must be readied first; none when it cannot be used now.
 type UsingItem struct {
-	Who  CharID
-	Item ItemHandle
+	Who     CharID
+	Item    ItemHandle
+	NoMagic bool // the area forbids magic: no item is used
 }
 
 func (UsingItem) situation() {}
@@ -178,8 +179,8 @@ type ItemIdentified struct {
 func (ItemIdentified) effect() {}
 
 // InventoryFact is the member's inventory screen (Fact: an InventoryView);
-// Powers is the engine's to add.
-type InventoryFact struct{}
+// Powers is the engine's to add. NoMagic: the area forbids magic (no items are used).
+type InventoryFact struct{ NoMagic bool }
 
 // InventoryView is the inventory screen's rule part: the readied items by
 // doll slot (nil: empty), the party inventory in its list order, and what

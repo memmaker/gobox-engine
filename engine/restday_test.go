@@ -16,7 +16,7 @@ func TestCampDayIsClock(t *testing.T) {
 	e.Explore = true
 	e.DevAction = func() {
 		e.state().Area.Clock[3], e.state().Area.Clock[2], e.state().Area.Clock[1] = 23, 0, 0
-		e.state().Area.Sky, e.state().Area.SkyInside = 9, 9 // a day colour
+		e.world.Sky, e.world.SkyInside = 9, 9 // a day colour
 		e.CampMenu()
 	}
 	e.Init()

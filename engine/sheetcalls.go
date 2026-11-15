@@ -258,7 +258,7 @@ func (e *Engine) traded(o rules.Outcome, done string) {
 // (a phase of the turn) and a use ends the turn.
 func (e *Engine) UseItem(h rules.ItemHandle, spell, target int, sure bool) error {
 	cID, h := e.carriedBy(h)
-	uses := e.ruleset().Allowed(rules.UsingItem{Who: cID, Item: h}).Offers
+	uses := e.ruleset().Allowed(rules.UsingItem{Who: cID, Item: h, NoMagic: e.noMagic()}).Offers
 	if len(uses) == 1 && uses[0].Not != "" {
 		e.refuse(uses[0].Not)
 		return rules.ErrNotNow
@@ -285,7 +285,7 @@ func (e *Engine) UseItem(h rules.ItemHandle, spell, target int, sure bool) error
 		if err != nil {
 			return err
 		}
-		u := rules.UseItem{User: cID, Item: h, Target: on, Sure: yes}
+		u := rules.UseItem{User: cID, Item: h, Target: on, Sure: yes, In3D: e.in3D()}
 		if !own {
 			u.Spell = e.spellID(spell)
 		}

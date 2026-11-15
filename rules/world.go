@@ -23,8 +23,17 @@ type MapTerrain struct{ X, Y int }
 func (MapTerrain) check() {}
 
 // AreaTileIs asks the area map's tile at square (X, Y) (Answer.Value): the
-// terrain, or a landmark while it shows (por AreaTile).
-type AreaTileIs struct{ X, Y int32 }
+// terrain, or a landmark while it shows (por AreaTile); Marks says which show.
+type AreaTileIs struct {
+	X, Y  int32
+	Marks AreaMarks
+}
+
+// AreaMarks are the script words that decide which landmarks the area map shows
+// (por ovr15's area map: their bits mean what the ruleset says).
+type AreaMarks struct {
+	Flags4, Mark3, Mark4Off, Flags57, Mark4, Boss uint16
+}
 
 func (AreaTileIs) check() {}
 

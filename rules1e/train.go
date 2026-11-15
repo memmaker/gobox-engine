@@ -9,11 +9,6 @@ import (
 // icon copy the designer uses (icondesign.go), and the hit point helpers
 // they share.
 
-// PartyExp = es:[game+0x550]: the classes this training hall teaches
-// (a mask that is ANDed with DS:5DE; the party menu only offers Train
-// when it is set).
-func (e *RuleState) PartyExp() int { return int(e.Game.PartyExp) }
-
 // conHPBonus = ovr17:3F31 (char): hit point bonus per class from
 // constitution (DS:408E), plus one or two for a class 2 character with
 // constitution above 16 and 17. Returned as a signed byte.
@@ -172,12 +167,14 @@ func levelReady(c *Character) bool {
 // TrainCheck = the tests of ovr17:29AC on c: the classes it would rise
 // in (DS:5DE bits, the hall's game +0x550 among them), why not when the
 // hall refuses, and the experience to hold it at below a second level
-// (0: none).
-func (e *RuleState) TrainCheck(c *Character) (mask byte, why string, best int32) {
-	if c.Status != StatusOkay && !e.Debug {
+// (0: none). The hall's word (es:[game+0x550], handed in as hall.Teaches) is
+// the classes it teaches, a mask ANDed with DS:5DE; hall.Free is the debug
+// switch (the hall asks no experience, fee or fitness).
+func (e *RuleState) TrainCheck(c *Character, hall rules.HallTerms) (mask byte, why string, best int32) {
+	if c.Status != StatusOkay && !hall.Free {
 		return 0, "we only train conscious people", 0
 	}
-	if fee := e.T().Town.TrainPrice; e.Purse.Gold < uint64(fee) && !e.Debug {
+	if fee := e.T().Town.TrainPrice; e.Purse.Gold < uint64(fee) && !hall.Free {
 		return 0, fmt.Sprintf("Training costs %d gp.", fee), 0
 	}
 	var have, can byte
@@ -193,7 +190,7 @@ func (e *RuleState) TrainCheck(c *Character) (mask byte, why string, best int32)
 		}
 		exp := int32(c.Exp)
 		need := e.T().XPForLevel(PorClass[i], int(int8(lv+1)))
-		if need > exp && !e.Debug || need <= 0 {
+		if need > exp && !hall.Free || need <= 0 {
 			continue
 		}
 		can += byte(e.T().HpClassMask[i])
@@ -206,17 +203,17 @@ func (e *RuleState) TrainCheck(c *Character) (mask byte, why string, best int32)
 			best = next - 1
 		}
 	}
-	if e.Debug {
+	if hall.Free {
 		return can, "", best
 	}
-	hall := e.PartyExp()
+	teaches := int(hall.Teaches)
 	switch {
-	case byte(int(have)&hall) == 0:
+	case byte(int(have)&teaches) == 0:
 		return 0, "We don't train that class here", best
-	case byte(int(can)&hall) == 0:
+	case byte(int(can)&teaches) == 0:
 		return 0, "Not Enough Experience", best
 	}
-	return byte(int(can) & hall), "", best
+	return byte(int(can) & teaches), "", best
 }
 
 // Learnable = SpellList kind 4 (ovr20:299C): the spells c has slots for
@@ -235,10 +232,10 @@ func (e *RuleState) Learnable(c *Character) []SpellID {
 // mask for the fee, and the hit points; a mage level gained sets
 // learning (the original's spell pick, ovr20:299C, came before the hit
 // points; it rolls no dice).
-func (e *RuleState) TrainLevels(c *Character, mask byte) {
+func (e *RuleState) TrainLevels(c *Character, mask byte, free bool) {
 	e.Emit(rules.Sounded{Cue: rules.SoundCue("level")})
 	e.narrate("Congratulations...")
-	if !e.Debug {
+	if !free {
 		e.Purse.Gold -= uint64(e.T().Town.TrainPrice)
 	}
 	mage := int8(c.Levels[ClsMage])

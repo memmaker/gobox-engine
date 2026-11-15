@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"gobox/adventure"
+	"gobox/rules"
 )
 
 // worldNames are the engine's own world words (their script field names), in
@@ -28,6 +29,20 @@ func engineWords(e *Engine) [len(worldNames)]int {
 		int(e.world.Morale), int(e.world.Surprise), int(e.world.MonsterHit), int(e.world.PartyHit),
 		int(e.world.PartyMove), int(e.world.NoLoot), int(e.world.Duel), int(e.world.MonsterDist),
 		int(e.world.CombatEnd), int(e.world.Beaten), int(e.world.AttackedAlly),
+	}
+}
+
+// placeNames are the place, rest and training words (their script field names), in the order of
+// shippedPlaceWords.
+var placeNames = [...]string{"NoMagic", "In3D", "MapX", "MapY", "Boss", "MarkFlags4", "Mark3", "Mark4Off", "MarkFlags57", "Mark4",
+	"Sky", "SkyInside", "RestEvery", "RestChance", "PartyExp"}
+
+// enginePlaceWords are the place words as the engine sees them, in placeNames' order.
+func enginePlaceWords(e *Engine) [len(placeNames)]int {
+	return [...]int{
+		int(e.world.NoMagic), int(e.world.In3D), int(e.world.MapX), int(e.world.MapY), int(e.world.Boss),
+		int(e.world.MarkFlags4), int(e.world.Mark3), int(e.world.Mark4Off), int(e.world.MarkFlags57), int(e.world.Mark4),
+		int(e.world.Sky), int(e.world.SkyInside), int(e.world.RestEvery), int(e.world.RestChance), int(e.world.PartyExp),
 	}
 }
 
@@ -105,6 +120,25 @@ var shippedWords = map[string][len(worldNames)]int{
 	"sotsb/GAME A":      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 }
 
+// shippedPlaceWords is each shipped slot's place, rest and training words as the engine saw them
+// before they moved from the ruleset's records into the engine (recorded with RECORD_WORLD=1),
+// in placeNames' order.
+var shippedPlaceWords = map[string][len(placeNames)]int{
+	"por/back-for-good": {0, 1, 13, 27, 0, 0, 0, 0, 0, 0, 11, 10, 0, 0, 114},
+	"por/CAPTURE":       {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	"por/Hobgoblins":    {0, 1, 13, 27, 0, 0, 0, 0, 0, 0, 11, 8, 0, 0, 114},
+	"por/in-Slums":      {0, 1, 13, 27, 0, 0, 0, 0, 0, 0, 11, 9, 0, 0, 116},
+	"por/library":       {0, 1, 13, 27, 0, 0, 0, 0, 0, 0, 11, 9, 0, 0, 120},
+	"por/Podol":         {0, 1, 13, 27, 0, 0, 0, 0, 0, 0, 8, 10, 0, 0, 114},
+	"por/SHOPPING":      {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 11, 10, 0, 0, 0},
+	"por/Sokol Keep":    {0, 1, 13, 27, 0, 0, 0, 0, 0, 0, 11, 10, 0, 0, 120},
+	"por/STARTER":       {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 11, 10, 0, 0, 116},
+	"por/tavern":        {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 11, 10, 0, 0, 0},
+	"por/weird-scribe":  {0, 1, 13, 27, 0, 0, 0, 0, 0, 0, 11, 8, 0, 100, 120},
+	"por/WORLDMAP":      {0, 0, 4, 31, 0, 0, 0, 0, 0, 0, 11, 10, 0, 0, 114},
+	"sotsb/GAME A":      {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+}
+
 // TestShippedSlotsLoad: every shipped slot loads with the world words it
 // always had, and a save written after that loads to the same words.
 func TestShippedSlotsLoad(t *testing.T) {
@@ -122,7 +156,11 @@ func TestShippedSlotsLoad(t *testing.T) {
 			got := engineWords(e)
 			if record {
 				fmt.Printf("RECORD %q: %v,\n", key, strings.NewReplacer("[", "{", "]", "}", " ", ", ").Replace(fmt.Sprint(got)))
+				fmt.Printf("RECORDPLACE %q: %v,\n", key, strings.NewReplacer("[", "{", "]", "}", " ", ", ").Replace(fmt.Sprint(enginePlaceWords(e))))
 				return
+			}
+			if want, ok := shippedPlaceWords[key]; !ok || enginePlaceWords(e) != want {
+				t.Errorf("place words %v, want %v (recorded)", enginePlaceWords(e), want)
 			}
 			if want, ok := shippedWords[key]; !ok || got != want {
 				t.Errorf("words %v, want %v (recorded)", got, want)
@@ -143,6 +181,9 @@ func TestShippedSlotsLoad(t *testing.T) {
 			}
 			if again := engineWords(e); again != got {
 				t.Errorf("after save and load: %v, want %v", again, got)
+			}
+			if again := enginePlaceWords(e); again != shippedPlaceWords[key] {
+				t.Errorf("after save and load, place words %v, want %v", again, shippedPlaceWords[key])
 			}
 		})
 	}
@@ -187,5 +228,23 @@ func TestWorldFieldsReachTheEngine(t *testing.T) {
 				t.Errorf("the ruleset's %s still holds %s", part, name)
 			}
 		}
+	}
+}
+
+// A save of any step of the words' move loads whole: a word the ruleset's
+// part still has comes from there, the others from the save's World (bug
+// class: a save written between two steps lost the words moved later).
+func TestLoadWorldMergesOldBlob(t *testing.T) {
+	e := &Engine{}
+	e.loadWorld(adventure.Save{
+		World: &rules.World{Geo: 5, Morale: 1},
+		Rules: json.RawMessage(`{"Area":{"NoMagic":1,"Clock":[0,0,3,4,0,0,0]},"Game":{"Morale":60,"RestEvery":7},"Purse":{}}`),
+	})
+	if w := e.world; w.Geo != 5 || w.NoMagic != 1 || w.Morale != 60 || w.RestEvery != 7 {
+		t.Errorf("loaded %+v, want Geo 5 (World), NoMagic 1, Morale 60, RestEvery 7 (the ruleset's part)", w)
+	}
+	e.loadWorld(adventure.Save{World: &rules.World{Geo: 9}})
+	if e.world != (rules.World{Geo: 9}) {
+		t.Errorf("a save with no ruleset part: %+v", e.world)
 	}
 }

@@ -147,7 +147,7 @@ func (e *RuleState) aiCastFromItem(c *Character) bool {
 	var found *Item
 	lvl := 7
 	rounds := e.Dice(1, 7)
-	if c.Combat.CanUse == 0 || e.Rv.Side[B2i(IsParty(c))] == 0 || e.Area.NoMagic != 0 {
+	if c.Combat.CanUse == 0 || e.Rv.Side[B2i(IsParty(c))] == 0 || e.Terms.NoMagic {
 		return false
 	}
 	for k := 1; k <= rounds; k++ {

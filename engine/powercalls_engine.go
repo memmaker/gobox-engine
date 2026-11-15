@@ -53,7 +53,7 @@ func (e *Engine) UsePower(n int, k game.PowerKind, spell, target int, sure bool)
 		}
 		e.DisplayMessageWait(game.InkLightGreen, name+" is cured")
 	case game.PowerCast: // CastMenu = ovr16:04A1, one cast (extra: the pick list, as the combat's Cast)
-		if _, err := e.ruleset().Resolve(nil, rules.OpenCast{Who: who}, nil); err != nil {
+		if _, err := e.ruleset().Resolve(nil, rules.OpenCast{Who: who, NoMagic: e.noMagic()}, nil); err != nil {
 			return rules.ErrNotNow
 		}
 		spells := e.memorizedSpells()
@@ -68,7 +68,7 @@ func (e *Engine) UsePower(n int, k game.PowerKind, spell, target int, sure bool)
 		if err != nil {
 			return err
 		}
-		e.do(rules.CampCast{Who: who, Spell: e.spellID(spell), Target: on, Sure: sure})
+		e.do(rules.CampCast{Who: who, Spell: e.spellID(spell), Target: on, Sure: sure, In3D: e.in3D()})
 		e.DrawMainScreen()
 	default:
 		return rules.ErrNotNow

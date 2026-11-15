@@ -199,7 +199,7 @@ func (e *Engine) opSetupMonster() {
 	e.world.MaxDist = uint16(e.vm.Arg(2, e.host))
 	e.run.closeup = int(byte(e.vm.Arg(3, e.host)))
 	e.world.MonsterDist = uint16(e.FreeSteps(e.posX, e.posY, e.facing))
-	if sides && e.worldWord(rules.WordIn3D) == 0 { // outdoors the distance asked becomes 2 (pod O055:03D7)
+	if sides && e.world.In3D == 0 { // outdoors the distance asked becomes 2 (pod O055:03D7)
 		e.world.MaxDist = uint16(maxEncounterDist)
 	}
 	if int(e.world.MaxDist) < int(e.world.MonsterDist) {
@@ -225,7 +225,7 @@ func (e *Engine) opApproach() {
 func (e *Engine) opPicture() {
 	e.vm.ReadArgs(1)
 	v := int(byte(e.vm.Arg(1, e.host)))
-	if e.worldWord(rules.WordIn3D) == 0 && v != 0xFF {
+	if e.world.In3D == 0 && v != 0xFF {
 		e.clearView() // the picture frame's text
 	}
 	if v != 0xFF {
@@ -267,7 +267,7 @@ func (e *Engine) showBigPicture(n int, big adventure.BigPictures) {
 		return
 	}
 	e.es.bigPic = im
-	e.snap.full = n != big.Framed && !(big.NotOverland && e.worldWord(rules.WordIn3D) == 0)
+	e.snap.full = n != big.Framed && !(big.NotOverland && e.world.In3D == 0)
 }
 
 // bigPicFile is the big pictures' file family (BIGPIC<set>.DAX).
@@ -375,7 +375,7 @@ func (e *Engine) opLoadArea() {
 	e.vm.ReadArgs(2)
 	e.run.scriptLoad, e.run.geoSet, e.run.walldefSet = 1, 1, 1
 	geo, walls := int(byte(e.vm.Arg(1, e.host))), int(byte(e.vm.Arg(2, e.host)))
-	if geo < geoNone && e.worldWord(rules.WordIn3D) != 0 {
+	if geo < geoNone && e.world.In3D != 0 {
 		e.world.Geo = uint16(geo)
 		e.LoadGeo(geo)
 		e.world.HoldMove = 0
@@ -404,12 +404,12 @@ func (e *Engine) opLoadFiles() {
 	}
 	if e.cmdIs(ecl.OpLoadMap) {
 		e.run.geoSet = 1
-		if a[1] != 0xFF && a[1] != 0x7F && e.worldWord(rules.WordIn3D) != 0 {
+		if a[1] != 0xFF && a[1] != 0x7F && e.world.In3D != 0 {
 			e.world.Geo = uint16(a[1])
 			e.LoadGeo(a[1])
 			e.world.HoldMove = 0
 		}
-		if a[3] != 0xFF && e.worldWord(rules.WordIn3D) == 0 {
+		if a[3] != 0xFF && e.world.In3D == 0 {
 			e.layAreaTiles() // ovr33:0022
 		}
 	} else {
@@ -687,7 +687,7 @@ func (e *Engine) opFought() {
 
 // opAfterFight: AfterCombat is over.
 func (e *Engine) opAfterFight() {
-	if e.worldWord(rules.WordIn3D) == 0 {
+	if e.world.In3D == 0 {
 		e.layAreaTiles()
 		e.loadAreaIcon(0, 9)
 		e.loadAreaIcon(1, 0xA)

@@ -97,11 +97,6 @@ func (e *Engine) partyMenu(hall, chain bool) {
 			return
 		}
 	}
-	debug := 0
-	if e.FreeTraining { // -freetrain
-		debug = 1
-	}
-	e.setWorldWord(rules.WordDebug, debug)
 	e.ext.hall = hall // a script's (the training hall): the game goes on under it
 	e.setWorldWord(rules.WordBeginFlag, 0)
 	e.partyRedraw()
@@ -207,7 +202,7 @@ func (e *Engine) partyFunctions() []partyFn {
 	if !e.ext.hall { // extra: the training hall drops no one for good (Remove still takes a member out)
 		fs = append(fs, partyDrop)
 	}
-	if e.mayTrain() && (e.worldWord(rules.WordTrainable) > 0 || e.worldWord(rules.WordDebug) != 0) { // only when the selected member would rise
+	if e.mayTrain() && (e.world.PartyExp > 0 || e.FreeTraining) { // only when the selected member would rise
 		fs = append(fs, partyTraining)
 	}
 	if e.ext.hall && len(e.classOffers(e.selected())) > 0 {
@@ -251,7 +246,7 @@ type partyMenu struct {
 
 // mayTrain is whether the selected member would rise at the training hall now.
 func (e *Engine) mayTrain() bool {
-	return e.fact(e.selected(), rules.TrainFact{}).(rules.TrainCard).Rises
+	return e.fact(e.selected(), rules.TrainFact{Hall: e.hallTerms()}).(rules.TrainCard).Rises
 }
 
 // applyItems = por ApplyItems (00BA:0BB8) on id, the selected member acting.

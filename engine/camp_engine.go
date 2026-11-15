@@ -51,7 +51,7 @@ func (e *Engine) healPlanned() {
 // healCures: while the cures are not enough the clerics memorize them,
 // rest to learn them and cast again.
 func (e *Engine) healCures() {
-	if !(e.healClerics() > 0 && e.healMinutes() > 0 && e.ruleset().Check(rules.SpellsAllowed{}, nil).Yes) {
+	if !(e.healClerics() > 0 && e.healMinutes() > 0 && e.ruleset().Check(rules.SpellsAllowed{NoMagic: e.noMagic()}, nil).Yes) {
 		e.healPlanned()
 		return
 	}
@@ -103,7 +103,7 @@ func (e *Engine) flagDay(inside bool) bool {
 	if e.campUp() {
 		return e.ruleset().Check(rules.IsDay{}, nil).Yes
 	}
-	return e.ruleset().Check(rules.SkyDay{Inside: inside}, nil).Yes
+	return e.ruleset().Check(rules.SkyDay{Inside: inside, In3D: e.in3D(), Sky: e.world.Sky, SkyInside: e.world.SkyInside}, nil).Yes
 }
 
 // dropMember = ovr16:18E5 (the player confirmed): member n leaves the
@@ -137,7 +137,7 @@ func (e *Engine) CampMenu() {
 	}
 	e.campSavedFlag = e.worldWord(rules.WordBeginFlag)
 	e.setWorldWord(rules.WordBeginFlag, 2)
-	e.must(rules.CampOpen{})
+	e.must(rules.CampOpen{RestEvery: e.world.RestEvery, RestChance: e.world.RestChance})
 	e.DrawMainScreen()
 	e.must(rules.ClearStudy{})
 	e.campInterrupted = false
@@ -433,7 +433,7 @@ func twoDigits(n int) string {
 // castCures has the clerics cast Cure Light Wounds, the member selected the actor.
 func (e *Engine) castCures() {
 	e.setWorldWord(rules.WordWho, e.sel)
-	e.must(rules.CastCures{})
+	e.must(rules.CastCures{NoMagic: e.noMagic()})
 }
 
 func (e *Engine) healMinutes() int {

@@ -185,7 +185,7 @@ func (e *Engine) encRound() {
 		clear = false
 	}
 	e.paneText(game.InkLightGreen, clear, txt)
-	en.parlay = dist() == 0 || e.worldWord(rules.WordIn3D) == 0
+	en.parlay = dist() == 0 || e.world.In3D == 0
 	menu := "~COMBAT ~WAIT ~FLEE ~ADVANCE"
 	if en.parlay {
 		menu = "~COMBAT ~WAIT ~FLEE ~PARLAY"

@@ -136,10 +136,10 @@ func (e *RuleState) DollSlot(c *Character, it *Item) int {
 }
 
 // InvFlags say what c's inventory offers: using items, selling them to a
-// shop, showing another member.
-func (e *RuleState) InvFlags(c *Character) (use, sell, switches bool) {
+// shop, showing another member; noMagic: the area forbids magic (the area's word, handed in).
+func (e *RuleState) InvFlags(c *Character, noMagic bool) (use, sell, switches bool) {
 	hired := c.Control >= 0x80 && c.Okay != 0 && c.Status != StatusAnimated
-	use = c.Okay != 0 && e.Area.NoMagic == 0 && (e.BeginFlag == 2 || e.BeginFlag == 3 || e.BeginFlag == 4 ||
+	use = c.Okay != 0 && !noMagic && (e.BeginFlag == 2 || e.BeginFlag == 3 || e.BeginFlag == 4 ||
 		e.BeginFlag == 5 && c.Combat != nil && c.Combat.CanUse != 0)
 	return use, !hired && e.BeginFlag == 1, e.BeginFlag != 5
 }

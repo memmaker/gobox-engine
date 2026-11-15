@@ -66,6 +66,7 @@ type (
 		Aims   []Aim   // as Cast's
 		Spell  SpellID // a scroll's spell
 		Sure   bool    // out of a fight: yes to "Use it?" for a combat-only item
+		In3D   bool    // out of a fight: the area is a 3D one, not the overland map
 	}
 	Maneuver struct {
 		ID     ManeuverID
@@ -108,6 +109,9 @@ type (
 		NoRemains bool
 		Terrain   TerrainID // the wilderness terrain, for a ruleset that takes it from the game (ground gen terrain "given")
 		River     bool      // a river runs across the wilderness (PoD)
+		// The wilderness place the ground is laid for (por area.MapX, MapY, Boss): the party's map
+		// square and the Boss word (0xFF: the boss's terrain kind).
+		MapX, MapY, Boss uint16
 	}
 	// TakeLoot: Who takes the treasure's Item (FightResult.Items); All:
 	// every piece in turn until one does not fit (por the treasure screen's Take).
@@ -227,7 +231,10 @@ type (
 		Item ItemSlot
 		Kind ReloadKind
 	} // BR
-	Train struct{ Who CharID }
+	Train struct {
+		Who  CharID
+		Hall HallTerms
+	}
 	Learn struct {
 		Who   CharID
 		Spell SpellID

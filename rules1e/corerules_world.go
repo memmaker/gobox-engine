@@ -14,7 +14,7 @@ func (r *Rules) checkWorld(k rules.Check) rules.Answer {
 	case rules.WordIs:
 		return r.word(k)
 	case rules.AreaTileIs:
-		return rules.Answer{Value: int32(r.S.AreaTile(int(k.X), int(k.Y)))}
+		return rules.Answer{Value: int32(r.S.AreaTile(int(k.X), int(k.Y), k.Marks))}
 	case rules.PartyStrength:
 		return rules.Answer{Value: int32(r.partyStrength(k.Party))}
 	case rules.Census:

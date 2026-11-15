@@ -36,7 +36,7 @@ func (r *Rules) resolveTown(a rules.Action) (rules.Outcome, bool, error) {
 		if c == nil {
 			return rules.Outcome{}, true, errNoChar
 		}
-		if _, _, best := s.TrainCheck(c); best > 0 {
+		if _, _, best := s.TrainCheck(c, a.Hall); best > 0 {
 			c.Exp = uint32(best) // as the original, before its question and refusals
 		}
 		s.Training, s.Learning = true, false
@@ -71,13 +71,13 @@ func (r *Rules) resolveTown(a rules.Action) (rules.Outcome, bool, error) {
 		if c == nil {
 			return rules.Outcome{}, true, errNoChar
 		}
-		mask, why, _ := s.TrainCheck(c)
+		mask, why, _ := s.TrainCheck(c, a.Hall)
 		if why != "" {
 			return rules.Outcome{Effects: []rules.Effect{
 				rules.Refused{Who: a.Who, Why: rules.NotTrainable}, rules.Narrated{Text: why},
 			}}, true, rules.ErrNotNow
 		}
-		s.TrainLevels(c, mask)
+		s.TrainLevels(c, mask, a.Hall.Free)
 		s.Learning = len(s.Learnable(c)) > 0 && s.Learning
 		if !s.Learning {
 			s.Training = false
@@ -118,7 +118,7 @@ func (r *Rules) factTown(id rules.CharID, f rules.Fact) (rules.Value, bool, erro
 		if c == nil {
 			return nil, true, errNoChar
 		}
-		mask, why, best := s.TrainCheck(c)
+		mask, why, best := s.TrainCheck(c, f.Hall)
 		return rules.TrainCard{Why: why, Becomes: s.TrainsTo(c, mask), Best: best, Rises: why == "" && mask != 0}, true, nil
 	case rules.TempleCureFact:
 		sv, ok := s.templeService(f.Cure)

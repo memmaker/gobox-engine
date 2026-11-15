@@ -5,42 +5,12 @@ import "gobox/rules"
 // wordPtr is the record word w names, nil when it is not a plain record
 // word (core.WordIs, core.SetWord).
 func (r *Rules) wordPtr(w rules.WorldWord) *uint16 {
-	a, g := &r.S.Area, &r.S.Game
+	a := &r.S.Area
 	switch w {
-	case rules.WordMapX:
-		return &a.MapX
-	case rules.WordMapY:
-		return &a.MapY
 	case rules.WordTenMinutes:
 		return &a.Clock[2]
 	case rules.WordHours:
 		return &a.Clock[3]
-	case rules.WordNoMagic:
-		return &a.NoMagic
-	case rules.WordIn3D:
-		return &a.In3D
-	case rules.WordMarkFlags4:
-		return &a.MarkFlags4
-	case rules.WordMark3:
-		return &a.Mark3
-	case rules.WordMark4Off:
-		return &a.Mark4Off
-	case rules.WordMarkFlags57:
-		return &a.MarkFlags57
-	case rules.WordBoss:
-		return &a.Boss
-	case rules.WordMark4:
-		return &a.Mark4
-	case rules.WordSky:
-		return &a.Sky
-	case rules.WordSkyInside:
-		return &a.SkyInside
-	case rules.WordTrainable:
-		return &g.PartyExp
-	case rules.WordRestEvery:
-		return &g.RestEvery
-	case rules.WordRestChance:
-		return &g.RestChance
 	}
 	return nil
 }
@@ -60,8 +30,6 @@ func (r *Rules) word(k rules.WordIs) rules.Answer {
 		return rules.Answer{Yes: true, Value: int32(r.S.Who)}
 	case rules.WordBeginFlag:
 		return rules.Answer{Yes: true, Value: int32(r.S.BeginFlag)}
-	case rules.WordDebug:
-		return flag(r.S.Debug)
 	case rules.WordTraining:
 		return flag(r.S.Training)
 	case rules.WordCampOn:
@@ -87,8 +55,6 @@ func (r *Rules) setWord(a rules.SetWord) error {
 		r.S.Who = int(a.Value)
 	case rules.WordBeginFlag:
 		r.S.BeginFlag = byte(a.Value)
-	case rules.WordDebug:
-		r.S.Debug = a.Value != 0
 	case rules.WordTraining:
 		r.S.Training = a.Value != 0
 	case rules.WordCampOn:

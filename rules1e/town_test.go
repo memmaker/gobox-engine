@@ -23,11 +23,11 @@ func TestTownData(t *testing.T) {
 	free := &RuleState{Tables: &tab}
 	c := free.Fresh(Kind{Race: RaceHuman, Class: ClsFighter}, nil)
 	c.Status = StatusOkay
-	if _, why, _ := free.TrainCheck(c); strings.HasPrefix(why, "Training costs") {
+	if _, why, _ := free.TrainCheck(c, rules.HallTerms{}); strings.HasPrefix(why, "Training costs") {
 		t.Errorf("a free hall asks: %q", why)
 	}
 	por := &RuleState{}
-	if _, why, _ := por.TrainCheck(c); why != "Training costs 1000 gp." {
+	if _, why, _ := por.TrainCheck(c, rules.HallTerms{}); why != "Training costs 1000 gp." {
 		t.Errorf("POR's hall: %q", why)
 	}
 	if sv, ok := free.templeService(1); !ok || sv.Kind != TempleRepair || sv.Price != 0 {

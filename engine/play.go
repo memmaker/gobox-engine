@@ -286,7 +286,7 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 		for n, m := range cm.Party {
 			for _, it := range m.Items {
 				add(e.readyAct(n, it), game.Drop{Member: n, Item: it.Handle})
-				if len(e.ruleset().Allowed(rules.UsingItem{Who: e.partyIDs()[n], Item: it.Handle}).Offers) > 0 { // an item with no use is not offered Use (UseItem refused it "not now")
+				if len(e.ruleset().Allowed(rules.UsingItem{Who: e.partyIDs()[n], Item: it.Handle, NoMagic: e.noMagic()}).Offers) > 0 { // an item with no use is not offered Use (UseItem refused it "not now")
 					add(game.UseItem{Member: n, Item: it.Handle})
 				}
 			}
@@ -540,7 +540,7 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 		if sel := cm.Selected; sel >= 0 && sel < len(cm.Party) { // the acting member's items (the sheet's View, O089's Use)
 			usable := false
 			for _, it := range cm.Party[sel].Items {
-				if slices.Contains(can, VerbItems) && usableNow(e.ruleset().Allowed(rules.UsingItem{Who: e.partyIDs()[sel], Item: it.Handle})) { // only what the rules let it use now
+				if slices.Contains(can, VerbItems) && usableNow(e.ruleset().Allowed(rules.UsingItem{Who: e.partyIDs()[sel], Item: it.Handle, NoMagic: e.noMagic()})) { // only what the rules let it use now
 					add(game.UseItem{Member: sel, Item: it.Handle})
 					usable = true
 				}

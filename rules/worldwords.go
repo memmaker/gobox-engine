@@ -38,6 +38,22 @@ type World struct {
 	CombatEnd    uint16 // 0x80 the party died, 0x81 it fled
 	Beaten       uint16 // monsters beaten
 	AttackedAlly uint16 // 1: the party attacked an ally this fight
+	// The place, a rest and a hall: the 1e rules read them, the engine hands them in with the
+	// question that needs them (AreaMarks, BuildGround, SkyDay, HallTerms, CampOpen ...).
+	NoMagic     uint16 // nonzero: no spellcasting here
+	In3D        uint16 // nonzero: a 3D area; zero: the overland map
+	MapX, MapY  uint16 // the party's square on the overland map
+	Boss        uint16 // > 0xFD: map marks 8 and 9; 0xFE: the river ending; 0xFF: the combat terrain kind
+	MarkFlags4  uint16 // bit 3: area map mark 4 shown
+	Mark3       uint16 // 0xFF: area map mark 3 hidden
+	Mark4Off    uint16 // zero: area map mark 4 shown
+	MarkFlags57 uint16 // bit 1 clear: mark 5, bit 0 clear: mark 7
+	Mark4       uint16 // nonzero: area map mark 4 shown
+	Sky         uint16 // the 3D view's sky colour; a write redraws the portrait
+	SkyInside   uint16 // the sky colour on map cells > 0x7F
+	RestEvery   uint16 // a rest's encounter check every n steps
+	RestChance  uint16 // its percent chance
+	PartyExp    uint16 // the classes a training hall teaches (the ruleset's bits: ClassBits)
 }
 
 // Cells are the world's cells by their script field names (a layout names a
@@ -52,5 +68,9 @@ func (w *World) Cells() map[string]*uint16 {
 		"Morale": &w.Morale, "Surprise": &w.Surprise, "MonsterHit": &w.MonsterHit, "PartyHit": &w.PartyHit,
 		"PartyMove": &w.PartyMove, "NoLoot": &w.NoLoot, "Duel": &w.Duel, "MonsterDist": &w.MonsterDist,
 		"CombatEnd": &w.CombatEnd, "Beaten": &w.Beaten, "AttackedAlly": &w.AttackedAlly,
+		"NoMagic": &w.NoMagic, "In3D": &w.In3D, "MapX": &w.MapX, "MapY": &w.MapY, "Boss": &w.Boss,
+		"MarkFlags4": &w.MarkFlags4, "Mark3": &w.Mark3, "Mark4Off": &w.Mark4Off, "MarkFlags57": &w.MarkFlags57,
+		"Mark4": &w.Mark4, "Sky": &w.Sky, "SkyInside": &w.SkyInside, "RestEvery": &w.RestEvery,
+		"RestChance": &w.RestChance, "PartyExp": &w.PartyExp,
 	}
 }

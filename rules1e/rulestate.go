@@ -33,6 +33,7 @@ type RuleState struct {
 	CurSpell                        SpellID                       // DS:681B spell being cast
 	spellKept                       bool                          // extra: the effect gave the spell back (Stone to Flesh on one not stoned, out of combat)
 	areaSpell                       byte                          // DS:6820
+	castIn3D                        bool                          // extra: the cast in hand is in a 3D area (CastReply.In3D, the fight's Terms)
 	spellValue, spellValue2         byte                          // DS:4844/4845 spell scratch; DS:4845
 	turnValue, modMoves, AffectVeto byte                          // DS:681A speed value, 681D, 681E affect scratch; DS:681D/681E
 	fleeRoll                        byte                          // DS:6825 flee/surrender roll
@@ -53,7 +54,6 @@ type RuleState struct {
 	Training                        bool                          // the training hall is open (OpenTraining)
 	Learning                        bool                          // training gained a mage level: the new spell is chosen next (Learn)
 	Purse                           Purse                         // the party's money
-	Debug                           bool                          // DS:470C
 	MinStats                        [6]int                        // "Minimal stats": per-stat floor, STR as st*100+str00
 	EffTick                         [MaxCombatants + 1]Flag       // DS:471D: member i has timed effects to run down
 	Fight                           FightState                    // the fight's rule part (combatflow.go)

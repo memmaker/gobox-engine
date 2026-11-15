@@ -32,9 +32,8 @@ func TestTerrainKindsAgainstPascal(t *testing.T) {
 		done, _ = strconv.Atoi(k[1])
 		terr, _ = strconv.Atoi(k[2])
 		want, _ = strconv.Atoi(val)
-		e.state().Area.Boss = uint16(done)
 		e.state().Terrain = rules1e.Terrain(byte(terr))
-		if got := int(e.state().TerrainFlags()); got != want {
+		if got := int(e.state().TerrainFlags(uint16(done))); got != want {
 			t.Errorf("%s: pascal %d, ours %d", key, want, got)
 		}
 		cases++

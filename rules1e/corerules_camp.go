@@ -20,11 +20,11 @@ func (r *Rules) checkCamp(k rules.Check) (rules.Answer, bool) {
 	case rules.HealClerics:
 		return rules.Answer{Value: int32(len(s.HealClerics()))}, true
 	case rules.SpellsAllowed:
-		return rules.Answer{Yes: s.SpellsAllowed()}, true
+		return rules.Answer{Yes: !k.NoMagic}, true
 	case rules.RestUnit:
 		return rules.Answer{Value: int32(s.Camp.Rest[k.Unit])}, true
 	case rules.SkyDay:
-		return rules.Answer{Yes: s.SkyDay(k.Inside)}, true
+		return rules.Answer{Yes: s.SkyDay(k)}, true
 	case rules.RestDone:
 		return rules.Answer{Yes: s.RestDone(k.UntilHealed)}, true
 	default:
@@ -39,9 +39,11 @@ func (r *Rules) resolveCamp(a rules.Action) (rules.Outcome, bool, error) {
 	case rules.CampOpen:
 		s.Camp.Heal = 0
 		s.Camp.Rest = [7]int{}
+		s.Camp.RestEvery, s.Camp.RestChance = a.RestEvery, a.RestChance
 	case rules.ClearStudy:
 		s.ClearStudy()
 	case rules.CampClose:
+		s.Camp.RestEvery, s.Camp.RestChance = 0, 0
 		for _, c := range s.Party {
 			s.PlanSpells(c)
 		}
@@ -60,7 +62,7 @@ func (r *Rules) resolveCamp(a rules.Action) (rules.Outcome, bool, error) {
 			s.MemorizeCures(c)
 		}
 	case rules.CastCures:
-		s.CastCures()
+		s.CastCures(a.NoMagic)
 	case rules.SetRest:
 		s.Camp.Rest = [7]int{}
 		s.Camp.Rest[1] = int(a.Minutes)

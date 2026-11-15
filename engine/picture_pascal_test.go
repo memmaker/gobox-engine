@@ -21,7 +21,7 @@ func TestPictureAgainstPascal(t *testing.T) {
 	}
 	defer f.Close()
 	e := testEngine(t)
-	e.state().Area.In3D = 1 // no window blanking: drawing only
+	e.world.In3D = 1 // no window blanking: drawing only
 	sc := bufio.NewScanner(f)
 	cases := 0
 	for sc.Scan() {

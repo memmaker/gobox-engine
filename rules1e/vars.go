@@ -15,20 +15,21 @@ import (
 // script address of their first word. The canonical save (adventure/save.go)
 // keeps only the named words: the script words travel as the fields.
 // The fields tagged json:"-" with a word of rules.World are the engine's
-// words: no rule reads them, the engine keeps them (rules.World); the record
-// has them only so ReadOriginalSave can carry an original save's values out.
+// words: the engine keeps them (rules.World) and hands the rules what a
+// question needs; the record has them only so ReadOriginalSave can carry an
+// original save's values out.
 
 // AreaVars = the area record (es:[DS:49D2]). Despite its name it is kept
 // for the whole game (set only by a new or loaded game): areas share its
 // script words, e.g. the quest table the city hall clerk reads.
 type AreaVars struct {
 	V4900       [0xC3]uint16 `json:"-"`
-	MapX, MapY  uint16       // +0x186/+0x188 party square on the area map (ovr15:0818)
+	MapX, MapY  uint16       `json:"-"` // +0x186/+0x188 party square on the area map (ovr15:0818)
 	Geo         uint16       `json:"-"` // +0x18A GEO block of the 3D map (ovr30:10C7)
 	Clock       [7]uint16    // +0x18C rounds, minutes, tens, hours, days, months, years (ovr21:03D5)
 	V49CD       [0x18]uint16 `json:"-"`
-	NoMagic     uint16       // +0x1CA nonzero: no spellcasting here (ovr16)
-	In3D        uint16       // +0x1CC nonzero: a 3D area; zero: the overland map (ovr27:016D)
+	NoMagic     uint16       `json:"-"` // +0x1CA nonzero: no spellcasting here (ovr16)
+	In3D        uint16       `json:"-"` // +0x1CC nonzero: a 3D area; zero: the overland map (ovr27:016D)
 	WallSplitA  uint16       `json:"-"` // +0x1CE with WallSplitB set, opLoadWalls loads into slots 1 and 3
 	WallSplitB  uint16       `json:"-"` // +0x1D0
 	V49E9       [7]uint16    `json:"-"`
@@ -38,22 +39,22 @@ type AreaVars struct {
 	V49F3       [8]uint16    `json:"-"`
 	NoCoords    uint16       `json:"-"` // +0x1F6 nonzero: no x,y on the status line, no Area map (00BA:290B)
 	MsgDelay    uint16       `json:"-"` // +0x1F8 text delay, DS:49E2 copy for the save file
-	Sky         uint16       // +0x1FA sky colour (ovr27:016D)
-	SkyInside   uint16       // +0x1FC sky colour on map cells > 0x7F
+	Sky         uint16       `json:"-"` // +0x1FA sky colour (ovr27:016D)
+	SkyInside   uint16       `json:"-"` // +0x1FC sky colour on map cells > 0x7F
 	ViewFlags   uint16       `json:"-"` // +0x1FE save-file copy of DS:49F6 (bit 1) and DS:49F5 (bit 0)
 	V4A00       [0x7C]uint16 `json:"-"`
-	MarkFlags4  uint16       // +0x2F8 bit 3: area map mark 4 shown (ovr15 area map)
+	MarkFlags4  uint16       `json:"-"` // +0x2F8 bit 3: area map mark 4 shown (ovr15 area map)
 	V4A7D       [0xF]uint16  `json:"-"`
-	Mark3       uint16       // +0x318 != 0xFF: area map mark 3 shown
+	Mark3       uint16       `json:"-"` // +0x318 != 0xFF: area map mark 3 shown
 	V4A8D       [0x12]uint16 `json:"-"`
-	Mark4Off    uint16       // +0x33E zero: area map mark 4 shown
-	MarkFlags57 uint16       // +0x340 bit 1 clear: mark 5, bit 0 clear: mark 7
+	Mark4Off    uint16       `json:"-"` // +0x33E zero: area map mark 4 shown
+	MarkFlags57 uint16       `json:"-"` // +0x340 bit 1 clear: mark 5, bit 0 clear: mark 7
 	V4AA1       uint16       `json:"-"`
 	RiverOpen   uint16       `json:"-"` // +0x344 nonzero: the river can be crossed; set in a loaded game: EndgameHook(0)
 	V4AA3       [0x10]uint16 `json:"-"`
-	Boss        uint16       // +0x366 > 0xFD: marks 8/9; 0xFE: EndgameHook(1); 0xFF: combat terrain kind
+	Boss        uint16       `json:"-"` // +0x366 > 0xFD: marks 8/9; 0xFE: EndgameHook(1); 0xFF: combat terrain kind
 	V4AB4       [0x1E]uint16 `json:"-"`
-	Mark4       uint16       // +0x3A4 nonzero: area map mark 4 shown
+	Mark4       uint16       `json:"-"` // +0x3A4 nonzero: area map mark 4 shown
 	V4AD3       [0x27]uint16 `json:"-"`
 	// +0x3F4 the wall slots' walldef numbers and +0x3FA their WALLDEF
 	// blocks in the save file only: saveSlot overlays e.mapPairA/B here
@@ -66,7 +67,7 @@ type AreaVars struct {
 // GameVars = the game record (es:[DS:49D6]), kept for the whole game.
 type GameVars struct {
 	V6B00        [0x2A8]uint16 `json:"-"`
-	PartyExp     uint16        // +0x550 the classes a training hall teaches (bits)
+	PartyExp     uint16        `json:"-"` // +0x550 the classes a training hall teaches (bits)
 	V6DA9        [0x17]uint16  `json:"-"`
 	MaxDist      uint16        `json:"-"` // +0x580 opSetupMonster's distance (ovr04:03B4)
 	MonsterDist  uint16        `json:"-"` // +0x582 the encounter's distance, counted down by opApproach
@@ -78,8 +79,8 @@ type GameVars struct {
 	Search       uint16        `json:"-"` // +0x594 bit 0 sweeping, bit 1 search this square
 	Surprise     uint16        `json:"-"` // +0x596 bit side+1: that side is surprised (ovr14)
 	V6DCC        [6]uint16     `json:"-"`
-	RestEvery    uint16        // +0x5A4 rest encounter check every n turns (ovr21)
-	RestChance   uint16        // +0x5A6 its percent chance
+	RestEvery    uint16        `json:"-"` // +0x5A4 rest encounter check every n turns (ovr21)
+	RestChance   uint16        `json:"-"` // +0x5A6 its percent chance
 	V6DD4        uint16        `json:"-"`
 	LeftMap      uint16        `json:"-"` // +0x5AA the step left the map (ovr15:068D)
 	V6DD6        [0xB]uint16   `json:"-"`

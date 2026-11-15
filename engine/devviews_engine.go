@@ -108,10 +108,10 @@ func (e *Engine) DevScene(name string) func() {
 	case "overland": // the wilderness map, the party on it
 		return func() {
 			e.setWorldWord(rules.WordBeginFlag, 4)
-			e.setWorldWord(rules.WordIn3D, 0)
+			e.world.In3D = 0
 			e.viewMode = 2
-			e.setWorldWord(rules.WordMapX, 7)
-			e.setWorldWord(rules.WordMapY, 29)
+			e.world.MapX = 7
+			e.world.MapY = 29
 			e.loadAreaIcon(0, 9)
 			e.areaMapIcons()
 		}
@@ -298,9 +298,15 @@ func (e *Engine) devParlayAnswered(c int) {
 	e.askChoice(" ", "~HAUGHTY ~SLY ~NICE ~MEEK ~ABUSIVE", false, false, askDone{})
 }
 
+// devHallTeaches is the dev hall's word: every class of the 1e rules (their bits are the ruleset's).
+const devHallTeaches = 0xFF
+
 // fixture has the ruleset set the party up for a dev scene (core.Fixture);
 // who is the selected member, for the temple.
 func (e *Engine) fixture(id rules.FixtureID, who rules.CharID) {
+	if id == rules.FixtureHall || id == rules.FixtureHallPoor {
+		e.world.PartyExp = devHallTeaches
+	}
 	if _, err := e.ruleset().Resolve(nil, rules.Fixture{ID: id, Who: who}, nil); err != nil {
 		panic(fmt.Sprintf("dev scene %v: %v", id, err))
 	}

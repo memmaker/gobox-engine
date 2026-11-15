@@ -561,7 +561,7 @@ func (r *Rules) fightAllowed(f rules.Fight) rules.Allowed {
 	if len(s.Carried(c)) > 0 { // ovr09:06E1: Use with any item carried (char +0xC7; extra: the party's pool among them)
 		offer(rules.UseItem{}, "")
 	}
-	if ci.CanCast != 0 && s.Area.NoMagic == 0 {
+	if ci.CanCast != 0 && !s.Terms.NoMagic {
 		if slices.ContainsFunc(c.Memorized[:0x14], func(v SpellID) bool { return v > 0 }) { // ovr09:0711: any of the 20 memorized (+0x17)
 			offer(rules.Cast{}, "")
 		}

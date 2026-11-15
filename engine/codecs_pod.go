@@ -36,7 +36,7 @@ var podCodecs = map[ecl.Encoding]codec{
 	// ReadGbvm $10: facing div 2 in a dungeon, the raw 0..7 on the area map; the write (0..3, less 4 till it
 	// fits) is the canonical one.
 	"PodFacing": {toGame: func(e *Engine, c int64) int64 {
-		if e.worldWord(rules.WordIn3D) == 0 {
+		if e.world.In3D == 0 {
 			return int64(e.facing)
 		}
 		return c

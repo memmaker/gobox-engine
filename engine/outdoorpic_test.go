@@ -13,7 +13,7 @@ func TestOutdoorPicture(t *testing.T) {
 	e.DevAction = e.DevScene("overland")
 	e.Init()
 	e.Start(e.Play)
-	if e.state().Area.In3D != 0 {
+	if e.world.In3D != 0 {
 		t.Fatal("not outdoors")
 	}
 	e.es.picShown = 1 // as script.OpPicture with block 1, the Portrait 0xFF branch

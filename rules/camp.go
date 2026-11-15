@@ -17,22 +17,30 @@ type StudyNeeded struct{}
 // HealClerics asks how many members cast Cure Light Wounds (Answer.Value).
 type HealClerics struct{}
 
-// SpellsAllowed asks whether the area allows spells (Yes).
-type SpellsAllowed struct{}
+// SpellsAllowed asks whether the area allows spells (Yes); NoMagic: it does not (the area's word).
+type SpellsAllowed struct{ NoMagic bool }
 
 // RestUnit asks the rest time left in clock unit Unit (1 minutes, 2 tens
 // of minutes, 3 hours, 4 days) as Answer.Value.
 type RestUnit struct{ Unit int32 }
 
-// SkyDay asks whether the sky, inside or out, is a day sky (Yes).
-type SkyDay struct{ Inside bool }
+// SkyDay asks whether the sky, inside or out, is a day sky (Yes). The sky is
+// the area's words: In3D (a 3D area, else the overland), Sky, and SkyInside
+// for a cell inside.
+type SkyDay struct {
+	Inside         bool
+	In3D           bool
+	Sky, SkyInside uint16
+}
 
 // RestDone asks whether the rest is over before its next step (Yes): its
 // time is up, a stop was asked or, UntilHealed, nobody is wounded.
 type RestDone struct{ UntilHealed bool }
 
-// CampOpen starts camp's rest state over: no healing steps, no rest time.
-type CampOpen struct{}
+// CampOpen starts camp's rest state over: no healing steps, no rest time. A
+// rest's encounter check comes every RestEvery steps (0: never) with
+// RestChance percent; the rules keep them until camp closes.
+type CampOpen struct{ RestEvery, RestChance uint16 }
 
 // ClearStudy has nobody memorize or scribe any more.
 type ClearStudy struct{}
@@ -52,8 +60,9 @@ type ForgetCures struct{}
 // first-level slot.
 type MemorizeCures struct{}
 
-// CastCures has the clerics cast Cure Light Wounds on the most wounded.
-type CastCures struct{}
+// CastCures has the clerics cast Cure Light Wounds on the most wounded
+// (none where NoMagic: the area forbids spells).
+type CastCures struct{ NoMagic bool }
 
 // SetRest sets the rest to Minutes (no rest time when 0).
 type SetRest struct{ Minutes int32 }

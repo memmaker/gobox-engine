@@ -28,7 +28,7 @@ func (TrainFee) check() {}
 func (HallOpen) check() {}
 
 // TrainFact is what the hall offers Who (TrainCard).
-type TrainFact struct{}
+type TrainFact struct{ Hall HallTerms }
 
 // TempleCureFact is cure Cure of the temple, as Who needs it (TempleCure); Who may be NoChar.
 type TempleCureFact struct{ Cure int }
@@ -77,7 +77,10 @@ type GiveTempleCure struct {
 func (GiveTempleCure) action() {}
 
 // OpenHall opens the training hall for Who (the party menu's Train).
-type OpenHall struct{ Who CharID }
+type OpenHall struct {
+	Who  CharID
+	Hall HallTerms
+}
 
 // CloseHall leaves it.
 type CloseHall struct{}

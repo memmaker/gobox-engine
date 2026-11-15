@@ -58,6 +58,7 @@ type FightState struct {
 	forced bool           // extra: MoveTo's steps: no Moved hook, no moves spent
 	free   bool           // extra: a free attack (an opportunity attack) is being made (Opportunity)
 	Key    AiKey          // the key the computer turn's polls take (computerTurn, aiKeys)
+
 }
 
 // AimAnswer is one aim the player took (playerAim's results).

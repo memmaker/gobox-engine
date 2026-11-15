@@ -14,7 +14,7 @@ func TestElapseRest(t *testing.T) {
 	if len(o.Effects) != 1 || o.Effects[0] != (rules.PartyHealed{}) || r.S.Camp.Heal != 1 {
 		t.Errorf("heal: %+v, Heal %#x", o.Effects, r.S.Camp.Heal)
 	}
-	r.S.Game.RestEvery, r.S.Game.RestChance = 2, 100
+	r.S.Camp.RestEvery, r.S.Camp.RestChance = 2, 100 // as CampOpen hands them
 	o = r.Elapse(nil, 60, nil)
 	if len(o.Effects) != 1 || o.Effects[0] != (rules.RestInterrupted{}) || r.S.Camp.Heal != 3 {
 		t.Errorf("interrupt after two steps: %+v, Heal %#x", o.Effects, r.S.Camp.Heal)

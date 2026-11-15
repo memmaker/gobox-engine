@@ -75,16 +75,16 @@ func TestPrintContinues(t *testing.T) {
 // is night, at any hour), not the clock.
 func TestSkyDay(t *testing.T) {
 	e := quickStarted(t)
-	e.state().Area.In3D = 1
+	e.world.In3D = 1
 	e.state().Area.Clock[3], e.state().Area.Clock[2] = 1, 2 // 1:20, night by the clock: the sky decides
 	for sky, want := range map[uint16]bool{11: true, 15: true, 8: false} {
-		e.state().Area.Sky = sky
-		if got := e.state().SkyDay(false); got != want {
+		e.world.Sky = sky
+		if got := e.flagDay(false); got != want {
 			t.Errorf("sky %d: day %v, want %v", sky, got, want)
 		}
 	}
-	e.state().Area.SkyInside = 8
-	if e.state().Area.Sky = 11; e.state().SkyDay(true) {
+	e.world.SkyInside = 8
+	if e.world.Sky = 11; e.flagDay(true) {
 		t.Error("inside under a night SkyInside: day")
 	}
 }

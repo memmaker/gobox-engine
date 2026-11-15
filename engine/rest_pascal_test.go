@@ -3,6 +3,7 @@ package engine
 import (
 	"bufio"
 	"fmt"
+	"gobox/rules"
 	"gobox/rules1e"
 	"os"
 	"strings"
@@ -32,6 +33,8 @@ func TestRestAgainstPascal(t *testing.T) {
 		key, val, _ := strings.Cut(line, " = ")
 		k := atois(t, strings.Fields(key)[1:])
 		seed, rest, stopAfter, minutes, safe := k[0], k[1] == 1, k[2], k[3], k[4]
+		e.world.RestEvery, e.world.RestChance = uint16(safe), 50
+		e.must(rules.CampOpen{RestEvery: e.world.RestEvery, RestChance: e.world.RestChance}) // camp hands them to the rules
 		e.state().Camp.Rest = [7]int{}
 		if minutes == 120 {
 			e.state().Camp.Rest[3] = 2
@@ -39,7 +42,6 @@ func TestRestAgainstPascal(t *testing.T) {
 			e.state().Camp.Rest[2] = 3
 		}
 		e.state().Camp.Interval = 0
-		e.state().Game.RestEvery, e.state().Game.RestChance = uint16(safe), 50
 		e.state().RandSeed = uint32(int32(seed))
 		interrupted := false
 		if rest {
@@ -95,7 +97,7 @@ func TestRestTickAgainstPascal(t *testing.T) {
 		c.Study = byte(k[0])
 		clear(e.state().Area.Clock[:])
 		e.state().Camp.Heal = 0
-		e.state().Game.RestEvery = 0
+		e.must(rules.CampOpen{}) // no rest encounter check
 		e.state().Camp.Rest = [7]int{}
 		switch k[1] {
 		case 0:
@@ -135,7 +137,7 @@ func TestRestStopHealed(t *testing.T) {
 	c := e.state().Party[0]
 	e.state().Party = e.state().Party[:1]
 	c.HP, c.MaxHP, c.Status = 19, 20, rules1e.StatusOkay
-	e.state().Game.RestEvery = 0
+	e.must(rules.CampOpen{})        // no rest encounter check
 	e.state().Camp.Heal = 0x120 - 1 // the next tick heals
 	e.state().Camp.Rest = [7]int{}
 	e.state().Camp.Rest[4] = 2

@@ -18,11 +18,11 @@ func (e *Engine) InitAreaScript() {
 	e.vm.Calls = nil
 	e.vm.Flags = [6]bool{}
 	e.world.Portrait = 0xFF
-	e.setWorldWord(rules.WordRestEvery, 0)
-	e.setWorldWord(rules.WordRestChance, 0)
-	e.setWorldWord(rules.WordNoMagic, 0)
+	e.world.RestEvery = 0
+	e.world.RestChance = 0
+	e.world.NoMagic = 0
 	s.events = e.vm.Script.Events
-	e.setWorldWord(rules.WordIn3D, 1)
+	e.world.In3D = 1
 	if !e.loadedGame {
 		e.locals = fieldCells{} // area words 0x4A00..0x4A1F and game words 0x6E79..0x6E82
 	} else if e.loadedLocals != nil { // nil: a load that kept the running game's state (slots.go)
@@ -47,7 +47,7 @@ func (e *Engine) LoadArea(areaID int) {
 
 // FreeSteps = ovr08:0482.
 func (e *Engine) FreeSteps(x, y, dir int) int {
-	if e.worldWord(rules.WordIn3D) == 0 {
+	if e.world.In3D == 0 {
 		e.world.MonsterDist = 2
 		return 2
 	}

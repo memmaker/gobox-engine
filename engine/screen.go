@@ -1,14 +1,12 @@
 package engine
 
-import "gobox/rules"
-
 // The adventure screen: the view window and what the screen is rebuilt with.
 // Ported from 00BA:272A/27D9/290B and ovr27.
 
 // Redraw = ovr27:016D: redraw the view window for the current view mode.
 func (e *Engine) Redraw() {
 	mode := e.viewMode
-	if e.worldWord(rules.WordIn3D) != 0 {
+	if e.world.In3D != 0 {
 		mode = 1
 	}
 	switch {

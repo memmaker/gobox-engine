@@ -25,7 +25,7 @@ func (e *Engine) newClass(n int, class rules.Class, sure bool) error {
 				e.ext.pq.q.Default = 0 // it cannot be undone: the highlight starts on No
 				return err
 			}
-			_, err := e.ruleset().Resolve(rules.Training{Party: e.partyIDs(), DualClass: true}, o.Action, nil)
+			_, err := e.ruleset().Resolve(rules.Training{Party: e.partyIDs(), Hall: e.hallTerms(), DualClass: true}, o.Action, nil)
 			return err
 		}
 	}
@@ -34,5 +34,5 @@ func (e *Engine) newClass(n int, class rules.Class, sure bool) error {
 
 // classOffers are the rules' ChangeClass offers for member id in a hall.
 func (e *Engine) classOffers(id rules.CharID) []rules.Offer {
-	return e.ruleset().Allowed(rules.Training{Party: rules.Party{id}, DualClass: true}).Offers
+	return e.ruleset().Allowed(rules.Training{Party: rules.Party{id}, Hall: e.hallTerms(), DualClass: true}).Offers
 }

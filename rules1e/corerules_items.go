@@ -177,7 +177,7 @@ func (r *Rules) useItemOutside(a rules.UseItem) (rules.Outcome, error) {
 		s.takeScroll(c, it)
 	}
 	s.UsingItem = own
-	s.UseItem(it, SpellID(n), CastReply{Yes: a.Sure, On: r.chars[a.Target]})
+	s.UseItem(it, SpellID(n), CastReply{Yes: a.Sure, On: r.chars[a.Target], In3D: a.In3D})
 	s.ApplyItems(c)
 	return rules.Outcome{}, nil
 }
@@ -194,7 +194,7 @@ func (r *Rules) usingItem(u rules.UsingItem) rules.Allowed {
 	if c == nil || it == nil {
 		return rules.Allowed{}
 	}
-	if use, _, _ := s.InvFlags(c); !use || !s.Usable(it) {
+	if use, _, _ := s.InvFlags(c, u.NoMagic); !use || !s.Usable(it) {
 		return rules.Allowed{}
 	}
 	if it.Readied == 0 && s.DollSlot(c, it) >= 0 {
@@ -445,16 +445,16 @@ func (r *Rules) factItems(id rules.CharID, f rules.Fact) (rules.Value, bool, err
 		if c == nil {
 			return nil, true, errNoChar
 		}
-		return r.inventoryView(c), true, nil
+		return r.inventoryView(c, f.NoMagic), true, nil
 	default:
 		return nil, false, nil
 	}
 }
 
 // inventoryView builds the snapshot of c's inventory screen.
-func (r *Rules) inventoryView(c *Character) rules.InventoryView {
+func (r *Rules) inventoryView(c *Character, noMagic bool) rules.InventoryView {
 	s := r.S
-	use, sell, switches := s.InvFlags(c)
+	use, sell, switches := s.InvFlags(c, noMagic)
 	v := rules.InventoryView{Member: slices.Index(s.Party, c), Cap: s.PoolCap(), Doll: make([]*rules.ItemCard, rules.DollSlots), Use: use, Sell: sell, Switch: switches}
 	for _, it := range s.Listed(c, s.Carried(c)) { // the inventory's order
 		x := r.itemCard(c, it)

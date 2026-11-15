@@ -37,7 +37,7 @@ func TestOriginalRules(t *testing.T) {
 		}
 		return uint16(b[l.Field(r).From-importer.PodOriginalSave.Records[0].Base]) // one record of byte cells
 	}
-	got := map[string]uint16{"Hours": s.Area.Clock[3], "TenMinutes": s.Area.Clock[2], "In3D": s.Area.In3D, "MsgDelay": world.MsgDelay, "PartyCount": s.Game.PartyCount}
+	got := map[string]uint16{"Hours": s.Area.Clock[3], "TenMinutes": s.Area.Clock[2], "In3D": world.In3D, "MsgDelay": world.MsgDelay, "PartyCount": s.Game.PartyCount}
 	set := 0
 	for name, v := range got {
 		if w := word(name); v != w {
