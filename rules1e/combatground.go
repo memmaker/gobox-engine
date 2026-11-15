@@ -2,20 +2,31 @@ package rules1e
 
 import "gobox/rules"
 
-// StraightX is the column on the straight board (extra, Deskew) of square
-// (x, y) of the original's skewed dungeon map: the same square with the
-// skew taken out, a square west for each row down. A cell is a 6x5 block,
-// its west wall the first columns, its north wall the first row.
+// The straight board (extra, Deskew): a cell is a square block of
+// straightCell squares, its west wall the first column, its north wall the
+// first row, its floor 4x4 as the original's; the party's cell starts at
+// column straightParty, so the board holds 10 cells by 5.
+const (
+	straightCell  = 5
+	straightParty = 20
+)
+
+// StraightX is the column on the straight board of square (x, y) of the
+// original's skewed dungeon map: the skew taken out (a square west for each
+// row down), then the original's 6-wide block made 5: its two wall columns
+// are the one. Floor squares keep their own square; two squares of a wall
+// line open to the west share one.
 func StraightX(x, y int) int {
-	return x - (y - 0xA)
+	sx := x - (y - 0xA) - 0x15 + 60 // unskewed, from the block 10 cells west of the party's
+	return straightParty + (sx/6-10)*straightCell + max(sx%6-1, 0)
 }
 
-// squareWalls (extra, Deskew) makes the straight board's walls one square
-// thick with square corners, once everyone is placed on the original's
-// squares: a cell's west wall is its block's first column (the original's
-// is two wide, its door posts and wall ends a square apart along the
-// slant), its north wall the first row, a door two squares between posts.
-// A square someone stands on stays open.
+// squareWalls (extra, Deskew) lays the straight board's walls, once
+// everyone is placed: one square thick with square corners (the original's
+// west wall is two wide, its door posts and wall ends a square apart along
+// the slant). A cell's west wall is its block's first column, its north
+// wall the first row, a door the two middle squares between posts. A
+// square someone stands on stays open.
 func (r *Rules) squareWalls(m rules.MapSides) {
 	const west, north, corner = 3, 5, 2 // the pieces' tiles (ovr11:02BA, :0377, :040F)
 	floor := r.S.grounds().Floor
@@ -31,18 +42,16 @@ func (r *Rules) squareWalls(m rules.MapSides) {
 			r.S.Cmap.Ground[y][x] = floor
 		}
 	}
+	gap := func(i int) bool { return i == 2 || i == 3 } // a door's squares, of the floor's 1..4
 	for dr := -2; dr <= 2; dr++ {
-		for c := -4; c <= 4; c++ {
+		for c := -4; c <= 5; c++ {
 			x, y := r.S.PosX+c, r.S.PosY+dr
 			w, n := CellEdge(m, r.S.PosY, x, y, 6), CellEdge(m, r.S.PosY, x, y, 0)
-			x0, y0 := c*6+0x15, dr*5+0xA
+			x0, y0 := straightParty+c*straightCell, dr*5+0xA
 			set(x0, y0, w != 0 || n != 0 || CellEdge(m, r.S.PosY, x, y-1, 6) != 0 || CellEdge(m, r.S.PosY, x-1, y, 0) != 0, corner) // wherever a wall or door ends
-			for col := 1; col <= 5; col++ {
-				set(x0+col, y0, n == 1 || n == 3 && col != 3 && col != 4, north)
-			}
-			for row := 1; row <= 4; row++ {
-				set(x0, y0+row, w == 1 || w == 3 && row != 2 && row != 3, west)
-				set(x0+1, y0+row, false, 0)
+			for i := 1; i < straightCell; i++ {
+				set(x0+i, y0, n == 1 || n == 3 && !gap(i), north)
+				set(x0, y0+i, w == 1 || w == 3 && !gap(i), west)
 			}
 		}
 	}
