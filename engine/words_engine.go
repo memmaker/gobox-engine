@@ -79,7 +79,7 @@ func (e *Engine) runMoveEntry() {
 // BoundFields are the canonical script field names the engine gives a meaning: a game's
 // layout names a field so when, and only when, it has that field (each game's layout test).
 func BoundFields() []string {
-	names := []string{fieldLastBlock, fieldRemainder, fieldLoopCounter, fieldLoopLimit, fieldPriceScale, fieldPriceMult, fieldScriptBlock, fieldTravelKind, fieldVault, fieldWildTerrain, fieldHours, tourDone}
+	names := []string{fieldLastBlock, fieldRemainder, fieldLoopCounter, fieldLoopLimit, fieldPriceScale, fieldPriceMult, fieldScriptBlock, fieldTravelKind, fieldVault, fieldWildTerrain, fieldFightState, fieldHours, tourDone}
 	for n := range (&Engine{}).newEngineFields() {
 		names = append(names, n)
 	}
