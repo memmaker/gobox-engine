@@ -46,6 +46,7 @@ const (
 type sweepSpec struct {
 	Block, X, Y, Facing int
 	Seed                uint32
+	State               int // the entry state (br1sweepstate_test.go sweepStatesOf); 0: the defaults
 }
 
 type sweepFinding struct {
@@ -84,7 +85,7 @@ func br1SweepWalk(t testing.TB, adv string, sp sweepSpec, hit map[int]map[int]bo
 			f.Key = sweepDigits.ReplaceAllString(msg, "#") + " @ " + top
 		}
 	}()
-	e := br1BeginOn(t, br1EngineIn(t, adv))
+	e := br1BeginWith(t, br1EngineIn(t, adv), sweepParty)
 	ran := 0 // instructions since the last action: a script that never asks again is a finding, not a hang
 	e.vm.Trace = func(vm *ecl.VM, n int) {
 		if vm.Script == nil {
@@ -101,6 +102,7 @@ func br1SweepWalk(t testing.TB, adv string, sp sweepSpec, hit map[int]map[int]bo
 	rng := &rules.RNG{State: sp.Seed}
 	e.push(cont{kind: kStepEnd})
 	e.facing = sp.Facing
+	sweepApply(t, e, sweepStatesOf(t, adv, sp.Block)[sp.State])
 	e.DevAt(sp.Block, sp.X, sp.Y)
 	for range sweepSteps {
 		a := sweepChoose(e, rng)
@@ -175,7 +177,7 @@ func sweepChoose(e *Engine, rng *rules.RNG) *sweepAct {
 		case q.Continue:
 			return sweepDo(game.ContinueAction{})
 		case len(q.Replies) > 0:
-			return sweepDo(game.Reply{N: rng.N(len(q.Replies))})
+			return sweepDo(game.Reply{N: sweepReplyFor(e, rng, len(q.Replies))})
 		}
 		return sweepDo(game.Reply{})
 	}
@@ -274,27 +276,19 @@ func TestBR1Sweep(t *testing.T) {
 	if err := importer.ImportBREngine("br1", importer.BR1EXE, dos, adv); err != nil {
 		t.Fatal(err)
 	}
-	entries, walks := sweepEntriesN, 2
+	entries := sweepEntriesN
 	if os.Getenv("GOBOX_SWEEP") == "heavy" {
-		entries, walks = sweepEntriesN*6, 2
+		entries = sweepEntriesN * 6
 	}
 	var logged strings.Builder // what the engine logs (a script that did not resolve a field...) is a finding too
 	log.SetFlags(0)
 	log.SetOutput(&logged)
 	defer log.SetOutput(os.Stderr)
 	clear(sweepNotPorted)
-	rng := &rules.RNG{State: sweepSeed}
 	hit := map[int]map[int]bool{}
 	groups := map[string][]*sweepFinding{}
 	for _, block := range br1Blocks {
-		for _, at := range sweepEntries(t, adv, block, entries, rng) {
-			for range walks {
-				sp := sweepSpec{Block: block, X: at[0], Y: at[1], Facing: rng.N(4) * 2, Seed: uint32(rng.N(60000))<<8 | uint32(rng.N(250)) + 1}
-				if f := br1SweepWalk(t, adv, sp, hit); f != nil {
-					groups[f.Key] = append(groups[f.Key], f)
-				}
-			}
-		}
+		sweepRunBlock(t, adv, block, entries, hit, groups, nil)
 	}
 
 	for k, n := range sweepNotPorted {
@@ -316,6 +310,7 @@ func TestBR1Sweep(t *testing.T) {
 		}
 		t.Logf("%-6d %8d %8d", block, len(hit[block]), len(s.Code))
 	}
+	sweepCoverageTotal(t, e, hit)
 
 	keys := make([]string, 0, len(groups))
 	for k := range groups {
@@ -363,11 +358,11 @@ func sortedInts(m map[int]bool) []int {
 
 var _ = strconv.Itoa
 
-// TestBR1SweepReplay replays one recorded walk: GOBOX_SWEEP_REPLAY="block x y facing seed" (the finding's first: line).
+// TestBR1SweepReplay replays one recorded walk: GOBOX_SWEEP_REPLAY="block x y facing seed [state]" (the finding's first: line; its block's earlier walks run first, GOBOX_SWEEP=heavy as the run).
 // It fails with the panic a walk recorded, so a fix is proven by the same line passing.
 func TestBR1SweepReplay(t *testing.T) {
 	var sp sweepSpec
-	if n, _ := fmt.Sscan(os.Getenv("GOBOX_SWEEP_REPLAY"), &sp.Block, &sp.X, &sp.Y, &sp.Facing, &sp.Seed); n != 5 {
+	if n, _ := fmt.Sscan(os.Getenv("GOBOX_SWEEP_REPLAY"), &sp.Block, &sp.X, &sp.Y, &sp.Facing, &sp.Seed, &sp.State); n < 5 { // the state is optional (0)
 		t.Skip("GOBOX_SWEEP_REPLAY not set")
 	}
 	t.Setenv("GOBOX_NOSOUND", "1")
@@ -375,7 +370,12 @@ func TestBR1SweepReplay(t *testing.T) {
 	if err := importer.ImportBREngine("br1", importer.BR1EXE, filepath.Join("..", "data", "br1", "sources", "dos"), adv); err != nil {
 		t.Fatal(err)
 	}
-	if f := br1SweepWalk(t, adv, sp, map[int]map[int]bool{}); f != nil {
+	entries := sweepEntriesN
+	if os.Getenv("GOBOX_SWEEP") == "heavy" {
+		entries *= 6
+	}
+	// the walks of its block before it run first: the guided replies remember them
+	if f := sweepRunBlock(t, adv, sp.Block, entries, map[int]map[int]bool{}, nil, &sp); f != nil {
 		t.Fatalf("%s\n%q\n%s", f.Key, f.Actions, f.Frames)
 	}
 }
@@ -387,7 +387,7 @@ var br1SweepFixed = []struct {
 	Was  string // the finding's text: the walk may go on to another
 	Why  string
 }{
-	{sweepSpec{16, 0, 0, 2, 14885212}, "fact rules.UnitFact: fight fact: no such character", "turnChoices asked UnitFact of a ground attack's Target (NoChar): an area weapon's aimed squares have no unit"},
+	{sweepSpec{Block: 16, Facing: 2, Seed: 14885212}, "fact rules.UnitFact: fight fact: no such character", "turnChoices asked UnitFact of a ground attack's Target (NoChar): an area weapon's aimed squares have no unit"},
 }
 
 func TestBR1SweepFixed(t *testing.T) {

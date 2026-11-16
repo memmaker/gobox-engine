@@ -124,15 +124,21 @@ func br1Begun(t *testing.T) *Engine {
 }
 
 // br1BeginOn takes a new engine through the title and the party menu to the first area.
-func br1BeginOn(t testing.TB, e *Engine) *Engine {
+func br1BeginOn(t testing.TB, e *Engine) *Engine { return br1BeginWith(t, e, 1) }
+
+// br1BeginWith is br1BeginOn with the first n roster characters added through the party menu before Begin.
+func br1BeginWith(t testing.TB, e *Engine, n int) *Engine {
 	t.Helper()
 	e.Open("")
 	e.titleDone()
 	e.Advance()
-	for _, a := range []game.Action{game.AddCharacter{Roster: 0}, game.Begin{}} {
-		if _, err := e.doNow(a); err != nil {
-			t.Fatalf("%T: %v", a, err)
+	for i := range n {
+		if _, err := e.doNow(game.AddCharacter{Roster: i}); err != nil {
+			t.Fatalf("AddCharacter: %v", err)
 		}
+	}
+	if _, err := e.doNow(game.Begin{}); err != nil {
+		t.Fatalf("Begin: %v", err)
 	}
 	br1Pages(t, e)
 	return e
