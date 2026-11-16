@@ -139,8 +139,11 @@ func (r *Rules) resolveAction(f rules.Fight, act rules.Action, rng *rules.RNG) (
 	}
 	switch act := act.(type) {
 	case rules.Confirmed:
-		if a, ok := act.Action.(rules.Attack); ok {
+		switch a := act.Action.(type) {
+		case rules.Attack:
 			return r.attack(f, f.Actor, a.Target, rng)
+		case rules.Flee: // the "Flee:" asked of a player was answered Yes
+			return r.flee(f, c, s, rng), nil
 		}
 	case rules.Attack:
 		if act.At != nil { // CbtActs.AttackGroundTarget
@@ -212,8 +215,8 @@ func (r *Rules) resolveAction(f rules.Fight, act rules.Action, rng *rules.RNG) (
 	case rules.EndTurn: // 'E'
 		endActions(s)
 		return rules.Outcome{}, nil
-	case rules.Flee:
-		return r.flee(f, c, s, rng), nil
+	case rules.Flee: // combat.pas MoveMenu: a step off the map asks "Flee:" (default No) before AttemptFlee
+		return rules.Outcome{Confirm: fleeQuestion}, nil
 	case rules.Maneuver:
 		if act.ID == monsterSpecial && s.specialDue {
 			s.specialDue = false
@@ -222,6 +225,9 @@ func (r *Rules) resolveAction(f rules.Fight, act rules.Action, rng *rules.RNG) (
 	}
 	return rules.Outcome{}, fmt.Errorf("Resolve %T in a fight: %w", act, ErrNotPorted)
 }
+
+// fleeQuestion is combat.pas MoveMenu's YesNoMenu('Flee:', DEFAULT_NO).
+const fleeQuestion = "Flee:"
 
 // flee is cbtacts.pas AttemptFlee: no enabled enemy, or the fastest enemy's
 // movement div 2 below the actor's, gets away; equal: 1 in 2.
@@ -239,7 +245,7 @@ func (r *Rules) flee(f rules.Fight, c *Character, s *combatState, rng *rules.RNG
 	if escaped {
 		c.Status, c.Enabled = StFleeing, false // PutOutOfPlayWithStatus
 		removeIncapacitating(c, s)
-		o.Effects = append(o.Effects, rules.Fled{Unit: f.Actor})
+		o.Effects = append(o.Effects, rules.Narrated{Text: c.Name + " " + msgGotAway}, rules.Fled{Unit: f.Actor})
 	} else {
 		o.Effects = append(o.Effects, rules.Narrated{Text: "Escape is blocked"})
 	}

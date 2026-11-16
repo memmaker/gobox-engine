@@ -246,7 +246,7 @@ func (r *Rules) aiStep(f rules.Fight, id rules.CharID, c *Character, s *combatSt
 		blocked, t, _ := r.probeDirection(f.Board, id, dir)
 		if t == 0 {
 			if s.fleeing { // the edge: AttemptFlee
-				return rules.Flee{}
+				return rules.Confirmed{Action: rules.Flee{}} // AttemptFlee, no question for the computer
 			}
 			continue
 		}

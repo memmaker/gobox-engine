@@ -94,6 +94,7 @@ func (e *Engine) apply(f rules.Effect) {
 		}
 		e.event(ev)
 
+	case rules.Fled: // the unit left the board: the ruleset's GroundFact/UnitsFact no longer hold it, read at each state build
 	case rules.TerrainSet: // the board is the ruleset's, read as GroundFact at each state build: no event to play (a corpse's terrain)
 	default:
 		panic(fmt.Sprintf("present: an effect with no presentation: %T", f))

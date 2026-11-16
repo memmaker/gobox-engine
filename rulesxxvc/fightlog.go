@@ -18,6 +18,7 @@ const (
 	msgOfDamage   = "of damage"
 	msgGoesDown   = "goes down"
 	msgDying      = "and is Dying"
+	msgGotAway    = "Got Away" // cbtacts.pas AttemptFlee: PutOutOfPlayWithStatus(StFleeing, 'Got Away')
 	msgKilled     = "is killed"
 )
 

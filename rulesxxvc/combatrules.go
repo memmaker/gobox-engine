@@ -292,15 +292,17 @@ func (r *Rules) EndFight(f rules.Fight, _ *rules.RNG) rules.FightResult {
 			}
 		}
 	}
-	if verdict != rules.PartyLost && verdict != rules.PartyFled {
+	if verdict != rules.PartyLost {
+		fled := verdict == rules.PartyFled // hasPartyFled: only the fled come back (RESULT_TEAM_FLED)
 		for _, id := range r.fightParty(f) {
 			c := r.chars[id]
 			if c == nil {
 				continue
 			}
 			switch {
-			case c.Status == StFleeing, c.Status == StUnconscious && c.HP > 0:
+			case c.Status == StFleeing, !fled && c.Status == StUnconscious && c.HP > 0:
 				c.Status, c.Enabled = StOkay, true
+			case fled:
 			case f.Terms.RevivesParty && (c.Status == StDying || c.Status == StUnconscious):
 				c.Status, c.Enabled, c.HP = StOkay, true, 1
 			case c.Status == StDying:

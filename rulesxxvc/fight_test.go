@@ -134,7 +134,10 @@ func TestAttackAndFlee(t *testing.T) {
 	if _, err := r.Resolve(f, rules.Attack{Target: m}, &rng); err != nil || r.chars[m].HP != 50-dmg {
 		t.Errorf("%v hp %d, die %d dmg %d", err, r.chars[m].HP, die, dmg)
 	}
-	if o, _ := r.Resolve(f, rules.Flee{}, &rng); r.chars[aid].Status != StFleeing || len(o.Effects) != 1 {
+	if o, _ := r.Resolve(f, rules.Flee{}, &rng); o.Confirm != "Flee:" || r.chars[aid].Status == StFleeing {
+		t.Errorf("Flee asks first: %+v", o)
+	}
+	if o, _ := r.Resolve(f, rules.Confirmed{Action: rules.Flee{}}, &rng); r.chars[aid].Status != StFleeing || len(o.Effects) != 2 {
 		t.Errorf("flee: 6 < 3? %+v", o)
 	}
 }
