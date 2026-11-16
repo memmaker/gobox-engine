@@ -11,6 +11,9 @@ import (
 // brCareerFirst is the number of the catalog's first career: 0 is none.
 const brCareerFirst = 1
 
+// brRaceFirst is the number of the catalog's first race: 0 is RaceMonster (types.pas TRace).
+const brRaceFirst = 1
+
 // brCodecs are BR's encodings of canonical fields (its layout's enc=).
 var brCodecs = map[ecl.Encoding]codec{
 	// Party[256] (ecl.go charVar): r[212] the status, 0 while no character is selected (noChar: the last
@@ -31,6 +34,9 @@ var brCodecs = map[ecl.Encoding]codec{
 	// Party[40] (charVar r[40]): TCareer, the career's place in the catalog from 1, 0 none; the canonical
 	// SelCharClass is the place from 0 (the Pool's record number), -1 none.
 	"BrSelCharClass": {toGame: func(_ *Engine, c int64) int64 { return c + brCareerFirst }},
+	// Party[39] (charVar r[39]): TRace, RaceMonster 0 then the races in the catalog's order from 1; the canonical
+	// SelRace is the place from 0, none below it.
+	"BrSelRace": {toGame: func(_ *Engine, c int64) int64 { return int64(int16(c)) + brRaceFirst }},
 	// Party[76] (SpecialReadZ1 $4C): 128 while the character is a companion.
 	"BrSelCompanion": {toGame: func(_ *Engine, c int64) int64 {
 		if c != 0 {

@@ -13,10 +13,11 @@ const pairLen = 2
 // write is a bug (it panics) unless the field has a set.
 func (e *Engine) memberFields() map[string]engineField {
 	m := map[string]engineField{
-		"SelInt":      e.facts(func(int) rules.Fact { return rules.AbilityFact{Ability: rules.Intelligence} }), // cotab $15 stats[INTELLIGENCE].current
-		"SelCha":      e.facts(func(int) rules.Fact { return rules.AbilityFact{Ability: rules.Charisma} }),     // sotsb $19 chaCur
-		"SelStats":    e.facts(func(i int) rules.Fact { return scoreAt(rules.Abilities[i/pairLen], i) }),       // pod $10.. stats[0..4]: (base, cur) by C_Stat
-		"SelCharisma": e.facts(func(i int) rules.Fact { return scoreAt(rules.Charisma, i) }),                   // pod stats[CHARISMA]: (base, cur)
+		// cotab $15 stats[INTELLIGENCE].current (its SpecialWriteZ1 has no case; no cotab script writes it); BR Party[19], which setChar stores (BR2 area 80)
+		"SelInt":      e.selNumber(rules.AbilityFact{Ability: rules.Intelligence}),
+		"SelCha":      e.facts(func(int) rules.Fact { return rules.AbilityFact{Ability: rules.Charisma} }), // sotsb $19 chaCur
+		"SelStats":    e.facts(func(i int) rules.Fact { return scoreAt(rules.Abilities[i/pairLen], i) }),   // pod $10.. stats[0..4]: (base, cur) by C_Stat
+		"SelCharisma": e.facts(func(i int) rules.Fact { return scoreAt(rules.Charisma, i) }),               // pod stats[CHARISMA]: (base, cur)
 		// pod $B2 hpMax, sotsb $76 hpMaxV1; pod $1FC hpCur (SpecialWriteZ1 stores the byte), sotsb $119 hpCurrent (likewise)
 		"SelHpMax": e.selNumber(rules.FactMaxHP),
 		"SelHpCur": e.selNumber(rules.FactHP),
@@ -36,6 +37,8 @@ func (e *Engine) memberFields() map[string]engineField {
 		// por $F2: SpecialWriteZ1 has no case for it, the window is not read
 		"SelWindowF2": fact(nil, nil),
 	}
+	// BR Party[77..160] (charVar r[76+s]): the level of skill s, the ruleset's skills in their catalog's order
+	m["SelSkills"] = e.facts(func(i int) rules.Fact { return rules.SkillFact{Skill: e.ruleset().Catalog().Skills[i]} })
 	for name, skill := range thiefFields {
 		m[name] = e.facts(func(int) rules.Fact { return rules.SkillFact{Skill: skill} })
 	}

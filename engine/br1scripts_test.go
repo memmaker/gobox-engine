@@ -3,6 +3,7 @@ package engine
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -117,5 +118,25 @@ func TestBR1PickMember(t *testing.T) {
 	}
 	if got := br1Cell(t, e, "NewGameBytes"); got != 1 { // the member's status (okay), not 0 of no member
 		t.Fatalf("status read %d", got)
+	}
+}
+
+// TestBRMemberFieldsOfBR2: the member fields only BR2's scripts use (its layout names them): the race's
+// number from 1 (TRace, 0 the monsters'), the intelligence a script may set, the skills' levels by number.
+func TestBRMemberFieldsOfBR2(t *testing.T) {
+	e := br1Begun(t)
+	race := slices.Index(e.ruleset().Catalog().Races, e.selValue(rules.FactRace).(rules.Race))
+	if v, _ := e.engineFields["SelRace"].get(0); race < 0 || codecs["BrSelRace"].toGame(e, v) != int64(race)+brRaceFirst {
+		t.Errorf("SelRace %d through BrSelRace is %d, want race %d from %d", v, codecs["BrSelRace"].toGame(e, v), race, brRaceFirst)
+	}
+	e.engineFields["SelInt"].set(0, 17)
+	if got := e.selFact(rules.AbilityFact{Ability: rules.Intelligence}); got != 17 {
+		t.Errorf("intelligence %d after SelInt = 17", got)
+	}
+	skills := e.ruleset().Catalog().Skills
+	for _, i := range []int{0, 50, len(skills) - 1} { // 50: skill 51, the one BR2's area 19 reads
+		if got, _ := e.engineFields["SelSkills"].get(i); got != e.selFact(rules.SkillFact{Skill: skills[i]}) {
+			t.Errorf("SelSkills[%d] %d, want the level of %s", i, got, skills[i])
+		}
 	}
 }

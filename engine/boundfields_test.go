@@ -13,7 +13,7 @@ func TestBoundFieldsPOR(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if want := []string{fieldRemainder, "FacingOrRaw", fieldLastBlock, fieldLoopCounter, fieldLoopLimit, "PartyCredits", fieldPriceScale, fieldScriptBlock, "SelCha", "SelCharClass", "SelCharisma", "SelClassLevels", "SelCompanion", "SelFlag1", "SelFlag2", "SelFlag3", "SelGems", "SelGender", "SelHearNoise", "SelHideShadows", "SelHpCur", "SelHpMax", "SelInt", "SelMageLevel", "SelMoveSilently", "SelOldLevels", "SelOpenLocks", "SelRangerLevel", "SelReadLanguages", "SelSideFlags", "SelStats", fieldTravelKind, fieldVault, fieldWildTerrain}; !slices.Equal(got, want) {
+	if want := []string{fieldRemainder, "FacingOrRaw", fieldLastBlock, fieldLoopCounter, fieldLoopLimit, "PartyCredits", fieldPriceScale, fieldScriptBlock, "SelCha", "SelCharClass", "SelCharisma", "SelClassLevels", "SelCompanion", "SelFlag1", "SelFlag2", "SelFlag3", "SelGems", "SelGender", "SelHearNoise", "SelHideShadows", "SelHpCur", "SelHpMax", "SelInt", "SelMageLevel", "SelMoveSilently", "SelOldLevels", "SelOpenLocks", "SelRangerLevel", "SelReadLanguages", "SelSideFlags", "SelSkills", "SelStats", fieldTravelKind, fieldVault, fieldWildTerrain}; !slices.Equal(got, want) {
 		t.Errorf("unbound %v, want %v", got, want)
 	}
 }

@@ -243,14 +243,14 @@
 7B49 12 text game Word7B49 # scripts: text r2/w1
 7B56 12 text game Word7B56 # scripts: text r3/w1
 7C00 1 text member SelName # Party[0] the name (ecl.go charVar o<=15) [BR2: buckrogers2-go rules/ecl.go:94 charVar o<=15; types.pas TCharRecord.name]; scripts: text/byte r102/w0
-7C13 1 byte game Word7C13 # NOT A GAME CELL: record offset 19 of the selected member (TCharRecord.intelligence); the engine binds no member field for it yet, owner game keeps the proof until it does; scripts: byte r0/w1
+7C13 1 byte member SelInt # Party[19] TCharRecord.intelligence (charVar r[19], setChar raw); scripts: byte r0/w1 (area 80)
 7C26 1 byte member SelGender # Party[38] gender (charVar r[38]): 0 male, 1 female (types.pas TGender) [BR2: buckrogers2-go rules/ecl.go:98 charVar r[38]; types.pas TCharRecord.gender]; engine only (not in BR2 scripts)
-7C27 1 byte game Word7C27 # NOT A GAME CELL: record offset 39 of the selected member (TCharRecord.race); the engine binds no member field for it yet, owner game keeps the proof until it does; scripts: byte r1/w0
+7C27 1 byte member SelRace enc=BrSelRace # Party[39] TCharRecord.race (charVar r[39]): TRace, 0 the monsters', then the races from 1; scripts: byte r1/w0 (area 17)
 7C28 1 byte member SelCharClass enc=BrSelCharClass # Party[40] career (charVar r[40]): TCareer, 0 none [BR2: buckrogers2-go rules/ecl.go:98 charVar r[40]; types.pas TCharRecord.career]; engine only (not in BR2 scripts)
 7C2B 1 dword member PartyCredits # Party[43] OffMoney (ecl.go charVar: the party's purse while a character is selected, else 0; setChar: a lower value is paid across the members, a higher one added to the selected) [BR2: buckrogers2-go rules/ecl.go:96,181 charVar/setChar OffMoney; types.pas TCharRecord.credits]; scripts: long r26/w14
 7C45 1 word member SelHpMax # Party[69] hitPointMaximum (charVar r[69], setChar raw) [BR2: buckrogers2-go rules/ecl.go:98 charVar r[69]; types.pas TCharRecord.hpMax]; scripts: byte/word r21/w0
 7C4C 1 byte member SelCompanion enc=BrSelCompanion # Party[76] isCompanion (charVar r[76], any value reads 128; setChar raw) [BR2: buckrogers2-go rules/ecl.go:98-102 charVar r[76], any value reads 128]; scripts: byte r4/w0
-7C7F 1 byte game Word7C7F # NOT A GAME CELL: record offset 127 of the selected member (TCharRecord.skillLevels[51] (76+51)); the engine binds no member field for it yet, owner game keeps the proof until it does; scripts: byte r3/w0
+7C4D 84 byte member SelSkills # Party[77..160] TCharRecord.skillLevels[1..84] (the bytes after them are the script flags, SelFlag1..3) (charVar r[76+s]); scripts read skill 51 (7C7F) three times (area 19)
 7CA1 1 byte member SelFlag1 # Party[161] a script's flag byte on the character (skillLevelsTail, charVar/setChar raw) [BR2: buckrogers2-go rules/ecl.go:98,187 charVar/setChar r[161]; types.pas TCharRecord.skillLevelsTail]; engine only (not in BR2 scripts)
 7CA2 1 byte member SelFlag2 # Party[162], as SelFlag1 [BR2: buckrogers2-go rules/ecl.go:98,187 charVar/setChar r[162]]; engine only (not in BR2 scripts)
 7CA3 1 byte member SelFlag3 # Party[163], as SelFlag1 [BR2: buckrogers2-go rules/ecl.go:98,187 charVar/setChar r[163]]; engine only (not in BR2 scripts)
