@@ -21,7 +21,7 @@
 4BBF 1 byte game RocketY # scripts: byte r7/w4 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
 4BC3 1 byte game MapX # Area[195]: the overland's square x (buckrogers-go rules/adv.go overland(): 0..37), the Pool's MapX; scripts: byte r27/w9
 4BC4 1 byte game MapY # Area[196]: the overland's square y (0..14), the Pool's MapY; scripts: byte r12/w9
-4BC5 1 byte game GeoBlock # Area[197]: current GEO map block, 127 none (eclops.go:430, savegame.go:172) [BR2: buckrogers2-go rules/eclops.go:448, adv.go:632; types.pas TZone0.mapId]; scripts: byte r2/w0
+4BC5 1 byte game Geo # types.pas geoMapId (View3D Load3DMap, EclLoadFiles; LoadGame loads the map back from it): the engine's rules.World.Geo; was GeoBlock; Area[197]: current GEO map block, 127 none (eclops.go:430, savegame.go:172) [BR2: buckrogers2-go rules/eclops.go:448, adv.go:632; types.pas TZone0.mapId]; scripts: byte r2/w0
 4BC7 1 byte game Word4BC7 # scripts: byte r1/w1
 4BC8 1 byte game Word4BC8 # scripts: byte r1/w1
 4BC9 1 byte game Word4BC9 # scripts: byte r2/w1
@@ -38,7 +38,7 @@
 4BFC 1 byte game MsgDelay # Area[252]: game speed, pauses = value*100 ms (rest.go:172, eclops.go:63); POD global.txt calls it MsgDelay [BR2: buckrogers2-go rules/rest.go:172; types.pas TZone0.messageSpeed]; scripts: byte r0/w2
 4BFD 1 byte game Sky # buckrogers2-re types.pas skyIndexLo (as BR1); scripts: byte r0/w2
 4BFE 1 byte game SkyInside # buckrogers2-re types.pas skyIndexHi (as BR1); scripts: byte r0/w1
-4BFF 1 byte game SaveFlags # Area[255]: b3BEC*2+b3BEE (savegame.go:41,125) [BR2: buckrogers2-go rules/savegame.go:41,126; types.pas TZone0.displayOptions]; engine only (not in BR2 scripts)
+4BFF 1 byte game ViewFlags # types.pas displayOptions (arePicturesEnabled*2 + areAnimationsEnabled, SaveGame stores it, LoadGame takes it back): the engine's view flags (rules.World.ViewFlags); was SaveFlags; Area[255]: b3BEC*2+b3BEE (savegame.go:41,125) [BR2: buckrogers2-go rules/savegame.go:41,126; types.pas TZone0.displayOptions]; engine only (not in BR2 scripts)
 4C00 32 bytes local EntryBytes # zone 0 entryBytes 4C00..4C1F, cleared by EclInit at each script load (types.pas TZone0.entryBytes); scripts: 31 addresses, r1132/w851, as bytes, words, longs and text over each other
 4C20 1 byte game Word4C20 # scripts: byte r18/w8
 4C21 1 byte game Word4C21 # scripts: byte r20/w9

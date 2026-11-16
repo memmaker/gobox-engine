@@ -121,10 +121,10 @@ type shipFight struct {
 	out []rules.Effect
 }
 
-// savedFoe is zone0's record of the last enemy ship for the scripts
+// SavedFoe is zone0's record of the last enemy ship for the scripts
 // (savedSystemStatus, savedShipType, savedCrew, savedSystemValue,
 // savedWeaponCount); zero after one lost off the scanners.
-type savedFoe struct {
+type SavedFoe struct {
 	Status      [6]int16
 	Type        string
 	Crew        int16
@@ -311,10 +311,10 @@ func (s shipRules) EndShips(_ rules.ShipFight, rng *rules.RNG) rules.FightResult
 	f.rng = rng
 	f.removeJuryRigs()
 	if f.exp == 0 {
-		r.foeSaved = savedFoe{}
+		r.foeSaved = SavedFoe{}
 	} else {
 		foe := f.ships[foeSide]
-		r.foeSaved = savedFoe{Status: foe.Status, Type: foe.Type, Crew: foe.Crew, SystemValue: foe.SystemValue}
+		r.foeSaved = SavedFoe{Status: foe.Status, Type: foe.Type, Crew: foe.Crew, SystemValue: foe.SystemValue}
 		for _, m := range foe.Mounts {
 			r.foeSaved.WeaponCount += m.Status
 		}

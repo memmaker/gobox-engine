@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"gobox/adventure"
 	"gobox/game"
 	"gobox/rules"
 	"slices"
@@ -268,7 +269,7 @@ func (e *Engine) AreaChange() {
 
 // overlandViewMode is the view mode of a dialect's overland whose script sets the view kind (the Pool's three, by block
 // number, are 2..4 below).
-const overlandViewMode = 2
+const overlandViewMode = adventure.ViewModeOverland
 
 // areaStart: the new area's start events are done.
 func (e *Engine) areaStart(sel rules.CharID) {

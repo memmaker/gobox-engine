@@ -115,7 +115,7 @@ type Rules struct {
 	ground     rules.Board // the fight's board when the engine hands none (ground.go board); not saved, as rules1e's is not
 
 	ship     *xxvc.ShipRecord // zone0 partyShip; nil until the first ship fight loads record 50
-	foeSaved savedFoe         // zone0's last enemy ship
+	foeSaved SavedFoe         // zone0's last enemy ship
 	space    *shipFight       // the ship fight going on
 
 	// The session the engine keeps through typed kinds (session.go).
@@ -324,7 +324,7 @@ type saved struct {
 	Next  rules.CharID
 	Purse rules.Copper
 	Ship  *xxvc.ShipRecord `json:",omitempty"`
-	Foe   savedFoe
+	Foe   SavedFoe
 	// The session (session.go); absent in a save from before it.
 	Party  []rules.CharID `json:",omitempty"`
 	Count  int32          `json:",omitempty"`

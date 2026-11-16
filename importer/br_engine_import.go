@@ -198,5 +198,8 @@ func ImportBREngine(id string, e BREXE, dos, dst string) error {
 		// flats and the BACK picture are not published yet (a view's floor and sky: backFlats by BACK block, not by area)
 		tables.Walls = wallTextures(id, "", "")
 	}
-	return WriteJSON(filepath.Join(data, adventure.GameTablesFile), tables)
+	if err := WriteJSON(filepath.Join(data, adventure.GameTablesFile), tables); err != nil {
+		return err
+	}
+	return importBRGames(dos, dst, im.Mem[im.DS:], e) // the originals' saved games become slots
 }
