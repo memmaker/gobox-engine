@@ -12,7 +12,7 @@ import (
 // skillDraft is a Terran draft of career, its skill screen not begun.
 func skillDraft(t *testing.T, career rules.Class) (creation, rules.Draft) {
 	t.Helper()
-	c := creation{r: New()}
+	c := creation{r: newBR1()}
 	return c, newDraft(t, c, 0, 0, slices.Index(pickCareers, career), 5)
 }
 
@@ -126,7 +126,7 @@ func TestGeneralSkillPoints(t *testing.T) {
 		}
 	}
 	started := 0
-	for i := 0; started < startGeneralSkills; i++ {
+	for i := 0; started < int(br1Creation.StartGeneralSkills); i++ {
 		n, ok := skillByName(f.Options[i])
 		if !ok || !MeetsPrerequisite(&SkillLevels{}, false, n) {
 			continue
@@ -216,5 +216,42 @@ func TestSkillScreenBeginsAfresh(t *testing.T) {
 	e := c.Enforce(d, fieldCareer, slices.Index(pickCareers, xxvc.Warrior), &rules.RNG{State: 9})
 	if e.Points != nil || e.Left != nil || e.Sheet.Skills[xxvc.Skills[TreatLight-1]] != 0 {
 		t.Errorf("a new career kept the screen: %v %v", e.Points, e.Left)
+	}
+}
+
+// TestGameCreationNumbers: the skill screen's numbers are the game's xxvc.Creation: a BR2-like one (skills.pas
+// NEW_CHARACTER_GENERAL_SKILLS 12, a start level 7, a career's given skills and nothing to spend) lets twelve general skills
+// start, not a thirteenth; with no points the screen refuses any spending.
+func TestGameCreationNumbers(t *testing.T) {
+	c := creation{r: newBR1()}
+	c.r.tables.Creation.GeneralPoints, c.r.tables.Creation.StartGeneralSkills = 100, 12
+	d := newDraft(t, c, 0, 0, slices.Index(pickCareers, xxvc.Warrior), 5)
+	f := fieldOf(c, d, fieldGeneralSkills)
+	started := 0
+	for i := 0; started < 12; i++ {
+		if n, ok := skillByName(f.Options[i]); ok && MeetsPrerequisite(&SkillLevels{}, false, n) {
+			d = spend(t, c, d, fieldGeneralSkills, f.Options[i], 1)
+			started++
+		}
+	}
+	var next string
+	for _, o := range f.Options {
+		if n, _ := skillByName(o); MeetsPrerequisite(&SkillLevels{}, false, n) && d.Points[fieldGeneralSkills][slices.Index(f.Options, o)] == 0 {
+			next = o
+			break
+		}
+	}
+	if refusal(t, c, d, fieldGeneralSkills, next) != rules.SpendNoNewItem {
+		t.Errorf("a thirteenth skill (%s) was started", next)
+	}
+	c.r.tables.Creation = xxvc.Creation{StartLevel: 7, CareerPoints: 0, GeneralPoints: 0, MaxPerSkill: 105,
+		InitialSkills:    map[rules.Class][]xxvc.InitialSkill{xxvc.Warrior: {{Skill: "battle-tactics", Value: 50}}},
+		ExperienceNeeded: br1Creation.ExperienceNeeded, BaseCombat: br1Creation.BaseCombat}
+	if l := startingSkills(c.r.tables.Creation, xxvc.Warrior); l.Level(BattleTacticsNo) != 50 {
+		t.Errorf("the career's given skill: %d", l.Level(BattleTacticsNo))
+	}
+	d = newDraft(t, c, 0, 0, slices.Index(pickCareers, xxvc.Warrior), 5)
+	if refusal(t, c, d, fieldCareerSkills, skillName(BattleTacticsNo)) != rules.SpendNoPoints {
+		t.Error("a point was spent with none to spend")
 	}
 }

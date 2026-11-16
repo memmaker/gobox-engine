@@ -9,14 +9,14 @@ import (
 )
 
 // ModifyCharacterMenu (chargen.pas): a member whose experience is still the career's starting experience
-// (experienceNeeded[career, 2]) may have its abilities, hit points and name changed; each ability stays between
+// (experienceNeeded[career, the start level]) may have its abilities, hit points and name changed; each ability stays between
 // its race's adjustment + 3 and + 18 and at least the career's minimum, the hit points between HpMinimum and
 // HpMaximum. Race, gender, career and skills do not change. Keep sets the hit points to their maximum.
 
 // modifiable is "can't be modified" turned round: the member's experience is the starting one.
-func modifiable(c *Character) bool {
+func (r *Rules) modifiable(c *Character) bool {
 	i := slices.Index(xxvc.Careers, c.Career)
-	return i >= 0 && c.Exp == experienceNeeded[c.Career][0]
+	return i >= 0 && c.Exp == r.tables.Creation.Experience(c.Career, r.tables.Creation.StartLevel)
 }
 
 // clone is c with its own maps and lists, for HoldCopy.

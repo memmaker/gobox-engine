@@ -8,17 +8,13 @@ import (
 )
 
 // The skill point screen of a new character (skills.pas EditSkills(80, 40, 30), chargen.pas CreateCharacterMenu):
-// the career's eight skills take 80 points, the general skills 40, none more than 30 this time. It is two
+// the career's eight skills take 80 points, the general skills 40, none more than 30 this time (BR1; the numbers are xxvc.Creation's, per game). It is two
 // FieldSkills fields of the creation. The draft keeps the levels in Sheet.Skills, the points put on each option
 // since the screen began in Points (a level less the level the screen began with: oldLevels) and the points still
 // to spend in Left. The original asks the career points first, then the general ones; here both are open at once.
 
 const (
-	careerSkillPoints  = 80 // EditSkills's careerPoints
-	generalSkillPoints = 40 // EditSkills's generalPoints
-	maxPointsPerSkill  = 30 // EditSkills's maxPerSkill
-	maxGeneralLevel    = 80 // skills.pas MAX_GENERAL_LEVEL: a general skill stops there
-	startGeneralSkills = 7  // maxGeneral at level 2: no more general skills known than that
+	maxGeneralLevel = 80 // skills.pas MAX_GENERAL_LEVEL: a general skill stops there
 )
 
 // The two skill fields, after the three choices.
@@ -86,12 +82,25 @@ func (l *SkillLevels) skillMap() map[rules.Skill]int32 {
 
 // startingSkills is skills.pas InitializeAllSkills: each skill at its starting level, in order, a later skill's
 // prerequisite seeing the earlier.
-func startingSkills(career rules.Class) SkillLevels {
+func startingSkills(cr xxvc.Creation, career rules.Class) SkillLevels {
 	var l SkillLevels
 	for n := SkillNo(1); n <= SkillCount; n++ {
 		l.Set(n, startingSkillLevel(&l, career, n))
 	}
+	for _, s := range cr.InitialSkills[career] { // Skills.ApplyInitialSkills: the career's own levels over those
+		l.Set(skillNumber(s.Skill), int8(s.Value))
+	}
 	return l
+}
+
+func (r *Rules) startingSkills(career rules.Class) SkillLevels {
+	return startingSkills(r.tables.Creation, career)
+}
+
+// skillNumber is the number (1..84) of a skill; 0 for none.
+func skillNumber(s rules.Skill) SkillNo {
+	i := slices.Index(xxvc.Skills, s)
+	return SkillNo(i + 1)
 }
 
 // The questions asked on leaving the skill screen with points left (skills.pas EditSkills: YesNoMenu, default No).
@@ -101,15 +110,15 @@ const (
 )
 
 // skillFields are the two skill fields of draft d (EditSkills's career then general screens).
-func skillFields(d rules.Draft) []rules.FieldDef {
+func skillFields(cr xxvc.Creation, d rules.Draft) []rules.FieldDef {
 	career := careerOfDraft(d)
 	l := levelsOfDraft(d)
 	if d.Sheet.Skills == nil {
-		l = startingSkills(career)
+		l = startingSkills(cr, career)
 	}
 	careerList, general := skillLists(career)
 	field := func(id rules.FieldID, label, unspent string, list []SkillNo, budget int32) rules.FieldDef {
-		f := rules.FieldDef{ID: id, Kind: rules.FieldSkills, Label: label, Budget: budget, Max: maxPointsPerSkill, Unspent: unspent}
+		f := rules.FieldDef{ID: id, Kind: rules.FieldSkills, Label: label, Budget: budget, Max: cr.MaxPerSkill, Unspent: unspent}
 		for _, n := range list {
 			group := GroupCareer
 			if id == fieldGeneralSkills {
@@ -121,8 +130,8 @@ func skillFields(d rules.Draft) []rules.FieldDef {
 		return f
 	}
 	return []rules.FieldDef{
-		field(fieldCareerSkills, "Career skill points", unspentCareerText, careerList, careerSkillPoints),
-		field(fieldGeneralSkills, "General skill points", unspentGeneralText, general, generalSkillPoints),
+		field(fieldCareerSkills, "Career skill points", unspentCareerText, careerList, cr.CareerPoints),
+		field(fieldGeneralSkills, "General skill points", unspentGeneralText, general, cr.GeneralPoints),
 	}
 }
 
@@ -172,6 +181,7 @@ var dependents = func() map[SkillNo][]dependent {
 
 // skillEdit is the skill screen's state while a point is spent: copies of the draft's levels, points and left.
 type skillEdit struct {
+	cr     xxvc.Creation
 	d      rules.Draft
 	career rules.Class
 	levels SkillLevels
@@ -179,10 +189,10 @@ type skillEdit struct {
 	field  rules.FieldID // the group on the screen: where a refund goes
 }
 
-func newSkillEdit(d rules.Draft, f rules.FieldID) *skillEdit {
-	e := &skillEdit{d: d, career: careerOfDraft(d), field: f}
+func newSkillEdit(cr xxvc.Creation, d rules.Draft, f rules.FieldID) *skillEdit {
+	e := &skillEdit{cr: cr, d: d, career: careerOfDraft(d), field: f}
 	if d.Sheet.Skills == nil {
-		e.levels = startingSkills(e.career)
+		e.levels = startingSkills(cr, e.career)
 	} else {
 		e.levels = levelsOfDraft(d)
 	}
@@ -194,7 +204,7 @@ func newSkillEdit(d rules.Draft, f rules.FieldID) *skillEdit {
 		copy(e.d.Points[id], d.Points[id])
 	}
 	e.d.Left = map[rules.FieldID]int32{}
-	for _, f := range skillFields(d) {
+	for _, f := range skillFields(cr, d) {
 		e.d.Left[f.ID] = d.PointsLeft(f)
 	}
 	return e
@@ -255,7 +265,7 @@ func (c creation) Spend(d rules.Draft, f rules.FieldID, o int, by int32) (rules.
 	if f != fieldCareerSkills && f != fieldGeneralSkills || by != 1 && by != -1 {
 		return d, refuseNoOption
 	}
-	e := newSkillEdit(d, f)
+	e := newSkillEdit(c.r.tables.Creation, d, f)
 	list := e.lists[f]
 	if o < 0 || o >= len(list) {
 		return d, refuseNoOption
@@ -285,7 +295,7 @@ func (c creation) Spend(d rules.Draft, f rules.FieldID, o int, by int32) (rules.
 func (e *skillEdit) add(f rules.FieldID, n SkillNo) error {
 	level := e.levels.Level(n)
 	meets := MeetsPrerequisite(&e.levels, e.career == xxvc.Medic, n)
-	over := int(level) >= int(e.started(n))+maxPointsPerSkill
+	over := int(level) >= int(e.started(n))+int(e.cr.MaxPerSkill)
 	if f == fieldCareerSkills {
 		switch {
 		case e.d.Left[f] <= 0:
@@ -305,7 +315,7 @@ func (e *skillEdit) add(f rules.FieldID, n SkillNo) error {
 			return refuseAtMostThisLevel
 		case !meets:
 			return refuseWants
-		case level == startingSkillLevel(&e.levels, e.career, n) && e.knownGeneral() >= startGeneralSkills:
+		case level == startingSkillLevel(&e.levels, e.career, n) && e.knownGeneral() >= int(e.cr.StartGeneralSkills):
 			return refuseNoNewSkill
 		}
 	}

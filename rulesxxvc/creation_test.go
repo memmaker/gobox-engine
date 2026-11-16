@@ -27,7 +27,7 @@ func newDraft(t *testing.T, c creation, race, gender, career int, seed uint32) r
 // TestCreationRules: chargen.pas CreateCharacterMenu's rules over many rolls: every ability meets the career's minimum
 // and is at least 1; the hit points of two levels stay in HpMinimum..HpMaximum; a race that cannot take the career moves it.
 func TestCreationRules(t *testing.T) {
-	c := creation{r: New()}
+	c := creation{r: newBR1()}
 	tinker := newDraft(t, c, 4, 0, 4, 1) // a Tinker asks for a Rogue (Terran's list has it, Tinker's has not)
 	if got := tinker.Sheet.Classes[0]; got != xxvc.Medic {
 		t.Fatalf("tinker rogue: %s, want the race's first career, medic", got)
@@ -45,8 +45,8 @@ func TestCreationRules(t *testing.T) {
 				}
 			}
 			con := int(d.Sheet.Scores[rules.Constitution])
-			if d.Sheet.MaxHP < hpMinimum(career, startLevel, con) || d.Sheet.MaxHP > hpMaximum(career, startLevel, con) {
-				t.Fatalf("seed %d %s %s: hit points %d outside %d..%d", seed, pickRaces[race], career, d.Sheet.MaxHP, hpMinimum(career, startLevel, con), hpMaximum(career, startLevel, con))
+			if d.Sheet.MaxHP < hpMinimum(career, int(br1Creation.StartLevel), con) || d.Sheet.MaxHP > hpMaximum(career, int(br1Creation.StartLevel), con) {
+				t.Fatalf("seed %d %s %s: hit points %d outside %d..%d", seed, pickRaces[race], career, d.Sheet.MaxHP, hpMinimum(career, int(br1Creation.StartLevel), con), hpMaximum(career, int(br1Creation.StartLevel), con))
 			}
 		}
 	}
@@ -64,7 +64,7 @@ func TestCreationRules(t *testing.T) {
 // TestDraftCharacter: the fields the original sets on a new character: level 2 with the career's experience, saves
 // from the base less the race's adjustment, unarmed dice, movement, 1000 credits, the favoured skills at 10.
 func TestDraftCharacter(t *testing.T) {
-	r := New()
+	r := newBR1()
 	c := creation{r: r}
 	d := newDraft(t, c, 5, 0, 2, 3) // Desert Runner, male, Warrior
 	d.Name = "Rex"
@@ -87,7 +87,7 @@ func TestDraftCharacter(t *testing.T) {
 
 // TestRollsOffered: the rolls the ruleset offers are the ones Roll takes: the original (CreateCharacterMenu) rolls one way.
 func TestRollsOffered(t *testing.T) {
-	c := creation{r: New()}
+	c := creation{r: newBR1()}
 	d := newDraft(t, c, 0, 0, 0, 7)
 	offered := c.Rolls(d)
 	for _, k := range []rules.RollKind{rules.RollFull, rules.RollMinimal, rules.RollPointBuy} {
@@ -104,7 +104,7 @@ func TestRollsOffered(t *testing.T) {
 // TestCreationAge: chargen.pas age := RollDice(1, 6) + 18, rolled with the career (a gender change keeps it), kept on
 // the character and the sheet.
 func TestCreationAge(t *testing.T) {
-	c := creation{r: New()}
+	c := creation{r: newBR1()}
 	seen := map[int32]bool{}
 	for seed := uint32(1); seed <= 400; seed++ {
 		d := newDraft(t, c, 0, 0, 0, seed)
@@ -127,7 +127,7 @@ func TestCreationAge(t *testing.T) {
 
 // specTables is a Rules with three item templates: two within itemTemplates 1..15, one past it.
 func specTables() *Rules {
-	r := New()
+	r := newBR1()
 	r.tables.ItemTypes = make([]xxvc.ItemType, 12)
 	r.tables.ItemWords = []string{"", "Dagger", "Sword", "Laser"}
 	r.tables.Items = map[rules.ItemID]xxvc.ItemTemplate{
@@ -198,7 +198,7 @@ func TestDefaultIcon(t *testing.T) {
 	if len(seen) != 4 || !seen[16] || !seen[23] || !seen[24] || !seen[31] {
 		t.Errorf("a desert runner's icons %v", seen)
 	}
-	c := creation{r: New()}
+	c := creation{r: newBR1()}
 	d := newDraft(t, c, 0, 0, slices.Index(pickCareers, xxvc.Warrior), 2)
 	sheet, _ := c.r.draftCharacter(d, false)
 	kept, _ := c.r.draftCharacter(d, true)

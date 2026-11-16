@@ -83,7 +83,7 @@ func (c creation) Fields(d rules.Draft) []rules.FieldDef {
 		}
 		out = append(out, rules.FieldDef{ID: fieldSpecialization, Label: "Weapon Specialization", Options: names})
 	}
-	return append(out, skillFields(d)...)
+	return append(out, skillFields(c.r.tables.Creation, d)...)
 }
 
 // specializable are the weapons the specialization menu offers: itemTemplates 1..15 that are not empty (the tables
@@ -113,7 +113,7 @@ func (c creation) Fits(d rules.Draft, f rules.FieldID, o int) bool {
 	case fieldSpecialization:
 		return o >= 0 && o < len(c.specializable())
 	case fieldCareerSkills, fieldGeneralSkills: // a point may be spent on the option
-		_, err := creation{}.Spend(d, f, o, 1)
+		_, err := c.Spend(d, f, o, 1)
 		return err == nil
 	}
 	return false
@@ -146,8 +146,8 @@ func (c creation) Enforce(d rules.Draft, f rules.FieldID, o int, rng *rules.RNG)
 	d.Sheet.Classes = rules.ClassSet{career}
 	if f != fieldGender || d.Sheet.Scores == nil {
 		d.Sheet.Age = int32(rules.RNGDice(rng, 1, ageDie) + ageBase) // age := RollDice(1, 6) + 18, before the abilities are rolled
-		rollAbilities(&d, rng)
-		l := startingSkills(career)
+		rollAbilities(c.r.tables.Creation, &d, rng)
+		l := c.r.startingSkills(career)
 		d.Sheet.Skills = l.skillMap() // the skill screen begins afresh: InitializeAllSkills
 		d.Points, d.Left = nil, nil
 	}
@@ -156,7 +156,7 @@ func (c creation) Enforce(d rules.Draft, f rules.FieldID, o int, rng *rules.RNG)
 
 // rollAbilities is CreateCharacterMenu's roll pass: per ability the best of six 3d6, plus the race's adjustment, at
 // least 1 and at least the career's minimum; then the free training from level 0 (the hit points of each level).
-func rollAbilities(d *rules.Draft, rng *rules.RNG) {
+func rollAbilities(cr xxvc.Creation, d *rules.Draft, rng *rules.RNG) {
 	race, career := d.Sheet.Race, d.Sheet.Classes[0]
 	d.Sheet.Scores = map[rules.Ability]int32{}
 	for i, a := range brStatOrder {
@@ -167,20 +167,20 @@ func rollAbilities(d *rules.Draft, rng *rules.RNG) {
 		v := max(best+raceStatAdjust[race][i], 1, careerStatMinimum[career][i])
 		d.Sheet.Scores[a] = int32(v)
 	}
-	d.Sheet.Levels = map[rules.Class]int32{career: startLevel}
-	d.Sheet.Exp = experienceNeeded[career][0]
+	d.Sheet.Levels = map[rules.Class]int32{career: cr.StartLevel}
+	d.Sheet.Exp = cr.Experience(career, cr.StartLevel)
 	d.Sheet.HP, d.Sheet.MaxHP = 0, 0
-	for level := 1; level <= startLevel; level++ { // CharGen.TrainingMenu until the experience buys no more
-		gain := int32(levelHitPoints(career, level, int(d.Sheet.Scores[rules.Constitution]), rng))
+	for level := int32(1); level <= cr.StartLevel; level++ { // CharGen.TrainingMenu until the experience buys no more
+		gain := int32(levelHitPoints(cr, career, int(level), int(d.Sheet.Scores[rules.Constitution]), rng))
 		d.Sheet.HP, d.Sheet.MaxHP = d.Sheet.HP+gain, d.Sheet.MaxHP+gain
 	}
-	d.MinHP, d.MaxHP = hpMinimum(career, startLevel, int(d.Sheet.Scores[rules.Constitution])), hpMaximum(career, startLevel, int(d.Sheet.Scores[rules.Constitution]))
+	d.MinHP, d.MaxHP = hpMinimum(career, int(cr.StartLevel), int(d.Sheet.Scores[rules.Constitution])), hpMaximum(career, int(cr.StartLevel), int(d.Sheet.Scores[rules.Constitution]))
 }
 
-// levelHitPoints is chargen.pas AddLevelHitPoints for a character reaching level: below level 9 the better of two
+// levelHitPoints is chargen.pas AddLevelHitPoints for a character reaching level: below the game's fixed gain level the better of two
 // career dice plus the constitution bonus (at most 2 unless a warrior), at least 1; from level 9 a fixed 2, 3 for a warrior.
-func levelHitPoints(career rules.Class, level, con int, rng *rules.RNG) int {
-	if level >= fixedGainLevel {
+func levelHitPoints(cr xxvc.Creation, career rules.Class, level, con int, rng *rules.RNG) int {
+	if level >= int(cr.FixedGainLevel) {
 		if career == xxvc.Warrior {
 			return 3
 		}
@@ -242,7 +242,7 @@ func (c creation) Roll(d *rules.Draft, k rules.RollKind, rng *rules.RNG) error {
 	if k != rules.RollFull || d.Of != rules.NoChar { // a member modified is not rolled again
 		return ErrNoRollKind
 	}
-	rollAbilities(d, c.r.stream(rng))
+	rollAbilities(c.r.tables.Creation, d, c.r.stream(rng))
 	return nil
 }
 
@@ -349,10 +349,10 @@ func (r *Rules) draftCharacter(d rules.Draft, kit bool) (Character, error) {
 	}
 	race, career := d.Sheet.Race, d.Sheet.Classes[0]
 	c := Character{
-		Name: d.Name, Sex: d.Sheet.Sex, Race: race, Career: career, Level: startLevel, Age: int(d.Sheet.Age),
+		Name: d.Name, Sex: d.Sheet.Sex, Race: race, Career: career, Level: int(r.tables.Creation.StartLevel), Age: int(d.Sheet.Age),
 		Scores: map[rules.Ability]int{}, HP: int(d.Sheet.HP), MaxHP: int(d.Sheet.MaxHP),
-		BaseCombat: careerBaseCombat[career][startLevel], IconDimensions: startIconDimensions,
-		Coins: startCredits, Enabled: true, Status: StOkay, Side: rules.SideParty, Exp: experienceNeeded[career][0],
+		BaseCombat: int(r.tables.Creation.Combat(career, r.tables.Creation.StartLevel)), IconDimensions: startIconDimensions,
+		Coins: startCredits, Enabled: true, Status: StOkay, Side: rules.SideParty, Exp: r.tables.Creation.Experience(career, r.tables.Creation.StartLevel),
 		BaseArmorClass: startBaseArmorClass, BaseMovement: raceMovement[race], Movement: raceMovement[race],
 		BaseScale: 2, Unarmed: [2]rules.Dice{{N: 1, Sides: 2}},
 	}
@@ -374,8 +374,8 @@ func (r *Rules) draftCharacter(d rules.Draft, kit bool) (Character, error) {
 	if career == xxvc.Warrior {
 		c.BaseScale = 4
 	}
-	c.Skills = startingSkills(career) // InitializeAllSkills
-	if d.Sheet.Skills != nil {        // then what EditSkills left
+	c.Skills = r.startingSkills(career) // InitializeAllSkills
+	if d.Sheet.Skills != nil {          // then what EditSkills left
 		c.Skills = levelsOfDraft(d)
 	}
 	if kit { // the character kept: SetDefaultIcon after the skills, then BuildAmmoItems

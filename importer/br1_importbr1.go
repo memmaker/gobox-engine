@@ -3,10 +3,14 @@ package importer
 import (
 	"gobox/adventure"
 	"gobox/game"
+	"gobox/rules/xxvc"
 )
 
 // BR1EXE is where BR1's START.EXE keeps what the import reads.
-var BR1EXE = BREXE{DS: 0xDAF, ItemWords: 0x1DB4, NumWords: 44, AmmoPrices: 0xC50, ShopLists: 0x18, ShipWeapons: 0x22DC, WeaponShort: 0x103F, ShipTypes: 0x1116, Space: 0x249A, MapSteps: 0x0A10}
+var BR1EXE = BREXE{DS: 0xDAF, ItemWords: 0x1DB4, NumWords: 44, AmmoPrices: 0xC50, ShopLists: 0x18, ShipWeapons: 0x22DC, WeaponShort: 0x103F, ShipTypes: 0x1116, Space: 0x249A, MapSteps: 0x0A10,
+	// buckroger-re chargen.pas (level := 2, FIXED_GAIN_LEVEL 9, EditSkills(80, 40, 30)), skills.pas (maxGeneral 7 at level 2); the tables' offsets are where gdconsts.pas' literals sit in the data segment
+	Creation:     xxvc.Creation{StartLevel: 2, FixedGainLevel: 9, CareerPoints: 80, GeneralPoints: 40, MaxPerSkill: 30, StartGeneralSkills: 7},
+	CareerTables: BRCareerTables{Experience: 0x31CA, ExperienceLevels: 8, BaseCombat: 0x313A, BaseCombatLevels: 10}}
 
 // init registers Buck Rogers: Countdown to Doomsday with gobox/importer (scripts,
 // art, maps, records, rule tables into adventures/br1/).

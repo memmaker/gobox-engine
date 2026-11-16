@@ -39,6 +39,19 @@ type BREXE struct {
 	// Space is GDConsts.orbitPositions[0] (58 rows of 3 Bytes), the orbit tables right after it, and MapSteps GDConsts.mapStepX (8
 	// ShortInts) with mapStepY after: the rocket's system map; 0: none yet (BR2).
 	Space, MapSteps int
+	// Creation is the game's character-making numbers that are code in the Pascal (chargen.pas, skills.pas); its tables
+	// are read at CareerTables.
+	Creation xxvc.Creation
+	// CareerTables is where GDConsts keeps experienceNeeded and careerBaseCombat (a row of ExperienceLevels longwords,
+	// of BaseCombatLevels bytes, per career) and careerInitialSkills (12 (skill, value) byte pairs per career; 0: none).
+	CareerTables BRCareerTables
+}
+
+// BRCareerTables are the offsets and row lengths of the career tables in the data segment.
+type BRCareerTables struct {
+	Experience, ExperienceLevels int // experienceNeeded[career, 2..]: LongInts, levels 2..2+ExperienceLevels-1
+	BaseCombat, BaseCombatLevels int // careerBaseCombat[career, 0..]: Bytes
+	InitialSkills                int // careerInitialSkills[career, 1..12]: skill, value; 0 when the game has none
 }
 
 // Ammunition item types (gdconsts.pas ammoPrices' bounds).
@@ -53,7 +66,7 @@ const itemWordSize = 21
 // registerBR registers adventure id (br1, br2) with title, its START.EXE and
 // its title sequence start (Game.Start).
 func registerBR(id, title string, e BREXE, start func(dos string) (*adventure.Sequence, error)) {
-	Register(Game{ID: id, Title: title, Ruleset: "rulesxxvc", Sources: BRSources, Version: 15 /* 15: the layout names the sky cells Sky, SkyInside; 14: BR2 gets walls, backs, places, game data, overland size and system map (BREXE.Space, MapSteps); 13: BR2 gets its Log Book (importer/br2/journal, from buckrogers2-go data/journal); 12: the layout names the step's previous square PrevX, PrevY; 11: the layout names the rocket's cells (BodySquares, RocketX, RocketY) and the import writes the system map (adventure.SpaceMap); 10: the layout names the party's ship cells (Ship*) and the last foe's (Foe*); 9: the characters' combat icon (the record's CHARS body); 8: the characters' age (the record's age byte); 7: the layout names the overland square MapX, MapY; 6: the layout comment names StockShop.Terms; 5: the shop's item lists (xxvc.Tables.ShopLists); 4: the script commands FindItem (was HasItem), AddNPC (was NPCJoin), SkillShow, TakeItem, Stash, SkillDamage; 3: a monster's isCompanion, npc byte and READIED items in the tables (xxvc.Monster); 2: the script commands Program (was MenuCall) and Who (was PickMember); 1: the credits' Colour a game.Ink (gobox C1) */, Start: start, Import: func(dos, dst string) error { return ImportBR(id, e, dos, dst) }, ImportShared: func(dos, dst string) error { return ImportBREngine(id, e, dos, dst) }})
+	Register(Game{ID: id, Title: title, Ruleset: "rulesxxvc", Sources: BRSources, Version: 16 /* 16: xxvc.Tables.Creation (start level, skill points, experience, base combat, BR2's initial skills); 15: the layout names the sky cells Sky, SkyInside; 14: BR2 gets walls, backs, places, game data, overland size and system map (BREXE.Space, MapSteps); 13: BR2 gets its Log Book (importer/br2/journal, from buckrogers2-go data/journal); 12: the layout names the step's previous square PrevX, PrevY; 11: the layout names the rocket's cells (BodySquares, RocketX, RocketY) and the import writes the system map (adventure.SpaceMap); 10: the layout names the party's ship cells (Ship*) and the last foe's (Foe*); 9: the characters' combat icon (the record's CHARS body); 8: the characters' age (the record's age byte); 7: the layout names the overland square MapX, MapY; 6: the layout comment names StockShop.Terms; 5: the shop's item lists (xxvc.Tables.ShopLists); 4: the script commands FindItem (was HasItem), AddNPC (was NPCJoin), SkillShow, TakeItem, Stash, SkillDamage; 3: a monster's isCompanion, npc byte and READIED items in the tables (xxvc.Monster); 2: the script commands Program (was MenuCall) and Who (was PickMember); 1: the credits' Colour a game.Ink (gobox C1) */, Start: start, Import: func(dos, dst string) error { return ImportBR(id, e, dos, dst) }, ImportShared: func(dos, dst string) error { return ImportBREngine(id, e, dos, dst) }})
 }
 
 // ImportBR writes adventure id's folder dst from the DOS originals in dos.
@@ -137,6 +150,7 @@ func ImportData(l *orig.Loader, e BREXE, dst string) error {
 	t.ShopLists = ShopLists(im.Mem[im.DS:], e)
 	t.ShipWeapons = ShipWeapons(im.Mem[im.DS:], e)
 	t.Explosion = e.Explosion
+	t.Creation = CareerCreation(im.Mem[im.DS:], e)
 	if t.Ships, err = Ships(orig.Blocks(l, "SHIPS"), im.Mem[im.DS:], e); err != nil {
 		return err
 	}

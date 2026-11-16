@@ -293,7 +293,7 @@ func (r *Rules) sessionCheck(q rules.Check, rng *rules.RNG) rules.Answer {
 		return rules.Answer{Yes: c != nil && c.Status == StOkay && c.Enabled}
 	case rules.Modifiable: // ModifyCharacterMenu: only a member with the starting experience
 		c := r.chars[q.Who]
-		return rules.Answer{Yes: c != nil && modifiable(c)}
+		return rules.Answer{Yes: c != nil && r.modifiable(c)}
 	case rules.PaladinCan:
 		// No paladins.
 		return rules.Answer{}

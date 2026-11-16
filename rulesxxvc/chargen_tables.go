@@ -59,26 +59,6 @@ var raceSaveAdjust = map[rules.Race][8]int{
 	xxvc.Lowlander:    {2, 4, 2, 3, 1, -4, 6, -6},
 }
 
-// careerBaseCombat is careerBaseCombat by career and level 0..9.
-var careerBaseCombat = map[rules.Class][10]int{
-	xxvc.RocketJock: {40, 40, 40, 41, 41, 42, 42, 43, 43, 44},
-	xxvc.Medic:      {40, 40, 40, 40, 42, 42, 42, 44, 44, 44},
-	xxvc.Warrior:    {40, 40, 41, 42, 43, 44, 45, 46, 47, 48},
-	xxvc.Engineer:   {40, 40, 40, 40, 42, 42, 42, 44, 44, 44},
-	xxvc.Rogue:      {40, 40, 40, 41, 41, 42, 42, 43, 43, 44},
-	xxvc.Scout:      {40, 40, 41, 42, 43, 44, 45, 46, 47, 48},
-}
-
-// experienceNeeded is experienceNeeded for levels 2..9 (index level-2).
-var experienceNeeded = map[rules.Class][8]int64{
-	xxvc.RocketJock: {1250, 2500, 5000, 10000, 20000, 40000, 70000, 110000},
-	xxvc.Medic:      {1500, 3000, 6000, 12000, 24000, 48000, 96000, 192000},
-	xxvc.Warrior:    {2000, 4000, 8000, 16000, 32000, 64000, 125000, 250000},
-	xxvc.Engineer:   {1250, 2500, 5000, 10000, 20000, 40000, 70000, 110000},
-	xxvc.Rogue:      {1250, 2500, 5000, 10000, 20000, 40000, 70000, 110000},
-	xxvc.Scout:      {2250, 4500, 9000, 18000, 36000, 75000, 150000, 300000},
-}
-
 // constitutionLevelBonus is constitutionLevelBonus by constitution 1..22 (index score-1): the bonus to a level's hit points.
 var constitutionLevelBonus = [22]int{-3, -2, -2, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 5, 6, 6}
 
@@ -87,12 +67,10 @@ const (
 	startBaseArmorClass       = 50   // baseArmorClass := 50
 	startCredits              = 1000 // creditTotal := 1000
 	startIconDimensions       = 1    // iconDimensions := 1
-	startLevel                = 2    // free training stops at the level the starting experience (experienceNeeded[career, 2]) buys
 	lastSpecializableTemplate = 15   // viewchar.pas LAST_SPECIALIZABLE_TEMPLATE: the menu offers itemTemplates 1..15
 	ageBase                   = 18   // age := RollDice(1, 6) + 18
 	ageDie                    = 6
 	maxAge                    = 255 // age is a Byte
-	fixedGainLevel            = 9   // chargen.pas FIXED_GAIN_LEVEL: from it a level's hit points are fixed, not rolled
 	maxStartScore             = 18  // Modify keeps each ability between raceStatAdjust + 3 and + 18
 	minStartScore             = 3
 )

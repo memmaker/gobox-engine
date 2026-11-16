@@ -99,6 +99,8 @@ type Tables struct {
 	Ships map[rules.ShipID]ShipRecord
 	// Explosion is how the crew is hurt when the party's hull goes (ShipCbt DamageCrew).
 	Explosion Explosion
+	// Creation is the game's character-making numbers (chargen.pas, skills.pas).
+	Creation Creation
 }
 
 // ItemTemplate is one row of itemTemplates (types.pas TItemTemplate): what a
