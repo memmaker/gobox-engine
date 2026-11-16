@@ -58,6 +58,11 @@ func (r *Rules) Decide(f rules.Fight, id rules.CharID, rng *rules.RNG) rules.Act
 			s.specialDue = true // AiMoveAttack's MONSTER_SPECIAL, resolved as its own action
 			return rules.Maneuver{ID: monsterSpecial}
 		}
+		if at, ok := unitAt(f, id); ok && c.team() && !f.Terms.Duel { // AiMoveAttack: a team member treats its patients, its turn over (combatai.pas:471)
+			if ps := r.patients(f, c, at); len(ps) > 0 {
+				return rules.Aid{Target: ps[0]}
+			}
+		}
 	}
 	s.aiSteps++
 	if s.initiative <= 0 || !c.Enabled || s.aiSteps > maxAiSteps {

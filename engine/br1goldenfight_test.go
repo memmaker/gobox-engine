@@ -285,10 +285,14 @@ func TestBR1GoldenFight(t *testing.T) {
 			}
 			p := e.goldenPlay(t, head.State) // the dice as they stood at the first round's head: the old engine drew before it (leadership)
 			e.goldenCompareHead(t, c, head, p)
-			goldenCompareDamage(t, c, rounds, p)
-			goldenCompareChances(t, c, rounds, p)
-			round, why := goldenCompareRounds(t, c, rounds, p)
 			known, isKnown := goldenDiverges[c.Name]
+			upto := len(rounds) // the rounds whose damage and chances follow the old engine's: up to the divergence
+			if isKnown {
+				upto = known.round + 1
+			}
+			goldenCompareDamage(t, c, rounds[:min(upto, len(rounds))], p)
+			goldenCompareChances(t, c, rounds[:min(upto, len(rounds))], p)
+			round, why := goldenCompareRounds(t, c, rounds, p)
 			switch {
 			case isKnown && round == known.round:
 				t.Logf("%s: equal to the old engine up to round %d; there %s (%s)", c.Name, round, why, known.why)
@@ -392,7 +396,12 @@ func (e *Engine) goldenCompareHead(t *testing.T, c goldenFight, head goldenTrace
 var goldenDiverges = map[string]struct {
 	round int
 	why   string
-}{} // none: every fight is equal to the old engine (the golden branch's patches are in the README) to its end
+}{
+	// two-vs-41x4+32+39x3: the two members, played by the computer, bandage the dying NPC beside them in round 0
+	// (combatai.pas AiMoveAttack:471, a team member's FindPatients/TreatPatients, its turn over); the old engine
+	// had them attack instead. The Pascal decides.
+	"two-vs-41x4+32+39x3": {0, "the members bandage the dying NPC (combatai.pas AiMoveAttack:471) instead of attacking"},
+} // every other fight is equal to the old engine (the golden branch's patches are in the README) to its end
 
 // goldenCompareRounds is 2: it returns the first round that differs, -1 when all are equal.
 func goldenCompareRounds(t *testing.T, c goldenFight, want []goldenRound, p goldenPlayed) (int, string) {

@@ -14,6 +14,11 @@ func (r *Rules) Resolve(s rules.Situation, a rules.Action, rng *rules.RNG) (rule
 		return o, err
 	}
 	switch a := a.(type) {
+	case rules.SetSpeed: // combat.pas CombatMain 'V': the sheet closed, CbtActs.RecalcAttacksLeft
+		if c, s := r.chars[a.Who], r.fight[a.Who]; c != nil && s != nil {
+			r.recalcAttacksLeft(rules.Fight{Round: int32(r.round)}, c, s)
+		}
+		return rules.Outcome{}, nil
 	case rules.OpenTurn:
 		// The Pool's menu runs affect group 0xF and disarms a maneuver first; XXVc has neither (its turn-start
 		// effects run in BeginTurn): nothing to do.

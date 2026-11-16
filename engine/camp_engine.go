@@ -2,6 +2,7 @@ package engine
 
 import (
 	"gobox/adventure"
+	"gobox/ecl"
 	"gobox/game"
 	"gobox/rules"
 	"strconv"
@@ -145,6 +146,20 @@ func (e *Engine) CampMenu() {
 	e.animInput = true // the camp picture's fire burns while camp is up (the camp bar's anim, ovr06:101F)
 	e.campOpen = true
 	e.campSeq = e.opens()
+}
+
+// restIsMenu is whether the dialect's rest is a menu its script opens (ecl.ProgramRest: BR's RestMenu), not the
+// camp the Pool's exploring key makes. BR's own 'C' is the Change menu (explore.pas CampAlterMenu), which is not
+// ported, so no Camp is offered there.
+func (e *Engine) restIsMenu() bool {
+	for _, progs := range []map[byte]ecl.ProgramFn{e.game().Programs, e.eclVersion.Programs} {
+		for _, fn := range progs {
+			if fn == ecl.ProgramRest {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // inCamp: camp's own decisions are open (no rest going on, no view over it).

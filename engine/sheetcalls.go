@@ -180,25 +180,35 @@ func (e *Engine) carriedBy(h rules.ItemHandle) (rules.CharID, rules.ItemHandle) 
 // Ready readies or unreadies item h (x of the stack, 0: all of it); to is
 // where a weapon with the choice goes (rules.ReadyTo).
 func (e *Engine) Ready(h rules.ItemHandle, x int, to rules.ReadyTo) error {
+	return e.readyAction(h, func(cID rules.CharID, h rules.ItemHandle) rules.Action {
+		return rules.Ready{Who: cID, Item: h, Count: int32(x), To: to}
+	})
+}
+
+// Unready unreadies item h, refused when it is not readied. It resolves rules.Unready: rules.Ready is a toggle
+// in the Pool's ruleset but only readies in BR's (viewchar.pas Ready and Unready are two keys).
+func (e *Engine) Unready(h rules.ItemHandle) error {
+	if id, h := e.carriedBy(h); h != rules.NoItem && !e.itemCard(id, h).Readied {
+		return errors.New("not readied")
+	}
+	return e.readyAction(h, func(cID rules.CharID, h rules.ItemHandle) rules.Action {
+		return rules.Unready{Who: cID, Item: h}
+	})
+}
+
+// readyAction resolves the ready action of the selected member's listed item h, then lets the turn's weapon follow.
+func (e *Engine) readyAction(h rules.ItemHandle, act func(rules.CharID, rules.ItemHandle) rules.Action) error {
 	cID, h := e.carriedBy(h)
 	if h == rules.NoItem {
 		return rules.ErrNotNow
 	}
-	if _, err := e.ruleset().Resolve(nil, rules.Ready{Who: cID, Item: h, Count: int32(x), To: to}, nil); err != nil {
+	if _, err := e.ruleset().Resolve(nil, act(cID, h), nil); err != nil {
 		return err
 	}
 	if t := e.snap.turn; t != nil && cID == e.cs.actor { // the turn's weapon follows (BUG-CLASSES 40), as turnChoices sets it
 		e.turnWeapons(cID, t)
 	}
 	return nil
-}
-
-// Unready unreadies item h, refused when it is not readied.
-func (e *Engine) Unready(h rules.ItemHandle) error {
-	if id, h := e.carriedBy(h); h != rules.NoItem && !e.itemCard(id, h).Readied {
-		return errors.New("not readied")
-	}
-	return e.Ready(h, 0, rules.ReadyAnywhere)
 }
 
 // drop drops item h (the front asked ovr20's "drop It?").
