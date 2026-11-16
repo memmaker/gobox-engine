@@ -51,6 +51,16 @@ type UsingItem struct {
 
 func (UsingItem) situation() {}
 
+// Handling: Who looks over Item in the gear menu (viewchar.pas UseItemMenu). Allowed lists what the gear menu offers
+// beside Ready and Drop: a GiveItem to another member (To NoChar: the engine asks whom), a Halve, a JoinStack, each
+// with its name; the ones the ruleset does not offer here are left out.
+type Handling struct {
+	Who  CharID
+	Item ItemHandle
+}
+
+func (Handling) situation() {}
+
 // Reloading: Who's Item in the shop's ammunition counter. Allowed lists
 // what the shop sells for it (Reload, a Clip and a Fill with the price),
 // none when no ammunition is sold for it here.

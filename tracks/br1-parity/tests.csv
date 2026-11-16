@@ -28,7 +28,7 @@ bugclass,TestClassStepNotWedged,"a held step offers its follow-up (RunEvent Befo
 bugclass,TestClassSaleFilled,every carried item in a shop has the original's offer as its Sale,covered,TestBR1Shop;TestBR1PurseInCredits,
 bugclass,TestClassBigPicRange,every BIGPIC block is in the PICTURE op range (>=112),n/a,,"data of the originals, read by the importer"
 bugclass,TestClassStreetOutside,the opening street is outside under the city sky,covered,TestBR1WallsBackdrop,
-bugclass,TestClassItemActs,"the item acts are Ready, Trade, Drop, Halve, Join",port-open,,Trade/Halve/Join: the engine offers none of Give/Halve/JoinStack for BR (play.go items()) and rulesxxvc answers no GiveItem/Halve/JoinStack (viewchar.pas UseItemMenu): a ruleset verb set and an engine offer; Ready/Unready/Drop are covered by TestBR1NoSilentDo
+bugclass,TestClassItemActs,"the item acts are Ready, Trade, Drop, Halve, Join",port-done,TestBR1GearVerbs;TestBR2GearVerbs;TestGearOffers;TestGearHalveJoin;TestGearGive,"viewchar.pas UseItemMenu: Trade, Halve, Join are the ruleset's offers (rules.Handling, rulesxxvc/gear.go) the engine lists per item (engine/gear_engine.go); Ready/Unready/Drop were covered by TestBR1NoSilentDo"
 bugclass,TestClassMessageCleared,a gear message is gone once the party walks on,covered,TestDropItem,
 bugclass,TestClassSurfacesTextured,every floor/ceiling/sky the view can show is a pool texture,covered,TestBR1WallsBackdrop,
 bugclass,TestCombatTilesTextured,every combat tile has a texture in its set,covered,TestBR1FightPictures;TestBR2Fight,
@@ -59,7 +59,7 @@ eclwalk,TestECLWalk,every command every block reaches is one the dispatch handle
 engaged,TestFightEngaged,a fight begun in a step tells gobox its board (play.Engaged),n/a,,the old front contract; the shared state is Fighting
 escreply,TestViewEscIsExit,Esc over the view menu names its Exit entry,n/a,,the old front contract (escReply); the sheet is the ui's
 exit,TestClassEdgeFlagBeforeStep,a step off the map flags party 725 before the step entry runs,port-done,TestBR1ClassEdgeFlagBeforeStep,"the layout named Party[725] OffMap and Party[786] Disk (unbound): now LeftMap and SymbolSet, the engine words; block 81 reads GEO5"
-exit,TestClassJoinedName,a joined stack shows its new count,port-open,,needs JoinStack/Halve for BR (see TestClassItemActs)
+exit,TestClassJoinedName,a joined stack shows its new count,port-done,TestBR2GearVerbs;TestGearHalveJoin,"the joined stack's Item.Count is its new count (the front draws it beside the name; the name carries none); BR1's kit holds no joinable stack, so the engine test runs on BR2's grenades and the ruleset test on both"
 exit,TestClassPartyPurse,"one purse: pooling members credits on one holder, a buy spends it whoever shops",differs,,"ruling: credits are paid out at once, one purse (REFACTOR sh1); TestSetCredits, TestPurse, TestBR1Credits"
 exitstep,TestClassExitOneStep,one step off the east edge of block 81 asks to leave and Yes goes to block 80,port-done,TestBR1ClassExitOneStep,as TestBR1ClassEdgeFlagBeforeStep
 fightend,TestClassFightEndWaits,"every page after a fight (wipe, win) is a pending question",covered,TestBR1FledAndDown;TestBR1QuickBack,
@@ -77,7 +77,7 @@ loadblock,TestLoadBlockMissing,a block the disk lacks is an error,n/a,,the old s
 loot,TestLoot,"a won fight pages, take all, leave; pool coins",covered,TestLoot;TestBR1TreasureOf;TestEndFightLootRevive,
 music,TestMusicPlaces,every area trigger is in MusicPlaces and every listed one is used,covered,TestBRPlacesInMusicPlaces;TestBR2PlacesInMusicPlaces,
 music,TestAreaName,"the map area title of a block (Salvation, Gradivus, Mercury Spaceport)",port-done,TestBRPlaceNames;TestBR1AreaName,"FIXED: BR1 map showed ""Map""; places carry Name (adventure.Place.Name, BR import version 18). BR2 still has no names"
-pack,TestClassPartyPack,"one party pack of 60 slots, unreadied items leave the members, kept by save",port-open,,a ruling of the old engine (as POR pool); rulesxxvc has no PoolItems/PartyCap: needs a ruling for BR and a ruleset pack
+pack,TestClassPartyPack,"one party pack of 60 slots, unreadied items leave the members, kept by save",differs,,"the PASCAL has no party pack: every member keeps its own itemList (MAX_CARRIED_ITEMS 16, viewchar.pas CannotCarryItem) and alternateItems is the Stash/.HID list (EclTransferCharacterLists, ported as Stash); grep -i 'pack|stow' over buckroger-re/src finds nothing. The old engine's pack (bug class 76) was its own ruling, copied from the Pool's shared inventory (rules.Options.PartyInventory is a 1e rule)"
 pack,TestClassPackStash,Stash puts the pack away with the party items,covered,TestBR1Stash,the pack part with TestClassPartyPack
 pack,TestScriptReadsPurse,a script reads the purse,covered,TestBR1Credits,
 pics,TestPics,each member states its CHARS icon,covered,TestBR1FightPictures;TestDefaultIcon,

@@ -22,6 +22,12 @@ func (r *Rules) Resolve(s rules.Situation, a rules.Action, rng *rules.RNG) (rule
 			r.recalcAttacksLeft(rules.Fight{Round: int32(r.round)}, c, s)
 		}
 		return rules.Outcome{}, nil
+	case rules.GiveItem:
+		return r.giveItem(a)
+	case rules.Halve:
+		return r.halveItem(a.Who, a.Item)
+	case rules.JoinStack:
+		return r.joinStack(a.Who, a.Item)
 	case rules.OpenTurn:
 		// The Pool's menu runs affect group 0xF and disarms a maneuver first; XXVc has neither (its turn-start
 		// effects run in BeginTurn): nothing to do.
@@ -131,6 +137,8 @@ func (r *Rules) Allowed(s rules.Situation) rules.Allowed {
 		return r.shipAllowed(s)
 	case rules.Reloading:
 		return r.reloadOffers(s)
+	case rules.Handling:
+		return r.handlingOffers(s.Who, s.Item)
 	case rules.Camping:
 		return rules.Allowed{Offers: []rules.Offer{{Action: rules.Rest{Minutes: MinutesPerDay}, Name: "Rest"}}}
 	}

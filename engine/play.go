@@ -298,6 +298,9 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 		for n, m := range cm.Party {
 			for _, it := range m.Items {
 				add(e.readyAct(n, it), game.Drop{Member: n, Item: it.Handle})
+				if n < e.partySize() {
+					add(e.gearActs(n, it.Handle)...) // the ruleset's Trade, Halve, Join (rules.Handling)
+				}
 				if len(e.ruleset().Allowed(rules.UsingItem{Who: e.partyIDs()[n], Item: it.Handle, NoMagic: e.noMagic()}).Offers) > 0 { // an item with no use is not offered Use (UseItem refused it "not now")
 					add(game.UseItem{Member: n, Item: it.Handle})
 				}
@@ -416,6 +419,15 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 					add(game.EditIcon{Member: n})
 				case partyTraining:
 					add(game.OpenTraining{Member: n})
+				}
+			}
+		}
+		if e.snap.invOn { // the inventory over the game: the ruleset's gear verbs (Trade, Halve, Join) for each item
+			for n, m := range cm.Party {
+				for _, it := range m.Items {
+					if n < e.partySize() {
+						add(e.gearActs(n, it.Handle)...)
+					}
 				}
 			}
 		}
@@ -721,6 +733,8 @@ func allows(al game.Allowed, a game.Action) bool {
 		if v.Text != "" {
 			return true
 		}
+	case game.Give: // to any member: the rules check the receiver
+		base = game.Give{From: v.From, Item: v.Item}
 	case game.Shoot:
 		base = game.Shoot{}
 	case game.DoManeuver: // Plain by ID, Aimed with the square cleared
@@ -754,8 +768,8 @@ func allows(al game.Allowed, a game.Action) bool {
 		return true
 	case game.Speak: // the page gobox shows: speak knows the recordings
 		return true
-	case game.UsePower, game.SetStat, game.Adjust, game.PointBuy, game.Spend, game.Order, game.AddNote, game.RemoveNote, game.Give,
-		game.Memorize, game.Plan, game.Forget, game.Scribe, game.LayOnHands, game.SetDifficulty: // Halve, Join, PoolCoins, LootShare: only offered without the shared inventory and purse (never today), so by Allowed
+	case game.UsePower, game.SetStat, game.Adjust, game.PointBuy, game.Spend, game.Order, game.AddNote, game.RemoveNote,
+		game.Memorize, game.Plan, game.Forget, game.Scribe, game.LayOnHands, game.SetDifficulty: // PoolCoins, LootShare: only offered without the shared inventory and purse (never today), so by Allowed
 		return true
 	}
 	if c, ok := base.(game.Cast); ok && c.Spell != 0 { // camp offers a caster's Cast{Member}, the spell the rules' check
@@ -1390,6 +1404,8 @@ func (e *Engine) leave() error {
 		return e.turnActs([]TurnAct{{Verb: VerbClose}}, false)
 	case cr != nil && cr.naming:
 		cr.naming = false
+	case cr != nil && q == nil && cr.rise:
+		return e.EndCreation(true)
 	case cr != nil && q == nil:
 		cr.asking = true
 	case q != nil:
@@ -1458,6 +1474,16 @@ func (e *Engine) itemDo(a game.Action, native func(func() error) error) (bool, e
 		return shown(a.Member, func() error { return e.Unready(a.Item) })
 	case game.Drop: // ovr20's "Drop It?" is gobox's (BUG-CLASSES 47)
 		return shown(a.Member, func() error { return e.drop(a.Item) })
+	case game.Give:
+		return shown(a.From, func() error { return e.give(a.Item, a.To) })
+	case game.Halve:
+		return shown(a.Member, func() error {
+			return e.gear(a.Item, func(who rules.CharID) rules.Action { return rules.Halve{Who: who, Item: a.Item} })
+		})
+	case game.Join:
+		return shown(a.Member, func() error {
+			return e.gear(a.Item, func(who rules.CharID) rules.Action { return rules.JoinStack{Who: who, Item: a.Item} })
+		})
 	case game.SelectMember:
 		return true, native(func() error {
 			if a.Member < 0 || a.Member >= e.partySize() {

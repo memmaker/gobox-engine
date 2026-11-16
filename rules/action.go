@@ -161,15 +161,15 @@ type (
 	}
 	GiveItem struct {
 		From, To CharID
-		Item     ItemSlot
+		Item     ItemHandle // To NoChar in an offer: the engine asks whom
 	}
 	Halve struct {
 		Who  CharID
-		Item ItemSlot
+		Item ItemHandle
 	}
 	JoinStack struct {
 		Who  CharID
-		Item ItemSlot
+		Item ItemHandle
 	}
 
 	// Character creation (Creating, and Party for NewCharacter and Modify).
