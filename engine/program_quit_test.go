@@ -119,3 +119,23 @@ func TestEndEffects(t *testing.T) {
 		t.Fatal("no closing note")
 	}
 }
+
+// TestProgramUnlistedPanics: a PROGRAM code the dialect's table does not list stops the run (never a silent
+// nothing); a listed ProgramNone code does nothing, as the original's case without an arm.
+func TestProgramUnlistedPanics(t *testing.T) {
+	e := quickStarted(t)
+	e.eclVersion = ecl.V3
+	program := func(n int) {
+		e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Args: []ecl.Arg{{N: n}}}}, Layout: e.vm.Script.Layout}
+		e.vm.PC = 0
+		e.vm.Fetch()
+		e.opProgram()
+	}
+	program(3) // listed ProgramNone
+	defer func() {
+		if recover() == nil {
+			t.Fatal("program 200 did not panic")
+		}
+	}()
+	program(200)
+}

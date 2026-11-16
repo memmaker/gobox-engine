@@ -632,7 +632,12 @@ func (e *Engine) opProgram() {
 		e.selectChar(e.run.savedSel)
 		e.run.restoreSel = false
 	}
-	switch e.eclVersion.Programs[v] { // the screens put up suspend the VM until they are gone
+	fn, listed := e.eclVersion.Programs[v]
+	if !listed {
+		panic(fmt.Sprintf("ecl: program %d on line %d is not in the dialect's table (list it, ProgramNone if the original ignores it)", v, e.vm.Script.Code[e.vm.PC].Line))
+	}
+	switch fn { // the screens put up suspend the VM until they are gone
+	case ecl.ProgramNone: // the original's case has no arm for it
 	case ecl.ProgramPartyMenu:
 		e.es.hold = holdPartyMenu
 	case ecl.ProgramEnding: // POR 8 (ovr19:02A4), COTAB's ending: the manifest's End, then the script goes on

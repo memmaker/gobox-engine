@@ -42,7 +42,8 @@ type Version struct {
 	// Calls names the engine routine each CALL operand (its raw value, an
 	// address in the original) runs; an operand not listed runs nothing.
 	Calls map[uint16]CallFn
-	// Programs names what each PROGRAM operand does; one not listed does nothing.
+	// Programs names what each PROGRAM operand does, ProgramNone for a code the original ignores (its case has no arm);
+	// a code not listed is a script the table does not know: the engine stops (never silently nothing).
 	Programs map[byte]ProgramFn
 	// Behaviour is how the dialect's engine runs the commands that differ
 	// between the games (ruling S15).
@@ -96,14 +97,14 @@ const BRMessageDelayMs = 100
 type ProgramFn int
 
 const (
-	ProgramNone      ProgramFn = iota
-	ProgramPartyMenu           // the party menu
-	ProgramEnding              // the adventure's ending
-	ProgramCamp                // camp (pod: with its camp events); the script ends
-	ProgramRest                // the rest menu (BR explore.pas RestMenu): the script goes on afterwards
-	ProgramQuit                // leave the game
-	ProgramSaveQuit            // save, then the ending
-	ProgramUnported            // a sub-command the original has and the engine lacks: it stops the game, never silently nothing
+	ProgramNone      ProgramFn = iota // listed, and the original does nothing for it (its case has no arm)
+	ProgramPartyMenu                  // the party menu
+	ProgramEnding                     // the adventure's ending
+	ProgramCamp                       // camp (pod: with its camp events); the script ends
+	ProgramRest                       // the rest menu (BR explore.pas RestMenu): the script goes on afterwards
+	ProgramQuit                       // leave the game
+	ProgramSaveQuit                   // save, then the ending
+	ProgramUnported                   // a sub-command the original has and the engine lacks: it stops the game, never silently nothing
 )
 
 // CallFn is an engine routine a script CALLs, by name.
@@ -232,6 +233,21 @@ var V2 = func() *Version {
 	return &Version{ID: 2, Base: 32768, Cmds: t, Skip: skip, Calls: calls, Programs: programs, Behaviour: func() Behaviour { b := V1.Behaviour; b.PictureAnimates = true; return b }()}
 }()
 
+// podDebugProgramMax is the largest number the developer test menu's "WHAT PROGRAM # DO YOU WISH?" can pass
+// (area 1: Program(InputNumber(2)), two digits): every such code the Pascal's case lacks is listed as ProgramNone.
+const podDebugProgramMax = 99
+
+// podPrograms is POD's PROGRAM table (pod-re eclvm.pas EclProgram: 0 party menu, 1 ExitToDos, 2 ExitGame, 9 camp;
+// no other arm). The scripts pass 0, 1, 2, 3 (ignored), 9 and the debug menu's typed number.
+func podPrograms() map[byte]ProgramFn {
+	t := map[byte]ProgramFn{}
+	for code := byte(0); code <= podDebugProgramMax; code++ {
+		t[code] = ProgramNone
+	}
+	t[0], t[1], t[2], t[9] = ProgramPartyMenu, ProgramSaveQuit, ProgramQuit, ProgramCamp
+	return t
+}
+
 // V3 is Pools of Darkness' dialect.
 var V3 = func() *Version {
 	t := V2.Cmds
@@ -257,7 +273,7 @@ var V3 = func() *Version {
 	})
 	// pod renumbered its routines (O040:1E4A)
 	return &Version{ID: 3, Base: 32768, Cmds: t, Skip: skip, Calls: map[uint16]CallFn{1: CallRedrawView, 2: CallStepForward, 3: CallNextFrame},
-		Programs:  map[byte]ProgramFn{0: ProgramPartyMenu, 1: ProgramSaveQuit, 2: ProgramQuit, 9: ProgramCamp},
+		Programs:  podPrograms(),
 		Behaviour: Behaviour{HitPadded: true, NPCSideBit: true, SetupMonsterSides: true, OutdoorsNear: true, InputTextOperand: true, NoMonsterCombat: []CombatScreen{CombatVault, CombatTemple}, PictureAnimates: true, SymbolSetFrames: true}}
 }()
 
@@ -302,7 +318,8 @@ var V4 = func() *Version {
 	return &Version{ID: 4, Base: 32768, Cmds: t, Skip: skip, Calls: calls,
 		// BR1 pO035_2DCC case 56 (buckrogers-go opMenuCall): 0 the team menu, 9 the rest menu (eclvm.pas PROGRAM_REST_MENU: holds the script, which
 		// goes on after it: not the Pool games' camp, which ends it)
-		Programs:  map[byte]ProgramFn{0: ProgramPartyMenu, 9: ProgramRest},
+		// 2 quits (BR2's PROGRAM_QUIT; BR1's Pascal ignores 2 and its scripts pass 0 and 3 only), 3 is ignored by both
+		Programs:  map[byte]ProgramFn{0: ProgramPartyMenu, 2: ProgramQuit, 3: ProgramNone, 9: ProgramRest},
 		Behaviour: Behaviour{SetupMonsterSides: true, ReturnEndsScript: true, StoreByOperand: true, ClearExitText: true, WhoEndsNoMember: true, FarSight: true, LostDuelResult: true, ViewKept: true, CreditsTreasure: true, MessageDelayMs: BRMessageDelayMs}}
 }()
 
