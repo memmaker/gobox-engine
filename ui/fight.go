@@ -745,16 +745,38 @@ func (p *Presenter) moveMarks(b *combat.Board) *combat.Board {
 	return b
 }
 
-// aimPreview is b with the area of a spell aimed from the bar (the ui's own
-// aim) washed round the hovered square; the engine's own aim (a spell that
-// went off after its casting time) brings its AimArea in the board (the live
-// board; a replayed one never aims).
+// aimPreview is b with what the aim at the marked square takes: the game's
+// own word (game.Previewer) on the squares its area covers, who it hits and
+// the allies it passes over, for the ui's aim (a spell or maneuver aimed from
+// the bar) and the engine's own (a spell going off after its casting time);
+// without a Previewer, the ui's aim washes its Area round the square (the
+// live board; a replayed one never aims).
 func (p *Presenter) aimPreview(b *combat.Board) *combat.Board {
-	if p.eng == nil || p.Playing() || p.eng.r.aim == nil || len(b.AreaAt) != 0 {
+	if p.eng == nil || p.Playing() || len(b.AreaAt) != 0 {
 		return b
 	}
-	if _, ok := p.eng.r.aim.Action.(game.Cast); ok {
-		b.AimArea = p.eng.r.aim.Area + 1
+	var aim game.Action
+	x, y, ok := p.battle.HoverSquare()
+	sq := rules.BoardPos{X: x, Y: y}
+	switch r := p.eng.r.aim; {
+	case r != nil:
+		switch a := r.Action.(type) {
+		case game.Cast:
+			a.Ats, aim = []rules.BoardPos{sq}, a
+			b.AimArea = r.Area + 1
+		case game.DoManeuver:
+			a.Ats, aim = []rules.BoardPos{sq}, a
+		}
+	case b.Turn != nil && b.Turn.Aim:
+		aim = game.Aim{At: sq}
+	}
+	pv, can := p.eng.G.(game.Previewer)
+	if aim == nil || !ok || !can {
+		return b
+	}
+	if v := pv.Preview(aim); len(v.Area) > 0 {
+		b.AreaAt, b.Marks, b.Skipped = pts(v.Area), pts(v.Hit), pts(v.Skipped)
+		b.AimArea = max(b.AimArea, 1)
 	}
 	return b
 }

@@ -9,6 +9,7 @@ package engine
 // the area, the ones it strikes the marks.
 
 import (
+	"gobox/game"
 	"gobox/rules"
 	"slices"
 )
@@ -23,8 +24,7 @@ func (e *Engine) aoeMarks(x, y int) {
 	if e.ext.aoeSpell != 0 {
 		spell = e.spellID(e.ext.aoeSpell)
 	}
-	e.as(e.sel)
-	a := e.fact(e.selected(), rules.AreaFact{Spell: spell, At: rules.BoardPos{X: x, Y: y}, Area: e.ext.aoe}).(rules.AreaPreview)
+	a := e.areaAt(spell, e.ext.aoe, rules.BoardPos{X: x, Y: y})
 	e.snap.area, e.snap.skipped = slices.Clone(a.Area), slices.Clone(a.Skipped)
 	marks := map[rules.BoardPos]bool{}
 	for _, p := range a.Hit {
@@ -36,6 +36,58 @@ func (e *Engine) aoeMarks(x, y int) {
 	for p := range marks {
 		e.snap.marks = append(e.snap.marks, p)
 	}
+}
+
+// areaAt is the rules' word (AreaFact, the cast's own test) on who an area
+// of aoe (radius+1) of spell ("" a maneuver's) aimed at at takes.
+func (e *Engine) areaAt(spell rules.SpellID, aoe int, at rules.BoardPos) rules.AreaPreview {
+	e.as(e.sel)
+	return e.fact(e.selected(), rules.AreaFact{Spell: spell, At: at, Area: aoe}).(rules.AreaPreview)
+}
+
+// Preview is game.Previewer: what the engine's own aim (Aim) or an aimed
+// spell or maneuver (its one square in Ats) would take, as areaAt; empty
+// for an aim with no area.
+func (e *Engine) Preview(a game.Action) game.Preview {
+	if !e.battleUp() {
+		return game.Preview{}
+	}
+	var spell rules.SpellID
+	aoe, at := 0, rules.BoardPos{}
+	switch a := a.(type) {
+	case game.Aim:
+		if e.cs.aim == nil || e.ext.aoe == 0 {
+			return game.Preview{}
+		}
+		if e.ext.aoeSpell != 0 {
+			spell = e.spellID(e.ext.aoeSpell)
+		}
+		aoe, at = e.ext.aoe, a.At
+	case game.Cast:
+		if len(a.Ats) != 1 {
+			return game.Preview{}
+		}
+		spell = e.spellID(a.Spell)
+		if aim := e.fact(e.selected(), rules.SpellAimFact{Spell: spell}).(rules.SpellAim); aim.Kind == rules.SpellAimArea {
+			aoe = aim.Area
+		}
+		at = a.Ats[0]
+	case game.DoManeuver:
+		if len(a.Ats) != 1 {
+			return game.Preview{}
+		}
+		for _, m := range e.maneuvers(e.selected()) {
+			if int(m.ID) == a.ID && m.Aim == rules.AimArea {
+				aoe = m.Area + 1 // as maneuver's aim
+			}
+		}
+		at = a.Ats[0]
+	}
+	if aoe == 0 {
+		return game.Preview{}
+	}
+	p := e.areaAt(spell, aoe, at)
+	return game.Preview{Area: slices.Clone(p.Area), Hit: slices.Clone(p.Hit), Skipped: slices.Clone(p.Skipped)}
 }
 
 func (e *Engine) aoeUnmark() { e.snap.marks, e.snap.area, e.snap.skipped = nil, nil, nil }

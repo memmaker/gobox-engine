@@ -259,4 +259,22 @@ func TestSpellAimArea(t *testing.T) {
 	if a := e.fightState().AimArea; a != 3 {
 		t.Fatalf("aiming: AimArea %d, want 3", a)
 	}
+	c := e.member(e.cs.actor)
+	at := rules.BoardPos{X: e.state().CombatX(c), Y: e.state().CombatY(c)}
+	v0 := e.Version()
+	pv := e.Preview(game.Aim{At: at})
+	if e.Version() != v0 {
+		t.Fatal("Preview changed the state")
+	}
+	if !slices.Contains(pv.Area, at) || len(pv.Area) > 25 || !slices.Contains(pv.Hit, at) {
+		t.Fatalf("preview at the caster %v: %+v", at, pv)
+	}
+	for _, q := range pv.Area {
+		if max(q.X-at.X, at.X-q.X, q.Y-at.Y, at.Y-q.Y) > 2 {
+			t.Fatalf("%v outside the 5x5 round %v", q, at)
+		}
+	}
+	if want := e.areaAt("", 3, at); !slices.Equal(pv.Area, want.Area) || !slices.Equal(pv.Hit, want.Hit) {
+		t.Fatalf("preview %+v, the rules' AreaFact %+v", pv, want)
+	}
 }

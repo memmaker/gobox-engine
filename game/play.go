@@ -27,6 +27,20 @@ type Game interface {
 // once they are loaded and on every change.
 type Tuned interface{ Tune(Tuning) }
 
+// Previewer is what a game may also implement to show, while the player
+// aims, exactly what an aim at a square would take: Preview(a) for a the
+// engine's own aim (Aim with the square) or an Aimed's Action with the
+// square in Ats. Read-only: it changes nothing. gobox draws the Preview
+// round the marked square; without one it washes the Aimed's Area round it.
+type Previewer interface{ Preview(a Action) Preview }
+
+// Preview is what an aim at a square would take (Previewer): the squares
+// its area covers, the squares of who it hits and of the allies it passes
+// over (Bless beside a foe). Empty: no area, the square alone.
+type Preview struct {
+	Area, Hit, Skipped []rules.BoardPos
+}
+
 // Tuning is the part of the shared engine settings a game outside gobox reads.
 type Tuning struct {
 	Deskew bool // the combat maps on a square grid (walls straight) instead of the original's perspective
