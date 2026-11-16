@@ -126,6 +126,7 @@ type brPlaceTrait struct {
 const (
 	BRVenusWilderness = 0xA2
 	BRMarsWilderness  = 0xA8
+	BROrbit           = 0x70 // in orbit: the orbit map is the screen (c_area.pas ORBIT)
 	BRZeroGravity     = 0x10
 	BRLotekA          = 0x88
 	BRLotekB          = 0x82

@@ -24,6 +24,7 @@ type engineField struct {
 	get     func(i int) (int64, bool)
 	set     func(i int, v int64)
 	stored  bool
+	changed func(old, v int64) // a stored field written a value other than the one it held (the raw values): what that does besides
 	text    func() string
 	setText func(s string)
 }

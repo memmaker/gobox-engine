@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"gobox/adventure"
 	"gobox/ecl"
 	"gobox/rules"
 	"io/fs"
@@ -143,4 +144,18 @@ func scalePrice(price, factor int32) int32 {
 		return price * factor / 16
 	}
 	return price
+}
+
+// travelKindWritten is the screen a script's new TravelKind selects (BR eclmenu.pas WriteGbvm, GBVM_AREA_KIND: written a
+// value other than the one it holds, the interface state becomes the wilderness, the orbit map or the 3D view): the
+// place's own screen (a base's menus, the rocket) goes with the kind it was written under.
+func (e *Engine) travelKindWritten(kind byte) {
+	switch {
+	case adventure.BRPlaceTraits(kind).Has(rules.TraitWilderness):
+		e.world.In3D, e.world.Scripted, e.world.Flying = 0, 0, 0
+	case kind == adventure.BROrbit:
+		e.startFlying()
+	default:
+		e.world.In3D, e.world.Scripted, e.world.Flying = 1, 0, 0
+	}
 }

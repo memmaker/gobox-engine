@@ -28,7 +28,6 @@ import (
 // br1SweepKnown are the findings still open: Pattern is matched against "message @ top frame".
 // The test fails on a finding no pattern matches and on a pattern no finding matches.
 var br1SweepKnown = []struct{ Pattern, Why string }{
-	{`^the scripts of block # loop without asking`, "open (unexplained): blocks 50, 80, 94: a scripted place whose move entry ends 1000 times without asking; replay 50 0 0 4 10701168 0"},
 	// Seen once, gone after the EndFight fix moved the walks: block 50, "a script ran N instructions on one action"
 	// (opOnGotoGosub in a step entry; replay 50 0 0 6 12138934 at commit "rulesxxvc: a move's reach"). Unverified, unexplained.
 	{`^LOG: script: area \d+: T_\w+\[\d+\] is past the field's \d+ entries`, "none: the entry skips the story, so the index variable (Word4C61 ...) holds 0 and the table is read past its end as the original does (engine log, TableFaults)"},
@@ -53,15 +52,17 @@ type sweepFinding struct {
 	Spec    sweepSpec
 	Actions []string
 	Frames  string
+	Tail    []string // the last script positions run (block:instruction), oldest first
 }
 
 // sweepWalk runs one walk on a new engine and returns its finding, nil if none. hit collects the executed
 // instructions per block.
 func br1SweepWalk(t testing.TB, adv string, sp sweepSpec, hit map[int]map[int]bool) (f *sweepFinding) {
 	var actions []string
+	var tail []string
 	defer func() {
 		if r := recover(); r != nil {
-			f = &sweepFinding{Spec: sp, Actions: actions}
+			f = &sweepFinding{Spec: sp, Actions: actions, Tail: tail}
 			msg, top := fmt.Sprint(r), ""
 			lines := strings.Split(string(debug.Stack()), "\n")
 			after := false
@@ -97,6 +98,9 @@ func br1SweepWalk(t testing.TB, adv string, sp sweepSpec, hit map[int]map[int]bo
 			hit[vm.Script.Area] = map[int]bool{}
 		}
 		hit[vm.Script.Area][vm.Cur()] = true
+		if tail = append(tail, fmt.Sprintf("%d:%d", vm.Script.Area, vm.Cur())); len(tail) > 40 {
+			tail = tail[1:]
+		}
 	}
 	rng := &rules.RNG{State: sp.Seed}
 	e.push(cont{kind: kStepEnd})
@@ -210,9 +214,7 @@ func sweepChoose(e *Engine, rng *rules.RNG) *sweepAct {
 		case r == 3:
 			return sweepDo(game.Face{Facing: rng.N(4) * 2})
 		}
-		// MakeCamp is left out: BR's rest is Program 9 (vw1's), every walk that tried it ended there (rules.CampOpen unanswered, x162 in the first sweep)
-		plain := slices.DeleteFunc(slices.Clone(v.Allowed.Plain), func(a game.Action) bool { _, ok := a.(game.MakeCamp); return ok })
-		if len(plain) > 0 {
+		if plain := v.Allowed.Plain; len(plain) > 0 {
 			return sweepDo(plain[rng.N(len(plain))])
 		}
 		return sweepStep
@@ -375,7 +377,7 @@ func TestBR1SweepReplay(t *testing.T) {
 	}
 	// the walks of its block before it run first: the guided replies remember them
 	if f := sweepRunBlock(t, adv, sp.Block, entries, map[int]map[int]bool{}, nil, &sp); f != nil {
-		t.Fatalf("%s\n%q\n%s", f.Key, f.Actions, f.Frames)
+		t.Fatalf("%s\n%q\ntail %v\n%s", f.Key, f.Actions, f.Tail, f.Frames)
 	}
 }
 
