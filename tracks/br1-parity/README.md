@@ -14,7 +14,7 @@ Statuses
 - `n/a`: the old engine's internals (its memory, decoder, front contract, own files) with nothing to port.
 - `differs`: the shared engine deliberately behaves differently (a ruling or the Pascal); the note cites it.
 
-Counts (125 rows): covered 65, port-done 22, port-open 14, n/a 17, differs 7.
+Counts (125 rows): covered 65, port-done 23, port-open 13, n/a 17, differs 7.
 
 ## Ported, with the fixes it found
 

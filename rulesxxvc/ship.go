@@ -124,8 +124,8 @@ func shipCell(s *xxvc.ShipRecord, f rules.ShipCellFact) (p *int16, b *uint8, ok 
 	return nil, nil, false
 }
 
-// foeCell is the cell a ShipCellFact names of the last foe's summary (zone0's savedFoe, the Area[620..642] copy).
-func foeCell(s *savedFoe, f rules.ShipCellFact) (p *int16, b *uint8, ok bool) {
+// foeCell is the cell a ShipCellFact names of the last foe's summary (zone0's SavedFoe, the Area[620..642] copy).
+func foeCell(s *SavedFoe, f rules.ShipCellFact) (p *int16, b *uint8, ok bool) {
 	switch {
 	case f.Part == rules.ShipSystemStatus && f.Index >= 0 && f.Index < len(s.Status):
 		return &s.Status[f.Index], nil, true

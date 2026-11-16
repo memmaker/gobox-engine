@@ -22,7 +22,7 @@
 4BBF 1 byte game RocketY # Area[191] zone0 orbit.rocketY: the rocket's row (the engine's, rules.World); scripts: byte r7/w6
 4BC3 1 byte game MapX # Area[195]: the overland's square x (buckrogers-go rules/adv.go overland(): 0..37), the Pool's MapX; scripts: byte r47/w14
 4BC4 1 byte game MapY # Area[196]: the overland's square y (0..14), the Pool's MapY; scripts: byte r7/w13
-4BC5 1 byte game GeoBlock # Area[197]: current GEO map block, 127 none (eclops.go:430, savegame.go:172); engine only (not in BR1 scripts)
+4BC5 1 byte game Geo # types.pas geoMapId (View3D Load3DMap, EclLoadFiles; LoadGame loads the map back from it): the engine's rules.World.Geo; was GeoBlock; Area[197]: current GEO map block, 127 none (eclops.go:430, savegame.go:172); engine only (not in BR1 scripts)
 4BC6 1 byte game Word4BC6 # scripts: byte r4/w0
 4BC9 1 byte game Word4BC9 # scripts: byte r1/w0
 4BE5 1 byte game Word4BE5 # cleared on script load (ecl.go:329); engine only (not in BR1 scripts)
@@ -37,7 +37,7 @@
 4BFC 1 byte game MsgDelay # Area[252]: game speed, pauses = value*100 ms (rest.go:172, eclops.go:63); POD global.txt calls it MsgDelay; engine only (not in BR1 scripts)
 4BFD 1 byte game Sky # types.pas skyIndexLo: the sky colour index outside (mapview.pas skyColors); scripts: byte r0/w12
 4BFE 1 byte game SkyInside # types.pas skyIndexHi: the same on a square whose event byte is above $7F; scripts: byte r0/w36
-4BFF 1 byte game SaveFlags # Area[255]: b3BEC*2+b3BEE (savegame.go:41,125); engine only (not in BR1 scripts)
+4BFF 1 byte game ViewFlags # types.pas displayOptions (arePicturesEnabled*2 + areAnimationsEnabled, SaveGame stores it, LoadGame takes it back): the engine's view flags (rules.World.ViewFlags); was SaveFlags; Area[255]: b3BEC*2+b3BEE (savegame.go:41,125); engine only (not in BR1 scripts)
 4C00 32 bytes local EntryBytes  # zone 0 entryBytes (4C00..4C1F): cleared by EclInit at each script load unless a saved game has just loaded
 4C26 1 byte game Word4C26 # scripts: byte r1/w2
 4C2C 1 byte game Word4C2C # scripts: byte r1/w1

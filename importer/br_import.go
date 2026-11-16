@@ -18,7 +18,7 @@ import (
 )
 
 // BRSources are the originals both games' imports read.
-var BRSources = []string{"*.DAX", "ITEMS", "START.EXE", "GAME.OVR", "*" + saveExt, "*" + itemsExt, "*" + effectsExt}
+var BRSources = []string{"*.DAX", "ITEMS", "START.EXE", "GAME.OVR", "*" + saveExt, "*" + itemsExt, "*" + effectsExt, "SAVGAM*.DAT"}
 
 // BREXE is where a game's START.EXE keeps what the import reads from it.
 type BREXE struct {
@@ -66,7 +66,7 @@ const itemWordSize = 21
 // registerBR registers adventure id (br1, br2) with title, its START.EXE and
 // its title sequence start (Game.Start).
 func registerBR(id, title string, e BREXE, start func(dos string) (*adventure.Sequence, error)) {
-	Register(Game{ID: id, Title: title, Ruleset: "rulesxxvc", Sources: BRSources, Version: 21 /* 21: party menu P/R as the Pascal (gamedata); 20: training: PartyExp layout name, Creation level-up numbers and MaxLevel; party menu P/R as the Pascal; 19: the layout names Party[725] LeftMap and Party[786] SymbolSet (the engine words, were OffMap and Disk, unbound); 18: BR1's places carry the map's area title (adventure.Place.Name); 17: BR2 layout names the rocket and ship cells (BodySquares, RocketX, RocketY, Ship*, Foe*) as BR1; 16: xxvc.Tables.Creation (start level, skill points, experience, base combat, BR2's initial skills); 15: the layout names the sky cells Sky, SkyInside; 14: BR2 gets walls, backs, places, game data, overland size and system map (BREXE.Space, MapSteps); 13: BR2 gets its Log Book (importer/br2/journal, from buckrogers2-go data/journal); 12: the layout names the step's previous square PrevX, PrevY; 11: the layout names the rocket's cells (BodySquares, RocketX, RocketY) and the import writes the system map (adventure.SpaceMap); 10: the layout names the party's ship cells (Ship*) and the last foe's (Foe*); 9: the characters' combat icon (the record's CHARS body); 8: the characters' age (the record's age byte); 7: the layout names the overland square MapX, MapY; 6: the layout comment names StockShop.Terms; 5: the shop's item lists (xxvc.Tables.ShopLists); 4: the script commands FindItem (was HasItem), AddNPC (was NPCJoin), SkillShow, TakeItem, Stash, SkillDamage; 3: a monster's isCompanion, npc byte and READIED items in the tables (xxvc.Monster); 2: the script commands Program (was MenuCall) and Who (was PickMember); 1: the credits' Colour a game.Ink (gobox C1) */, Start: start, Import: func(dos, dst string) error { return ImportBR(id, e, dos, dst) }, ImportShared: func(dos, dst string) error { return ImportBREngine(id, e, dos, dst) }})
+	Register(Game{ID: id, Title: title, Ruleset: "rulesxxvc", Sources: BRSources, Version: 22 /* 22: the layouts name the display options ViewFlags (was SaveFlags) and the GEO map Geo (was GeoBlock), the engine's world words; the shipped SAVGAMA.DAT becomes the slot "GAME A"; 21: party menu P/R as the Pascal (gamedata); 20: training: PartyExp layout name, Creation level-up numbers and MaxLevel; party menu P/R as the Pascal; 19: the layout names Party[725] LeftMap and Party[786] SymbolSet (the engine words, were OffMap and Disk, unbound); 18: BR1's places carry the map's area title (adventure.Place.Name); 17: BR2 layout names the rocket and ship cells (BodySquares, RocketX, RocketY, Ship*, Foe*) as BR1; 16: xxvc.Tables.Creation (start level, skill points, experience, base combat, BR2's initial skills); 15: the layout names the sky cells Sky, SkyInside; 14: BR2 gets walls, backs, places, game data, overland size and system map (BREXE.Space, MapSteps); 13: BR2 gets its Log Book (importer/br2/journal, from buckrogers2-go data/journal); 12: the layout names the step's previous square PrevX, PrevY; 11: the layout names the rocket's cells (BodySquares, RocketX, RocketY) and the import writes the system map (adventure.SpaceMap); 10: the layout names the party's ship cells (Ship*) and the last foe's (Foe*); 9: the characters' combat icon (the record's CHARS body); 8: the characters' age (the record's age byte); 7: the layout names the overland square MapX, MapY; 6: the layout comment names StockShop.Terms; 5: the shop's item lists (xxvc.Tables.ShopLists); 4: the script commands FindItem (was HasItem), AddNPC (was NPCJoin), SkillShow, TakeItem, Stash, SkillDamage; 3: a monster's isCompanion, npc byte and READIED items in the tables (xxvc.Monster); 2: the script commands Program (was MenuCall) and Who (was PickMember); 1: the credits' Colour a game.Ink (gobox C1) */, Start: start, Import: func(dos, dst string) error { return ImportBR(id, e, dos, dst) }, ImportShared: func(dos, dst string) error { return ImportBREngine(id, e, dos, dst) }})
 }
 
 // ImportBR writes adventure id's folder dst from the DOS originals in dos.
@@ -355,28 +355,42 @@ func Ships(blocks map[int][]byte, ds []byte, e BREXE) (map[rules.ShipID]xxvc.Shi
 		if id < firstShipRecord || len(b) != shipRecordSize { // the pictures
 			continue
 		}
-		var s brShip
-		if err := binary.Read(bytes.NewReader(b), binary.LittleEndian, &s); err != nil {
+		r, err := shipRecord(b, ds, e)
+		if err != nil {
 			return nil, fmt.Errorf("SHIPS %d: %w", id, err)
-		}
-		if s.ShipType < 1 || s.ShipType > shipTypes || int(s.Race) > len(xxvc.Races) {
-			return nil, fmt.Errorf("SHIPS %d: ship type %d, race %d", id, s.ShipType, s.Race)
-		}
-		r := xxvc.ShipRecord{Name: pascalString(s.Name[:]), Tonnage: s.Tonnage, Length: s.Length, Width: s.Width,
-			Status: s.Status, Maximum: s.Maximum, Cargo: s.Cargo, Crew: s.Crew, ArmorClass: s.ArmorClass,
-			AlternateSkill: s.AlternateSkill, SystemSkill: s.SystemSkill, SystemValue: s.SystemValue,
-			BaseSpeed: s.BaseSpeed, Reaction: s.Reaction, Maneuver: s.Maneuver,
-			Type: pascalString(ds[e.ShipTypes+int(s.ShipType-1)*shipTypeSize:][:shipTypeSize])}
-		if s.Race > 0 { // RaceMonster: none
-			r.Race = xxvc.Races[s.Race-1]
-		}
-		for i, w := range s.Mounts {
-			r.Mounts[i] = xxvc.ShipMount{Kind: xxvc.ShipWeaponKind(w.Kind & kindMask), Crew: w.Kind&crewMount != 0,
-				MaxStatus: w.MaxStatus, Status: w.Status, Ammo: w.Ammo, Reloads: w.Reloads}
 		}
 		m[rules.ShipID(id)] = r
 	}
 	return m, nil
+}
+
+// shipRecord types one $6C-byte TShip (a SHIPS block, or the party's ship in a saved game's zone 0); ds gives shipTypeNames.
+func shipRecord(b, ds []byte, e BREXE) (xxvc.ShipRecord, error) {
+	var s brShip
+	if err := binary.Read(bytes.NewReader(b), binary.LittleEndian, &s); err != nil {
+		return xxvc.ShipRecord{}, err
+	}
+	if s.ShipType < 1 || s.ShipType > shipTypes || int(s.Race) > len(xxvc.Races) {
+		return xxvc.ShipRecord{}, fmt.Errorf("ship type %d, race %d", s.ShipType, s.Race)
+	}
+	r := xxvc.ShipRecord{Name: pascalString(s.Name[:]), Tonnage: s.Tonnage, Length: s.Length, Width: s.Width,
+		Status: s.Status, Maximum: s.Maximum, Cargo: s.Cargo, Crew: s.Crew, ArmorClass: s.ArmorClass,
+		AlternateSkill: s.AlternateSkill, SystemSkill: s.SystemSkill, SystemValue: s.SystemValue,
+		BaseSpeed: s.BaseSpeed, Reaction: s.Reaction, Maneuver: s.Maneuver,
+		Type: shipTypeName(ds, e, s.ShipType)}
+	if s.Race > 0 { // RaceMonster: none
+		r.Race = xxvc.Races[s.Race-1]
+	}
+	for i, w := range s.Mounts {
+		r.Mounts[i] = xxvc.ShipMount{Kind: xxvc.ShipWeaponKind(w.Kind & kindMask), Crew: w.Kind&crewMount != 0,
+			MaxStatus: w.MaxStatus, Status: w.Status, Ammo: w.Ammo, Reloads: w.Reloads}
+	}
+	return r, nil
+}
+
+// shipTypeName is shipTypeNames[shipType] (1..shipTypes) in the data segment ds.
+func shipTypeName(ds []byte, e BREXE, shipType uint8) string {
+	return pascalString(ds[e.ShipTypes+int(shipType-1)*shipTypeSize:][:shipTypeSize])
 }
 
 // itemTypes is the rows of GDVars.itemTypes (array[0..128] of TItemType),

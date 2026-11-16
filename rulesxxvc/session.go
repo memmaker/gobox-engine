@@ -143,7 +143,7 @@ func (r *Rules) resolveSession(a rules.Action) (o rules.Outcome, ok bool, err er
 		// the ship, which the first ship fight loads again (record 50). The characters
 		// and the party list stay, as the 1e rules keep theirs.
 		r.clock, r.memberCount, r.acting, r.purse = [clockUnits]int{}, 0, 0, 0
-		r.ship, r.foeSaved, r.space = nil, savedFoe{}, nil
+		r.ship, r.foeSaved, r.space = nil, SavedFoe{}, nil
 	case rules.SetCredits:
 		return rules.Outcome{}, true, r.setCredits(a)
 	case rules.ActFor:

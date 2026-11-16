@@ -70,3 +70,9 @@ func MakeFileName(s string) string {
 	}
 	return strings.ToUpper(s)
 }
+
+// The view modes a Save records (Save.ViewMode): the 3D view, and the overland map (the rocket's system map is one).
+const (
+	ViewMode3D       = 1
+	ViewModeOverland = 2
+)
