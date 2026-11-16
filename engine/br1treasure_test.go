@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"strings"
 	"testing"
 
 	"gobox/game"
@@ -36,5 +37,15 @@ func TestBR1TreasureOf(t *testing.T) {
 	}
 	if got := br1Cell(t, e, "NewGameBytes"); got != 77 {
 		t.Errorf("the script stopped after the screen: %d", got)
+	}
+}
+
+// TestBR1ExperienceText: BR's GainExperience prints BR's words (eclvm.pas TEAM_AWARD_TEXT, AWARD_PREFIX/SUFFIX),
+// not the Pool's.
+func TestBR1ExperienceText(t *testing.T) {
+	e := br1Begun(t)
+	br1OwnBlock(t, e, 204, "    GainExperience(1, 50)")
+	if got := paneText(commonOf(e.build())); !strings.Contains(got, "Congrats. The team gains experience!") {
+		t.Errorf("text %q", got)
 	}
 }

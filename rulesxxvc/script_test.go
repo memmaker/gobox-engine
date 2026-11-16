@@ -264,9 +264,18 @@ func TestGainExperience(t *testing.T) {
 	a, b := member("a", 10, 0, 0, 0), member("b", 10, 0, 0, 0)
 	b.Enabled = false
 	ia, ib := r.Add(a), r.Add(b)
-	if _, err := r.Resolve(nil, rules.GainExperience{Whom: rules.Party{ia, ib}, Points: 350}, nil); err != nil {
+	o, err := r.Resolve(nil, rules.GainExperience{Whom: rules.Party{ia, ib}, Points: 350, Whole: true}, nil)
+	if err != nil {
 		t.Fatal(err)
 	}
+	if n, ok := o.Effects[0].(rules.Narrated); !ok || n.Text != "Congrats. The team gains experience!" {
+		t.Errorf("team words %+v", o.Effects)
+	}
+	o, _ = r.Resolve(nil, rules.GainExperience{Whom: rules.Party{ia}, Points: 1}, nil)
+	if n, ok := o.Effects[0].(rules.Narrated); !ok || n.Text != "Congrats. a gains experience!" {
+		t.Errorf("member words %+v", o.Effects)
+	}
+	r.chars[ia].Exp -= 1
 	if r.chars[ia].Exp != 350 || r.chars[ib].Exp != 0 {
 		t.Errorf("exp %d %d, want 350 0", r.chars[ia].Exp, r.chars[ib].Exp)
 	}

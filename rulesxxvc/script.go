@@ -154,11 +154,25 @@ func (r *Rules) scriptDamage(a rules.ScriptDamage, rng *rules.RNG) rules.Outcome
 }
 
 // gainExperience is eclvm.pas EclAwardExperience's award: each of Whom (the party, or the current character) that
-// is enabled gains the points (the message is the engine's).
-func (r *Rules) gainExperience(a rules.GainExperience) {
+// is enabled gains the points; the Outcome has the words.
+func (r *Rules) gainExperience(a rules.GainExperience) rules.Outcome {
 	for _, id := range a.Whom {
 		if c := r.chars[id]; c != nil && c.Enabled {
 			c.Exp += int64(a.Points)
 		}
 	}
+	text := teamAwardText // EclVm.TEAM_AWARD_TEXT
+	if !a.Whole && len(a.Whom) == 1 {
+		if c := r.chars[a.Whom[0]]; c != nil {
+			text = awardPrefix + c.Name + awardSuffix
+		}
+	}
+	return rules.Outcome{Effects: []rules.Effect{rules.Narrated{Text: text}}}
 }
+
+// EclAwardExperience's words (eclvm.pas TEAM_AWARD_TEXT, AWARD_PREFIX, AWARD_SUFFIX).
+const (
+	teamAwardText = "Congrats. The team gains experience!"
+	awardPrefix   = "Congrats. "
+	awardSuffix   = " gains experience!"
+)

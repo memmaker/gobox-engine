@@ -389,12 +389,21 @@ func (e *Engine) messagePause(n int) int {
 func (e *Engine) opGainExperience() {
 	e.vm.ReadArgs(2)
 	whom := e.partyIDs()
-	text := "Congratulations the party gains experience!"
-	if byte(e.vm.Arg(1, e.host)) == 0 {
+	text := "Congratulations the party gains experience!" // the Pool's words; a ruleset with its own gives them in the Outcome
+	whole := byte(e.vm.Arg(1, e.host)) != 0
+	if !whole {
 		whom = rules.Party{e.selected()}
 		text = "Congratulations " + e.name(e.selected()) + " gains experience!"
 	}
-	e.do(rules.GainExperience{Whom: whom, Points: int32(uint16(e.vm.Arg(2, e.host)))})
+	o, err := e.ruleset().Resolve(nil, rules.GainExperience{Whom: whom, Points: int32(uint16(e.vm.Arg(2, e.host))), Whole: whole}, nil)
+	if err != nil {
+		panic(fmt.Sprintf("rules: GainExperience: %v", err))
+	}
+	for _, f := range o.Effects {
+		if n, ok := f.(rules.Narrated); ok {
+			text = n.Text
+		}
+	}
 	e.scriptText(true, text)
 	e.askPause(e.messagePause(1), askDone{})
 }

@@ -342,8 +342,11 @@ func (Class) value()        {}
 type GainExperience struct {
 	Whom   Party
 	Points int32
+	// Whole: the script gave it to the whole party (not one member); a ruleset with its own words for it names which.
+	Whole bool
 }
 
+// The Outcome may carry a Narrated: the ruleset's own words for the award; none: the engine's.
 func (GainExperience) action() {}
 
 // HealParty puts every party member back at full hit points and well (the dead and stoned too):
