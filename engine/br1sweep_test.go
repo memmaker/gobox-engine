@@ -29,7 +29,6 @@ import (
 // br1SweepKnown are the findings still open: Pattern is matched against "message @ top frame".
 // The test fails on a finding no pattern matches and on a pattern no finding matches.
 var br1SweepKnown = []struct{ Pattern, Why string }{
-	{`^sweep: a script ran # instructions on one action without asking \(block #\)`, "open, unexplained: block 50's step entry, instr 259..264 (area50.txt `goto [L_96B2, L_973A, L_978C, L_97CE][NewGameBytes]` with NewGameBytes = 63 & Cell past the table, so it falls through to `if 1 == Search`, `EntryBytes_20 -= 1`, `goto L_88C3` back to the table) loops for ever once the party stands on such a square after the first fight; no other exit is visible in the text. Replay: the finding's line"},
 	{`^LOG: script: area \d+: T_\w+\[\d+\] is past the field's \d+ entries`, "none: the entry skips the story, so the index variable (Word4C61 ...) holds 0 and the table is read past its end as the original does (engine log, TableFaults)"},
 }
 
@@ -74,7 +73,7 @@ func sweepGameRun(t *testing.T, g brGame, blockList []int, known []struct{ Patte
 	log.SetFlags(0)
 	log.SetOutput(&logged)
 	defer log.SetOutput(os.Stderr)
-	sweepStoryOf(t, adv, blockList) // read once, before the blocks go in parallel
+	sweepStoryOf(t, adv, g.dos(), blockList) // read once, before the blocks go in parallel
 	// Each entry block is a world of its own (its work list, its replies taken, its map explored), run one run after the
 	// other, so a block's runs are the same on every sweep; the blocks run side by side and the worlds are merged for the report.
 	workers := sweepWorkers()
@@ -177,7 +176,7 @@ func TestBR1SweepReplay(t *testing.T) {
 	if err := importer.ImportBREngine(g.ID, g.EXE, g.dos(), adv); err != nil {
 		t.Fatal(err)
 	}
-	sweepStoryOf(t, adv, blocks)
+	sweepStoryOf(t, adv, g.dos(), blocks)
 	w := newSweepWorld(adv, blocks, true)
 	it := sweepItem{Entry: en, Prefix: tk}
 	if f := w.run(t, it); f != nil {

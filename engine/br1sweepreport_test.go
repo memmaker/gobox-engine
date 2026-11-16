@@ -251,7 +251,7 @@ func sumRuns(w *sweepWorld) (n int) {
 // sweepWordNote says where the story sets the word a condition compares: the constants it is compared with, and for each
 // the blocks whose scripts set it to that constant ("never set to it by any script": only the engine or a computation can).
 func sweepWordNote(t testing.TB, w *sweepWorld, word, text string) string {
-	st := sweepStoryOf(t, w.adv, nil)
+	st := sweepStoryOf(t, w.adv, "", nil)
 	var parts []string
 	seen := map[int64]bool{}
 	note := func(v int64) {
