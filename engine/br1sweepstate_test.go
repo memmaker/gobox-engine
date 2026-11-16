@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"gobox/asset/orig"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -18,6 +19,7 @@ import (
 
 const (
 	sweepParty       = 4  // roster characters added through the party menu before Begin (the party menu's limit): a stronger party outlives more fights
+	sweepDisks       = 9  // the disks the import looks for a block on (ecl.Import: maxDisk)
 	sweepStatesMax   = 8  // states a block is entered in (the default sweep)
 	sweepHeavyStates = 40 // and in the heavy sweep
 )
@@ -43,12 +45,14 @@ type sweepStory struct {
 	tests  map[int]map[string][]int64
 	writes map[int]map[string][]int64
 	preds  map[int][]int // block -> the blocks whose scripts call NewECL for it
+	disk   map[int]int   // block -> the data set (disk) of the first ECL<n>.DAX that holds it: the one the import takes the script from
 }
 
 var sweepStories = map[string]*sweepStory{}
 
-// sweepStoryOf reads the story of the blocks of the folder adv (cached by folder; blocks nil: it must be read already).
-func sweepStoryOf(t testing.TB, adv string, blocks []int) *sweepStory {
+// sweepStoryOf reads the story of the blocks of the folder adv, imported from the originals dos (cached by folder; blocks
+// nil: it must be read already).
+func sweepStoryOf(t testing.TB, adv, dos string, blocks []int) *sweepStory {
 	t.Helper()
 	if st := sweepStories[adv]; st != nil {
 		return st
@@ -56,7 +60,12 @@ func sweepStoryOf(t testing.TB, adv string, blocks []int) *sweepStory {
 	if blocks == nil {
 		t.Fatal("sweep: the story of " + adv + " is not read")
 	}
-	st := &sweepStory{tests: map[int]map[string][]int64{}, writes: map[int]map[string][]int64{}, preds: map[int][]int{}}
+	st := &sweepStory{tests: map[int]map[string][]int64{}, writes: map[int]map[string][]int64{}, preds: map[int][]int{}, disk: map[int]int{}}
+	loader, err := orig.NewLoader(dos)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dax := orig.DAXSource(loader)
 	add := func(m map[int]map[string][]int64, block int, name string, v int64) {
 		if m[block] == nil {
 			m[block] = map[string][]int64{}
@@ -66,6 +75,14 @@ func sweepStoryOf(t testing.TB, adv string, blocks []int) *sweepStory {
 		}
 	}
 	for _, block := range blocks {
+		for disk := 1; disk < sweepDisks && st.disk[block] == 0; disk++ { // the import takes a block from the first disk that has it
+			if len(dax.Block(disk, block)) >= 2 {
+				st.disk[block] = disk
+			}
+		}
+		if st.disk[block] == 0 {
+			t.Fatalf("sweep: block %d is on no disk", block)
+		}
 		b, err := os.ReadFile(filepath.Join(adv, "scripts", "area"+strconv.Itoa(block)+".txt"))
 		if err != nil {
 			t.Fatal(err)
@@ -110,7 +127,7 @@ func sweepStoryOf(t testing.TB, adv string, blocks []int) *sweepStory {
 //   - every word at its largest constant: the story told as far as the block asks.
 func sweepStatesOf(t testing.TB, adv string, block, max int) [][]sweepCell {
 	t.Helper()
-	st := sweepStoryOf(t, adv, nil)
+	st := sweepStoryOf(t, adv, "", nil)
 	chain := [][]sweepCell{}
 	tested := st.tests[block]
 	for _, from := range st.preds[block] {
@@ -173,7 +190,11 @@ func sweepStatesOf(t testing.TB, adv string, block, max int) [][]sweepCell {
 		}
 		states = thin
 	}
-	return append(append([][]sweepCell{nil}, chain...), states...)
+	all := append(append([][]sweepCell{nil}, chain...), states...)
+	for i, cells := range all { // every entry is in the data set the block's script is on (the story's own SymbolSet writes, which the states never copy)
+		all[i] = append([]sweepCell{{"SymbolSet", int64(st.disk[block])}}, cells...)
+	}
+	return all
 }
 
 // sweepApply sets a state's cells on the engine (before the block is entered).
