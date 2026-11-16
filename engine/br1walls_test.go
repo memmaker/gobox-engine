@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 func br1Walls(t *testing.T, e *Engine) game.MapWalls {
@@ -114,11 +115,67 @@ func TestBR1ViewKeptAcrossBlocks(t *testing.T) {
 	if e.world.In3D != 0 {
 		t.Errorf("a block's start set In3D %d over the overland", e.world.In3D)
 	}
-	v := *e.eclVersion // a copy: the dialect is shared
+	v := *e.eclVersion           // a copy: the dialect is shared
 	v.Behaviour.ViewKept = false // as the Pool's
 	e.eclVersion = &v
 	e.InitAreaScript()
 	if e.world.In3D != 1 {
 		t.Errorf("without ViewKept the start leaves In3D %d", e.world.In3D)
+	}
+}
+
+// TestBR1OverlandMove mirrors buckrogers-go TestOverlandMove: a block whose script sets the overland view kind
+// (AreaKind 4) is the overland, not by its number; the party's square is MapX, MapY (Area[195], [196]) over 0..37 by
+// 0..14, a step costs twelve hours, and the edge holds the party (the clock still runs, as the old overland() did).
+func TestBR1OverlandMove(t *testing.T) {
+	e := br1Begun(t)
+	br1OwnBlock(t, e, 201, "    AreaKind(4, 255)")
+	br1Pages(t, e) // the template's move entry
+	if e.world.In3D != 0 || e.viewMode != overlandViewMode {
+		t.Fatalf("In3D %d view mode %d, want the overland", e.world.In3D, e.viewMode)
+	}
+	x, ok := e.build().(game.Exploring)
+	if !ok || !x.Map.Overland {
+		t.Fatalf("%T overland %v scripted %d phase %v top %v ask %v", e.build(), ok && x.Map.Overland, e.world.Scripted, e.phase, e.top(), commonOf(e.build()).Ask)
+	}
+	e.world.MapX, e.world.MapY, e.facing = 10, 5, 2 // a step east through the front's Arrive
+	hour := e.clockPart(rules.ClockMinuteOfDay) / 60
+	if _, err := e.doNow(game.RunEvent{Before: true, Side: 2}); err != nil { // the template's move entry asks a key
+		t.Fatal(err)
+	}
+	br1Pages(t, e)
+	if _, err := e.doNow(game.Arrive{From: rules.MapPos{X: 10, Y: 5}, To: rules.MapPos{X: 11, Y: 5}, Facing: e.facing}); err != nil || e.world.MapX != 11 {
+		t.Fatalf("Arrive east: square %d,%d err %v pre %+v exploring %v top %v over %v view %v inv %v", e.world.MapX, e.world.MapY, err, e.ext.pre, e.exploring(), e.top(), e.over, e.view.on, e.snap.invOn)
+	}
+	if h := e.clockPart(rules.ClockMinuteOfDay) / 60; h != (hour+12)%24 {
+		t.Errorf("hour %d after %d, a step costs 12 hours", h, hour)
+	}
+	e.world.MapX = 37
+	hour = e.clockPart(rules.ClockMinuteOfDay) / 60
+	e.mapMove()
+	if e.world.MapX != 37 || e.world.MapY != 5 {
+		t.Errorf("square %d,%d, want 37,5", e.world.MapX, e.world.MapY)
+	}
+	if h := e.clockPart(rules.ClockMinuteOfDay) / 60; h != (hour+12)%24 {
+		t.Errorf("hour %d after %d, want 12 later", h, hour)
+	}
+	e.facing = 0 // north
+	e.world.MapY = 0
+	e.mapMove()
+	if e.world.MapY != 0 {
+		t.Errorf("y %d north of the map", e.world.MapY)
+	}
+	e.world.MapX, e.world.MapY, e.facing = 36, 14, 2
+	e.mapMove()
+	if e.world.MapX != 37 {
+		t.Errorf("x %d, want 37", e.world.MapX)
+	}
+	e.facing = 4 // south, off the 15 rows
+	e.mapMove()
+	if e.world.MapY != 14 {
+		t.Errorf("y %d south of the map", e.world.MapY)
+	}
+	if w := commonOf(e.build()).Where; w.X != 37 || w.Y != 14 {
+		t.Errorf("Where %d,%d, want the overland's square 37,14", w.X, w.Y)
 	}
 }

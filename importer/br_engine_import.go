@@ -41,6 +41,8 @@ type brStart struct {
 	Data func(id string) game.Data
 	// Logbook: the journal's titles (importer/br1/journal, from the printed Log Book); nil: none yet.
 	Logbook *adventure.Logbook
+	// Overland: the squares MapX, MapY range over on the overland (rules.Size{}: none yet).
+	Overland rules.Size
 	// Places: the blocks' music triggers (br_places.go); nil: none yet.
 	Places []adventure.Place
 }
@@ -62,8 +64,8 @@ var (
 // brStarts by game id.
 var brStarts = map[string]brStart{
 	"br1": {FirstBlock: 16, GameSet: 1, FirstBigPicture: 112, CodeBase: 32768, CodeSize: 9217, Symbols: brSymbols, PictureSets: brPictureSets,
-		Art:     adventure.ArtNames{CombatSprites: "COMSPR", Title: "TITLE"}, // br1Start's TITLE
-		Logbook: &adventure.Logbook{Box: "Log Book", Title: "Log Entry "}, Data: br1GameData, Walls: true, Places: brPlaces},
+		Art:     adventure.ArtNames{CombatSprites: "COMSPR", Title: "TITLE"},                                                                                     // br1Start's TITLE
+		Logbook: &adventure.Logbook{Box: "Log Book", Title: "Log Entry "}, Data: br1GameData, Walls: true, Places: brPlaces, Overland: rules.Size{W: 38, H: 15}}, // buckrogers-go adv.go overland(): Area[195] 0..37, [196] 0..14
 	// BR2: buckrogers2-go rules/adv.go:147,161 (block 16), :158 (disk 1), eclops.go:239 (112), buckrogers2-re eclvm.pas:42,48. The
 	// Logbook stays unset: buckrogers2-go has no rules/journal to take the titles from (open: BR2's journal).
 	"br2": {FirstBlock: 16, GameSet: 1, FirstBigPicture: 112, CodeBase: 32768, CodeSize: 9217, Symbols: brSymbols, PictureSets: brPictureSets,
@@ -126,18 +128,19 @@ func ImportBREngine(id string, e BREXE, dos, dst string) error {
 		return err
 	}
 	tables := adventure.GameTables{
-		Dialect:      rules.DialectBR,
-		AddNPCIcon:   true, // saveload.pas AddCreatureToParty loads the NPC's CPIC icon (both games)
-		FirstBlock:   start.FirstBlock,
-		GameSet:      start.GameSet,
-		Logbook:      start.Logbook,
-		PictureSets:  start.PictureSets,
-		BigPictures:  adventure.BigPictures{First: start.FirstBigPicture},
-		OriginalSave: rules1e.SaveLayout{CodeBase: start.CodeBase, CodeSize: start.CodeSize}, // eclLayout reads only these two
-		Symbols:      start.Symbols,
-		Art:          &start.Art,
-		Places:       start.Places,
-		ScriptSounds: brScriptSounds(),
+		Dialect:       rules.DialectBR,
+		AddNPCIcon:    true, // saveload.pas AddCreatureToParty loads the NPC's CPIC icon (both games)
+		FirstBlock:    start.FirstBlock,
+		GameSet:       start.GameSet,
+		Logbook:       start.Logbook,
+		PictureSets:   start.PictureSets,
+		BigPictures:   adventure.BigPictures{First: start.FirstBigPicture},
+		OriginalSave:  rules1e.SaveLayout{CodeBase: start.CodeBase, CodeSize: start.CodeSize}, // eclLayout reads only these two
+		Symbols:       start.Symbols,
+		Art:           &start.Art,
+		Places:        start.Places,
+		ScriptSounds:  brScriptSounds(),
+		OverlandSteps: start.Overland,
 	}
 	if start.Walls {
 		// the 3D view's textures: buckrogers-go rules/wallindex.txt as walls/<id>.txt (chunk (value-1)/5+1, wall (value-1)%5+1); the

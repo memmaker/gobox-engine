@@ -45,8 +45,8 @@
 4BBA 1 byte game SpaceOwnShip # Area[186]: space fight 1 own ship (spacefight.go:383,388); engine only (not in BR1 scripts)
 4BBE 1 byte game Word4BBE # scripts: byte r7/w6
 4BBF 1 byte game Word4BBF # scripts: byte r7/w6
-4BC3 1 byte game Word4BC3 # scripts: byte r47/w14
-4BC4 1 byte game Word4BC4 # scripts: byte r7/w13
+4BC3 1 byte game MapX # Area[195]: the overland's square x (buckrogers-go rules/adv.go overland(): 0..37), the Pool's MapX; scripts: byte r47/w14
+4BC4 1 byte game MapY # Area[196]: the overland's square y (0..14), the Pool's MapY; scripts: byte r7/w13
 4BC5 1 byte game GeoBlock # Area[197]: current GEO map block, 127 none (eclops.go:430, savegame.go:172); engine only (not in BR1 scripts)
 4BC6 1 byte game Word4BC6 # scripts: byte r4/w0
 4BC9 1 byte game Word4BC9 # scripts: byte r1/w0

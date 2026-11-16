@@ -265,11 +265,20 @@ func (e *Engine) AreaChange() {
 	e.RunECL(e.es.events[4])
 }
 
+// overlandViewMode is the view mode of a dialect's overland whose script sets the view kind (the Pool's three, by block
+// number, are 2..4 below).
+const overlandViewMode = 2
+
 // areaStart: the new area's start events are done.
 func (e *Engine) areaStart(sel rules.CharID) {
 	r := &e.run
 	e.setPhase(rules.PhaseAreaStart)
-	if e.world.In3D == 0 {
+	if e.world.In3D == 0 && e.eclVersion.Behaviour.ViewKept {
+		if e.world.Scripted == 0 { // the script's view kind (AreaKind) is the overland's: no block numbers
+			e.viewMode = overlandViewMode
+			e.setPhase(rules.PhaseExploring)
+		}
+	} else if e.world.In3D == 0 {
 		switch e.gs.areaKind {
 		case 0x19:
 			e.viewMode = 2
@@ -752,8 +761,9 @@ func (e *Engine) stepAhead() {
 // mapMove = ovr15:0818: one step on the area map, unless the target square
 // is impassable (DS:3648 map, 0x2C bytes a row).
 func (e *Engine) mapMove() {
-	x := min(max(int(int8(byte(int(e.world.MapX)+rules.StepX[e.facing]))), 0), 0xF)
-	y := min(max(int(int8(byte(int(e.world.MapY)+rules.StepY[e.facing]))), 0), 0x23)
+	w, h := e.overlandSteps()
+	x := min(max(int(int8(byte(int(e.world.MapX)+rules.StepX[e.facing]))), 0), w-1)
+	y := min(max(int(int8(byte(int(e.world.MapY)+rules.StepY[e.facing]))), 0), h-1)
 	col := int(int8(byte(int(ViewModeShift[e.viewMode]) + x)))
 	t := e.ruleset().Check(rules.MapTerrain{X: col, Y: y}, nil).Value
 	switch {
@@ -771,6 +781,17 @@ func (e *Engine) mapMove() {
 	e.world.MapY = uint16(int16(y))
 	e.as(e.sel)
 	e.do(rules.AdvanceClock{Count: 0xC, Unit: 3})
+}
+
+// The Pool's overland steps: MapX 0..0xF (a window of the map, shifted by ViewModeShift), MapY 0..0x23 (ovr15:0818).
+const poolStepsW, poolStepsH = 0x10, 0x24
+
+// overlandSteps is the squares MapX and MapY range over (GameTables.OverlandSteps).
+func (e *Engine) overlandSteps() (w, h int) {
+	if s := e.game().OverlandSteps; s.W > 0 && s.H > 0 {
+		return s.W, s.H
+	}
+	return poolStepsW, poolStepsH
 }
 
 // searchTime is a searching step's or a Look's time: one turn, as the

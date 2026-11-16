@@ -44,8 +44,8 @@
 4BBA 1 byte game SpaceOwnShip # Area[186]: space fight 1 own ship (spacefight.go:383,388) [BR2: buckrogers2-go rules/spacefight.go:383,388; types.pas TZone0.shipCombatOutcome (0 enemy destroyed or boarded, 1 party ship lost or enemy gone)]; scripts: byte r4/w6
 4BBE 1 byte game Word4BBE # scripts: byte r7/w4
 4BBF 1 byte game Word4BBF # scripts: byte r7/w4
-4BC3 1 byte game Word4BC3 # scripts: byte r27/w9
-4BC4 1 byte game Word4BC4 # scripts: byte r12/w9
+4BC3 1 byte game MapX # Area[195]: the overland's square x (buckrogers-go rules/adv.go overland(): 0..37), the Pool's MapX; scripts: byte r27/w9
+4BC4 1 byte game MapY # Area[196]: the overland's square y (0..14), the Pool's MapY; scripts: byte r12/w9
 4BC5 1 byte game GeoBlock # Area[197]: current GEO map block, 127 none (eclops.go:430, savegame.go:172) [BR2: buckrogers2-go rules/eclops.go:448, adv.go:632; types.pas TZone0.mapId]; scripts: byte r2/w0
 4BC7 1 byte game Word4BC7 # scripts: byte r1/w1
 4BC8 1 byte game Word4BC8 # scripts: byte r1/w1

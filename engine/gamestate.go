@@ -321,10 +321,14 @@ func gameItem(h rules.ItemHandle, card rules.ItemCard) game.Item {
 func (e *Engine) mapState(w *game.Where) game.Automap {
 	if !e.mapView() {
 		if e.world.In3D == 0 && e.adventure() { // the overland: its terrain
-			m := game.Automap{Area: e.mapName(), Size: rules.Size{W: 44, H: 36}}
+			size := rules.Size{W: 44, H: 36}
+			if s := e.game().OverlandSteps; s.W > 0 && s.H > 0 {
+				size = s
+			}
+			m := game.Automap{Area: e.mapName(), Size: size}
 			marks := e.areaMarks()
-			for y := range 36 {
-				for x := range 44 {
+			for y := range size.H {
+				for x := range size.W {
 					m.Known = append(m.Known, rules.MapPos{X: x, Y: y}) // the whole map is shown
 					m.Terrain = append(m.Terrain, int(e.ruleset().Check(rules.AreaTileIs{X: int32(x), Y: int32(y), Marks: marks}, nil).Value))
 				}

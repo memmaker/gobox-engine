@@ -33,6 +33,7 @@ type GameTables struct {
 	Logbook                    *Logbook             // the Logbook command's book (BR); nil: the game has none
 	PictureSets                map[int]rules.Set    // a PIC block kept in another set's file than the one in play (BR1 pO124_02D0: 62 in PIC9); nil: none
 	BigPictures                BigPictures          // the Picture command's whole-screen BIGPIC pictures; zero: none (POR)
+	OverlandSteps              rules.Size           // MapX and MapY range over 0..W-1 and 0..H-1 on the overland, which is the whole map (BR1: 38 by 15, Area[195], [196]); zero: the Pool's window of the map (16 by 36, shifted by the view)
 	Places                     []Place              // the area blocks' own places (the front's music trigger); none: none
 }
 
