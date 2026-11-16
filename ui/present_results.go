@@ -12,6 +12,7 @@ import (
 // is destroyed, the end; its question as every page's.
 func (p *Presenter) drawResults(dst *gpu.Image, note Note) Rect {
 	r := resultsOf(p.state())
+	p.waitShown = true // the page is what its key wait is about
 	u := Results{Outcome: r.Outcome, Exp: r.Exp, Shares: r.Shares, Taken: r.Taken, End: r.End}
 	for _, h := range r.Harmed {
 		u.Harmed = append(u.Harmed, Harm(h))

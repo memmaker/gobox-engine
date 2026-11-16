@@ -27,6 +27,7 @@ func (p *Presenter) drawGeneric(dst *gpu.Image, note Note) Rect {
 			art, box = append(art, pc), box.Union(pc.At)
 		}
 	}
+	p.waitShown = p.waitShown || len(art) > 0 || len(p.viewText()) > 0 // a picture or the view window's text: what a key wait is about
 	if (p.flags().Full && (p.pane() == nil || !p.pane().Shown()) || p.introUp() != nil) && len(art) > 0 { // a whole-screen picture, a title's: fitted, its aspect kept, centred, sharp (bars only on a screen of another shape)
 		area := b
 		var strip image.Rectangle
@@ -82,7 +83,7 @@ func (p *Presenter) drawGeneric(dst *gpu.Image, note Note) Rect {
 	if t := p.typingAsk(); t != nil && t.Prompt != "" { // a typed answer (a name after the sheet): its question and line, never an invisible question
 		p.drawTyping(dst, note, math.Max(1, math.Floor(k)), cx, 0)
 	}
-	if m := p.askMenu(); m != nil && len(m.Commands) == 1 && p.pressText() != "" && (strings.TrimSpace(m.Prompt) != "" || len(art) == 0 && th == 0) { // "press Enter": nothing to pick, the prompt alone above the text; a bare "press Enter" not over a page's picture or text (as over the 3D view)
+	if m := p.askMenu(); (m == nil || len(m.Commands) == 1) && p.pressText() != "" && (m != nil && strings.TrimSpace(m.Prompt) != "" || len(art) == 0 && th == 0) { // "press Enter": nothing to pick, the prompt alone above the text; a bare "press Enter" not over a page's picture or text (as over the 3D view)
 		mk := math.Max(1, math.Floor(k))
 		text := p.pressText()
 		p.drawMenu(dst, note.Glyph, "", []string{text}, nil, nil, -1, mk, cx, int(float64(b.Dy()-int(th))/2)-int(mk*12))

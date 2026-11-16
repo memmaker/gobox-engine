@@ -314,10 +314,13 @@ func (p *Presenter) asksID() string {
 	}
 	return p.lay.asks.get(p.uiKey(), func() string {
 		a := p.eng.r.asking(p.state())
-		if a == nil || a.Kind == game.Continue || a.Kind == game.Choice && len(a.Options) <= 1 || a.Kind == game.Direction && p.board == nil { // a heading on a map (the rocket's) is asked in the text pane and answered by the arrows (Esc is Done); on a fight's board it is the board's step
+		if a == nil || a.Kind == game.Continue && a.Ms > 0 || a.Kind == game.Direction && p.board == nil { // a timed pause goes on by itself; a heading on a map (the rocket's) is asked in the text pane and answered by the arrows (Esc is Done); on a fight's board it is the board's step
 			return ""
 		}
 		id := fmt.Sprint(a.Kind, "|", a.Prompt)
+		if keyWait(a) { // a key to go on: the same wait again after a new message is a new wait
+			id = "wait|" + id + "|" + p.textPane()
+		}
 		for _, o := range a.Options {
 			id += "|" + o.Label
 		}
@@ -327,11 +330,20 @@ func (p *Presenter) asksID() string {
 
 // markSeen ends a frame: the game's question is seen when the frame drew
 // choices (asksDrawn: a menu, a question, a screen's own rows, the board).
+// A key wait (nothing to pick) is seen when the frame drew what it is
+// about instead: text in the pane, a picture or text box, a page.
 func (p *Presenter) markSeen() {
 	p.seenAsk = ""
-	if p.asksDrawn {
+	if p.asksDrawn || p.waitShown && p.eng != nil && keyWait(p.eng.r.asking(p.state())) {
 		p.seenAsk = p.asksID()
 	}
+}
+
+// keyWait: a waits for a key with nothing to choose (a Continue, a lone
+// "press Enter"); bug class: the Stojanow Gate arrows' blank Press, an
+// input block on no screen.
+func keyWait(a *game.Ask) bool {
+	return a != nil && (a.Kind == game.Continue || a.Kind == game.Choice && len(a.Options) <= 1)
 }
 
 // door is the locked door the party stands at (nil: none).

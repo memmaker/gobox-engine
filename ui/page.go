@@ -468,6 +468,7 @@ func fontInk(c color.RGBA) color.RGBA {
 // at a whole scale in the middle meanwhile, so nothing stretches.
 func (p *Presenter) drawPage(dst *gpu.Image, note Note) Rect {
 	img := p.pageImage(note)
+	p.waitShown = true // the engine's whole page
 	dst.Fill(color.Black)
 	b := dst.Bounds()
 	w, h := p.pageSize()
@@ -615,6 +616,7 @@ func sameImage(a, b image.Image) bool {
 func (p *Presenter) paneBox(dst *gpu.Image, note Note, k float64, cx, cy int) {
 	txt := paneCells(p.pane()).Framed()
 	drawBox(dst, paneImage(&p.pg.pane, p.pane(), note), p.border.val.tiles, txt, k, cx, cy)
+	p.waitShown = p.waitShown || p.pane() != nil && p.pane().Shown()
 	const label = " > Notes "
 	m := image.NewRGBA(image.Rect(0, 0, 8*len(label), 8))
 	draw.Draw(m, m.Rect, image.Black, image.Point{}, draw.Src)

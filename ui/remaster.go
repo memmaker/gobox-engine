@@ -95,6 +95,7 @@ type Presenter struct {
 	pointer     image.Point                        // the mouse, as Hover last saw it (keys move the highlight while it rests)
 	mc          MenuCanvas                         // the vertical menu's images (ui.MenuCanvas.Draw)
 	asksDrawn   bool                               // this frame drew choices: a menu, a question, a screen's rows, the fight's board
+	waitShown   bool                               // this frame drew something a key wait is about: text in the pane, a picture or text box, a page (markSeen)
 	seenAsk     string                             // the game's question the last frame showed (asksID; "": none), markSeen
 	battle      combat.Presenter                   // the combat map in 3D
 	mapBottom   int                                // screen rows above this are the 3D map
@@ -197,7 +198,7 @@ type Presenter struct {
 // (zero when it is not on screen: the mouse then points at nothing).
 func (p *Presenter) Draw(dst *gpu.Image, note Note) Rect {
 	p.sync()
-	p.asksDrawn = false
+	p.asksDrawn, p.waitShown = false, false
 	defer p.markSeen()
 	p.scr.at, p.scr.pw, p.scr.ph = Rect{}, 0, 0                                                 // drawPage sets them: no page drawn, none to map the pointer on
 	if d, ok := p.Snd.(*audio.Driver); ok && p.AdLib != nil && p.AdLib.SID() != Host.SIDMusic { // the Music card option
@@ -485,6 +486,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 			inside = viewTextImage(&p.pg.pic, p.viewText(), pic.Pixels().Inset(8), note) // text over the whole view window (WinText)
 		}
 		drawBox(dst, inside, p.border.val.tiles, pic, pp, cx, py)
+		p.waitShown = true
 		picBottom = py + int(pp*ph/2)
 		p.picBottom = picBottom
 	}
@@ -639,10 +641,19 @@ func (p *Presenter) OptionsMouse(x, y int, left, right bool, wheel float64) {
 	p.pointOptions(line, left, right, int(math.Copysign(math.Ceil(math.Abs(wheel)), wheel)))
 }
 
+// pressAnyKey is a bare key wait's prompt, where nothing else on screen
+// says the game waits.
+const pressAnyKey = "Press any key"
+
 // pressText is what a wait with nothing to pick shows: its prompt, else
 // its one answer ("" : not such a wait).
 func (p *Presenter) pressText() string {
 	m := p.askMenu()
+	if m == nil && p.eng != nil { // a bare key wait (a Continue): the original's prompt line
+		if a := p.eng.r.asking(p.state()); keyWait(a) && a.Ms == 0 && a.Kind == game.Continue {
+			return pressAnyKey
+		}
+	}
 	if m == nil || len(m.Commands) > 1 || p.choosing() || p.typingAsk() != nil || p.askList() != nil {
 		return ""
 	}
