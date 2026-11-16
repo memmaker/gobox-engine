@@ -101,7 +101,7 @@ var brStarts = map[string]brStart{
 	// BR2: buckrogers2-go rules/adv.go:147,161 (block 16), :158 (disk 1), eclops.go:239 (112), buckrogers2-re eclvm.pas:42,48. The
 	// Logbook: buckrogers2-go rules/journal.go logBox "Log Book", logTitle "Log Entry N" over data/journal (importer/br2/journal).
 	"br2": {FirstBlock: 16, GameSet: 1, FirstBigPicture: 112, CodeBase: 32768, CodeSize: 9217, Symbols: brSymbols, PictureSets: brPictureSets,
-		Art: brArt, Logbook: &adventure.Logbook{Box: "Log Book", Title: "Log Entry "}}, // br2_importbr2.go br2Start's TITLE
+		Art: brArt, Walls: true, Logbook: &adventure.Logbook{Box: "Log Book", Title: "Log Entry "}}, // br2_importbr2.go br2Start's TITLE
 }
 
 // ImportBREngine is ImportBR plus what the shared engine reads from an adventure folder (engine.New, Init): the game's

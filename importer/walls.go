@@ -5,6 +5,7 @@ import (
 	"embed"
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 
 	"gobox/adventure"
@@ -59,6 +60,10 @@ func wallTextures(id, floor, sky string) *adventure.WallTextures {
 	return w
 }
 
+// backNoneWord is the block field of a line that gives the set's BackNone look (br2_backs.txt: buckrogers2-go rules/gamewalls.go
+// wallsState's default for a view with no BACK picture, "br1_city" and "sky_br1_city"; BackFlats are its other lines).
+const backNoneWord = "none"
+
 // backLooks reads walls/<id>_backs.txt, the flats of each BACK picture, a
 // line a picture: SET BLOCK FLOOR SKY (buckrogers-go rules/gamewalls.go
 // backFlats, blocks with the same picture share names). Each set also gets
@@ -68,13 +73,25 @@ func wallTextures(id, floor, sky string) *adventure.WallTextures {
 func backLooks(id, text string) []adventure.BackLook {
 	var out []adventure.BackLook
 	none := map[rules.Set]adventure.BackLook{}
+	explicit := map[rules.Set]bool{}
 	for _, l := range strings.Split(strings.TrimSpace(text), "\n") {
 		b := adventure.BackLook{}
-		if _, err := fmt.Sscan(l, &b.Set, &b.Block, &b.Floor, &b.Sky); err != nil || b.Block < 0 {
+		var block string
+		if _, err := fmt.Sscan(l, &b.Set, &block, &b.Floor, &b.Sky); err != nil {
 			panic(fmt.Sprintf("walls/%s_backs.txt: %q: %v", id, l, err))
 		}
+		if block == backNoneWord { // the set's look without a picture, where the game's own default is not the first sky pair
+			b.Block = adventure.BackNone
+			none[b.Set], explicit[b.Set] = b, true
+			continue
+		}
+		if n, err := strconv.Atoi(block); err != nil || n < 0 {
+			panic(fmt.Sprintf("walls/%s_backs.txt: %q: block", id, l))
+		} else {
+			b.Block = n
+		}
 		out = append(out, b)
-		if n, ok := none[b.Set]; !ok || (!strings.HasPrefix(n.Sky, "sky_") && strings.HasPrefix(b.Sky, "sky_")) {
+		if n, ok := none[b.Set]; !explicit[b.Set] && (!ok || (!strings.HasPrefix(n.Sky, "sky_") && strings.HasPrefix(b.Sky, "sky_"))) {
 			none[b.Set] = adventure.BackLook{Set: b.Set, Block: adventure.BackNone, Floor: b.Floor, Sky: b.Sky}
 		}
 	}

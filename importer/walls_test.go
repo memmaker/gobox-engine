@@ -3,6 +3,7 @@ package importer
 import (
 	"testing"
 
+	"gobox/adventure"
 	"gobox/asset"
 )
 
@@ -40,5 +41,28 @@ func TestWallTextures(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+// TestWallTexturesBR2: BR2's walls (buckrogers2-go rules/wallindex.txt) and flats (gamewalls.go BackFlats) name pool textures.
+func TestWallTexturesBR2(t *testing.T) {
+	w := wallTextures("br2", "", "")
+	if len(w.Walls) != 141 {
+		t.Errorf("%d walls, want wallindex.txt's 141", len(w.Walls))
+	}
+	for _, x := range w.Walls {
+		if !asset.Has("buck-rogers", x.Texture) {
+			t.Errorf("br2: %+v: no texture", x)
+		}
+	}
+	for _, b := range w.Backs {
+		for _, n := range []string{"floor_" + b.Floor, "ceiling_" + b.Sky} {
+			if !asset.Has("buck-rogers", n) {
+				t.Logf("br2 back %d: no texture %s", b.Block, n) // see BR1's names, which the old front reads the same way
+			}
+		}
+	}
+	if l := w.Back(1, adventure.BackNone); l == nil || l.Floor != "br1_city" || l.Sky != "sky_br1_city" {
+		t.Errorf("no-picture look %+v", l)
 	}
 }
