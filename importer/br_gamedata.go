@@ -75,3 +75,10 @@ func br1GameData(id string) game.Data {
 		MusicPlaces: brMusicPlaces,
 	}
 }
+
+// brSilentSound is the sound tables of a game whose original sound driver the import does not decode (adventure.SoundFile):
+// one song, song 0, that starts no channel, and an empty program. BR1's START.EXE tables have no layout yet (none of the
+// old engine's front played them either: it had only the player's own music, by Data.MusicPlaces). The shared launch
+// (audio.NewDriver) needs a table; this one plays nothing.
+const brSilentSound = `{"program":[{}],"speaker":[[0,0,0,0]],"tandy":[[0,0,0,0]],"vibratos":[],"envelopes":[],` +
+	`"speakerPeriods":[0,0,0,0,0,0,0,0,0,0,0,0],"tandyPeriods":[0,0,0,0,0,0,0,0,0,0,0,0]}`

@@ -35,6 +35,8 @@ type brStart struct {
 	Art adventure.ArtNames
 	// PictureSets: pO124_02D0 reads these PIC blocks from PIC7..9 whatever the disk (rules/eclops.go picOf in BR1, smallPic in BR2).
 	PictureSets map[int]rules.Set
+	// Walls: the game has a wall texture table (importer/walls/<id>.txt); false: none yet (BR2).
+	Walls bool
 	// Data: the front's data (gamedata.json) beyond the series and id; nil: not moved over from the old front yet (BR2).
 	Data func(id string) game.Data
 	// Logbook: the journal's titles (importer/br1/journal, from the printed Log Book); nil: none yet.
@@ -59,7 +61,7 @@ var (
 var brStarts = map[string]brStart{
 	"br1": {FirstBlock: 16, GameSet: 1, FirstBigPicture: 112, CodeBase: 32768, CodeSize: 9217, Symbols: brSymbols, PictureSets: brPictureSets,
 		Art:     adventure.ArtNames{CombatSprites: "COMSPR", Title: "TITLE"}, // br1Start's TITLE
-		Logbook: &adventure.Logbook{Box: "Log Book", Title: "Log Entry "}, Data: br1GameData},
+		Logbook: &adventure.Logbook{Box: "Log Book", Title: "Log Entry "}, Data: br1GameData, Walls: true},
 	// BR2: buckrogers2-go rules/adv.go:147,161 (block 16), :158 (disk 1), eclops.go:239 (112), buckrogers2-re eclvm.pas:42,48. The
 	// Logbook stays unset: buckrogers2-go has no rules/journal to take the titles from (open: BR2's journal).
 	"br2": {FirstBlock: 16, GameSet: 1, FirstBigPicture: 112, CodeBase: 32768, CodeSize: 9217, Symbols: brSymbols, PictureSets: brPictureSets,
@@ -71,7 +73,7 @@ var brStarts = map[string]brStart{
 // Tests and `gobox import -shared` call it (Game.ImportShared); the default import stays ImportBR. It replaces ImportBR when the BR engines go (REFACTOR.md B1g).
 // A game without a full layout or a start entry in brStarts is an error.
 //
-// Not written yet: sound.json (no layout of BR1's sound tables), portraits.json, the walls (BR has no WALLDEF).
+// Not written yet: BR1's sound tables (sound.json is the silent one, brSilentSound), portraits.json, the walls' flats and BACK pictures.
 func ImportBREngine(id string, e BREXE, dos, dst string) error {
 	full, err := fs.ReadFile(embeddedScripts(id), ecl.GlobalLayout)
 	if err != nil {
@@ -115,6 +117,9 @@ func ImportBREngine(id string, e BREXE, dos, dst string) error {
 	if err := adventure.WriteGameData(data, front); err != nil {
 		return err
 	}
+	if err := os.WriteFile(filepath.Join(data, adventure.SoundFile), []byte(brSilentSound), 0o644); err != nil {
+		return err
+	}
 	tables := adventure.GameTables{
 		Dialect:      rules.DialectBR,
 		FirstBlock:   start.FirstBlock,
@@ -125,6 +130,11 @@ func ImportBREngine(id string, e BREXE, dos, dst string) error {
 		OriginalSave: rules1e.SaveLayout{CodeBase: start.CodeBase, CodeSize: start.CodeSize}, // eclLayout reads only these two
 		Symbols:      start.Symbols,
 		Art:          &start.Art,
+	}
+	if start.Walls {
+		// the 3D view's textures: buckrogers-go rules/wallindex.txt as walls/<id>.txt (chunk (value-1)/5+1, wall (value-1)%5+1); the
+		// flats and the BACK picture are not published yet (a view's floor and sky: backFlats by BACK block, not by area)
+		tables.Walls = wallTextures(id, "", "")
 	}
 	return WriteJSON(filepath.Join(data, adventure.GameTablesFile), tables)
 }

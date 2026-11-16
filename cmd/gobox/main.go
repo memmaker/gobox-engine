@@ -36,16 +36,19 @@ const ruleset1e = "rules1e"
 // engine plays it only under -shared.
 const rulesetXXVc = "rulesxxvc"
 
+// launch is f's game as ui.Launch: on the shared engine (its ruleset's host:
+// the pool games always, a rulesxxvc game under -shared) or on its own old one.
+func launch(s start, f importer.Folder) (ui.Launch, error) {
+	if hs, ok := hosts[f.Ruleset]; ok && (f.Ruleset == ruleset1e || s.Shared) {
+		return playPool(s, hs)
+	}
+	return playOther(s, f)
+}
+
 // play runs the adventure folder f in the engine of its game until the
 // window closes.
 func play(s start, f importer.Folder) error {
-	var l ui.Launch
-	var err error
-	if hs, ok := hosts[f.Ruleset]; ok && (f.Ruleset == ruleset1e || s.Shared) {
-		l, err = playPool(s, hs)
-	} else {
-		l, err = playOther(s, f)
-	}
+	l, err := launch(s, f)
 	if err != nil {
 		return err
 	}
