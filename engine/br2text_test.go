@@ -61,3 +61,21 @@ func TestBR2ByteBufferText(t *testing.T) {
 		t.Errorf("printed %q", got)
 	}
 }
+
+// TestBR2Logbook: BR2's Logbook(words, n) (area113: Logbook("HIS SPEECH", 62)) reads entry n of its Log Book
+// (importer/br2/journal, buckrogers2-go data/journal/LOGBOOK.TXT).
+func TestBR2Logbook(t *testing.T) {
+	e := brBegun(t, gameBR2)
+	br1OwnBlock(t, e, 201, "    Logbook(\"HIS SPEECH\", 62)\n    PressKey()")
+	var read bool
+	for range 6 {
+		if sc, ok := e.build().(game.Scene); ok && sc.Kind == game.SceneHandout {
+			read = len(sc.Texts) == 1 && sc.Texts[0].Title == "Log Entry 62" && sc.Handout == "Log Book"
+			break
+		}
+		br1Answer(t, e)
+	}
+	if !read {
+		t.Errorf("entry 62 not read: %T %q", e.build(), paneText(commonOf(e.build())))
+	}
+}

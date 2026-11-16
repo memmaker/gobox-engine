@@ -1,0 +1,622 @@
+# Buck Rogers: Matrix Cubed: the Log Book entries the scripts name by number
+# (ECL op 63, "... and you record X as logbook entry N."; rules/journal.go).
+# "[Title]" starts a text, a blank line a paragraph, "<FILE.PNG>" a picture
+# from this folder, "#" a comment. Title an entry "[Log Entry N]".
+# From the printed Log Book (matrixcubed-log.pdf, pages 17-27), proofread against the scans.
+
+[Log Entry 1]
+Buck and Kane Converse
+
+BUCK: Now that we are here, I expect you'll switch sides again, and offer to assist us.
+
+KANE: Correct, my dear Rogers. And you must accept my company, because we are both in deep trouble. Only cooperation can get us out of here.
+
+BUCK: I'm sure you'll help, but for how long?
+
+KANE: Until assistance is no longer needed.
+
+BUCK: Until you no longer need our assistance, you mean.
+
+KANE: Precisely. I'm glad we understand each other so completely. Shall we go?
+
+[Log Entry 2]
+Cryptic Message
+
+"Walk only on the prime, All the others are mined."
+
+[Log Entry 3]
+Death Before Dishonor
+
+"As a general, I cannot submit to this blackmail. If you cannot find the incriminating papers before they are broadcast, I will be forced to resign and commit suicide. My ancestors have served Earth too well for me to sully their name.
+
+"I last heard that a MacCallister on Juno was involved with these scoundrels. I can only suggest you contact him. I hope we shall meet again."
+
+[Log Entry 4]
+Mr. Tsai's Diary
+
+June 1: Met the NEO cyborg again. Chilling fellow, but his plans for Earth sound very profitable. McKay and Koi seem willing to go along. Koi settled for inside information on the stock market, while McKay has demanded payments.
+
+June 2: That cyborg has hidden talents. He charmed Dr. Coldor and convinced her to join the conspiracy. She's overlooked the massive number of deaths that will occur when the mutagen is released. She only sees the new order that will arise.
+
+June 3: Dr. Coldor is splitting her time between the plant mutagen and a project code named Matrix. I have complained to the cyborg, but all I get are withering looks. I guess NEO is willing to delay the mutagen release.
+
+[Log Entry 5]
+Computer Lab Notes
+
+Bug Nine Virus Outline
+
+As designed, Bug Nine is an anti-digital-personality virus. Once released in a computer system, it tracks down the dominant DP. The Bug Nine program then destroys that DP by overwriting it with random data.
+
+After it eliminates the DP, Bug Nine erases itself to avoid detection.
+
+Both Dr. Malcoln and Commander Hanibl Sooth have approved, and work on the virus proceeds well.
+
+[Log Entry 6]
+MacCallister's Speech
+
+"Yeah, the general got a raw deal. Out of the goodness of my heart -- warmed by the 5,000 credits you just forked over -- I'll put you in touch with Jedrel. He's a pirate who used to work for Talon. He went independent after Talon's base was overrun. Anyway, he got into financial trouble and had to take a fast shuttle job. The guys he ferried match the descriptions you gave me.
+
+"Last I heard, Jedrel was spending his payoff on Aurora. I'd hurry, he knows lots of ways to spend money. Just don't mention my name. He's still sore about a poker game where I cleaned him out. I still don't know where that fifth ace came from."
+
+[Log Entry 7]
+Cyborg's Speech
+
+"NEO's propaganda has served PURGE well. I recruited this scientist on your reputation. The pap of genetic mongrels living in harmony with the pure race fools so many people. They are blind to the inevitability of conflict. Either the pure strain will survive unsullied, or humanity will revert to packs of mindless animals!"
+
+"Now PURGE has the mutagen needed to cleanse the Earth. Soon the Matrix Device will be ours -- Dr. Coldor's part is complete. Then PURGE can cleanse the solar system and return man to the greatness that is his birthright!"
+
+[Log Entry 8]
+A Dive on Aurora
+
+The stench nearly overwhelms you as you step past the door. The smoke is so thick that you can barely make out the single long table. An uncanny silence permeates the scene. Bodies are sprawled across the table and a few are curled up on the floor. The only sign of life is an occasional twitch or soft groan. A huge belch shatters the silence. A man at the center of the table rises his shaggy head and shouts, "Bartender! I'm hungry! Get me a hexadillo haunch!" His face could be that of Jedrel, minus the stains and beard.
+
+[Log Entry 9]
+Dr. Romney's Papers
+
+The papers are a great mass of diagrams, equations, and notes. Much of it is cryptic, though the thrust seems to be a device which can reshape an atom's subatomic matrix into another form, with energy as a by-product. One note in particular stands out:
+
+'I finally worked out the final equation. It was gravity all the time! Now the very pollution can be used to purify the air of Earth. Toxic wastes can be used to rebuild the areas they destroyed.
+
+'I fear whoever controls this technology will have the power to dictate the solar system's economy. I am tempted to destroy my notes, but I cannot, in all good conscience, do such a thing.'
+
+[Log Entry 10]
+Buck's Message
+
+"I need you to check out certain rumors circulating here at Salvation. Dr. Romney of Mercury has designed a device, called Matrix, that can transform matter.
+
+"The rumors have caused quite a stir. Everyone wants to get their hands on Romney for one reason or another. RAM wants the device to extend its power. The Mercurians see it as a threat to their energy monopoly. There also seems to be a growing extremist group on Earth that would use the device to control the solar system.
+
+"If half the story is true, we could restore Earth to its old glory. We can't afford to ignore these rumors."
+
+[Log Entry 11]
+Jedrel's Speech
+
+"I was an officer once, long ago. I remember the awesome responsibilities. That's why I left and became a pirate. No dress code. No saluting, no curfews! Anyway, this general already has a horrible enough life just being in the military. So I'll help you.
+
+"We rendezvoused with a Mercurian cruiser, all gold and shiny. The scum transferred over and returned with the rest of my pay. At the airlock, I thought I saw a rich looking fellow with a stern look. Heard someone address him as Chamberlain. So I'd say look on Mercury. Someone governmental if I remember what Chamberlain means. Good luck. Just pay the bartender on the way out. That payment hasn't gone as far as I'd of liked."
+
+[Log Entry 12]
+Scot.dos Describes Venus
+
+"The Lowlanders are digging mines near the village to the southeast. I don't know why, since Venus has no known mineral concentrations of any worth. Ship sensors indicate the tunnels are extensive.
+
+"My data indicates that there is a scientist near the village. He or she is probably some sort of recluse and a human, but that is just a guess...
+
+"Hold on! I'm monitoring radio communication. I'll patch it through to you direct!"
+
+The radio signal is routed to your helmet speaker. It is weak and only partially audible. "... calling Mariposa Sunspot. Patrol calling Mariposa... landed on surface. All... for PURGE forces and disrupt... earching for scientist... destroy target, understood. Out."
+
+Scot.dos comes back in. "It seems that the Mercurians are here, too. We'd better get to that scientist before they do!"
+
+[Log Entry 13]
+Tsubulu's Plan
+
+"I see your problem. You want Makali, and Makali wants freedom. There is a way for both to occur.
+
+"We've discussed ways of dealing with Genetics Foundation. We considered releasing a plague upon them. Dr. Makali believed this would succeed.
+
+"She created such a plague--the wasphopper, the poison locust. The plan was to introduce the wasphopper's grubs into the grow tanks at the Genetics Foundation. They would multiply and fill the halls with stinging death. The plan was not implemented because the Foundation tightened security; all Stormriders entering are closely searched.
+
+"I have some wasphopper grubs with me. Perhaps you would not be so carefully searched. I have a shuttle to take you to Amalthea. Take the grubs and do the deed. Then Makali will go with you."
+
+[Log Entry 14]
+The Prisoner's Story
+
+"Here in Mars Prison, you stick together and keep moving, see? Or else the dogs get you. Get in a good gang and you're safe, until you mess up and get cast out like me. RAM has it all figured out: they don't need guards! We spend our time staying ahead of the dogs, or fighting each other. There are Desert Runners, Lowlander workers, and even some Terrines who got too uppity. The robot surgeons keep us alive, most of the time, anyway.
+
+"Hey, did you get out of the Envirocell? That's amazing! Nobody gets out of there. People think they're in the Martian Desert, instead of on a sandy treadmill. They panic, then spill their secrets. Pretty soon we see the dogs chewing their bones."
+
+[Log Entry 15]
+A Criminal Cornered
+
+"Yeah! I got the papers from the general. His security was lax. He shouldn't leave stuff just floating around. You've come to the right place. We passed the papers on to the Chamberlain. He plans to use it for leverage in the negotiations between the Sun King and NEO. Showing that a high NEO general was involved in such a massacre will cause the pacifistic Sun King to reject NEO outright.
+
+"The Chamberlain is preparing for the meeting now. The general hasn't capitulated to his demands, so he'll turn the papers over to the Sun King within the hour. You'll need a security pass to get into the government section. Security's been tight since you and the PURGE guys mixed it up."
+
+[Log Entry 16]
+Aboard The Ship
+
+"The Stormriders controlled the ship with sonics. They created an intricate network tied into the ship's nervous system, using sonic waves to generate pulses within the synapses.
+
+"Their equipment was damaged when the pirates hijacked the ship. Now the Stormriders are hiding in the ship's shadows. Amazingly, the pirates have not tried to wipe them out. It is proof of their desire to form a new order at Jupiter."
+
+[Log Entry 17]
+Matrix Mission Assigned
+
+"Dr. Romney's journal describes a means by which one form of matter may be transmuted into another. In your absence, our scientists have been poring over his notes and have found his principles sound. The ancient alchemists' dream of turning lead into gold has now been realized.
+
+"Or almost has. In meetings with Carlton Turabian and the rest of NEO command, we have decided to build Romney's machine--hereafter to be referred to as the 'Matrix Device.'
+
+"There is a slight problem. Much of the technology involved has not been developed. We need faster computers, better fusion containers, more powerful gravity fields, and higher heat sources than have ever been conceived.
+
+"Gather together the scientific team to make the necessary technological leaps. With the Matrix Device we will have the power to stand toe to toe with RAM."
+
+[Log Entry 18]
+A Meeting with the Chamberlain
+
+"Please point the guns in another direction. Though it may be hard to believe, I am not dangerous in physical combat. You are no doubt here to discuss the general's distinguished papers. I know that you found circumstantial evidence linking me to PURGE. Therefore, I am willing to trade you the general's papers.
+
+"You think of me as a criminal, yet I am merely a politician. In the solar system of today, one must do many reprehensible things so that order may be achieved. Look over those papers on your trip home. Then tell me truly, who is the greater criminal."
+
+[Log Entry 19]
+Buck Steps Forward
+
+Buck sighs again as he looks down at the body of the general. "It was a shame to have to shoot him. Still, if I had waited you would be dead instead. Had I known the contents of those papers earlier, I could have stopped this. The general believed that this one mistake was too great for the public to know about. He would have compounded the problem with your deaths.
+
+"We should not hate this man. His weakness is to be pitied. The events in the paper occurred so long ago that little good would be achieved by publishing them. Let us burn the papers and let it be known that the general died peacefully, in bed. Let him be remembered as a hero."
+
+[Log Entry 20]
+Letter to Patrol Leader
+
+Lieutenant Vantangli,
+
+Radio silence directive remains effective during operation. Attempts to locate gravitational specialist through data searches have succeeded -- despite digital personality interference. Land sweeps to located target. Suspect is human and was sheltered by indigenous population.
+
+Green patrol reports PURGE activity in their sector. Continue reporting via closed communication.
+
+Command, Mariposa Comet's Tail
+
+[Log Entry 21]
+The Alchemy Catalyst Explained
+
+"The PURGE Matrix Device suffered from a serious design flaw. When they activated it, matter did not turn into energy. Rather, it transformed into an intermediate state. This quasi-energy interacts with matter causing random shifts in elemental composition. As a result, new elements emerge from the old. The material does not diminish. Hence it is a catalyst -- causing the reaction, but not being consumed."
+
+[Log Entry 22]
+The Jonas Decker Remains
+
+"The freighter was hit by some new weapon. The edges of the hole contain traces of argon. Further in, bulkheads were found composed entirely of carbon. Something ate through the ship, changing everything it met into random elements."
+
+[Log Entry 23]
+Leander Speaks
+
+"Terran ssoldierss found our lab... How, I do not know! They disssrupted an experiment concerning my new gravity field technology. Asz you can ssee, the ressults were devesstating."
+
+You tell Leander of your mission. He looks surprised.
+
+"The sscientisst you sseek iss mysself! No one iss my equal in the field of gravitational mechanicss. I will help you, but firsst we musst ssave the otherss. The terranss are gathering them up even asz we sspeak. They no doubt sseek the ssecret of gravitol manufacturing. They musst be sstopped!"
+
+[Log Entry 24]
+Cafeteria Conversation
+
+"I don't know, Del," says one, "I think Commander Sooth is the best choice for PURGE leadership under the new order. He is older, wiser, and a master strategist to boot. Why... I can't understand why he isn't in control now."
+
+"Fool!" retorts the other. "Sooth isn't the leader for a good reason -- Sid Refuge! How can Sooth possibly compare? True, he is in charge here while Lord Refuge tracks down those scientists, but how can we have a leader who won't fight in battle? Sooth is weak. I think he has gennie blood in him."
+
+"Oh, I'm sure that's just a rumor..."
+
+[Log Entry 25]
+The Catalyst Room
+
+Huge magnetic coils are mounted on massive steel supports. Between them, suspended in midair, is a glowing, pulsating globe of -- something. Your eyes cannot seem to focus on the object. Sometimes it appears solid, sometimes it is just a ball of light. Sparks play off it as air bleeds through the magnetic bottle. Multi-colored bits rain down to the ground below. The air is transmuting into more solid elements.
+
+[Log Entry 26]
+Scot.dos Arrives on Mars
+
+"First you disappeared. Then Buck went looking for you, and he disappeared. I traced a report from RAM Main, asking what a "Colt .45 Automatic" was, to here. Your escape had begun, so I acted as backup. Now the prison computer is on full alert, and sealed off. I'm trying to get the doors open... Wait, there's new activity in the system..."
+
+[Log Entry 27]
+Misha's Warning
+
+"Your sonic attack on the cyborg has triggered a resonance in all of the crystals in the hangar. They are lasing the sunlight. Within minutes the crystals will magnify the beam to planet smashing potential.
+
+"Do any of you know higher mathematics? I have the dimensions of the hangar and the energy curve for the crystals. Dr. Taylor joked that he could use that information to aim a beam. We must be certain that the power that is building is discharged into empty space. Otherwise millions could be killed!"
+
+[Log Entry 28]
+The Pirate's Dream
+
+"The pirates hijacked the ship from the Stormriders as it crossed into the asteroid belt. They hope to establish a colony on one of the outer planets' moons. They will use it as a trading center for the spacers and whatnot. They are not as ignoble as people believe.
+
+"They simply had no choice but piracy in the face of RAM, the Sun Kings, and all the other power mongers.
+
+"This new colony, though, will be the Luna of the outer planets and a haven to all the outcasts of the solar system."
+
+[Log Entry 29]
+Terrified Medic
+
+"The lab iss under attack! Never could it be at a worsse time. Minerss are trapped in the lower sshaftss and we can sspare no one to help.
+
+"Lissten! We know now that we can trusst you. The entrance to the labss iss at the northeasst end of the miness. Go and ssee what caussess the alarm. The losss of the labss would lead to our ultimate downfall.
+
+"I musst help the othersss." He turns and runs off down the west tunnel.
+
+[Log Entry 30]
+Computer Lab File
+
+Station access:
+
+--General PURGE data
+
+--Bug Nine Virus Development
+
+--Subliminal Media Development
+
+Current access:
+
+--Subliminal Media Sequence
+
+[Log Entry 31]
+The Catalyst Gun
+
+"Yes. The PURGE Matrix Device produced quite a boon. Unluckily, the elements produced are transitory. We cannot produce an infinite amount of gold or uranium. It decays back to its original form within hours.
+
+"Just as we despaired, Dr. Taylor proposed a way to project the quasi-energy with magnetic fields. With a little work, we found we could accurately aim and launch the force out to astronomical distances. Even the strongest ships cannot survive having their hulls converted to gas, or their crew to lead.
+
+"From this tiny asteroid we control all of the system's spaceways. Anyone who wishes to travel from world to world must pay our fee, or be transmuted into a cloud of random elements. We are truly the rulers of the solar system!"
+
+[Log Entry 32]
+Misha Speaks
+
+"I sealed the door to the hangar to keep you and the crystal man separate. There is actually a way to destroy him. In order to avoid being caught with these illegal crystals, our corvettes are equipped with sonic disintegrators. They aren't portable, but someone whose skillful with electronics could modify a stunner. There are a few stunners in the security office. Remember to avoid the cyborg until you have the weapon!"
+
+[Log Entry 33]
+Landon's Thanks
+
+"Greetingss Neo agentss. I am again in your debt for the life of my sson. For thiss I will entrusst you withh a great ssecret.
+
+"Asz you may know, we lowlanderss manufacture the sspace travel drug, gravitol. You may not know itss organic origin. It iss derived from plantss that grow only in thesse inhospitable landss. We keep the formula of itss creation to ourselvess.
+
+"Those assassinss were after thiss knowledge! They no doubt were sseeking to weaken our one ssource of power.
+
+"The foolss! Thiss farm wass not for drugss, but for food! Those ssacks that they carry, the loot that they butchered for, iss nothing but a crop of lowland crystal potatoess!"
+
+[Log Entry 34]
+The End of the Catalyst
+
+Your ship pulls away from the asteroid's docking bay as the prototype engines kick in. The high-G acceleration assures you that no one on the asteroid can tamper with your device until it reaches its destination. Buck looks past you, out the window. "They thought they had the ultimate weapon. Scientists never realize that the ultimate weapon has been around for millions of years." He taps his forehead. "Right here. It's human ingenuity. That team on the asteroid thought nothing could stop them. Now they've got a one way ticket to the sun. However fast the catalyst transforms the sun's material, it's nothing compared to the billions of tons of helium produced in the sun's heart. A perfect burial ground for that hideous weapon."
+
+[Log Entry 35]
+Killer Kane's Offer
+
+I've heard of a Matrix Device, but that is not my interest at the moment. I require your assistance. I'll give you access to a key RAM military installation in return for your help. You may also have some personal monetary gains that NEO need not learn of.
+
+The RAM battler, Deimos, is transporting high level Mercurian officials to Mars. I have, let us say, differing views from them.
+
+My agents on the Deimos require a distraction while they attend to these unnecessary delegates. I would like you to place a strategic explosive. My agents will inform you of the proper location when you are on the Deimos.
+
+The explosive is controlled remotely by my agents. Once it is in place, leave the immediate area to avoid injury. When they are ready to... settle matters with the delegates, they will detonate the explosive.
+
+[Log Entry 36]
+Letter to Sooth
+
+Dear Commander,
+
+Greetings! Allow me to update you on our plans. Our source continues to supply us with information on NEO's movements, but it is beginning to falter in quantity and detail. I fear that those gennie-loving fools are becoming suspicious.
+
+Plan A has met with a setback. I will switch to plan B, and take the scientists through the procedure previously discussed.
+
+I have sustained injury of massive proportions, but have come through it stronger. Cybernetic modifications have been made. Who says that a pure man can't compete with those genetic monstrosities?
+
+Good luck in your current operations. Earth is for humans!
+
+Best regards, S. R.
+
+[Log Entry 37]
+Lt. Jenner's Proposal
+
+My superior, Chief McKay; the local senator, Koi; and the CEO of Tsai Weaponry, Mr. Tsai, are involved in a major operation. I know that it is illegal and probably has interplanetary dimensions. I have no superiors I can trust, so if I actively investigate I will be dismissed from the force. The only chance for justice is to break in on them together with incriminating evidence.
+
+Rifle their computer records at the Data Bank and go through their offices and homes. When you have enough evidence, call them up and set up a meeting. Once they are together with your evidence, I will stage a raid. I'll let you collect Dr. Coldor and get you safely off Luna.
+
+The only help I can offer is this forged badge. It can't be connected to me. If you get into trouble, call me. I will misdirect the hunt for you. Don't return here if you are in trouble, I will be forced to deny any connection between us.
+
+[Log Entry 38]
+Dr. Taylor's Speech
+
+"I'm sorry our leaders are so preoccupied with ruling the universe. I know some of you have excellent science skills. I authorized you to help me in the lab. Please, no heroics, we are involved in basic research here. Any aid you provide will push forward the edges of knowledge. Yes, all knowledge can be perverted, but that is no reason not to seek it.
+
+"This is my personal pride and joy. Our leaders can play with that silly catalyst gun, I have developed the ultimate rocket engine. It is based on a variant of the PURGE matrix research. These prototype engines produce enough power to launch this asteroid anywhere you could wish to go. Fuel problems go away. With a few years of tinkering, I should get the engines small enough to put on ships."
+
+[Log Entry 39]
+Mysterious Attack
+
+Scot enhances the video, displaying it across the entire front viewport. A RAM cruiser fires wildly into the darkness of space. Suddenly a ship flashes forward, bouncing k-cannon shells from its hull. It rams and the pulls away, leaving the cruiser a wreck.
+
+Something was strange about the attack. Scot plays it back again, freezing on the ram. The picture is enhanced again. Scot verbalizes his conclusions, "That is definitely a mouth with teeth at the head of that ship. When it pulled away, it had a mouthful of that cruiser. That projection on top looks amazingly like a dorsal fin. Someone has created a very large gennie; a cross between a whale, a shark and a Stormrider's living ship. Something else. I recalibrated the sensors to track that thing. Well, its headed our way. Prepare for combat!"
+
+[Log Entry 40]
+Stormrider Pilots
+
+"The pirates captured our ship as soon as we entered the belt. We tried to fight, but were ill-prepared. These pirates, they're brutal, using stunners on the ship's nerve endings to make it go.
+
+"We disconnected most of the piloting controls when we saw the cause was lost. The pirates, unable to understand their workings, destroyed much as well."
+
+[Log Entry 41]
+Oiler and Neo's Plans
+
+One NEO agent was killed aboard the battler, probably by Mercurian delegates. We don't know what she revealed before dying, but they haven't gotten the information off the ship. NEO has been monitoring communications and we have heard nothing suspicious -- yet.
+
+The murdered agent was a link in the Matrix supply chain. She knew that the last vital shipment from Earth leaves soon after the Deimos arrives at Mars. These agents can intercept the supply. NEO must delay the Deimos. Once we dock, half the crew gets shore leave. We can't possibly track over 800 people on Mars.
+
+We plan to sabotage the Deimos with explosives. We're setting them all over the ship, but extra hands are certainly welcome. The devices will detonate after a key number of explosives are in place, so don't linger once it's set.
+
+[Log Entry 42]
+The Survivor's Story
+
+"We were on routine patrol in Martian orbit, opposite side of the sun. Picked up an unknown asteroid... had a strange composition. Sensors said organic... like coral. Then that thing... that shark emerged from a recess. It chewed up the other two ships of our patrol. Captain took off, but it caught us. Glad you could kill it... Didn't know its sensory systems were so vulnerable."
+
+He shudders and stops breathing.
+
+[Log Entry 43]
+Over The Intercom
+
+"Code XA. All prison personnel to the Secure Room. RAM Main has been alerted. Code XA. Doors sealed in three minutes. RAM Main has authorized opening of the arms lockers. Code XA. RAM Main advises that if we cannot squash the riot, they will destroy the base."
+
+[Log Entry 44]
+Injured Ship
+
+"The pirates, in their ignorance, damaged the ship's controls. They now must use sonic stunners to spur the ship on. We tried to repair the Stormrider's equipment, but it is beyond our abilities. Maybe the ship would be more responsive if you healed some of the damaged tissues."
+
+[Log Entry 45]
+Carver's Speech
+
+"Good thing you came to me. That asteroid is protected by space sharks, best thing to come out of the Amalthean labs. So good in fact, that Dr. Taylor went independent. Sold out to some organization. They lifted him and his genetic materials from under the Amaltheans' noses. I was with him, but had a falling out. That assassin you aced was sent by the organization.
+
+"To get to the asteroid you need this neutral scent canister. Detonate it around your ship as you approach the asteroid. All ships constantly leak fluids and metal flakes into space. The sharks pick up on them and track down the ship. The neutral scent masks all that. To the shark you're just a bit of harmless and tasteless debris. Move fast, the stuff won't last long."
+
+[Log Entry 46]
+Dr. Coldor's Speech
+
+"Now I'm glad I didn't tell that cybernetic monster about my new invention. I call this the hummer. These mutated plants recoil from its sounds. Unluckily, after a few uses it tends to short out. Only one other exists. It is in the first lab along the main corridor."
+
+She turns to a computer terminal. "The mutagen turns common plants into these walking hulks. The cyborg released the mutagen in the first part of the labs, and is preparing to launch my ship -- along with the new herbicide, the mutagen and my Matrix research. I am releasing the mutagen into that area so that his troops will have to fight them as well."
+
+She turns back to you. "I am going to make my way through the air system to the ship. Take the main corridors, pick up the hummer and get to the ship before it launches. If we all try to take the air shafts, he will be long gone."
+
+[Log Entry 47]
+The Stormrider Natbakka
+
+"My name is Natbakka. Thank you for rescuing me. I was an ambassador to the Amaltheans, but they seized me and sold me to RAM, telling them that I knew things about Stormrider genetics research. I do not! My studies have been in... ah,... power systems. I must return to Jupiter, but in the meantime I will help you any way I can."
+
+[Log Entry 48]
+Buck's Story
+
+"Your ship returned to Salvation, empty. All our ships are programmed to return if the crew is hurt or missing. Anyway, we saw it had been rigged to simulate a radiation leak, and figured you were adrift in space somewhere. Or captured. I grabbed a ship and went looking, and found your escape pod. But it was filled with Terrines and knockout gas! Now here we are."
+
+[Log Entry 49]
+The Trap Laid
+
+You watch as the sharks circle the remains of the freighter, Jonas Decker. First one shark noses it, then another. Soon, they line up for the kill. As the first clamps its jaws around the freighter, you detonate the toxin device. The black cloud expands rapidly in the vacuum. All of the sharks were too close and go into convulsions. After several minutes, the corpses are still. Buck pats you on the shoulder. 'Brilliant plan. Worked beautifully. I used to barbecue a great shark steak. Anyone hungry?'
+
+[Log Entry 50]
+Progress Report On Plant Mutagen
+
+The mutagen is proving highly viable. Nearly all species show rapid growth and become ambulatory. We are still perfecting the herbicide. The current stuff is unstable, so we would be unable to deliver it to the NEO sites on Earth.
+
+Without the herbicide, NEO will be unable to protect their bases, or become heroes by rescuing other settlements. That cyborg proves to me that NEO can be realistic, despite their idealistic propaganda. I have never met someone so willing to sacrifice people to achieve a goal. Sometimes he scares even me.
+
+[Log Entry 51]
+A Disturbing Message
+
+"We need you to return to Salvation at your earliest available time. The Maelstrom Rider is one of the few ships we have access to that can be adapted for this mission.
+
+"As you may know, dark matter makes up most of the mass of the universe, holding it together. It is nearly undetectable and has adverse effects on ship's engines. One of our scouts reports the appearance of a dark matter cloud along one of our clandestine shipping routes. This coincides with the disappearance of one of our freighters. It was commanded by Wilma Deering and carried a cure for the blood fever. This fever is decimating our outpost near Thule.
+
+"We can adapt your engines to survive entry into the cloud. Rescue Wilma Deering and transport the cure to the base."
+
+[Log Entry 52]
+Descent into the Cloud
+
+The blackness spreads before you, blotting out the stars. As the ship eases into the dark matter, a shudder races through the ship. The engine noise fades to near silence, but quickly reestablishes a normal hum.
+
+Scot reports, "Long-range scanners are down. Active vision is useless beyond a hundred miles. If Wilma's in here, we'll need luck to stumble upon her."
+
+Suddenly, a huge flash lights up a section of the cloud, which roils as if hit by a sudden breeze.
+
+Scot continues, "It appears that Wilma has found a way to signal us. Head for that flash!"
+
+[Log Entry 53]
+On the Flying Platform
+
+The mining platform is a flying wing, relying on the massive winds of Jupiter's lower atmosphere to stay aloft. To mine heavy gases, the platform lowers an aircar deeper into the atmosphere, which pumps gas up through a long tube. All Stormrider workers left the platform due to the war; the platform boss operates with robot teams.
+
+Nikita appears unsure of why you're here. "No RAM ships can penetrate this low into the atmosphere, and I can always switch my robots to defense duty. Why don't you take a tour of the ship? Be careful of the winds on the rear shuttle decks! We have a safety net at the tail, but don't rely on that to save you. When you're done, report to Leander and Makali at the aircar hatch. They're preparing to lower the Matrix Device into Jupiter's atmosphere to ignite the Matrix Crucible."
+
+[Log Entry 54]
+The Captain Speaks
+
+Reaching up to his chromed throat, the captain clicks on his voice box. A mechanical rasping echoes through the chamber. "Welcome to the Shadow Master. As you have no doubt realized, the dark matter cloud is controlled by this ship. Our initial tests have been very successful. Already we have captured two NEO vessels. We will sell you to RAM, once we have recaptured that sneaky Captain Deering. She activated our signalling device and brought you here.
+
+"This ship is based on an octopus design. Dr. Taylor, an escapee from Amalthea, provided a method for us to extrude dark matter, rather than ink. Dr. Taylor is a very busy man. If you had any conception of how many advances he has provided our cabal, you would surrender the Earth to us now."
+
+The captain seems to lose interest in you. He turns and clicks off the voice box.
+
+[Log Entry 55]
+Propaganda Brochure
+
+Q. WHAT is the greatest THREAT to mankind?
+
+A. GENETIC MONSTERS!
+
+If you BELIEVE that GENETIC SCIENCE has been a boon to humanity, you ARE WRONG!
+
+LOOK around, friend! Genetic MONSTERS have taken over! They were made to serve us... but instead HAVE BECOME OUR MASTERS! We of PURGE are DEDICATED to ridding the Earth of the EVIL of GENETIC RESEARCH! Join us as we FIGHT TO SAVE HUMANITY FOR THE HUMANS!
+
+PURGE--Prevention of Unwanted Research and Genetic Engineering
+
+[Log Entry 56]
+Makali's Plan
+
+"I've been considering flying up to the Living Ship. I know exactly where there's a hatch leading to the brain. If I could get to the brain for a few minutes, I could free the Ship from RAM control, and it might fly away. But there are probably guards in the brain that I cannot hope to fight.
+
+"The RAM assassins used these heavy-duty jetpacks to reach us down here. The fuel tanks are nearly empty, but I combined all the leftover fuel into this one pack. There's enough to get one person to the Living Ship and back -- I think. If someone will come with me, we can try to get rid of RAM once and for all."
+
+[Log Entry 57]
+Wilma Speaks Through the Air Shaft
+
+"Your ship is held in the third tentacle, mine in the sixth. I'll give our chrome-plated captain something to worry about up in the cranium. You rescue the antidote from my ship. Then set up a delayed explosion. That ship will never fly again after its exposure to dark matter. We'll meet at your ship and launch. With any luck the explosion will destroy the octopus and dissipate the cloud. Wish me luck!"
+
+[Log Entry 58]
+The Hanger at Mariposa #301
+
+You are nearly blinded by the scintillating lights coming from the huge room ahead. Chains are strung from floor to ceiling. Clustered along their link, like pearls on a strand, are beautiful translucent crystals. Under the intense Mercurian sun, the crystals diffract the light into a million different colors. As your eyes adjust, you note tiny robots travelling along each chain. They pause at each crystal cluster and spray an ocher gas. The crystal dims for a moment, but then returns to brilliance... and shines a little stronger than before.
+
+[Log Entry 59]
+Message to Patrol Leader
+
+Lieutenant Djahar,
+
+Radio silence directive remains effective during operation. Attempts to locate gravitational specialist through data searches continues with negative success. Suspect digital personality interference. Begin land sweeps to locate target. Suspect specialist is human and sheltered by indigents.
+
+Yellow patrol reports PURGE activity in their sector. Report further activity using closed communication.
+
+Caution: Political situation delicate. Terminate target using covert elimination protocol.
+
+Command, Mariposa Sunspot
+
+[Log Entry 60]
+The Crystal Cyborg Speaks
+
+"We located Dr. Taylor's asteroid on a collision course with the sun. I rendezvoused and managed to extricate the doctor. The high-G acceleration caused me to lose my balance on the way out. My suit tore and I was exposed to the full radiation of the sun. Only my brain was protected in the suit's helmet.
+
+"Dr. Taylor is genius. When he found that we were growing the energy crystals here at #301, he said that he could save my life. He did more than that! I am now immortal! Explosives bounce off my diamond hard skin. Lasers I can absorb and re-emit at a hundred times strength. You are doomed!"
+
+[Log Entry 61]
+Lab Director's Story
+
+"That cyborg is like Rassputin... he refusses to die! We were cleaning up in your battle'ss aftermath, when ssuddenly he revived, apparently from the grave.
+
+"He took me hosstage. Ssomehow, he managed to get uss out of the labss... then thingss got worsse.
+
+"He drugged me with a truth sserum! I'm afraid that I've told him about our ressearch! He took my recordss. I think it only ssafe to asssume that PURGE knowss everything conccerning our work in gravitational mechanics!"
+
+[Log Entry 62]
+Mario Quinn's Diabtribe
+
+"Welcome, invaders. I am Mario Quinn, the CEO of Genetics Foundation. I wanted to thank you for bringing the wasphoppers to me. We've heard of them, of course, but I'm glad to get my hands on them. I'm sure we can profit from them.
+
+"You are in league with the Stormriders. Your possession of the grubs is irrefutable evidence of your guilt.
+
+"I admonish you for getting involved in the silly little plottings of those Stormriders! They are such simple creatures, incapable of the subtlety necessary to challenge us. I could release you, but RAM would frown on that. I'll just have to hold you until arrangements can be made for sending you on to Mars."
+
+[Log Entry 63]
+Security Computer Printout
+
+# picture: (map; key: Hydraulic Door, Door, Security Breach, Wall, Impassable)
+<LOG63A.PNG>
+
+KEY
+
+Hydraulic Door
+
+Door
+
+Security Breach
+
+Wall
+
+Impassable
+
+[Log Entry 64]
+A Death Aboard The Lucas
+
+The figure floating in your stateroom is rigid, as if dead for some time. No sign of violence shows on the body. The only thing of note is the wide-eyed expression of terror.
+
+The captain speaks from behind you. "This ship carries few passengers and I have met them all. This man was not one of them. I do not know how he got on board."
+
+[Log Entry 65]
+The Medical Officer's Journal
+
+"Body of an unknown male human. No external signs of the cause of death. Unusual rigor of the face may indicate poison or heart attack. Removing shirt now. Something seems to be wrapped around the subject's torso... Wait! It's moving! It's -- AAAAHHHH!!!"
+
+A dull wet sound ends the tape.
+
+[Log Entry 66]
+Dr. Romney's Rescue
+
+"I am ruined! My work has fallen into the hands of evil! PURGE knows everything... or so I fear. So much of the recent past has been a blur.
+
+"They took me from Mercury. I know that much... but little beyond. I was in a ship and then a cell. They questioned me endlessly. I... I think they used truth serum.
+
+"Now their leader--the so called 'Lord' Refuge--has gone off. He plans to build a Matrix Device and use it for his depraved new world order! We must stop him. He is mad, mad!"
+
+[Log Entry 67]
+Police Raid
+
+The three conspirators promptly begin to protest as the police level their guns. Lt. Jenner waves the evidence before them and they fall silent. Lt. Jenner smiles as the conspirators are handcuffed and led away.
+
+He turns to you. "Excellent work! I should be sending units into Tsai Weaponry, but I'll delay until you have a chance to get Dr. Coldor out. Then you will be escorted back to your ship and off Luna. If you were to stay longer, Koi or McKay could whip up public support. Lunarians do not approve of outworlders and their violence."
+
+He then returns to clearing up the scene.
+
+[Log Entry 68]
+Into the Pit
+
+"Let me explain. Telos believes in the purity of physical challenge. He built these tunnels with some of the billions of credits he gained through his endeavors. He populated it with young children 15 years ago. They were taught only one thing, to fight!
+
+"Pass through these tunnels, survive, and Telos will meet you. Only then will your equipment be returned."
+
+[Log Entry 69]
+Newporg Passcard
+
+# picture: (passcard)
+<LOG69A.PNG>
+
+NEWPORG ARCOLOGY VISITORS PASS
+
+Guest of: RED CARRIN
+
+TOWER ISLE RESIDENTIAL HALL
+
+ROOM 5403
+
+[Log Entry 70]
+The Theorist Explains
+
+"Thank you for the timely rescue. I had resisted the idea, but I see now that my work requires military support. Everything is moving too quickly. I have designed a device named Matrix, which could save the solar system from its own self-destructive ways.
+
+"But like so much that is good, it could be used for great evil as well. At all costs, we must prevent this knowledge from falling into the wrong hands."
+
+[Log Entry 71]
+Dr. Coldor's Computer File
+
+That cyborg is very ambitious. He sees a perfect new Earth following the completion of our projects. The plant mutagen will give the Earth a common enemy. With NEO's monopoly on the herbicide everyone will quit bickering and unite under NEO's banner. Then the unlimited power of the Matrix Device can be used to return Earth to the utopia it once was.
+
+I am impressed with the array of scientific information brought to bear on the Matrix Device. I am somewhat sad that I have nearly completed my part.
+
+[Log Entry 72]
+Telos Speaks
+
+"Yes, I provided PURGE with the equipment for their Matrix Device. Their money is more forthcoming than NEO's. They also have a hard edge which I appreciate.
+
+"Your success in my tunnels has earned my respect. I have fed the coordinates where I delivered the equipment to your computer. Do what you will. I do not care who creates the Matrix Device. I will adapt or die, in the natural way."
+
+[Log Entry 73]
+Note on the Door
+
+# picture: (typed note; second line struck through, third line handwritten)
+<LOG73A.PNG>
+
+If you're looking for Red, I'm at
+
+the Sparkhouse Cafe on the 85th floor.
+
+Smoking Gun Slots on the 13th floor.
+
+[Log Entry 74]
+Makali Explains
+
+"You're here to convince me to return to the Matrix Project. Let me explain why I will not.
+
+"Since the first Stormrider rose from the grow tanks of the Genetics Foundation, we have been slaves. The Foundation ruled us for generations... but no longer! Slowly we have built the strength to break their power. This school is key to our plans. The Foundation built it for vocational training, but we slowly converted it into a university!
+
+"The Foundation recently learned of this. They plan to attack. The struggle for our freedom has begun and I must lend my hand!"

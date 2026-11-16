@@ -15,8 +15,8 @@ import (
 func TestImportBREngineFolderBR2(t *testing.T) {
 	checkEngineFolder(t, "br2", BR2EXE)
 	tb, err := adventure.ReadGameTables(brEngineFolder(t, "br2", BR2EXE))
-	if err != nil || tb.Logbook != nil {
-		t.Error("br2's logbook is open (no journal to copy yet):", tb.Logbook, err)
+	if err != nil || tb.Logbook == nil {
+		t.Error("br2's logbook:", tb.Logbook, err)
 	}
 	if len(tb.PictureSets) != 6 || tb.Art.Title != "TITLE" {
 		t.Errorf("br2 game tables: %+v", tb)
