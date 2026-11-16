@@ -137,13 +137,19 @@ func (r *Rules) occupant(b rules.Board, p rules.BoardPos) (rules.CharID, bool) {
 // covers moved one step dir, another combatant there, the costliest terrain
 // (0 when any cell is off the board) and whether one is gas.
 func (r *Rules) probeDirection(b rules.Board, id rules.CharID, dir int) (blocked bool, terrain rules.TerrainID, harmful bool) {
-	terrain = 23
-	best := 1
 	i := slices.IndexFunc(b.Units, func(u rules.BoardUnit) bool { return u.ID == id })
 	if i < 0 {
 		return false, 0, false
 	}
-	for _, c := range cellsOf(b.Units[i]) {
+	return r.probeFrom(b, b.Units[i], dir)
+}
+
+// probeFrom is probeDirection for the unit u (its cells and size) wherever it stands: u.ID's own cells do not block.
+func (r *Rules) probeFrom(b rules.Board, u rules.BoardUnit, dir int) (blocked bool, terrain rules.TerrainID, harmful bool) {
+	id := u.ID
+	terrain = 23
+	best := 1
+	for _, c := range cellsOf(u) {
 		n := c
 		if dir != centerDir { // dirStepX/Y[8] = 0
 			n = c.Add(dirStep[dir])

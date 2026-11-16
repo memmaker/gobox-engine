@@ -201,7 +201,7 @@ func TestRearAttack(t *testing.T) {
 func TestReach(t *testing.T) {
 	r := New()
 	f := rules.Fight{Board: rules.Board{Size: image.Pt(3, 3)}}
-	rs := r.reach(f, rules.BoardPos{}, 4)
+	rs := r.reach(f, rules.NoChar, rules.BoardPos{}, 4)
 	if len(rs) != 5 || pathCost(f.Board, rules.BoardPos{}, rs[1].Path) != 4 {
 		t.Errorf("%+v", rs)
 	}

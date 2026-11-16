@@ -53,7 +53,7 @@ func (r *Rules) allowedFight(f rules.Fight) rules.Allowed {
 	at, _ := unitAt(f, f.Actor)
 	a.Aimed = append(a.Aimed, r.groundAims(f, c, at, a.Aimed)...)
 	if s.movement > 0 {
-		a.Moves = r.reach(f, at, s.movement)
+		a.Moves = r.reach(f, f.Actor, at, s.movement)
 	}
 	if c.Skills.Level(intimidateSkill) > 0 && c.Status != StDodging && c.Status != StFailedZeroG &&
 		len(r.targetList(f, f.Actor, c, 1, false)) > 0 {
@@ -184,11 +184,11 @@ func (r *Rules) resolveAction(f rules.Fight, act rules.Action, rng *rules.RNG) (
 		return r.attack(f, f.Actor, act.Target, rng)
 	case rules.Move: // MoveMenu, CombatMoveCreature per step
 		at, _ := unitAt(f, f.Actor)
-		i := slices.IndexFunc(r.reach(f, at, s.movement), func(x rules.Reach) bool { return x.At == act.To })
+		i := slices.IndexFunc(r.reach(f, f.Actor, at, s.movement), func(x rules.Reach) bool { return x.At == act.To })
 		if i < 0 {
 			return rules.Outcome{}, fmt.Errorf("Move %d to %v: not reachable with the movement left", f.Actor, act.To)
 		}
-		return r.walk(f, f.Actor, c, s, at, r.reach(f, at, s.movement)[i].Path, rng)
+		return r.walk(f, f.Actor, c, s, at, r.reach(f, f.Actor, at, s.movement)[i].Path, rng)
 	case rules.Quick: // Combat.TurnOnAuto: the actor (All: every party member in play) goes to quick-fight, the computer steering
 		ids := []rules.CharID{f.Actor}
 		if act.All {

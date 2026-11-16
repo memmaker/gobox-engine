@@ -27,19 +27,22 @@ import (
 // br1SweepKnown are the findings still open: Pattern is matched against "message @ top frame".
 // The test fails on a finding no pattern matches and on a pattern no finding matches.
 var br1SweepKnown = []struct{ Pattern, Why string }{
-	{`^fact rules.FlightFact: Fact 0: no character`, "open, owner presentation (vw1): the engine's missileArt is the Pool games' art; BR1's AnimateMissile (cbtacts.pas) has its own, rulesxxvc answers no FlightFact"},
+	{`^fact rules.UnitFact: fight fact: no such character`, "sw1: under analysis"},
+	{`^sweep: a script ran # instructions on one action without asking \(block #\)`, "sw1: under analysis (block 50, replay 50 0 0 6 12139958)"},
+	{`^the scripts of block # loop without asking`, "sw1: under analysis (block 17)"},
+	{`^fact rules.FlightFact: Fact #: no character`, "open, owner presentation (vw1): the engine's missileArt is the Pool games' art; BR1's AnimateMissile (cbtacts.pas) has its own, rulesxxvc answers no FlightFact"},
 	{`^rules: rules.AddLoot: .*not ported yet`, "sw1: BR's TreasureOf(credits, count, items) goes through the Pool handler (4 fixed operands, platinum/gems/jewelry), and rulesxxvc answers no AddLoot"},
 	{`^rules: rules.GainExperience: .*not ported yet`, "sw1: BR's GainExperience (eclvm.pas EclAwardExperience), rulesxxvc answers no GainExperience"},
-	{`^ecl: view kind 2 not ported`, "vw1: the rocket's view (AreaKind view kind 2)"},
-	{`^ecl: opcode 4B .* not ported`, "sh1: the Shop command"},
-	{`^computer turn: Move .*not reachable with the movement left`, "sw1: a computer-turn move the ruleset offered and then refused"},
+	{`^ecl: view kind # not ported`, "vw1: the rocket's view (AreaKind view kind 2)"},
+	{`^ecl: opcode #B on line # not ported`, "sh1: the Shop command"},
 	{`^LOG: script: area \d+: T_\w+\[\d+\] is past the field's \d+ entries`, "none: the entry skips the story, so the index variable (Word4C61 ...) holds 0 and the table is read past its end as the original does (engine log, TableFaults)"},
 }
 
 const (
-	sweepEntriesN = 12  // entry squares per block (heavy: x6)
-	sweepSteps    = 400 // actions per walk
-	sweepSeed     = 0x5eed
+	sweepEntriesN          = 12  // entry squares per block (heavy: x6)
+	sweepSteps             = 400 // actions per walk
+	sweepInstructionBudget = 200000
+	sweepSeed              = 0x5eed
 )
 
 // sweepSpec is one walk, enough to replay it: br1SweepWalk(t, adv, spec, nil).
@@ -81,13 +84,17 @@ func br1SweepWalk(t testing.TB, adv string, sp sweepSpec, hit map[int]map[int]bo
 					f.Frames += strings.TrimSpace(frame) + " " + strings.TrimSpace(lines[i+1]) + "\n"
 				}
 			}
-			f.Key = msg + " @ " + top
+			f.Key = sweepDigits.ReplaceAllString(msg, "#") + " @ " + top
 		}
 	}()
 	e := br1BeginOn(t, br1EngineIn(t, adv))
+	ran := 0 // instructions since the last action: a script that never asks again is a finding, not a hang
 	e.vm.Trace = func(vm *ecl.VM, n int) {
 		if vm.Script == nil {
 			return
+		}
+		if ran++; ran > sweepInstructionBudget {
+			panic(fmt.Sprintf("sweep: a script ran %d instructions on one action without asking (block %d)", sweepInstructionBudget, vm.Script.Area))
 		}
 		if hit[vm.Script.Area] == nil {
 			hit[vm.Script.Area] = map[int]bool{}
@@ -108,6 +115,7 @@ func br1SweepWalk(t testing.TB, adv string, sp sweepSpec, hit map[int]map[int]bo
 			e.Step()
 			continue
 		}
+		ran = 0
 		actions = append(actions, a.label)
 		if err := a.run(e); err != nil { // a refusal is the state saying no: the walk goes on
 			actions[len(actions)-1] += " !" + err.Error()
@@ -142,6 +150,9 @@ func sweepWaits(s game.State) bool {
 	}
 	return false
 }
+
+// sweepDigits makes findings that differ in a number only one group.
+var sweepDigits = regexp.MustCompile(`\d+`)
 
 var sweepTexts = []string{"A", "BUCK", "12", "0", "999"}
 
@@ -273,7 +284,7 @@ func TestBR1Sweep(t *testing.T) {
 	for _, block := range br1Blocks {
 		for _, at := range sweepEntries(t, adv, block, entries, rng) {
 			for range walks {
-				sp := sweepSpec{Block: block, X: at[0], Y: at[1], Facing: rng.N(4) * 2, Seed: uint32(rng.N(1<<30)) + 1}
+				sp := sweepSpec{Block: block, X: at[0], Y: at[1], Facing: rng.N(4) * 2, Seed: uint32(rng.N(60000))<<8 | uint32(rng.N(250)) + 1}
 				if f := br1SweepWalk(t, adv, sp, hit); f != nil {
 					groups[f.Key] = append(groups[f.Key], f)
 				}
@@ -341,3 +352,20 @@ func sortedInts(m map[int]bool) []int {
 }
 
 var _ = strconv.Itoa
+
+// TestBR1SweepReplay replays one recorded walk: GOBOX_SWEEP_REPLAY="block x y facing seed" (the finding's first: line).
+// It fails with the panic a walk recorded, so a fix is proven by the same line passing.
+func TestBR1SweepReplay(t *testing.T) {
+	var sp sweepSpec
+	if n, _ := fmt.Sscan(os.Getenv("GOBOX_SWEEP_REPLAY"), &sp.Block, &sp.X, &sp.Y, &sp.Facing, &sp.Seed); n != 5 {
+		t.Skip("GOBOX_SWEEP_REPLAY not set")
+	}
+	t.Setenv("GOBOX_NOSOUND", "1")
+	adv := t.TempDir()
+	if err := importer.ImportBREngine("br1", importer.BR1EXE, filepath.Join("..", "data", "br1", "sources", "dos"), adv); err != nil {
+		t.Fatal(err)
+	}
+	if f := br1SweepWalk(t, adv, sp, map[int]map[int]bool{}); f != nil {
+		t.Fatalf("%s\n%q\n%s", f.Key, f.Actions, f.Frames)
+	}
+}

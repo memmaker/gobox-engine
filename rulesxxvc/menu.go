@@ -18,8 +18,14 @@ var (
 
 // reach is MoveMenu's walkable squares: every free square the movement left
 // pays for, the terrain's cost times 3 on a diagonal, times 2 straight
-// (CombatMoveCreature), with the cheapest path.
-func (r *Rules) reach(f rules.Fight, from rules.BoardPos, movement int) []rules.Reach {
+// (CombatMoveCreature), with the cheapest path. Each step is ProbeDirection's over every cell id's icon covers
+// (a big unit's own cells do not block it; the costliest terrain under it is the step's); id not on the board
+// is one cell.
+func (r *Rules) reach(f rules.Fight, id rules.CharID, from rules.BoardPos, movement int) []rules.Reach {
+	unit := rules.BoardUnit{ID: id, Size: 1}
+	if i := slices.IndexFunc(f.Board.Units, func(u rules.BoardUnit) bool { return u.ID == id }); i >= 0 {
+		unit = f.Board.Units[i]
+	}
 	type node struct {
 		cost int
 		path []rules.BoardPos
@@ -32,10 +38,12 @@ func (r *Rules) reach(f rules.Fight, from rules.BoardPos, movement int) []rules.
 			n := best[p]
 			for dir, d := range dirStep {
 				to := p.Add(d)
-				if !r.free(f, to) {
+				unit.At = p
+				blocked, t, _ := r.probeFrom(f.Board, unit, dir)
+				if blocked || t == 0 || terrainRow(t).cost == impassable {
 					continue
 				}
-				cost := n.cost + stepCost(dir, terrainAt(f.Board, to))
+				cost := n.cost + stepCost(dir, t)
 				if cost > movement {
 					continue
 				}

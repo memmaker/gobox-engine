@@ -2,6 +2,7 @@ package rulesxxvc
 
 import (
 	"image"
+	"slices"
 	"testing"
 
 	"gobox/rules"
@@ -57,11 +58,11 @@ func TestWalkLine(t *testing.T) {
 func TestReachTerrain(t *testing.T) {
 	r := New()
 	f := rules.Fight{Board: board(3, 1, openTerrain, map[rules.BoardPos]rules.TerrainID{{X: 1, Y: 0}: roughTerrain})}
-	if rs := r.reach(f, rules.BoardPos{}, 4); len(rs) != 1 || rs[0].At != (rules.BoardPos{X: 1}) {
+	if rs := r.reach(f, rules.NoChar, rules.BoardPos{}, 4); len(rs) != 1 || rs[0].At != (rules.BoardPos{X: 1}) {
 		t.Fatalf("%+v", rs)
 	}
 	f.Board.Terrain[1] = wallTerrain
-	if rs := r.reach(f, rules.BoardPos{}, 9); len(rs) != 0 {
+	if rs := r.reach(f, rules.NoChar, rules.BoardPos{}, 9); len(rs) != 0 {
 		t.Fatalf("%+v", rs)
 	}
 }
@@ -112,5 +113,22 @@ func TestGuardersAttack(t *testing.T) {
 	}
 	if attacked == 0 {
 		t.Fatalf("%+v", o.Effects)
+	}
+}
+
+// A two-cell icon (size 3: cell and its east neighbour) steps east onto its own second cell, as ProbeDirection lets it
+// (the unit's own cells do not block) and needs the square beyond: from x=0 it reaches x=1 and x=2 (the sweep's
+// "Move ... not reachable" for a big monster).
+func TestReachBigUnitOwnCells(t *testing.T) {
+	r := New()
+	id := r.Add(Character{Name: "big", Enabled: true, Status: StOkay})
+	f := rules.Fight{Board: board(4, 1, openTerrain, nil)}
+	f.Board.Units = []rules.BoardUnit{{ID: id, At: rules.BoardPos{}, Size: 3}}
+	var got []int
+	for _, x := range r.reach(f, id, rules.BoardPos{}, 99) {
+		got = append(got, x.At.X)
+	}
+	if !slices.Equal(got, []int{1, 2}) {
+		t.Errorf("reach %v, want 1 2 (x=3 would put the second cell off the board)", got)
 	}
 }
