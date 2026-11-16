@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"slices"
 
 	"gobox/ecl"
@@ -11,6 +12,9 @@ func init() {
 	eclOps[ecl.OpWallDist] = (*Engine).opWallDistance
 	eclOps[ecl.OpSkill] = (*Engine).opSkill
 	eclOps[ecl.OpSkillShow] = (*Engine).opSkill
+	eclOps[ecl.OpTakeItem] = (*Engine).opTakeItem
+	eclOps[ecl.OpStash] = (*Engine).opStash
+	eclOps[ecl.OpSkillDamage] = (*Engine).opSkillDamage
 }
 
 // opWallDistance = BR eclvm.pas EclDistanceAhead (result, direction 0..3): the squares from the party's
@@ -55,4 +59,63 @@ func (e *Engine) opSkill() {
 		e.scriptText(true, a.Text)
 		e.askPause(skillReportPauses*int(e.msgDelay)*messageDelayUnit, askDone{})
 	}
+}
+
+// destroy item operand: +128 takes one, the low seven bits the item type (EclDestroyItems' highBit).
+const (
+	takeOne      = 128
+	takeTypeMask = 127
+)
+
+// opTakeItem = BR eclvm.pas EclDestroyItems (whole party, type): the items of the type go from the selected
+// member or from everyone; with +128 only one of each member's (a stack loses one). BR's own: the
+// Pool's DestroyItems takes the whole party's, none by member.
+func (e *Engine) opTakeItem() {
+	e.vm.ReadArgs(2)
+	whole := byte(e.vm.Arg(1, e.host)) != 0
+	v := byte(e.vm.Arg(2, e.host))
+	id, err := e.itemID(int(v & takeTypeMask))
+	if err != nil { // a type without an id: no one carries it
+		return
+	}
+	e.do(rules.TakeItems{Whom: e.whom(whole), Item: id, OneEach: v&takeOne != 0})
+}
+
+// whom is the party, or the selected member alone (none in an empty party).
+func (e *Engine) whom(party bool) rules.Party {
+	switch {
+	case party:
+		return e.partyIDs()
+	case e.partySize() > 0:
+		return rules.Party{e.selected()}
+	}
+	return nil
+}
+
+// opStash = BR eclvm.pas EclTransferCharacterLists (0 away, else back): every member's items go onto its
+// second list (put away) or come back from it.
+func (e *Engine) opStash() {
+	e.vm.ReadArgs(1)
+	e.do(rules.StashItems{Whom: e.partyIDs(), Away: e.vm.Arg(1, e.host) == 0})
+}
+
+// opSkillDamage = BR eclvm.pas EclSkillDamage (skill, whole party, difficulty, dice, sides, bonus): each of the
+// selected member or everyone who fails the skill roll takes the damage. The original ends the script after
+// the one member of a single roll (its isEclStopped := wholeParty = 0).
+func (e *Engine) opSkillDamage() {
+	e.vm.ReadArgs(6)
+	whole := byte(e.vm.Arg(2, e.host)) != 0
+	o, err := e.ruleset().Resolve(rules.Scripted{Party: e.partyIDs()}, rules.SkillDamage{
+		Whom: e.whom(whole), Skill: rules.ScriptSkill(byte(e.vm.Arg(1, e.host))), Hardness: rules.Hardness(byte(e.vm.Arg(3, e.host))),
+		Dice: int32(byte(e.vm.Arg(4, e.host))), Sides: int32(byte(e.vm.Arg(5, e.host))), Bonus: int32(byte(e.vm.Arg(6, e.host))),
+	}, nil)
+	if err != nil {
+		panic(fmt.Sprintf("script: SkillDamage: %v", err))
+	}
+	for _, f := range o.Effects {
+		if h, ok := f.(rules.Hurt); ok {
+			e.HitMessage(h)
+		}
+	}
+	e.vm.Stop = !whole
 }

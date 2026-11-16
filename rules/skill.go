@@ -21,3 +21,15 @@ const (
 	Made
 	MadeWell // by half the value or more
 )
+
+// SkillDamage is BR's SkillDamage (eclvm.pas EclSkillDamage): each of Whom rolls Skill (one candidate
+// each, as SkillRoll's) and each who fails takes Dice d Sides + Bonus, rolled anew for each, in a
+// Byte. The Outcome has a Hurt per member hit; a member who is not okay is spared.
+type SkillDamage struct {
+	Whom               Party
+	Skill              ScriptSkill
+	Hardness           Hardness
+	Dice, Sides, Bonus int32
+}
+
+func (SkillDamage) action() {}

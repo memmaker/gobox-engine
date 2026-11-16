@@ -151,6 +151,9 @@ var notAnswered = map[string]bool{
 	"TakeMoney":     true,
 	"SetCredits":    true,
 	"SkillRoll":     true,
+	"SkillDamage":   true,
+	"StashItems":    true,
+	"TakeItems":     true,
 	"KnownFact":     true,
 	"MemoFact":      true,
 }

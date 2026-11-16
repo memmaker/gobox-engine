@@ -76,6 +76,7 @@ type Behaviour struct {
 	// pO0D2_2F14 case 57, buckrogers-go opPickMember: noChar = false); the Pool's Who leaves it (cotab eclvm.pas EclWho does not touch characterNotFound)
 	WhoEndsNoMember bool
 	NPCSideBit      bool // AddNPC writes the side bit alone, the hostile one for monster 0x18 (por ovr04:2B7E); BR's EclAddNpc leaves the side as the record has it
+	HitPadded       bool // a script's damage message pads the number to three columns (the Pool's Str(dmg:3)); BR's EclInflictDamage does not
 	FarSight        bool // the squares ahead counted before a wall run to 5 (BR eclmenu.pas MaxMonsterDist); otherwise to 2 (the Pool's ovr08:0482)
 	ClearExitText   bool // ClearExit empties the text pane too (BR pO035_2DCC case 66, 2837); otherwise only the view comes back (pod O040:24AE)
 	PictureAnimates bool // Picture marks the view drawn, so a wait under it cycles the picture's frames (cotab's and sotsb's b8B7D, pod's alike); otherwise only a step or Picture(255) does (POR's picDrawn, eclvm.pas:371, 1874)
@@ -185,7 +186,7 @@ var V1 = func() *Version {
 		Calls: map[uint16]CallFn{0x2C90: CallRedrawView, 0x8000: CallDuelWin, 0x8001: CallDuelLose, 0xBA03: CallDuelSound,
 			0xC01E: CallStepForward, 0xC018: CallWallAhead},
 		Programs:  map[byte]ProgramFn{0: ProgramPartyMenu, 8: ProgramEnding, 9: ProgramCamp},
-		Behaviour: Behaviour{NPCSideBit: true, SelectMemberDrop: true, NoMonsterCombat: []CombatScreen{CombatShop, CombatTemple}}}
+		Behaviour: Behaviour{HitPadded: true, NPCSideBit: true, SelectMemberDrop: true, NoMonsterCombat: []CombatScreen{CombatShop, CombatTemple}}}
 }()
 
 // set makes byte-code command b the canonical command op with these operands.
@@ -247,7 +248,7 @@ var V3 = func() *Version {
 	// pod renumbered its routines (O040:1E4A)
 	return &Version{ID: 3, Base: 32768, Cmds: t, Skip: skip, Calls: map[uint16]CallFn{1: CallRedrawView, 2: CallStepForward, 3: CallNextFrame},
 		Programs:  map[byte]ProgramFn{0: ProgramPartyMenu, 1: ProgramSaveQuit, 2: ProgramQuit, 9: ProgramCamp},
-		Behaviour: Behaviour{NPCSideBit: true, SetupMonsterSides: true, OutdoorsNear: true, InputTextOperand: true, NoMonsterCombat: []CombatScreen{CombatVault, CombatTemple}, PictureAnimates: true, SymbolSetFrames: true}}
+		Behaviour: Behaviour{HitPadded: true, NPCSideBit: true, SetupMonsterSides: true, OutdoorsNear: true, InputTextOperand: true, NoMonsterCombat: []CombatScreen{CombatVault, CombatTemple}, PictureAnimates: true, SymbolSetFrames: true}}
 }()
 
 // V4 is the Buck Rogers engine's dialect (Countdown to Doomsday, Matrix Cubed).

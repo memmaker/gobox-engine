@@ -42,6 +42,7 @@ type Character struct {
 	Scale       int           // phase 2's
 	Movement    int
 	Items       []Carried
+	Stashed     []Carried `json:",omitempty"` // the second item list (alternateItems, the .hid file): Stash moves the items there
 
 	// RecalcStats' inputs (TCharacter): the unarmed dice per phase, the
 	// armour class and movement before items, the weapon specializations

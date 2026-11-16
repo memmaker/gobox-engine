@@ -94,3 +94,80 @@ func TestNPCJoinRules(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+// itemRig is two members: a carries a rope stack of 3 (joinable) and a laser pistol; b a rope.
+func itemRig() (*Rules, rules.CharID, rules.CharID) {
+	r := New()
+	r.Begin(rules.Campaign{Tables: xxvc.Tables{
+		ItemTypes: make([]xxvc.ItemType, 30),
+		Items: map[rules.ItemID]xxvc.ItemTemplate{
+			1: {Type: 29, Quantity: 1}, 2: {Type: 9, Quantity: 1}, 3: {Type: 29, Quantity: 1, NotJoinable: true},
+		}}}, rules.Options{})
+	a, b := r.Add(member("a", 10, 0, 0, 0)), r.Add(member("b", 10, 0, 0, 0))
+	r.chars[a].Items = []Carried{{Slot: 1, Ref: rules.ItemRef{ID: 1, Count: 3}}, {Slot: 2, Ref: rules.ItemRef{ID: 2, Count: 1}}}
+	r.chars[b].Items = []Carried{{Slot: 1, Ref: rules.ItemRef{ID: 3, Count: 2}}}
+	return r, a, b
+}
+
+// EclDestroyItems: all of the kind go; with the high bit one each: a joinable stack loses one, anything else goes whole.
+func TestTakeItems(t *testing.T) {
+	r, a, b := itemRig()
+	if _, err := r.Resolve(nil, rules.TakeItems{Whom: rules.Party{a, b}, Item: xxvc.ItemIDRope, OneEach: true}, nil); err != nil {
+		t.Fatal(err)
+	}
+	if ca := r.chars[a]; len(ca.Items) != 2 || ca.Items[0].Ref.Count != 2 {
+		t.Errorf("a's stack of 3 loses one: %+v", ca.Items)
+	}
+	if len(r.chars[b].Items) != 0 {
+		t.Errorf("b's unjoinable rope goes whole: %+v", r.chars[b].Items)
+	}
+	if _, err := r.Resolve(nil, rules.TakeItems{Whom: rules.Party{a}, Item: xxvc.ItemIDRope}, nil); err != nil {
+		t.Fatal(err)
+	}
+	if ca := r.chars[a]; len(ca.Items) != 1 || ca.Items[0].Ref.ID != 2 {
+		t.Errorf("all the rope goes, the pistol stays: %+v", ca.Items)
+	}
+}
+
+// EclTransferCharacterLists: the source list goes in front of the destination's.
+func TestStashItems(t *testing.T) {
+	r, a, _ := itemRig()
+	c := r.chars[a]
+	c.Stashed = []Carried{{Slot: 9, Ref: rules.ItemRef{ID: 3}}}
+	if _, err := r.Resolve(nil, rules.StashItems{Whom: rules.Party{a}, Away: true}, nil); err != nil {
+		t.Fatal(err)
+	}
+	if len(c.Items) != 0 || len(c.Stashed) != 3 || c.Stashed[0].Ref.ID != 1 || c.Stashed[2].Ref.ID != 3 {
+		t.Fatalf("away: %+v / %+v", c.Items, c.Stashed)
+	}
+	c.Items = []Carried{{Slot: 5, Ref: rules.ItemRef{ID: 2}}}
+	if _, err := r.Resolve(nil, rules.StashItems{Whom: rules.Party{a}}, nil); err != nil {
+		t.Fatal(err)
+	}
+	if len(c.Stashed) != 0 || len(c.Items) != 4 || c.Items[0].Ref.ID != 1 || c.Items[3].Ref.ID != 2 {
+		t.Fatalf("back: %+v / %+v", c.Items, c.Stashed)
+	}
+}
+
+// EclSkillDamage: who fails takes the damage (a Byte) and is reported; "dies" when hit points + 10 do not cover
+// it; a member who is not okay is passed over; who makes the roll is not hurt.
+func TestSkillDamage(t *testing.T) {
+	r := New()
+	weak := member("weak", 10, 0, 0, 0)
+	weak.HP = 3
+	hurt, skilled, down := r.Add(member("hurt", 10, 0, 0, 0)), r.Add(member("skilled", 10, 0, 60, 0)), r.Add(weak)
+	r.chars[hurt].HP, r.chars[skilled].HP = 20, 20
+	r.chars[down].Status = StDying
+	o, err := r.Resolve(nil, rules.SkillDamage{Whom: rules.Party{hurt, skilled, down}, Skill: 13, Hardness: rules.VeryEasy, Dice: 1, Sides: 1, Bonus: 4}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(o.Effects) != 1 || o.Effects[0] != (rules.Hurt{Unit: hurt, Damage: 5}) || r.chars[hurt].HP != 15 || r.chars[skilled].HP != 20 {
+		t.Fatalf("%+v hurt %d skilled %d", o.Effects, r.chars[hurt].HP, r.chars[skilled].HP)
+	}
+	r.chars[down].Status, r.chars[down].Enabled = StOkay, true
+	o, _ = r.Resolve(nil, rules.SkillDamage{Whom: rules.Party{down}, Skill: 13, Hardness: rules.VeryEasy, Dice: 1, Sides: 1, Bonus: 14}, nil)
+	if len(o.Effects) != 1 || !o.Effects[0].(rules.Hurt).Dies || r.chars[down].Status != StComatose {
+		t.Errorf("3 + 10 < 15 (overkill 12: comatose): %+v %v", o.Effects, r.chars[down].Status)
+	}
+}

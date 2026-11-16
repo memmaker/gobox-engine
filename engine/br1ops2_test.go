@@ -128,3 +128,90 @@ func TestBR1NPCJoin(t *testing.T) {
 		t.Error("no monster loaded")
 	}
 }
+
+// br1CarriedType is an item type (1..38) the party carries, and one it does not.
+func br1CarriedType(t *testing.T, e *Engine) (have, lack int) {
+	t.Helper()
+	for n := 1; n <= 38 && (have == 0 || lack == 0); n++ {
+		id, err := e.itemID(n)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if e.ruleset().Check(rules.HasItem{Whom: e.partyIDs(), Item: id}, nil).Yes {
+			have = n
+		} else {
+			lack = n
+		}
+	}
+	if have == 0 || lack == 0 {
+		t.Fatalf("the party carries type %d, lacks %d", have, lack)
+	}
+	return have, lack
+}
+
+// TestBR1TakeItem: TakeItem(whole party, type) takes the items of the type from the selected member (everyone
+// when the first operand is not 0); the +128 form takes one (eclvm.pas EclDestroyItems).
+func TestBR1TakeItem(t *testing.T) {
+	e := br1Begun(t)
+	have, _ := br1CarriedType(t, e)
+	id, _ := e.itemID(have)
+	carries := func() bool { return e.ruleset().Check(rules.HasItem{Whom: e.partyIDs(), Item: id}, nil).Yes }
+	n := int(e.ruleset().Check(rules.CarryCount{Who: e.partyIDs()[0]}, nil).Value)
+	br1OwnBlock(t, e, 201, "    TakeItem(1, "+strconv.Itoa(have)+")")
+	if carries() {
+		t.Error("the items of the type are still carried")
+	}
+	if m := int(e.ruleset().Check(rules.CarryCount{Who: e.partyIDs()[0]}, nil).Value); m >= n {
+		t.Errorf("carried %d, was %d", m, n)
+	}
+}
+
+// TestBR1Stash: Stash(0) puts every member's items on its second list, Stash(1) brings them back
+// (eclvm.pas EclTransferCharacterLists).
+func TestBR1Stash(t *testing.T) {
+	e := br1Begun(t)
+	who := e.partyIDs()[0]
+	count := func() int { return int(e.ruleset().Check(rules.CarryCount{Who: who}, nil).Value) }
+	n := count()
+	if n == 0 {
+		t.Fatal("the member carries nothing")
+	}
+	br1OwnBlock(t, e, 201, "    Stash(0)")
+	if count() != 0 {
+		t.Errorf("stashed: %d carried", count())
+	}
+	br1OwnBlock(t, e, 202, "    Stash(1)")
+	if count() != n {
+		t.Errorf("back: %d carried, was %d", count(), n)
+	}
+}
+
+// TestBR1SkillDamage: SkillDamage(skill, whole party, difficulty, dice, sides, bonus): a member who fails the
+// roll takes the damage and the message says so (EclInflictDamage, the number unpadded); one who makes it does not.
+func TestBR1SkillDamage(t *testing.T) {
+	const firstAid = 13
+	e := br1Begun(t)
+	id := e.partyIDs()[0]
+	hp := e.ruleset().Sheet(id).HP
+	if hp <= 5 {
+		t.Fatalf("hit points %d", hp)
+	}
+	set := func(level rules.Number) {
+		if err := e.ruleset().SetFact(id, rules.SkillFact{Skill: "first-aid"}, level); err != nil {
+			t.Fatal(err)
+		}
+	}
+	set(60)
+	br1OwnBlock(t, e, 201, "    SkillDamage("+strconv.Itoa(firstAid)+", 1, 0, 1, 1, 4)") // very easy x4: made
+	if got := e.ruleset().Sheet(id).HP; got != hp {
+		t.Errorf("made the roll, hit points %d -> %d", hp, got)
+	}
+	set(0)
+	br1OwnBlock(t, e, 202, "    SkillDamage("+strconv.Itoa(firstAid)+", 1, 0, 1, 1, 4)\n    PressKey()")
+	if got := e.ruleset().Sheet(id).HP; got != hp-5 {
+		t.Errorf("failed the roll, hit points %d -> %d, want %d", hp, got, hp-5)
+	}
+	if got := paneText(commonOf(e.build())); !strings.Contains(got, " is hit FOR 5 points of Damage.") {
+		t.Errorf("text %q", got)
+	}
+}

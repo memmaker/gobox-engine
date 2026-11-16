@@ -232,6 +232,25 @@ type DestroyItems struct {
 
 func (DestroyItems) action() {}
 
+// TakeItems is BR's TakeItem (eclvm.pas EclDestroyItems): the items of kind Item that Whom carry go,
+// a readied one with them. OneEach: only the first of each member's, and a stack of joinable items
+// loses one instead.
+type TakeItems struct {
+	Whom    Party
+	Item    ItemID
+	OneEach bool
+}
+
+// StashItems is BR's Stash (eclvm.pas EclTransferCharacterLists): every Whom's carried items go onto
+// its second list in front of what is there (Away), or that list comes back onto the first.
+type StashItems struct {
+	Whom Party
+	Away bool
+}
+
+func (TakeItems) action()  {}
+func (StashItems) action() {}
+
 // TreasureRecordsFact is the treasure's items as the game's 0x3F-byte file records
 // (ItemRecords), last of the list first, so that a block read in file order
 // by AddTreasureBlock comes back in it: what the vault writes back.

@@ -6,6 +6,7 @@ import (
 	"gobox/ecl"
 	"gobox/game"
 	"gobox/rules"
+	"strconv"
 )
 
 // InitAreaScript = ovr08:01B6.
@@ -105,7 +106,11 @@ func (e *Engine) HitMessage(h rules.Hurt) {
 	if h.Dies {
 		msg = "  " + e.ruleset().Sheet(h.Unit).Name + " dies. "
 	} else {
-		msg = "  " + e.ruleset().Sheet(h.Unit).Name + " is hit FOR " + fmt.Sprintf("%3d", h.Damage) + " points of Damage."
+		damage := strconv.Itoa(int(h.Damage))
+		if e.eclVersion.Behaviour.HitPadded {
+			damage = fmt.Sprintf("%3d", h.Damage)
+		}
+		msg = "  " + e.ruleset().Sheet(h.Unit).Name + " is hit FOR " + damage + " points of Damage."
 	}
 	if e.msgRow > 0x16 {
 		e.msgRow = 0x11

@@ -40,6 +40,14 @@ func (r *Rules) Resolve(s rules.Situation, a rules.Action, rng *rules.RNG) (rule
 		return rules.Outcome{}, nil
 	case rules.EnterPhase:
 		return rules.Outcome{}, nil // the engine's phase: no XXVc rule differs by it
+	case rules.TakeItems:
+		r.takeItems(a)
+		return rules.Outcome{}, nil
+	case rules.StashItems:
+		r.stashItems(a)
+		return rules.Outcome{}, nil
+	case rules.SkillDamage:
+		return r.skillDamage(a, rng), nil
 	case rules.Ready:
 		return r.ready(a.Who, a.Item, true)
 	case rules.Unready:
