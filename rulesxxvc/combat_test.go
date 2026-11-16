@@ -57,3 +57,22 @@ func TestSave(t *testing.T) {
 		t.Error("SaveMade")
 	}
 }
+
+// nextDamage is the dice of the highest attack phase that has an attack left (RollAttacks spends phase 2 first), the
+// highest phase with dice when none is left.
+func TestNextDamage(t *testing.T) {
+	c := &Character{Damage: [2]rules.Dice{{N: 1, Sides: 8}, {N: 2, Sides: 4, Bonus: 1}}}
+	for _, k := range []struct {
+		s    *combatState
+		want rules.Dice
+	}{
+		{&combatState{attacks: [2]int{3, 1}}, c.Damage[1]},
+		{&combatState{attacks: [2]int{3, 0}}, c.Damage[0]},
+		{&combatState{}, c.Damage[1]},
+		{nil, c.Damage[1]},
+	} {
+		if got := nextDamage(c, k.s); got != k.want {
+			t.Errorf("attacks %+v: %+v, want %+v", k.s, got, k.want)
+		}
+	}
+}

@@ -1,12 +1,23 @@
 Goldens of the OLD Buck Rogers 1 Go engine (buckrogers-go) for rulesxxvc and the shared engine's BR1 fight.
 
-Made from: repository buckrogers-go, branch golden/one-rng, head cf71f78 (on main bb085c9). The branch is NOT part
+Made from: repository buckrogers-go, branch golden/one-rng, head cbedded (on main bb085c9). The branch is NOT part
 of the landing: it patches the old engine so that every random draw comes from gobox's one generator
 (gobox/rules.RNG: Turbo Pascal's LCG, result = high word mod n). Draw sites patched (all of them; grep 'e.rng.\|e.rnd(\|tpRand' in buckrogers-go/rules): rules/onerng.go (oneRNG: IntN(n) =
 RNG.N(n), Float64 = state advance / 2^32; Engine.rng is *oneRNG, rules/rules.go), rules/cmap.go (tpRand is
 grules.RNG{State: block}, the dungeon arena's stream, :98 and clutter :272-352; the wilderness ground :460; the angle
 draw :514), combat.go:195/205 (d, rnd: initiative, skill rolls, to-hit, damage), combat.go:769, ai.go:622,
 effects.go:128/138/181, create.go:73, throw.go:242/244/306 (the other Float64 draw), spacefight.go:110.
+Draw trace: rules/onerng.go goldenDraw records EVERY draw as a trace event of kind "draw" (before: the state before,
+n: the range, 0 for Float64, roll: the result, who: the three calling routines); fights.json holds them between the
+other events. They name the purpose of a draw when a comparison diverges.
+Two PATCHES of the oracle to the Pascal (the old engine deviated; the Pascal is right, rulesxxvc kept; the fights
+the old engine played then match rulesxxvc to the end):
+  rules/combat.go leave: u.Size = 0. fxengine.pas PutOutOfPlayWithStatus zeroes combatantCells[slot].size and runs
+    BuildArenaArrays, so a fled unit no longer stands on its square; the old engine kept it in Who/Probe (a unit
+    walking the edge was blocked by one that had got away).
+  rules/combat.go toHit: a blind attacker's roll is 4 lower (fxengine.pas AttackRoll:339 triggers
+    C_Cond.ATTACK_ROLL_ATTACKER, the BLIND handler); the old engine's melee toHit never ran the attacker's hook
+    (the defender's armour was right, throw.go ran it). The trace's roll is the raw d20.
 Instrumentation only (no rule change): rules/goldentrace.go (fight trace hooks), rules/monster.go loadMonsters (the
 body of opLoadMonster, for the dump), rules/combat.go sideBonus (toHit's bonus, factored out), rules/ai.go (a "turn"
 trace event), leadership's goldenAuto (the computer plays every member, as Quick does).

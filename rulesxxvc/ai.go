@@ -186,11 +186,14 @@ func (r *Rules) targetList(f rules.Fight, id rules.CharID, c *Character, rng int
 }
 
 // lineTargets is BuildTargetList's walk from the cells mine: every enabled
-// combatant keep accepts that a line reaches within rng, nearest first.
+// combatant (the mover too) a line reaches within rng, nearest first
+// (SortTargets), and only then the ones keep accepts (CountTargets drops the
+// other side's from the sorted list). The sort is not a total order, so the
+// ties fall differently when it runs over fewer combatants.
 func (r *Rules) lineTargets(b rules.Board, mine []rules.BoardPos, rng int, stopsAtWalls bool, keep func(*Character) bool) []pathTarget {
 	var ts []pathTarget
 	for _, u := range b.Units {
-		if e := r.chars[u.ID]; e == nil || !e.Enabled || !keep(e) {
+		if e := r.chars[u.ID]; e == nil || !e.Enabled {
 			continue
 		}
 		best := pathTarget{id: u.ID, dist: 255}
@@ -213,7 +216,7 @@ func (r *Rules) lineTargets(b rules.Board, mine []rules.BoardPos, rng int, stops
 		}
 	}
 	rules.NearSort(ts, func(t pathTarget) (byte, byte) { return byte(min(t.dist, 255)), byte(t.dir) })
-	return ts
+	return slices.DeleteFunc(ts, func(t pathTarget) bool { return !keep(r.chars[t.id]) })
 }
 
 // pickTarget is CountTargets(cr, rng) and its RollDice(1, count) pick.

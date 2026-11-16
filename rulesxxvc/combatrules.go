@@ -95,11 +95,13 @@ func (r *Rules) BeginRound(f rules.Fight, rng *rules.RNG) rules.Outcome {
 	for _, id := range r.fighters(f) {
 		c := r.chars[id]
 		i, t := Initiative(rng, c.Enabled, c.Scores[rules.Dexterity], surprised(f, c))
-		var ai combatState
+		var last combatState // what cbtacts.pas BeginRound leaves alone: the AI's approach and target, and isGuarding
+		// (CreatureAction clears it as the creature's own turn begins, so a guard still guards in the next round
+		// until then and strikes the movers before its turn)
 		if was := r.fight[id]; was != nil {
-			ai.approach, ai.target = was.approach, was.target
+			last.approach, last.target, last.guarding = was.approach, was.target, was.guarding
 		}
-		s := &combatState{initiative: i, tieBreaker: t, approach: ai.approach, target: ai.target,
+		s := &combatState{initiative: i, tieBreaker: t, approach: last.approach, target: last.target, guarding: last.guarding,
 			movement: r.RecalcMovement(c)} // BeginRound: in half steps
 		r.recalcAttacksLeft(f, c, s)
 		s.attacks[1] = attacksLeft(attackRate(c, c.Scale), f.Round)
@@ -199,7 +201,8 @@ func (r *Rules) BeginTurn(f rules.Fight, id rules.CharID, rng *rules.RNG) rules.
 func (r *Rules) EndTurn(rules.Fight, rules.CharID, *rules.RNG) rules.Outcome { return rules.Outcome{} }
 
 // EndRound is combat.pas EndOfRound's rule part: a sprint or a used jetpack
-// ends, the clouds count down. The clock's minute is the engine's.
+// ends, the clock runs a minute (AdvanceTime(1, MINUTES): the fight's effects run down, a Blind dazzle lasts its
+// minutes of rounds), the clouds count down.
 func (r *Rules) EndRound(f rules.Fight, _ *rules.RNG) rules.Outcome {
 	var o rules.Outcome
 	f.Board = r.board(f.Board)
@@ -208,6 +211,7 @@ func (r *Rules) EndRound(f rules.Fight, _ *rules.RNG) rules.Outcome {
 			c.Status = StOkay
 		}
 	}
+	r.advanceClock(1, clockMinute)
 	r.hpPercent = r.hostileHpPercent(f) // combat.pas EndRound
 	r.countDownClouds(&f.Board, &o)
 	return o

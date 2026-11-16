@@ -297,7 +297,7 @@ func (r *Rules) factSession(id rules.CharID, f rules.Fact) (v rules.Value, ok bo
 	case rules.TrainFact:
 		return rules.TrainCard{}, true, nil // no training: it never rises
 	case rules.DamageFact:
-		return rules.Text(diceText(c.Damage[0])), true, nil
+		return rules.Text(diceText(r.nextDamageNow(c, r.fight[id]))), true, nil
 	case rules.ListedFact:
 		if f.Goods {
 			return nil, false, nil

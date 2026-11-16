@@ -101,10 +101,15 @@ type goldenBlow struct {
 	Dmg      int
 }
 
-// goldenRound is what the golden says of one round: the head and the blows in order.
+// goldenRoll is one d20 the old engine rolled against a number: who, at whom, the d20 value that hits (armour minus
+// the attacker's to-hit and side bonus, plus a blind attacker's 4).
+type goldenRoll struct{ Att, Tgt, Need int }
+
+// goldenRound is what the golden says of one round: the head, the blows and the rolls in order.
 type goldenRound struct {
 	Head  goldenTraceEv
 	Blows []goldenBlow
+	Rolls []goldenRoll
 }
 
 func goldenRounds(trace []goldenTraceEv) []goldenRound {
@@ -116,6 +121,9 @@ func goldenRounds(trace []goldenTraceEv) []goldenRound {
 		case "blow":
 			r := &out[len(out)-1]
 			r.Blows = append(r.Blows, goldenBlow{ev.Att, ev.Tgt, ev.Hit, ev.Dmg})
+		case "roll":
+			r := &out[len(out)-1]
+			r.Rolls = append(r.Rolls, goldenRoll{ev.Att, ev.Tgt, ev.Need})
 		}
 	}
 	return out
@@ -138,14 +146,19 @@ type goldenPlayed struct {
 }
 
 type goldenPlayedRound struct {
-	state uint32
-	order []int
-	blows []goldenBlow
-	hp    map[int]int
-	at    map[int]rules.BoardPos
-	units []rules.Unit
-	moves map[int]int
+	state   uint32
+	order   []int
+	blows   []goldenBlow
+	hp      map[int]int
+	at      map[int]rules.BoardPos
+	units   []rules.Unit
+	moves   map[int]int
+	damage  map[int]string // the dice the unit's next attack rolls, as the units fact shows them, by place
+	chances []goldenChance // the hit chance the facts gave just before each single-target attack
 }
+
+// goldenChance is HitFact's answer before an attack: from, at whom (places), percent.
+type goldenChance struct{ att, tgt, percent int }
 
 // play runs the fight the engine has set up to its end with the generator at seed, the computer on every side.
 func (e *Engine) goldenPlay(t *testing.T, seed uint32) goldenPlayed {
@@ -158,7 +171,7 @@ func (e *Engine) goldenPlay(t *testing.T, seed uint32) goldenPlayed {
 		p.units[id] = i + 1
 	}
 	for round := 0; round < goldenFightLimit && rs.Verdict(e.fight()) == rules.FightOn; round++ {
-		r := goldenPlayedRound{state: rng.State, hp: map[int]int{}, at: map[int]rules.BoardPos{}, moves: map[int]int{}}
+		r := goldenPlayedRound{state: rng.State, hp: map[int]int{}, at: map[int]rules.BoardPos{}, moves: map[int]int{}, damage: map[int]string{}}
 		rs.BeginRound(e.fight(), &rng)
 		v, err := rs.Fact(rules.NoChar, rules.UnitsFact{})
 		if err != nil {
@@ -168,6 +181,7 @@ func (e *Engine) goldenPlay(t *testing.T, seed uint32) goldenPlayed {
 		for _, u := range r.units {
 			r.hp[p.units[u.ID]] = u.HP
 			r.at[p.units[u.ID]] = u.At
+			r.damage[p.units[u.ID]] = u.Damage
 			p.number[u.Number] = p.units[u.ID]
 		}
 		for id := range p.units {
@@ -190,6 +204,13 @@ func (e *Engine) goldenPlay(t *testing.T, seed uint32) goldenPlayed {
 					}
 					f := e.fightBy(id)
 					a := rs.Decide(f, id, &rng)
+					if at, ok := a.(rules.Attack); ok && at.At == nil {
+						v, err := rs.Fact(id, rules.HitFact{Target: at.Target})
+						if err != nil {
+							t.Fatal(err)
+						}
+						r.chances = append(r.chances, goldenChance{p.units[id], p.units[at.Target], int(v.(rules.Number))})
+					}
 					out, err := rs.Resolve(f, a, &rng)
 					if err != nil {
 						t.Fatalf("unit %d %T: %v", p.units[id], a, err)
@@ -233,7 +254,9 @@ func (e *Engine) goldenPlay(t *testing.T, seed uint32) goldenPlayed {
 //  2. the draws: the dice's state at each round's head, then the order the units act in, then what each attack did,
 //     and the hit points at the next head: the first round that differs is reported, the later ones are not
 //     compared (they follow from it);
-//  3. the end: experience each member gains, the credits, the loot.
+//  3. the end: experience each member gains, the credits, the loot;
+//     and, over the rounds, the damage the units fact shows (the dice the next attack rolls) and the hit chance the facts gave
+//     before each attack (the numbers the old engine rolled against).
 func TestBR1GoldenFight(t *testing.T) {
 	var cases []goldenFight
 	readGolden(t, "fights.json", &cases)
@@ -262,6 +285,8 @@ func TestBR1GoldenFight(t *testing.T) {
 			}
 			p := e.goldenPlay(t, head.State) // the dice as they stood at the first round's head: the old engine drew before it (leadership)
 			e.goldenCompareHead(t, c, head, p)
+			goldenCompareDamage(t, c, rounds, p)
+			goldenCompareChances(t, c, rounds, p)
 			round, why := goldenCompareRounds(t, c, rounds, p)
 			known, isKnown := goldenDiverges[c.Name]
 			switch {
@@ -275,6 +300,74 @@ func TestBR1GoldenFight(t *testing.T) {
 			e.goldenCompareEnd(t, c, p, exp0)
 		})
 	}
+}
+
+// goldenDiceText is rules.Unit.Damage's text for the old engine's dice: NdS, a bonus with its sign.
+func goldenDiceText(n, sides, bonus int) string {
+	s := fmt.Sprintf("%dd%d", n, sides)
+	if bonus != 0 {
+		s += fmt.Sprintf("%+d", bonus)
+	}
+	return s
+}
+
+// goldenCompareDamage is the units fact's Damage at each round's head against the dice the old engine's next attack
+// rolls: its slot 2's (the natural attacks, spent first) while it has attacks left there, else its slot 1's (the weapon's).
+func goldenCompareDamage(t *testing.T, c goldenFight, want []goldenRound, p goldenPlayed) {
+	t.Helper()
+	for i, w := range want[:min(len(want), len(p.rounds))] {
+		for _, u := range w.Head.Units {
+			slot := 0
+			if u.Attacks2 > 0 {
+				slot = 1
+			}
+			text := goldenDiceText(u.DiceCount[slot], u.DiceSides[slot], u.DiceBonus[slot])
+			got, on := p.rounds[i].damage[u.ID]
+			if !on {
+				continue // gone from the ground: fled
+			}
+			if got != text {
+				t.Errorf("%s round %d unit %d %s: damage shown %q, old engine's next attack (slot %d) rolls %s", c.Name, i, u.ID, u.Name, got, slot+1, text)
+			}
+		}
+	}
+}
+
+// goldenChance is the percent of the d20 that hits at the number needed: a natural 1 misses, a natural 20 hits.
+func goldenChanceOf(need int) int {
+	hits := 0
+	for d := 2; d <= 20; d++ {
+		if d == 20 || d >= need {
+			hits++
+		}
+	}
+	return hits * 5
+}
+
+// goldenCompareChances is the hit chance the facts gave just before each single-target attack, per attacker and
+// target, against the numbers the old engine rolled against in that round for that pair. The old engine's rolls
+// also hold the guards' blows and the area attacks, so each chance must be among the pair's, not the other way round.
+func goldenCompareChances(t *testing.T, c goldenFight, want []goldenRound, p goldenPlayed) {
+	t.Helper()
+	checked := 0
+	for i, w := range want[:min(len(want), len(p.rounds))] {
+		for _, got := range p.rounds[i].chances {
+			var seen []int
+			for _, r := range w.Rolls {
+				if r.Att == got.att && r.Tgt == got.tgt {
+					seen = append(seen, goldenChanceOf(r.Need))
+				}
+			}
+			if len(seen) == 0 {
+				continue // only natural 1s were rolled (they are not traced)
+			}
+			checked++
+			if !slices.Contains(seen, got.percent) {
+				t.Errorf("%s round %d: unit %d at unit %d: chance shown %d%%, old engine rolled against %v%%", c.Name, i, got.att, got.tgt, got.percent, seen)
+			}
+		}
+	}
+	t.Logf("%s: %d hit chances compared", c.Name, checked)
 }
 
 // goldenCompareHead is 1: what the first round's head shows, order-free.
@@ -299,11 +392,7 @@ func (e *Engine) goldenCompareHead(t *testing.T, c goldenFight, head goldenTrace
 var goldenDiverges = map[string]struct {
 	round int
 	why   string
-}{
-	"two-vs-41x2+32":       {2, "units 1 and 2 swing at units 3 and 4 with other dice than the old engine's from the monsters' free attacks on; the draws before agree, the cause is not traced"},
-	"two-vs-41x2+32-seed7": {1, "unit 1 and 2's swings differ in number (the same dice, another number needed to hit or another count of attacks); not traced"},
-	"two-vs-41x4+32+39x3":  {2, "as the first case; not traced"},
-}
+}{} // none: every fight is equal to the old engine (the golden branch's patches are in the README) to its end
 
 // goldenCompareRounds is 2: it returns the first round that differs, -1 when all are equal.
 func goldenCompareRounds(t *testing.T, c goldenFight, want []goldenRound, p goldenPlayed) (int, string) {

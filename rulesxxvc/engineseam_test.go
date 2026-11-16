@@ -240,7 +240,7 @@ func TestEngineQuestions(t *testing.T) {
 		{"Owed", rules.OwedFact{}, id, rules.PowerOwed{}},
 		{"Figures", rules.FiguresFact{}, id, rules.Figures(nil)},
 		{"Train", rules.TrainFact{}, id, rules.TrainCard{}},
-		{"Damage", rules.DamageFact{}, id, rules.Text("2d4+1")},
+		{"Damage", rules.DamageFact{}, id, rules.Text("1d6+6")}, // the readied pistol's dice as RecalcStats has them, not the c.Damage set above
 		{"Listed", rules.ListedFact{}, id, rules.Handles{1}},
 		{"Word status", rules.WordFact{Of: rules.FactStatus}, id, rules.Text("okay")},
 		{"Word race", rules.WordFact{Of: rules.FactRace}, id, rules.Text("martian")},

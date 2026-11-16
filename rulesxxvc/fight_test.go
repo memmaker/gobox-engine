@@ -312,7 +312,7 @@ func TestFleeHalfStep(t *testing.T) {
 	}
 }
 
-// HitFact is what an attack uses: for each seed the attack's roll hits exactly when HitFact counts it, with and
+// HitFact is what an attack uses, whenever it is asked (the attacker's to-hit is recalculated on a copy): for each seed the attack's roll hits exactly when HitFact counts it, with and
 // without the fight's PartyHit bonus (BeginFight keeps it), and the fact changes nothing (a blind defender's armour).
 func TestHitFactIsTheAttacks(t *testing.T) {
 	var facts []int
@@ -331,9 +331,17 @@ func TestHitFactIsTheAttacks(t *testing.T) {
 			rng := rules.RNG{State: seed}
 			r.BeginFight(f, &rng)
 			r.BeginRound(f, &rng)
-			r.chars[aid].AttackBonus = 3
+			r.chars[aid].BaseCombat = 3
 			before := r.chars[m].ArmorClass
+			stale, err := r.Fact(aid, rules.HitFact{Target: m}) // asked before the attacker is recalculated, as the player's hover may
+			if err != nil {
+				t.Fatal(err)
+			}
+			r.RecalcStats(r.chars[aid]) // BeginTurn's
 			v, err := r.Fact(aid, rules.HitFact{Target: m})
+			if v != stale {
+				t.Fatalf("HitFact %v before the attacker's recalculation, %v after", stale, v)
+			}
 			if err != nil || r.chars[m].ArmorClass != before {
 				t.Fatalf("fact %v: %v, armor %v then %v", v, err, before, r.chars[m].ArmorClass)
 			}

@@ -71,13 +71,7 @@ func (r *Rules) attack(f rules.Fight, aid, did rules.CharID, rng *rules.RNG) (ru
 	toward := rules.DirectionTo(aat.X, aat.Y, dat.X, dat.Y)
 	_, wt, wty, armed := r.readied(a, xxvc.SlotWeapon)
 	weaponRange := r.readiedWeaponRange(a)
-	rear, backstab := false, false
-	if ds != nil && ds.attacksDrawn > 1 && unitSize(f, did) <= 1 {
-		switch int(facing) - toward { // a ShortInt: -7 is not behind
-		case -1, 0, 1, 7:
-			rear = true
-		}
-	}
+	rear, backstab := ds != nil && isRearAttack(ds.attacksDrawn, unitSize(f, did), facing, toward), false
 	if rear && weaponRange < 2 && int(facing) == toward { // IsBackstab
 		h := rules.Normal
 		if a.Career == xxvc.Rogue {
@@ -169,6 +163,20 @@ func (r *Rules) attack(f rules.Fight, aid, did rules.CharID, rng *rules.RNG) (ru
 	return o, nil
 }
 
+// isRearAttack is IsRearAttack: the defender's drawn-th attack this round (the first two turn it to face the
+// attacker: NoteAttackDirection), on a unit of size 1 or less, from behind or the side behind its facing, toward
+// being the attacker's direction to it.
+func isRearAttack(drawn int, size int32, facing rules.Facing, toward int) bool {
+	if drawn < 2 || size > 1 {
+		return false
+	}
+	switch int(facing) - toward { // a ShortInt: -7 is not behind
+	case -1, 0, 1, 7:
+		return true
+	}
+	return false
+}
+
 // The C_Skill numbers IsBackstab rolls.
 var (
 	moveSilentlySkill, _ = skillNo("move-silently")
@@ -199,6 +207,34 @@ func helpless(c *Character) bool { return hasEffect(c, EffHelpless) }
 // attacksLeft is BeginRound's and RecalcAttacksLeft's counts: rate plus the
 // round's odd bit, halved.
 func attacksLeft(rate int, round int32) int { return (rate + int(round&1)) >> 1 }
+
+// nextDamage is the dice c's next attack rolls: RollAttacks spends the phases from the highest down (Pascal attack
+// phase 2, the natural attacks of baseScale/scale, then phase 1, the weapon's), each with its own dice (Damage[phase],
+// phase 0 being Pascal's 1), so the next attack is the highest phase with an attack left. s is c's state in this fight (nil
+// outside one); with no attack left (or none counted yet) the highest phase that has dice stands for it.
+func nextDamage(c *Character, s *combatState) rules.Dice {
+	if s != nil {
+		for phase := len(c.Damage) - 1; phase >= 0; phase-- {
+			if s.attacks[phase] > 0 {
+				return c.Damage[phase]
+			}
+		}
+	}
+	for phase := len(c.Damage) - 1; phase >= 0; phase-- {
+		if c.Damage[phase].N > 0 {
+			return c.Damage[phase]
+		}
+	}
+	return c.Damage[0]
+}
+
+// nextDamageNow is nextDamage of c as RecalcStats leaves it: on a copy, since a fact changes nothing and c's dice
+// stand where they were last calculated (a monster's before it has readied its weapon: its record's unarmed ones).
+func (r *Rules) nextDamageNow(c *Character, s *combatState) rules.Dice {
+	rc := *c
+	r.RecalcStats(&rc)
+	return nextDamage(&rc, s)
+}
 
 // hitNeed is what an attack of a on d is rolled against: the armor value (the armor class of the side struck, a
 // blind defender 4 easier (DEFENDER_ARMOR_CLASS), with ApplyRangePenalty's line penalty) and AttackRoll's side

@@ -151,7 +151,7 @@ func (r *Rules) unitsFact() rules.Units {
 		}
 		out = append(out, rules.Unit{ID: u.ID, Number: int(unitOf(u.ID)), At: u.At, Size: int(u.Size), Facing: int(u.Facing),
 			Party: c.team(), Helpless: hasEffect(c, EffHelpless), Active: c.Enabled, Icon: c.Order, Name: c.Name,
-			HP: c.HP, MaxHP: c.MaxHP, AC: c.ArmorClass[0], Damage: diceText(c.Damage[0]), Squares: rules.Squares(cellsOf(u))})
+			HP: c.HP, MaxHP: c.MaxHP, AC: c.ArmorClass[0], Damage: diceText(r.nextDamageNow(c, r.fight[u.ID])), Squares: rules.Squares(cellsOf(u))})
 	}
 	return out
 }
@@ -173,26 +173,37 @@ func (r *Rules) stepFact(id rules.CharID, c *Character, dir int) rules.StepInfo 
 	return info
 }
 
-// hitFact is the chance in percent that the attacker's roll hits the target from the front: the d20 values that
-// hit, as attack rolls them (AttackDie: 1 always misses, 20 is naturalAttackMax), times five.
+// hitFact is the chance in percent that the attacker's next blow hits the target as the attack will roll it: the d20
+// values that hit (AttackDie: 1 always misses, 20 is naturalAttackMax, a blind attacker's roll 4 lower), times five.
+// The attacker's and the defender's numbers are recalculated on copies (a fact changes nothing, and the attack
+// reads them fresh by its turn's start: BeginTurn's RecalcStats), the rear armour counts when the blow would be the
+// target's second this round from behind, the range penalty as the attack applies it.
 func (r *Rules) hitFact(aid, did rules.CharID) (rules.Value, bool, error) {
 	a, d, s := r.chars[aid], r.chars[did], r.fight[aid]
 	if a == nil || d == nil || s == nil {
 		return nil, true, errNoFightChar
 	}
-	b := r.board(rules.Board{})
-	aat, _ := unitAt(rules.Fight{Board: b}, aid)
-	dat, _ := unitAt(rules.Fight{Board: b}, did)
-	rc := *d // recalculated on a copy: a fact changes nothing
-	r.RecalcStats(&rc)
-	armor, mod := r.hitNeed(b, a, &rc, s, false, r.readiedWeaponRange(a), aat, dat)
+	fb := rules.Fight{Board: r.board(rules.Board{})}
+	aat, _ := unitAt(fb, aid)
+	dat, _ := unitAt(fb, did)
+	ra, rd := *a, *d
+	r.RecalcStats(&ra)
+	r.RecalcStats(&rd)
+	rear := false
+	if ds := r.fight[did]; ds != nil {
+		rear = isRearAttack(ds.attacksDrawn+1, unitSize(fb, did), unitFacing(fb, did), rules.DirectionTo(aat.X, aat.Y, dat.X, dat.Y))
+	}
+	armor, mod := r.hitNeed(fb.Board, &ra, &rd, s, rear, r.readiedWeaponRange(&ra), aat, dat)
 	hits := 0
 	for die := 2; die <= 20; die++ {
 		roll := die
 		if die == 20 {
 			roll = naturalAttackMax
 		}
-		if helpless(d) || AttackHits(roll, a.AttackBonus, mod, armor) {
+		if hasEffect(&ra, EffBlind) {
+			roll -= blindPenalty
+		}
+		if helpless(d) || AttackHits(roll, ra.AttackBonus, mod, armor) {
 			hits++
 		}
 	}
