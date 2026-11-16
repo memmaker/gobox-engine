@@ -75,6 +75,7 @@ func (r *Rules) beginSolo(f rules.Fight) {
 	if r.acting >= 0 && r.acting < len(r.party) {
 		r.duelist = r.party[r.acting]
 	}
+	r.lastActor = r.duelist
 	for _, id := range r.fightParty(f) {
 		if c := r.chars[id]; c != nil && c.team() && id != r.duelist {
 			c.Enabled = false
@@ -85,8 +86,9 @@ func (r *Rules) beginSolo(f rules.Fight) {
 // endSolo is postcbt.pas DetermineCombatResults' solo branch: only the duelist is settled. It won when it is
 // enabled and okay: the defeated hostiles' whole xpAward is its experience (DetermineLootExp, AwardExperience: no
 // share, no credits, no items); else the fight is lost: dead or dying it falls unconscious, fleeing it is okay.
-// No one leaves the party.
-// ponytail: the original tests the character that acted last, which is the duelist unless a monster did.
+// No one leaves the party. The one tested is the character that acted last (currentCharacter): the duelist unless a
+// monster began a turn after it, and then a monster is not a won duel (side must not be hostile) and the lost branch
+// settles that monster's status, as the original does.
 func (r *Rules) endSolo(ids []rules.CharID) rules.FightResult {
 	var res rules.FightResult
 	var total int64
@@ -96,8 +98,8 @@ func (r *Rules) endSolo(ids []rules.CharID) rules.FightResult {
 			res.Beaten++
 		}
 	}
-	c := r.chars[r.duelist]
-	if c != nil && c.Enabled && c.Status == StOkay {
+	c := r.chars[r.lastActor]
+	if c != nil && c.Enabled && c.Status == StOkay && c.team() {
 		c.Exp += total
 		res.Exp, res.Verdict, res.Foes = int32(total), rules.PartyWon, res.Beaten > 0 // DetermineLootExp's hasOutcomeToReport
 		return res
@@ -232,6 +234,7 @@ func (r *Rules) BeginTurn(f rules.Fight, id rules.CharID, rng *rules.RNG) rules.
 	if s.initiative == 20 {
 		s.initiative = 19
 	}
+	r.lastActor = id // CreatureAction: currentCharacter := cr, after the initiative test
 	r.RecalcStats(c)
 	t := rules.Turn{Computer: c.Side != rules.SideParty}
 	if f.Board.ZeroG && c.Enabled && s.initiative > 1 {

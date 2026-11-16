@@ -103,6 +103,7 @@ type Rules struct {
 	hpPercent int              // GDVars.hostileHpPercent: set at BeginFight and EndRound
 	terms     rules.FightTerms // BeginFight's: the hit bonuses HitFact and the attack read
 	moveBonus int              // zone1 movementBonus (FightTerms.PartyMove) for this fight
+	lastActor rules.CharID     // GDVars.currentCharacter in a solo fight: the duelist, then whoever began a turn last (combat.pas CreatureAction)
 	duelist   rules.CharID     // a solo fight's (FightTerms.Duel) one team member: the current character when it began
 	tactics   [2]bool          // GDVars.tacticsSides by side (TEAM, HOSTILE): RollTactics each round
 

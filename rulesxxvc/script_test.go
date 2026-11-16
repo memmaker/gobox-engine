@@ -244,3 +244,16 @@ func TestEndSession(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+// postcbt.pas DetermineCombatResults' solo branch tests currentCharacter, the one that began a turn last: a monster
+// that acted last is no won duel even if the duelist stands (and its own dead status turns unconscious).
+func TestSoloCombatLastActorMonster(t *testing.T) {
+	r, _, duelist, monster := soloRig()
+	f := rules.Fight{Terms: rules.FightTerms{Duel: true}}
+	r.BeginFight(f, nil)
+	r.lastActor = monster
+	res := r.EndFight(f, nil)
+	if res.Verdict != rules.PartyLost || r.chars[duelist].Exp != 0 {
+		t.Errorf("%+v exp %d", res, r.chars[duelist].Exp)
+	}
+}
