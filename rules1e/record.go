@@ -22,9 +22,9 @@ var RecordSex = [2]rules.Sex{rules.Male, rules.Female}
 // classes 0..7, then the multi-class combinations.
 var RecordClassSets = [len(ClassNames)]rules.ClassSet{
 	ClsCleric: {ClassCleric}, ClsDruid: {ClassDruid}, ClsFighter: {ClassFighter}, ClsPaladin: {ClassPaladin},
-	ClsRanger: {rules.ClassRanger}, ClsMage: {ClassMage}, ClsThief: {ClassThief}, ClsMonk: {ClassMonk},
+	ClsRanger: {ClassRanger}, ClsMage: {ClassMage}, ClsThief: {ClassThief}, ClsMonk: {ClassMonk},
 	clsClericFighter: {ClassCleric, ClassFighter}, clsClericFighterMage: {ClassCleric, ClassFighter, ClassMage},
-	ClsClericRanger: {ClassCleric, rules.ClassRanger}, clsClericMage: {ClassCleric, ClassMage},
+	ClsClericRanger: {ClassCleric, ClassRanger}, clsClericMage: {ClassCleric, ClassMage},
 	clsClericThief: {ClassCleric, ClassThief}, clsFighterMage: {ClassFighter, ClassMage},
 	ClsFighterThief: {ClassFighter, ClassThief}, clsFighterMageThief: {ClassFighter, ClassMage, ClassThief},
 	clsMageThief: {ClassMage, ClassThief},
@@ -32,7 +32,7 @@ var RecordClassSets = [len(ClassNames)]rules.ClassSet{
 
 // SaveOrder is the saving throws in the Gold Box games' order: a record's
 // save bytes and a script's save number (DAMAGE) index it.
-var SaveOrder = [5]rules.Save{rules.SaveParalysis, rules.SavePetrify, rules.SaveRod, rules.SaveBreath, rules.SaveSpell}
+var SaveOrder = [5]rules.Save{SaveParalysis, SavePetrify, SaveRod, SaveBreath, SaveSpell}
 
 // RaceNumbers is the race each race byte of a record of layout l names (the
 // game's own numbering, which only the record codec knows: everything else

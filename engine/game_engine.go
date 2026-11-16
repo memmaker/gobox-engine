@@ -607,7 +607,7 @@ func (e *Engine) lockedDoor(wizard bool) {
 	if wizard {
 		knock = e.ruleset().Check(rules.PartyHasSkill{N: 5}, nil).Yes
 	} else {
-		knock = e.ruleset().Check(rules.HasMemorized{Party: e.partyIDs(), Spell: rules.SpellKnock}, nil).Yes
+		knock = e.ruleset().Check(rules.PartyCanKnock{Party: e.partyIDs()}, nil).Yes
 	}
 	d.Knock = e.run.doorTry[2] != 0 && knock
 	if d == (DoorOpts{}) {

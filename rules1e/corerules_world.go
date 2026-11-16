@@ -19,9 +19,9 @@ func (r *Rules) checkWorld(k rules.Check) rules.Answer {
 		return rules.Answer{Value: int32(r.partyStrength(k.Party))}
 	case rules.Census:
 		return r.census(k)
-	case rules.HasClass:
+	case rules.PartyHasScout:
 		for _, c := range r.party(k.Party) {
-			if slices.Contains(porClassesOf[k.Class], c.Class) {
+			if slices.Contains(scoutClasses, c.Class) {
 				return rules.Answer{Yes: true, Who: r.ID(c)}
 			}
 		}
@@ -53,10 +53,10 @@ func (r *Rules) checkWorld(k rules.Check) rules.Answer {
 				}
 			}
 		}
-	case rules.HasMemorized:
-		k1 := slices.Index(SpellIDs[:], k.Spell)
+	case rules.PartyCanKnock:
+		k1 := slices.Index(SpellIDs[:], SpellKnock)
 		if k1 <= 0 {
-			panic("rules1e: no spell number for " + string(k.Spell))
+			panic("rules1e: no spell number for " + string(SpellKnock))
 		}
 		for _, c := range r.party(k.Party) {
 			if c.Status == StatusOkay && SpellSlot(c, SpellID(k1)) != 0xFF { // FindCaster
@@ -156,9 +156,8 @@ func (r *Rules) party(p rules.Party) []*Character {
 	return cs
 }
 
-// porClassesOf is the record classes that have a class (HasClass).
-// ponytail: ranger only (opPartySurprise); add classes when a script asks.
-var porClassesOf = map[rules.Class][]ClassID{rules.ClassRanger: {ClsRanger, ClsClericRanger}}
+// scoutClasses are the record classes PartyHasScout asks for (opPartySurprise's ranger).
+var scoutClasses = []ClassID{ClsRanger, ClsClericRanger}
 
 // resolveWorld resolves the world's actions; ok: a was one of them.
 func (r *Rules) resolveWorld(s rules.Situation, a rules.Action) (o rules.Outcome, ok bool, err error) {

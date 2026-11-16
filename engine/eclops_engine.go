@@ -536,7 +536,7 @@ func (e *Engine) opCheckParty() {
 			what = censusSpecial
 		}
 	default:
-		for name, f := range censusFacts {
+		for name, f := range e.censusFacts() {
 			if r, err := e.vm.Script.Layout.Named(name); err == nil && e.vm.Ref(1).Cell() == r { // a word the game's layout lacks is no census
 				what, fact = censusFact, f
 			}
@@ -579,7 +579,7 @@ func (e *Engine) opCheckParty() {
 func (e *Engine) opPartySurprise() {
 	e.vm.ReadArgs(2)
 	var a byte
-	if e.ruleset().Check(rules.HasClass{Party: e.partyIDs(), Class: rules.ClassRanger}, nil).Yes {
+	if e.ruleset().Check(rules.PartyHasScout{Party: e.partyIDs()}, nil).Yes {
 		a = 1
 	}
 	e.host.Set(e.vm.Ref(1), int64(uint16(a)))
@@ -760,15 +760,16 @@ const (
 	censusFact                  // a selected member's fact (censusFacts)
 )
 
-// censusFacts are the fields opCheckParty averages over the party, by the
-// layout's name: the thief skills the game's scripts name and the movement
-// (por SelFindTraps 0x6BA7, SelMove 0x6C1B; cotab's census covers all eight
-// thief skills, cvThiefFirst..Last).
-var censusFacts = map[string]rules.Fact{
-	"SelPickPockets":  rules.SkillFact{Skill: rules.PickPockets},
-	fieldSelFindTraps: rules.SkillFact{Skill: rules.FindTraps},
-	"SelThiefSkill6":  rules.SkillFact{Skill: rules.Climb},
-	fieldSelMove:      rules.FactMove,
+// censusFacts are the fields opCheckParty averages over the party, by the layout's name: the movement (por SelMove
+// 0x6C1B) and the ruleset's census fields (rules.ScriptField.Census).
+func (e *Engine) censusFacts() map[string]rules.Fact {
+	m := map[string]rules.Fact{fieldSelMove: rules.FactMove}
+	for name, f := range e.ruleset().Catalog().ScriptFields {
+		if f.Census {
+			m[name] = f.Fact
+		}
+	}
+	return m
 }
 
 // eclOps are the commands the engine runs by name (the rest are

@@ -57,10 +57,6 @@ func (e *Engine) newEngineFields() map[string]engineField {
 				e.setSelValue(rules.MemoFact{Slot: k}, rules.Number(byte(v))) // the byte as SpecialWriteZ1 stores it
 			}
 		}},
-		"SelSaveVsPetrify": reads(func() uint16 { return uint16(e.selFact(rules.SaveFact{Save: rules.SavePetrify})) }),
-		"SelPickPockets":   reads(func() uint16 { return uint16(e.selFact(rules.SkillFact{Skill: rules.PickPockets})) }),
-		fieldSelFindTraps:  reads(func() uint16 { return uint16(e.selFact(rules.SkillFact{Skill: rules.FindTraps})) }),
-		"SelThiefSkill6":   reads(func() uint16 { return uint16(e.selFact(rules.SkillFact{Skill: rules.Climb})) }),
 		"SelControl": {stored: true, get: func(int) (int64, bool) { return e.selFact(rules.FactControl), true },
 			set: func(_ int, v int64) {
 				if v > 0xB2 {
@@ -382,11 +378,11 @@ func (e *Engine) setVar(r ecl.Ref, v int64) {
 // QuestTable) as its element 0, else f's at f's canonical element i.
 func (e *Engine) binding(f *ecl.Field, i int) (engineField, int, bool) {
 	if n := f.ElementName(i); n != "" {
-		if ef, ok := e.engineFields[n]; ok {
+		if ef, ok := e.bound()[n]; ok {
 			return ef, 0, true
 		}
 	}
-	ef, ok := e.engineFields[f.Name]
+	ef, ok := e.bound()[f.Name]
 	return ef, canonElement(f, i), ok
 }
 
@@ -404,7 +400,7 @@ func (e *Engine) storeCells(f *ecl.Field, i int, vs []int64) {
 // getText = ovr08:12FB: the text in r, up to its NUL.
 func (e *Engine) getText(r ecl.Ref) string {
 	f := e.varField(r)
-	if ef, ok := e.engineFields[f.Name]; ok && ef.text != nil {
+	if ef, ok := e.bound()[f.Name]; ok && ef.text != nil {
 		return ef.text()
 	}
 	e.textField(f)
@@ -421,7 +417,7 @@ func (e *Engine) getText(r ecl.Ref) string {
 // setText = ovr08:0F53: s and its NUL into r.
 func (e *Engine) setText(r ecl.Ref, s string) {
 	f := e.varField(r)
-	if ef, ok := e.engineFields[f.Name]; ok && ef.setText != nil {
+	if ef, ok := e.bound()[f.Name]; ok && ef.setText != nil {
 		ef.setText(s)
 		return
 	}
@@ -448,7 +444,7 @@ func (e *Engine) textField(f *ecl.Field) {
 // element) in any area (the quest log reads the quest table wherever the
 // party is).
 func (e *Engine) savedWord(name string) int64 {
-	if ef, ok := e.engineFields[name]; ok && ef.get != nil {
+	if ef, ok := e.bound()[name]; ok && ef.get != nil {
 		if v, ok := ef.get(0); ok {
 			return v
 		}
@@ -462,7 +458,7 @@ func (e *Engine) savedWord(name string) int64 {
 
 // setSavedWord sets the game's word name, as a script would.
 func (e *Engine) setSavedWord(name string, v int64) {
-	if ef, ok := e.engineFields[name]; ok && !ef.stored {
+	if ef, ok := e.bound()[name]; ok && !ef.stored {
 		ef.set(0, v)
 		return
 	}
@@ -481,7 +477,7 @@ func (e *Engine) gameWord(name string) (field string, i int) {
 	if f, i, ok := wordIn(e.gameFields(), name); ok {
 		return f, i
 	}
-	if _, ok := e.engineFields[name]; ok {
+	if _, ok := e.bound()[name]; ok {
 		return name, 0
 	}
 	panic("script: no game field " + name)
@@ -505,10 +501,9 @@ func wordIn(fields []ecl.Field, name string) (field string, i int, ok bool) {
 // The fields the engine itself names (layout/global.txt; EffectTable is
 // area 2's).
 const (
-	fieldEffectTable  = "EffectTable"
-	fieldSelFindTraps = "SelFindTraps"
-	fieldSelMove      = "SelMove"
-	fieldSurprise     = "Surprise"
+	fieldEffectTable = "EffectTable"
+	fieldSelMove     = "SelMove"
+	fieldSurprise    = "Surprise"
 )
 
 // reads is a field whose read is f, whose write only stores.

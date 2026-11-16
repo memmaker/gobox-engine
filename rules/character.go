@@ -251,22 +251,16 @@ type (
 		Whom   []CharID
 		Affect ScriptAffect
 	}
-	// HasClass: por opPartySurprise's ranger.
-	HasClass struct {
-		Party Party
-		Class Class
-	}
+	// PartyHasScout: por opPartySurprise's a: someone in the party is a ranger (1e class 4, ClsRanger or ClsClericRanger).
+	PartyHasScout struct{ Party Party }
 	// HasItem: por opFindItem, BR OpHasItem; the item by what a script numbers.
 	HasItem struct {
 		Whom []CharID
 		Item ItemID
 	}
-	// HasMemorized: an okay member with Spell memorized (por lockedDoor's
-	// Knock, FindCaster); Who is the first in marching order.
-	HasMemorized struct {
-		Party Party
-		Spell SpellID
-	}
+	// PartyCanKnock: an okay member has the door-opening spell memorized (por lockedDoor's Knock, FindCaster); Who is
+	// the first in marching order.
+	PartyCanKnock struct{ Party Party }
 	// SkillRoll: BR opSkill (skill, all, hardness), eclvm.pas EclSkillCheck. The skill is named, or
 	// (Skill empty) the script's number; All: Whom is the whole party (the report says "party").
 	SkillRoll struct {
@@ -281,10 +275,10 @@ type (
 func (PartyStrength) check() {}
 func (Census) check()        {}
 func (HasCondition) check()  {}
-func (HasClass) check()      {}
+func (PartyHasScout) check() {}
 func (HasAffect) check()     {}
 func (HasItem) check()       {}
-func (HasMemorized) check()  {}
+func (PartyCanKnock) check() {}
 func (SkillRoll) check()     {}
 
 // Answer is a Check's result. Which fields mean anything follows from the

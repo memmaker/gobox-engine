@@ -21,6 +21,19 @@ type Catalog struct {
 	Monsters     []MonsterID
 	Items        []ItemID
 	Ships        []ShipID
+	// ScriptFields are the member fields of a script layout this ruleset answers, by the layout's name (a name is a
+	// layout's word, its meaning the Fact: 1e's SelMageLevel is the level in class mage). The engine binds each as a
+	// read of the selected member; a layout name not here and not the engine's own is bound to nothing.
+	ScriptFields map[string]ScriptField
+}
+
+// ScriptField is what a ruleset answers for one layout member field: Fact is what it reads of the selected member.
+// Census: opCheckParty may average it over the party (por's SelFindTraps). InSave: the field's cell is part of a
+// save (the save format as it was when the engine bound these names one by one; a save keeps no meaning in it).
+type ScriptField struct {
+	Fact   Fact
+	Census bool
+	InSave bool
 }
 
 // AbilityName is how a sheet words an ability: the abbreviation ("STR") and the name written out ("Strength").

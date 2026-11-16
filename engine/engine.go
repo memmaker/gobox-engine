@@ -94,6 +94,7 @@ type Engine struct {
 	loadedGame bool         // DS:49F8
 
 	engineFields       map[string]engineField // the script fields the engine gives a meaning (scriptvars.go)
+	scriptBound        bool                   // the ruleset's ScriptFields are in engineFields (bound at first use: New needs no ruleset)
 	vars               fieldCells             // the other fields' cells: the game's saved state (DS:49D2/49D6/49DA records)
 	locals             fieldCells             // and the area's scratch, cleared by a fresh area
 	savedFields        []ecl.Field            // every area's saved fields (savecodec.go)

@@ -3,6 +3,7 @@ package importer_test
 import (
 	"gobox/engine"
 	"gobox/importer"
+	"gobox/rules1e"
 	"slices"
 	"testing"
 )
@@ -12,7 +13,7 @@ import (
 // or the field is POR's own story or engine word).
 func TestPodBoundFields(t *testing.T) {
 	absent := []string{"AreaKind", "BodySquares", "Boss", "CombatEnd", "EffectTable", "FacingOrRaw", "FightState", "FoeControl", "FoeCrew", "FoeEngines", "FoeHull", "FoeLifeSupport", "FoeSensors", "FoeWeaponCount", "LoopCounter", "LoopLimit", "MapPatchA", "MapPatchB", "Mark3", "Mark4", "Mark4Off", "MarkFlags4", "MarkFlags57", "Morale", "PartyCredits", "Portrait", "PriceMultiplier", "ProbeCell", "ProbeWall", "ProbeX", "ProbeY", "RiverOpen", "RocketX", "RocketY", "ScriptBlock", "SelCha", "SelCompanion", "SelExpPerHP", "SelFlag1", "SelFlag2", "SelFlag3", "SelGems", "SelInt", "SelMageLevel", "SelPartyIndex", "SelPartyIndex2", "SelRangerLevel", "SelReaction", "SelSideFlags", "SelSkills", "SelWindowF2", "SetGroundShade", "SetSkyShade", "ShipControl", "ShipEngines", "ShipFuel", "ShipHull", "ShipLifeSupport", "ShipMount0Ammo", "ShipMount0Reloads", "ShipMount0Status", "ShipMount1Ammo", "ShipMount1Reloads", "ShipMount1Status", "ShipMount2Status", "ShipSensors", "Shop", "Sky", "SkyInside", "Sound", "TourDone", "TravelKind", "UnknownD015", "UnusedB8", "UnusedB9", "ViewFlags", "WallSlot1", "WallSlot2", "WallSlot3", "WallSplitA", "WallSplitB", "WildTerrain"}
-	got, err := engine.UnboundFields(importer.PodScriptData())
+	got, err := engine.UnboundFields(importer.PodScriptData(), (&rules1e.Rules{}).Catalog())
 	if err != nil {
 		t.Fatal(err)
 	}

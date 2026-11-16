@@ -3,6 +3,7 @@ package engine
 import (
 	"gobox/adventure"
 	"gobox/rules"
+	"maps"
 )
 
 // pairLen is the bytes of a record's score pair: the own score, then the one in use (pod stats[]).
@@ -29,9 +30,6 @@ func (e *Engine) memberFields() map[string]engineField {
 		// pod classLevels[0..6], oldLevels[0..6]: the columns of the ruleset's classes
 		"SelClassLevels": e.facts(func(i int) rules.Fact { return rules.OwnLevelFact{Class: e.ruleset().Catalog().Classes[i]} }),
 		"SelOldLevels":   e.facts(func(i int) rules.Fact { return rules.FormerLevelFact{Class: e.ruleset().Catalog().Classes[i]} }),
-		// cotab $C9, sotsb $D0: the class's level and the class left behind's while that one is active
-		"SelMageLevel":   e.facts(func(int) rules.Fact { return rules.LevelFact{Class: rules.ClassMage} }),
-		"SelRangerLevel": e.facts(func(int) rules.Fact { return rules.LevelFact{Class: rules.ClassRanger} }),
 		"SelGems": {get: func(int) (int64, bool) { return e.selFact(rules.PiecesFact{}), true }, // sotsb $C5 coinsA[GEMS]: the party's gems, as SelCoins' element of them
 			set: func(_ int, v int64) { e.setSelFact(rules.PiecesFact{}, int64(uint16(v))) }},
 		// por $F2: SpecialWriteZ1 has no case for it, the window is not read
@@ -39,17 +37,34 @@ func (e *Engine) memberFields() map[string]engineField {
 	}
 	// BR Party[77..160] (charVar r[76+s]): the level of skill s, the ruleset's skills in their catalog's order
 	m["SelSkills"] = e.facts(func(i int) rules.Fact { return rules.SkillFact{Skill: e.ruleset().Catalog().Skills[i]} })
-	for name, skill := range thiefFields {
-		m[name] = e.facts(func(int) rules.Fact { return rules.SkillFact{Skill: skill} })
-	}
 	return m
 }
 
-// thiefFields are the thief skill fields not bound by name elsewhere (thiefSkills[2], [4], [5], [6]
-// of pod's record, rules.Skill by the order of a record's thief bytes).
-var thiefFields = map[string]rules.Skill{
-	"SelOpenLocks": rules.OpenLocks, "SelMoveSilently": rules.MoveQuietly, "SelHideShadows": rules.Hide,
-	"SelHearNoise": rules.Hear, "SelReadLanguages": rules.ReadLanguages,
+// bound is engineFields with the ruleset's ScriptFields bound in, at the first need.
+func (e *Engine) bound() map[string]engineField {
+	if !e.scriptBound {
+		if e.engineFields == nil { // an Engine whose VM is not made
+			e.engineFields = map[string]engineField{}
+		}
+		maps.Copy(e.engineFields, e.scriptFields())
+		e.scriptBound = true
+	}
+	return e.engineFields
+}
+
+// scriptFields are the member fields the ruleset answers by the layout's name (rules.Catalog.ScriptFields): each reads
+// its Fact of the selected member (no script writes them; InSave ones keep a stored cell, a write only stores).
+func (e *Engine) scriptFields() map[string]engineField {
+	m := map[string]engineField{}
+	for name, f := range e.ruleset().Catalog().ScriptFields {
+		get := func() uint16 { return uint16(e.selFact(f.Fact)) }
+		if f.InSave {
+			m[name] = reads(get)
+		} else {
+			m[name] = e.facts(func(int) rules.Fact { return f.Fact })
+		}
+	}
+	return m
 }
 
 // facts is a read-only field whose element i is the number of the selected member's Fact f(i).

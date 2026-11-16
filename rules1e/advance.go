@@ -8,7 +8,7 @@ import (
 // the tables, so that callers name it and never depend on the order.
 var classRow = map[rules.Class]int{
 	ClassCleric: 0, ClassDruid: 1, ClassFighter: 2, ClassPaladin: 3,
-	rules.ClassRanger: 4, ClassMage: 5, ClassThief: 6, ClassMonk: 7,
+	ClassRanger: 4, ClassMage: 5, ClassThief: 6, ClassMonk: 7,
 }
 
 var raceRow = map[rules.Race]int{
@@ -17,15 +17,15 @@ var raceRow = map[rules.Race]int{
 }
 
 var saveColumn = map[rules.Save]int{
-	rules.SaveParalysis: 0, rules.SavePetrify: 1, rules.SaveRod: 2, rules.SaveBreath: 3, rules.SaveSpell: 4,
+	SaveParalysis: 0, SavePetrify: 1, SaveRod: 2, SaveBreath: 3, SaveSpell: 4,
 }
 
 var skillColumn = map[rules.Skill]int{
-	rules.PickPockets: 0, OpenLocks: 1, rules.FindTraps: 2, MoveQuietly: 3,
-	Hide: 4, Hear: 5, rules.Climb: 6, ReadLanguages: 7,
+	PickPockets: 0, OpenLocks: 1, FindTraps: 2, MoveQuietly: 3,
+	Hide: 4, Hear: 5, Climb: 6, ReadLanguages: 7,
 }
 
-var thiefSkillOrder = [8]rules.Skill{rules.PickPockets, OpenLocks, rules.FindTraps, MoveQuietly, Hide, Hear, rules.Climb, ReadLanguages}
+var thiefSkillOrder = [8]rules.Skill{PickPockets, OpenLocks, FindTraps, MoveQuietly, Hide, Hear, Climb, ReadLanguages}
 
 // xpNone is an experience entry no experience reaches: the class stops at the level before.
 const xpNone = -1

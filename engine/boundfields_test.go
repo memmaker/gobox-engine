@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"gobox/rules1e"
 	"os"
 	"slices"
 	"testing"
@@ -9,7 +10,7 @@ import (
 // TestBoundFieldsPOR: POR's layouts name every field the engine binds but the VM words POR
 // keeps in the ruleset, and the shops' price factor (POR's shops have none).
 func TestBoundFieldsPOR(t *testing.T) {
-	got, err := UnboundFields(os.DirFS("../data/por/scripts"))
+	got, err := UnboundFields(os.DirFS("../data/por/scripts"), (&rules1e.Rules{}).Catalog())
 	if err != nil {
 		t.Fatal(err)
 	}

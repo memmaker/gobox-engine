@@ -127,6 +127,7 @@ func (e *Engine) HitMessage(h rules.Hurt) {
 func (e *Engine) initVM() {
 	e.host = eclHost{e}
 	e.engineFields = e.newEngineFields()
+	e.scriptBound = false
 	e.vars, e.locals = fieldCells{}, fieldCells{}
 	e.vm = ecl.New(e.host, e.eclLayout(), make([]byte, e.game().OriginalSave.CodeSize))
 	e.eclVersion = e.game().Script

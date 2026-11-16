@@ -78,9 +78,12 @@ func (e *Engine) runMoveEntry() {
 
 // BoundFields are the canonical script field names the engine gives a meaning: a game's
 // layout names a field so when, and only when, it has that field (each game's layout test).
-func BoundFields() []string {
+func BoundFields(c rules.Catalog) []string {
 	names := []string{fieldLastBlock, fieldRemainder, fieldLoopCounter, fieldLoopLimit, fieldPriceScale, fieldPriceMult, fieldScriptBlock, fieldTravelKind, fieldVault, fieldWildTerrain, fieldFightState, fieldHours, tourDone}
 	for n := range (&Engine{}).newEngineFields() {
+		names = append(names, n)
+	}
+	for n := range c.ScriptFields {
 		names = append(names, n)
 	}
 	slices.Sort(names)
@@ -88,8 +91,8 @@ func BoundFields() []string {
 }
 
 // UnboundFields are the BoundFields that no layout of data (a game's script data: layout/global.txt
-// and every layout/area<N>.txt) names: the bindings the game does not have.
-func UnboundFields(data fs.FS) ([]string, error) {
+// and every layout/area<N>.txt) names: the bindings the game does not have. c is its ruleset's catalog (its ScriptFields).
+func UnboundFields(data fs.FS, c rules.Catalog) ([]string, error) {
 	names, err := fs.Glob(data, "layout/area*.txt")
 	if err != nil {
 		return nil, err
@@ -114,7 +117,7 @@ func UnboundFields(data fs.FS) ([]string, error) {
 		}
 	}
 	var out []string
-	for _, n := range BoundFields() {
+	for _, n := range BoundFields(c) {
 		if !have[n] {
 			out = append(out, n)
 		}

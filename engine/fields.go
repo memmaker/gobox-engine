@@ -18,7 +18,7 @@ func (e *Engine) saved(f ecl.Field) bool {
 	default:
 		return false
 	}
-	if ef, ok := e.engineFields[f.Name]; f.Replaces || ok && !ef.stored {
+	if ef, ok := e.bound()[f.Name]; f.Replaces || ok && !ef.stored {
 		return false
 	}
 	return true

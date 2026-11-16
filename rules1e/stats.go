@@ -41,7 +41,7 @@ type Stats struct {
 type LevelSlots [MaxSpellLevel]int
 
 // classOrder is the order later classes overwrite earlier ones' attacks.
-var classOrder = [8]rules.Class{ClassCleric, ClassDruid, ClassFighter, ClassPaladin, rules.ClassRanger, ClassMage, ClassThief, ClassMonk}
+var classOrder = [8]rules.Class{ClassCleric, ClassDruid, ClassFighter, ClassPaladin, ClassRanger, ClassMage, ClassThief, ClassMonk}
 
 // ClassStats is ClassCal.RecalcClassStats with COTAB's superset (O0FE:000F
 // calcSpellSlots, O0FE:07FB savingThrows, O0FE:0AEA thiefSkills): paladin
@@ -72,7 +72,7 @@ func (t *Tables) ClassStats(w Who) Stats {
 					s.ClericSlots[i] += add[i]
 				}
 			}
-		case rules.ClassRanger:
+		case ClassRanger:
 			if lvl > 7 {
 				s.Attacks = 3
 			}
@@ -102,7 +102,7 @@ func (t *Tables) ClassStats(w Who) Stats {
 			s.MageSlots[i] *= 2
 		}
 	}
-	for _, save := range []rules.Save{rules.SaveParalysis, rules.SavePetrify, rules.SaveRod, rules.SaveBreath, rules.SaveSpell} {
+	for _, save := range []rules.Save{SaveParalysis, SavePetrify, SaveRod, SaveBreath, SaveSpell} {
 		s.Saves[save] = 20
 		for _, class := range classOrder {
 			if lvl := w.Levels[class]; lvl > 0 {
@@ -118,9 +118,9 @@ func (t *Tables) ClassStats(w Who) Stats {
 	// and dropped from loaded records, so it counts once).
 	con := byte(w.Con)
 	if w.Race == RaceDwarf || w.Race == RaceHalfling || w.Powers.SaveBonus {
-		s.Saves[rules.SaveParalysis] -= int(rules.ConSaveLow(con))
+		s.Saves[SaveParalysis] -= int(rules.ConSaveLow(con))
 	}
-	s.Saves[rules.SaveParalysis] -= int(rules.ConSaveHigh(con))
+	s.Saves[SaveParalysis] -= int(rules.ConSaveHigh(con))
 	if lvl := w.Levels[ClassThief]; lvl > 0 {
 		s.Skills = t.ThiefSkills(lvl, w.Race, w.Dex, w.Powers)
 	}

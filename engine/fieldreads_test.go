@@ -4,6 +4,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"gobox/rules1e"
 	"os"
 	"path/filepath"
 	"slices"
@@ -66,7 +67,7 @@ func TestFieldReadsBound(t *testing.T) {
 	if len(reads) == 0 {
 		t.Fatal("no layoutField reads found")
 	}
-	bound := BoundFields()
+	bound := BoundFields((&rules1e.Rules{}).Catalog())
 	for _, a := range reads {
 		id, ok := a.(*ast.Ident)
 		if !ok {

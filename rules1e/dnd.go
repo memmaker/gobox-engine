@@ -22,7 +22,8 @@ const (
 	ClassDruid   rules.Class = "druid"
 	ClassFighter rules.Class = "fighter"
 	ClassPaladin rules.Class = "paladin"
-	ClassMage                = rules.ClassMage // the scripts read its level by name (rules/adnd.go)
+	ClassMage    rules.Class = "mage"
+	ClassRanger  rules.Class = "ranger"
 	ClassThief   rules.Class = "thief"
 	ClassMonk    rules.Class = "monk"
 )
@@ -39,14 +40,28 @@ const (
 	ChaoticEvil    rules.Alignment = "chaotic-evil"
 )
 
-// por Thief[0..7]: the names are rules', the scripts read them by field.
+// por Thief[0..7]: the scripts read them by field (ScriptFields).
 const (
-	OpenLocks     = rules.OpenLocks
-	MoveQuietly   = rules.MoveQuietly
-	Hide          = rules.Hide
-	Hear          = rules.Hear
-	ReadLanguages = rules.ReadLanguages
+	PickPockets   rules.Skill = "pick-pockets"
+	OpenLocks     rules.Skill = "open-locks"
+	FindTraps     rules.Skill = "find-traps"
+	MoveQuietly   rules.Skill = "move-quietly"
+	Hide          rules.Skill = "hide"
+	Hear          rules.Skill = "hear"
+	Climb         rules.Skill = "climb"
+	ReadLanguages rules.Skill = "read-languages"
 )
+
+const (
+	SaveParalysis rules.Save = "paralysis"
+	SavePetrify   rules.Save = "petrification"
+	SaveRod       rules.Save = "rod"
+	SaveBreath    rules.Save = "breath"
+	SaveSpell     rules.Save = "spell"
+)
+
+// SpellKnock is the spell PartyCanKnock asks for.
+const SpellKnock rules.SpellID = "knock"
 
 // The conditions scripts ask about; the 125-142 others stay private to the ruleset.
 const (

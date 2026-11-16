@@ -1,6 +1,8 @@
 package importer_test
 
 import (
+	"gobox/rules1e"
+	"gobox/rulesxxvc"
 	"io/fs"
 	"slices"
 	"testing"
@@ -29,8 +31,12 @@ var unusedMemberFields = map[string][]string{
 func TestMemberFieldsBound(t *testing.T) {
 	data := map[string]fs.FS{"por": importer.ScriptData(), "cotab": importer.EmbeddedScripts("cotab"), "sotsb": importer.EmbeddedScripts("sotsb"),
 		"pod": importer.PodScriptData(), "br1": importer.EmbeddedScripts("br1"), "br2": importer.EmbeddedScripts("br2")}
-	bound := engine.BoundFields()
 	for game, fsys := range data {
+		cat := (&rules1e.Rules{}).Catalog()
+		if game == "br1" || game == "br2" {
+			cat = rulesxxvc.New().Catalog()
+		}
+		bound := engine.BoundFields(cat)
 		l, err := ecl.ReadLayout(fsys, 0)
 		if err != nil {
 			t.Fatal(game, err)

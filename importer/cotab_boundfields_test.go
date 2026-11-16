@@ -3,6 +3,7 @@ package importer_test
 import (
 	"gobox/engine"
 	"gobox/importer"
+	"gobox/rules1e"
 	"slices"
 	"testing"
 )
@@ -12,7 +13,7 @@ import (
 // or the field is POR's own story or engine word).
 func TestCotabBoundFields(t *testing.T) {
 	absent := []string{"AreaKind", "BodySquares", "Boss", "EffectTable", "FacingOrRaw", "FightState", "FoeControl", "FoeCrew", "FoeEngines", "FoeHull", "FoeLifeSupport", "FoeSensors", "FoeWeaponCount", "LoopCounter", "LoopLimit", "MapPatchA", "MapPatchB", "Mark3", "Mark4", "Mark4Off", "MarkFlags4", "MarkFlags57", "PartyCredits", "PriceMultiplier", "RiverOpen", "RocketX", "RocketY", "ScriptBlock", "SelCha", "SelCharisma", "SelClassLevels", "SelCompanion", "SelFlag2", "SelFlag3", "SelGems", "SelHearNoise", "SelHideShadows", "SelHpCur", "SelHpMax", "SelMoveSilently", "SelOldLevels", "SelOpenLocks", "SelRangerLevel", "SelReadLanguages", "SelSideFlags", "SelSkills", "SelStats", "SelWindowF2", "ShipControl", "ShipEngines", "ShipFuel", "ShipHull", "ShipLifeSupport", "ShipMount0Ammo", "ShipMount0Reloads", "ShipMount0Status", "ShipMount1Ammo", "ShipMount1Reloads", "ShipMount1Status", "ShipMount2Status", "ShipSensors", "TourDone", "TravelKind", "UnknownD015", "VaultRequest", "WildTerrain"}
-	got, err := engine.UnboundFields(importer.EmbeddedScripts("cotab"))
+	got, err := engine.UnboundFields(importer.EmbeddedScripts("cotab"), (&rules1e.Rules{}).Catalog())
 	if err != nil {
 		t.Fatal(err)
 	}
