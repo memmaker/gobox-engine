@@ -163,6 +163,13 @@ var shipExperience = map[rules.ShipID]uint16{0: 300, 1: 3000, 2: 12600, 3: 2500,
 // firstShipRecord is SaveLoad FIRST_SHIP_RECORD: ship id n is SHIPS record 40 + n.
 const firstShipRecord = 40
 
+// shipPictureCount is how many pictures the ship file has: ship id n shows picture n mod 5 (saveload.pas LoadShipData).
+const shipPictureCount = 5
+
+// maneuverNames are the scene's texts for the foe closing and retreating (gdconsts.pas maneuverNames, indexed by
+// isEnemyRetreating; 'Maneuvering' is never shown).
+var maneuverNames = [2]string{"Closing    ", "Retreating "}
+
 // BeginShips is ShipCombat's set-up: Foe is the SHIPS record (40 + the ECL's
 // argument 1 less 1), PilotSkill and ToHit arguments 3 and 4; the first
 // enabled member marked as pilot flies, later marks are cleared; the pilot
@@ -212,6 +219,11 @@ func (r *Rules) shipSnapshot() rules.ShipFight {
 	}
 	sf := rules.ShipFight{Own: ship(partySide), Foe: ship(foeSide), Range: int32(f.rangeNow), Crew: f.crew, Actor: r.crewActor()}
 	sf.Own.ID, sf.Foe.ID = xxvc.PartyShip, f.foeID
+	sf.Foe.Picture = int(f.foeID-firstShipRecord) % shipPictureCount
+	sf.Status = maneuverNames[0]
+	if f.retreating {
+		sf.Status = maneuverNames[1]
+	}
 	return sf
 }
 
@@ -1125,6 +1137,9 @@ func (r *Rules) shipAllowed(sf rules.ShipFight) rules.Allowed {
 	c := r.chars[id]
 	pilot := id == f.pilot
 	a := rules.Allowed{Prompt: "what does " + c.Name + " want to do?"} // shipcbt.pas BuildPlayerMenu
+	if pilot {
+		a.Notice = c.Name + " is your pilot."
+	}
 	offer := func(act rules.Action, name string) {
 		if !slices.ContainsFunc(a.Offers, func(o rules.Offer) bool { return o.Action == act }) {
 			a.Offers = append(a.Offers, rules.Offer{Action: act, Name: name})
@@ -1132,8 +1147,9 @@ func (r *Rules) shipAllowed(sf rules.ShipFight) rules.Allowed {
 	}
 	if r.bestWeapon(partySide, !pilot) >= 0 {
 		offer(rules.ShipFire{}, "Fire")
-		for i, sys := range append(slices.Clone(xxvc.ShipSystems), xxvc.Weapons) {
-			offer(rules.ShipFire{Target: sys}, "Target "+[7]string{"Hull", "Sens", "Ctrl", "Life", "Fuel", "Engn", "Weap"}[i])
+		for i, sys := range append(slices.Clone(xxvc.ShipSystems), xxvc.Weapons) { // 'T': the systems' short names, one submenu
+			offer(rules.ShipFire{Target: sys}, [7]string{"Hull", "Sens", "Ctrl", "Life", "Fuel", "Engn", "Weap"}[i])
+			a.Offers[len(a.Offers)-1].Group, a.Offers[len(a.Offers)-1].Ask = "Target", "Target which system?"
 		}
 	}
 	if !pilot {

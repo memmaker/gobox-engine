@@ -64,7 +64,7 @@ var (
 // brArt is the art BR1 and BR2 name: the combat sprites COMSPR blocks 1..25 in icon rows 13..37 (gameinit.pas
 // LoadIconAnim('COMSPR', index, index + 13 - 1)) and the shots' icons of cbtacts.pas AnimateMissile (the same in both games:
 // the pace 10; the directed ones are Animate(firstKind), the rest the two-frame icons 30 and 37, which also fly for a grenade).
-var brArt = adventure.ArtNames{CombatSprites: "COMSPR", Title: "TITLE", IconMask: brIconMask, PlainIcons: true, MemberIcons: "CHARS", ActionIcons: true, Marks: brMarks,
+var brArt = adventure.ArtNames{CombatSprites: "COMSPR", Title: "TITLE", IconMask: brIconMask, PlainIcons: true, MemberIcons: "CHARS", ActionIcons: true, Marks: brMarks, ShipPictures: "SHIPS",
 	PlaceTiles: brCombatTiles, TerrainTiles: brTerrainTiles,
 	SpriteSlots: []adventure.SpriteLoad{{Block: 1, Slot: 13, Count: 25}},
 	Missiles: []adventure.MissileArt{

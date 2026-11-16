@@ -49,6 +49,7 @@ type Ship struct {
 	Order   []ShipSystem // the systems in the panel's order (the ruleset's)
 	Weapons []ItemID     // the mounts
 	Mounts  []ShipMount  // the mounts in slot order, an empty one with Short ""
+	Picture int          // the foe's picture: its block in the adventure's ship pictures
 }
 
 // ShipMount is one weapon mount's line (the panel's and the sheet's).
@@ -79,6 +80,7 @@ func (ShipSheetShown) effect() {}
 type ShipFight struct {
 	Own, Foe Ship
 	Range    int32
+	Status   string // the foe's manoeuvre in the rules' words ("Closing", "Retreating"), as the scene shows it
 	Round    int32
 	Crew     Party
 	Actor    CharID // NoChar: the foe's part of the round

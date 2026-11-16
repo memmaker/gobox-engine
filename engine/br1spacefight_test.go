@@ -152,3 +152,79 @@ func TestBR1SpaceFightSheet(t *testing.T) {
 	}
 	var _ rules.ShipRules // the sheet is the ruleset's
 }
+
+// TestBR1SpaceFightScene: the scene shows the foe's picture (SHIPS, block = ship id mod 5: saveload.pas LoadShipData) and the
+// manoeuvre's text (gdconsts.pas maneuverNames, 'Closing    ' with the foe not retreating); Target is one submenu of the
+// seven systems (shipcbt.pas 'Target which system?') whose choice fires; the pilot's menu names the pilot first.
+func TestBR1SpaceFightScene(t *testing.T) {
+	e := br1Begun(t)
+	br1OwnBlock(t, e, 201, spaceFightScript)
+	f, ok := shipFightOn(e)
+	if !ok {
+		t.Fatalf("state %T", e.State())
+	}
+	const foeShip, shipPictures = 1, 5 // the script's SpaceFight(.., 1, ..): ship id 0; SHIPS block 0 % 5
+	if sf := f.Fight; sf.Foe.File != "SHIPS" || sf.Foe.Block != (foeShip-1)%shipPictures || sf.Status != "Closing    " {
+		t.Errorf("scene: foe %+v status %q", sf.Foe, sf.Status)
+	}
+	// walk the crew until a menu offers Target (a member with a weapon): its choices are the systems, Esc-less
+	for range fightSteps {
+		f, ok = shipFightOn(e)
+		if !ok {
+			t.Fatal("the fight ended before a menu offered Target")
+		}
+		if i := indexOf(f.Ask, "Target"); i >= 0 {
+			if indexOf(f.Ask, "Hull") >= 0 {
+				t.Fatalf("the systems are not in the top menu: %v", f.Ask.Replies)
+			}
+			if _, err := e.doNow(game.Reply{N: i}); err != nil {
+				t.Fatal(err)
+			}
+			f, _ = shipFightOn(e)
+			if f.Ask == nil || f.Ask.Text != "Target which system?" || len(f.Ask.Replies) != 7 || f.Ask.Replies[0] != "Hull" || f.Ask.Replies[6] != "Weap" {
+				t.Fatalf("the submenu: %+v", f.Ask)
+			}
+			if _, err := e.doNow(game.Reply{N: 0}); err != nil {
+				t.Fatal(err)
+			}
+			return
+		}
+		var a game.Action = game.ContinueAction{}
+		if !f.Ask.Continue {
+			a = game.Reply{N: max(indexOf(f.Ask, "Quit"), 0)}
+		}
+		if _, err := e.doNow(a); err != nil {
+			t.Fatal(err)
+		}
+	}
+	t.Fatal("no menu offered Target")
+}
+
+// TestBR1SpaceFightPilotNarrated: a menu of the pilot is preceded by the narrated line "X is your pilot." (shipcbt.pas BuildPlayerMenu).
+func TestBR1SpaceFightPilotNarrated(t *testing.T) {
+	e := br1Begun(t)
+	br1OwnBlock(t, e, 201, spaceFightScript)
+	pilotMenus := 0
+	for range fightSteps {
+		f, ok := shipFightOn(e)
+		if !ok {
+			break
+		}
+		if n := e.ruleset().Allowed(e.ships().ShipState()).Notice; n != "" && !f.Ask.Continue { // "X is your pilot." is narrated before the prompt
+			if l := f.Fight.Log; len(l) == 0 || l[len(l)-1].Text != n || !strings.HasSuffix(n, " is your pilot.") {
+				t.Errorf("the pilot's menu is not narrated: %q in %v", n, l)
+			}
+			pilotMenus++
+		}
+		var a game.Action = game.ContinueAction{}
+		if !f.Ask.Continue {
+			a = game.Reply{N: max(indexOf(f.Ask, "Command"), indexOf(f.Ask, "Quit"), 0)} // take over as pilot, else pass
+		}
+		if _, err := e.doNow(a); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if pilotMenus == 0 {
+		t.Error("no menu of a pilot came up")
+	}
+}

@@ -72,7 +72,8 @@ const (
 	dTavernAgain                   // the tavern: go again or not
 	dContinueFight                 // "Continue Battle:"
 	dRestMenu                      // BR's rest menu: Rest rests a day and asks again, Exit leaves
-	dShipMenu                      // the ship fight's crew menu: the offer chosen
+	dShipMenu                      // the ship fight's crew menu: the place chosen
+	dShipGroup                     // a submenu of it: the offer chosen
 	dShipDodge                     // the ship fight's dodge question
 	dShipRam                       // the ship fight's ram question
 	dShipSheet                     // a ship's record had its key
@@ -453,7 +454,7 @@ func (e *Engine) complete(d askDone, v ansv) {
 		e.tavernAgain(v.n)
 	case dRestMenu:
 		e.restMenuAnswered(v.n)
-	case dShipMenu, dShipDodge, dShipRam, dShipSheet, dShipEnd:
+	case dShipMenu, dShipGroup, dShipDodge, dShipRam, dShipSheet, dShipEnd:
 		e.shipAnswered(d.kind, v)
 	case dRocketMenu:
 		e.rocketMenuAnswered()

@@ -14,6 +14,8 @@ type Offer struct {
 	Not    string
 	Name   string // its label, in the rules' words ("Cure Light Wounds")
 	Note   string // what taking it costs, in the rules' words (a class change's consequences)
+	// Group: the offer is one choice of a submenu of this name (shown as one entry), which Ask asks about ("": a top-level offer).
+	Group, Ask string
 }
 
 // Aimed is an action that takes squares (play.Aimed).
@@ -29,6 +31,7 @@ type Aimed struct {
 // squares the actor may walk to, with the path, computed on Fight.Board.
 type Allowed struct {
 	Prompt string // the question the offers answer, in the rules' words ("": none)
+	Notice string // a line shown before the prompt, in the rules' words (the ship fight's "X is your pilot."; "": none)
 	Offers []Offer
 	Aimed  []Aimed
 	Moves  []Reach

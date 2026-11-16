@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"slices"
 
 	"gobox/ecl"
 	"gobox/game"
@@ -136,15 +137,52 @@ func (e *Engine) shipOutcome(o rules.Outcome, d doneKind) bool {
 	return false
 }
 
-// askShipMenu asks the crew member's menu: the ruleset's offers, in its order.
-func (e *Engine) askShipMenu(al rules.Allowed) {
-	q := &game.Question{Text: al.Prompt, NoEsc: true}
-	ids := make([]int, len(al.Offers))
+// shipEntry is one place of the crew menu: an offer (offer is its place in Allowed.Offers) or a submenu (group, offer -1).
+type shipEntry struct {
+	label, group string
+	offer        int
+}
+
+// shipEntries are the crew menu's places in the ruleset's order: its offers, those of one Group as one place.
+func shipEntries(al rules.Allowed) (out []shipEntry) {
 	for i, o := range al.Offers {
-		q.Replies = append(q.Replies, o.Name)
+		switch {
+		case o.Group == "":
+			out = append(out, shipEntry{label: o.Name, offer: i})
+		case !slices.ContainsFunc(out, func(en shipEntry) bool { return en.group == o.Group }):
+			out = append(out, shipEntry{label: o.Group, group: o.Group, offer: -1})
+		}
+	}
+	return out
+}
+
+// askShipMenu asks the crew member's menu: the ruleset's offers, in its order (the Notice first).
+func (e *Engine) askShipMenu(al rules.Allowed) {
+	if al.Notice != "" {
+		e.shipRun.log = append(e.shipRun.log, al.Notice)
+	}
+	q := &game.Question{Text: al.Prompt, NoEsc: true}
+	entries := shipEntries(al)
+	ids := make([]int, len(entries))
+	for i, en := range entries {
+		q.Replies = append(q.Replies, en.label)
 		ids[i] = i
 	}
 	e.eclWait = &eclWait{ask: q, shape: shChoice, ids: ids, done: askDone{kind: dShipMenu}}
+}
+
+// askShipGroup asks a submenu of the crew menu: the offers of the group, by their place in Allowed.Offers.
+func (e *Engine) askShipGroup(al rules.Allowed, group string) {
+	q := &game.Question{NoEsc: true} // ponytail: the original's Esc goes back to the menu; here a choice is forced
+	var ids []int
+	for i, o := range al.Offers {
+		if o.Group == group {
+			q.Text = o.Ask
+			q.Replies = append(q.Replies, o.Name)
+			ids = append(ids, i)
+		}
+	}
+	e.eclWait = &eclWait{ask: q, shape: shChoice, ids: ids, done: askDone{kind: dShipGroup}}
 }
 
 // shipAnswered takes an answer of the fight's questions and plays on.
@@ -153,8 +191,20 @@ func (e *Engine) shipAnswered(kind doneKind, v ansv) {
 	switch kind {
 	case dShipMenu:
 		al := e.ruleset().Allowed(ships.ShipState())
+		entries := shipEntries(al)
+		if v.n < 0 || v.n >= len(entries) {
+			panic(fmt.Sprintf("ship fight: menu place %d of %d", v.n, len(entries)))
+		}
+		if en := entries[v.n]; en.group != "" {
+			e.askShipGroup(al, en.group)
+			return
+		}
+		e.shipResolve(al.Offers[entries[v.n].offer].Action)
+		return
+	case dShipGroup:
+		al := e.ruleset().Allowed(ships.ShipState())
 		if v.n < 0 || v.n >= len(al.Offers) {
-			panic(fmt.Sprintf("ship fight: menu place %d of %d", v.n, len(al.Offers)))
+			panic(fmt.Sprintf("ship fight: submenu offer %d of %d", v.n, len(al.Offers)))
 		}
 		e.shipResolve(al.Offers[v.n].Action)
 		return
@@ -232,7 +282,10 @@ const panelSensors = 1
 // spaceFightState is game.SpaceFight read from the ruleset's ships.
 func (e *Engine) spaceFightState() game.SpaceFight {
 	st := e.ships().ShipState()
-	f := game.SpaceFight{Range: max(int(st.Range), 0)}
+	f := game.SpaceFight{Range: max(int(st.Range), 0), Status: st.Status}
+	if file := e.artNames().ShipPictures; file != "" {
+		f.Foe = game.Picture{File: file, Block: st.Foe.Picture}
+	}
 	fill := func(s rules.Ship) (sys game.ShipSystems) {
 		for i, id := range s.Order[:min(len(s.Order), len(sys.Now))] {
 			sys.Now[i], sys.Max[i] = int(s.Systems[id].Now), int(s.Systems[id].Max)
