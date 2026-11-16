@@ -415,12 +415,33 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
       games of all series run as data folders"). Order, each a track of its own, landed through
       `foldwt.sh land`, this list kept current:
       1. [x] d1: the four golden fights match the old engine to their end (experience, credits, loot); fixed in `rulesxxvc`: guarding kept over a round, the clock ticks a minute per round (blindness runs out), targets sorted before the side filter; two old-engine deviations patched on the golden branch (a fled unit leaves its square, a blind attacker rolls 4 lower); `Unit.Damage` and `HitFact` recalculated on copies and compared with the golden
-      2. [ ] o1: BR1's script commands without a handler (`engine/br1ops_test.go`
-         `br1OpsNotPorted`: Skill, SkillAll, HasItem, NPCJoin, Shop, WallDistance, Duel,
-         Damage6, Op64, Op72; SpaceFight is B1e)
-      3. [ ] t1: the sheet, team menu and roster for XXVc (AC as shown, health, no AD&D spell
-         slots, the catalog's saves and abilities with their names, who seeds a new save
-         folder's roster, BR's character creation in `rulesxxvc`)
+      2. [x] o1: BR1's script commands ported, all but `Shop` and `SpaceFight`
+         (`br1OpsNotPorted`): WallDistance (`Behaviour.FarSight`), FindItem (was HasItem), AddNPC
+         (was NPCJoin, `Behaviour.NPCSideBit`), Skill/SkillShow (`rules.SkillRoll`), TakeItem,
+         Stash, SkillDamage (new `rules` actions), Duel (XXVc's solo fight;
+         `Behaviour.LostDuelResult`). BR import version 4 (renamed commands). Open: `Shop` (no
+         stock lists in the tables; the engine's shop flow assumes gold, identify, "Sold!");
+         `rulesxxvc` does not answer `rules.ScriptDamage` (BR's Damage command, 16 areas);
+         `EndFight` sets no Verdict/Foes outside the solo path; the solo fight tests the duelist,
+         the original the member who acted last; the party pack (class 76) not ported
+      3. [~] t1: the sheet shows the original's AC (|ac-60|) and THAC0, names for race, career,
+         gender, status; no spell slots without `FeatureSpells`; saves listed by the catalog's
+         names (XXVc names none: the original's sheet shows none); Tech and the career skills
+         as figures; the roster is the importer's (`saves/charlist.txt` + `.cha`, seeded as the
+         Pool games' saves are; `FileFormat.IsRecord`); creation ported (race, gender, career,
+         rolls, level-2 training, start skills and gear). RULED (Felix away): the 23 shipped
+         CHRDATA files hold 7 names; the roster is by name, so the first file of each name is
+         offered. Open: the skill-point screen, the warrior's weapon specialization, the icon
+         step, Modify, age; the ui's ability rows are the fixed six (Tech is a figure); the
+         creation helpers assume six abilities; `ui/creation.go` finds a sheet without alignment
+         by the field's name
+      5. [~] w1: host `buck`; `gobox import -shared -out <dir> br1 <originals>` and
+         `gobox -data <dir> -shared br1` (the old engine stays the default); the front's data in
+         `gamedata.json`; the presenter proven headless from the title to a fight
+         (`ui/br1_test.go`); the walls' textures (`importer/walls/br1.txt`). Open: the view's
+         floor, sky and BACK backdrop (keyed by BACK block in the old front); `sound.json` is a
+         silent table (BR's sound tables have no layout); no place-music publisher
+         (`Where.Music` is set by no game); BR2's front data; saves default folder
       4. [x] l2: BR2's full script layout (`importer/br2/scripts/layout/global.txt`, 280 fields, 55
          with BR1's names, proven on all 33 blocks: 9882 operands) and `ImportBREngine` for BR2
          (start-up values per game in `brStarts`); V4 decodes BR2 unchanged; member fields
@@ -428,9 +449,6 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
          journal source), text addresses used as numbers (7A00, 7B04, 7C00 in areas 19, 20, 36),
          text put into the byte buffers (`EntryBytes`, `NewGameBytes`), a SaveTable past
          `Word4B00` (area 1), 221 placeholder names; only `engine.New` is tested, no play
-      5. [ ] w1: BR on `cmd/gobox` through the shared engine (a host naming `rulesxxvc`), the
-         front's data (`game.Data`: border, party menu, texts), walls without WALLDEF, sounds,
-         portraits; windowed scripted smoke run
       6. [ ] v1: the overland, the rocket's view (view kind 2), Program 9 (rest), block changes
          across disks, save and load during BR play
       7. [ ] e1 (B1e): the space fight, ships, jetpack, throw on the shared engine
