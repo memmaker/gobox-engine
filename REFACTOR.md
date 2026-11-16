@@ -442,6 +442,17 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
          floor, sky and BACK backdrop (keyed by BACK block in the old front); `sound.json` is a
          silent table (BR's sound tables have no layout); no place-music publisher
          (`Where.Music` is set by no game); BR2's front data; saves default folder
+      2b. [x] sh1: `Shop(n)` opens the shared shop with the original's stock and prices
+         (`xxvc.Tables.ShopLists` from START.EXE at DS+0x18, both games; BR import version 6);
+         Buy, Sell, Reload outside any situation for both rulesets (`rules.Shopping` removed);
+         the engine's shop flow asks the ruleset (success is `rules.Traded`, identify only when
+         offered, the sale in the ruleset's coins, the ruleset's words when it gives some);
+         `PriceMultiplier` bound, handed over as `StockShop.Terms`; the purse and sale prices are
+         published under the game's own coin (`game.Data.Coin`); one sell question, the front's.
+         Left out by ruling: the shop's Pool/Take/Divvy (credits are paid out at once). Open:
+         the front's Reload button buys a clip only (`Fill` unreachable from the ui); a shop
+         list outside 1..16 panics (the 15 script uses not scanned); BR2's shop untested; the
+         front's display of BR prices is not verified by a ui test
       4. [x] l2: BR2's full script layout (`importer/br2/scripts/layout/global.txt`, 280 fields, 55
          with BR1's names, proven on all 33 blocks: 9882 operands) and `ImportBREngine` for BR2
          (start-up values per game in `brStarts`); V4 decodes BR2 unchanged; member fields
