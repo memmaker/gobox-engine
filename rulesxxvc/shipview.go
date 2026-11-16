@@ -25,7 +25,7 @@ func (s shipRules) ShipState() rules.ShipFight {
 		return r.shipSnapshot()
 	}
 	own := r.partyShip()
-	sh := rules.Ship{ID: xxvc.PartyShip, Name: own.Name, Systems: map[rules.ShipSystem]rules.Gauge{}, Mounts: r.mountLines(own)}
+	sh := rules.Ship{ID: xxvc.PartyShip, Name: own.Name, Systems: map[rules.ShipSystem]rules.Gauge{}, Order: xxvc.ShipSystems, Mounts: r.mountLines(own)}
 	for n, sys := range xxvc.ShipSystems {
 		sh.Systems[sys] = rules.Gauge{Now: int32(own.Status[n]), Max: int32(own.Maximum[n])}
 	}

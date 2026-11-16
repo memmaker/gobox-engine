@@ -204,7 +204,7 @@ func (s shipRules) BeginShips(e rules.ShipEncounter, rng *rules.RNG) (rules.Ship
 func (r *Rules) shipSnapshot() rules.ShipFight {
 	f := r.space
 	ship := func(i int) rules.Ship {
-		sh := rules.Ship{Name: f.ships[i].Name, Systems: map[rules.ShipSystem]rules.Gauge{}, Mounts: r.mountLines(f.ships[i])}
+		sh := rules.Ship{Name: f.ships[i].Name, Systems: map[rules.ShipSystem]rules.Gauge{}, Order: xxvc.ShipSystems, Mounts: r.mountLines(f.ships[i])}
 		for n, sys := range xxvc.ShipSystems {
 			sh.Systems[sys] = rules.Gauge{Now: int32(f.ships[i].Status[n]), Max: int32(f.ships[i].Maximum[n])}
 		}

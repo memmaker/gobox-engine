@@ -66,6 +66,10 @@ func (e *Engine) build() game.State {
 	}
 	pg, door, combat := e.statePage(), e.doorState(), e.fightState()
 	st := e.stateOf(mode, pending, pg, door, combat)
+	if f, ok := st.(game.ShipFight); ok { // the ship fight asks only its own questions
+		f.Allowed = e.shipAllowed()
+		return f
+	}
 	return withAllowed(st, e.allowed(st, mode, pending, door, combat))
 }
 
@@ -73,6 +77,8 @@ func (e *Engine) build() game.State {
 func (e *Engine) stateOf(mode game.Mode, pending *game.Question, pg *textPage, door *game.Door, combat *game.Combat) game.State {
 	cm := e.common(mode, pending, pg, door)
 	switch {
+	case e.shipRun != nil:
+		return e.shipFightState(cm)
 	case e.ext.ending && e.title.end != nil: // the end's pictures, as the title's steps
 		return e.endScene(cm)
 	case e.ext.intro: // the title is up: State's Scene is the adventure's Start (SetStart)

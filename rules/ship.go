@@ -46,8 +46,9 @@ type Ship struct {
 	ID      ShipID
 	Name    string
 	Systems map[ShipSystem]Gauge
-	Weapons []ItemID    // the mounts
-	Mounts  []ShipMount // the mounts in slot order, an empty one with Short ""
+	Order   []ShipSystem // the systems in the panel's order (the ruleset's)
+	Weapons []ItemID     // the mounts
+	Mounts  []ShipMount  // the mounts in slot order, an empty one with Short ""
 }
 
 // ShipMount is one weapon mount's line (the panel's and the sheet's).

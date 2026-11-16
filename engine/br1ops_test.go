@@ -12,7 +12,7 @@ var br1Blocks = []int{16, 17, 18, 32, 33, 34, 35, 48, 49, 50, 52, 64, 65, 66, 67
 
 // br1OpsNotPorted are the commands BR1's scripts use that the engine has no handler for yet: a script reaching
 // one panics. The list must match what the scripts and the engine say: a command ported leaves it (REFACTOR.md B1f).
-var br1OpsNotPorted = []string{"SpaceFight"}
+var br1OpsNotPorted = []string{}
 
 // TestBR1OpsPorted: every command BR1's scripts use has a handler, but the listed ones.
 func TestBR1OpsPorted(t *testing.T) {
