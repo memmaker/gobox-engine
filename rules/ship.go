@@ -16,6 +16,17 @@ type ShipEncounter struct {
 	PilotSkill, ToHit int32
 }
 
+// ShipEnd is how a ship fight ended (shipcbt.pas: what it writes to zone 0's shipCombatOutcome and postCombatMode).
+type ShipEnd int8
+
+const (
+	ShipNotOver      ShipEnd = iota // the fight is on (postCombatMode NORMAL as ShipCombat begins, 1217)
+	ShipFoeDestroyed                // the enemy hull gone (392)
+	ShipBoarded                     // the team boarded the injured foe (1105)
+	ShipHullLost                    // the team's hull gone (396)
+	ShipReceded                     // the foe left the scanner range (1272)
+)
+
 // ShipPart is the kind of cell of the party's ship a PartyShipFact reads (types.pas TShip).
 type ShipPart uint8
 

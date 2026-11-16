@@ -16,7 +16,7 @@
 4BB6 1 byte game Difficulty # Area[182]: difficulty 0..4 (monster.go:49, combat.go:699, rest.go:185) [BR2: buckrogers2-go rules/monster.go:49, combat.go:725; types.pas TZone0.difficulty]; engine only (not in BR2 scripts)
 4BB7 1 byte game WildTerrain # Area[183] zone0 wildernessTerrain (types.pas: BuildWildernessArena's terrain, +10 when the area kind's low nibble is 8; old engine cmap.go wild(): Area[183]); written with Area[230] on the overland [BR2: buckrogers2-go rules/cmap.go:306 (+10 when the area kind low nibble is 8); types.pas TZone0.terrain]; scripts: byte r30/w36
 4BB8 1 byte game ItemsStashed # Area[184]: opStash flag (eclops.go:817) [BR2: buckrogers2-go rules/eclops.go:836; types.pas TZone0.listTransferState]; engine only (not in BR2 scripts)
-4BBA 1 byte game SpaceOwnShip # Area[186]: space fight 1 own ship (spacefight.go:383,388) [BR2: buckrogers2-go rules/spacefight.go:383,388; types.pas TZone0.shipCombatOutcome (0 enemy destroyed or boarded, 1 party ship lost or enemy gone)]; scripts: byte r4/w6
+4BBA 1 byte game ShipOutcome enc=BrShipEnd # Area[186] zone0 shipCombatOutcome (types.pas; shipcbt.pas 392/396/1106/1272): 0 the foe destroyed or boarded, 1 the team's hull lost or the foe out of range; the engine writes the typed ship end [BR2: buckrogers2-go rules/spacefight.go:383,388; types.pas TZone0.shipCombatOutcome (0 enemy destroyed or boarded, 1 party ship lost or enemy gone)]; scripts: byte r4/w6
 4BBE 1 byte game RocketX # scripts: byte r7/w4 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
 4BBF 1 byte game RocketY # scripts: byte r7/w4 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
 4BC3 1 byte game MapX # Area[195]: the overland's square x (buckrogers-go rules/adv.go overland(): 0..37), the Pool's MapX; scripts: byte r27/w9
@@ -193,7 +193,7 @@
 4D70 1 word game FoeControl # scripts: word r1/w0 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
 4D72 1 word game FoeLifeSupport # scripts: word r1/w0 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
 4D76 1 word game FoeEngines # scripts: word r1/w0 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
-4D7C 1 byte game FightState # Area[636]: combat/space-fight outcome state (loot.go:79,111,119) [BR2: buckrogers2-go rules/loot.go:79,111,119]; scripts: byte r4/w8
+4D7C 1 byte game PostCombatMode enc=BrPostCombat # Area[636] zone0 postCombatMode (types.pas; c_postcb.pas: 0 NORMAL, 1 BOARDED; postcbt.pas 74: 2 REPAIR_SHIP, scripts add bit 7): ShipCombat sets NORMAL as it begins and BOARDED on boarding; the engine writes the typed ship end [BR2: buckrogers2-go rules/loot.go:79,111,119]; scripts: byte r4/w8
 4D81 1 byte game FoeWeaponCount # scripts: byte r1/w0 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
 7A00 1 text game Word7A00 # scripts: text/byte r11/w23
 7A01 1 byte game Word7A01 # scripts: byte r9/w9

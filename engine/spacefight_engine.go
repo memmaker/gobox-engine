@@ -14,15 +14,32 @@ import (
 // continuation. It keeps no ship numbers: every state it publishes is read from the ruleset again.
 //
 //	opSpaceFight: BeginShips; then, until ShipVerdict ends it: ShipRound, the crew's menu (Allowed, Resolve per
-//	answer), ShipFoe; then EndShips, the last page, the script's FightState and its resume.
+//	answer), ShipFoe; then EndShips, the last page, the script's ShipOutcome and PostCombatMode and its resume.
 
-const fieldFightState = "FightState" // the layout's zone 0 shipCombatOutcome: 0 the foe destroyed or boarded, 1 the party's ship lost or the foe gone
-
-// The values the script reads from FightState.
+// The layout's zone 0 cells a ship fight leaves (their encodings turn the typed rules.ShipEnd into the game's numbers).
 const (
-	fightStateWon  = 0 // shipcbt.pas: the enemy ship destroyed or boarded
-	fightStateLost = 1 // the team's ship destroyed, or the enemy out of range
+	fieldShipOutcome    = "ShipOutcome"    // shipCombatOutcome
+	fieldPostCombatMode = "PostCombatMode" // postCombatMode
 )
+
+// setShipEnd writes end into the cell r as the cell's encoding keeps it.
+func (e *Engine) setShipEnd(r ecl.Ref, end rules.ShipEnd) {
+	e.host.Set(r, e.gameValue(e.varField(r), int64(end)))
+}
+
+// writePostCombatMode writes the layout's postCombatMode (the Pool's layouts have none).
+func (e *Engine) writePostCombatMode(end rules.ShipEnd) {
+	if r, ok := e.layoutField(fieldPostCombatMode); ok {
+		e.setShipEnd(r, end)
+	}
+}
+
+// writeShipOutcome writes the layout's shipCombatOutcome (the Pool's layouts have none).
+func (e *Engine) writeShipOutcome(end rules.ShipEnd) {
+	if r, ok := e.layoutField(fieldShipOutcome); ok {
+		e.setShipEnd(r, end)
+	}
+}
 
 // shipStage is where the round stands.
 type shipStage int
@@ -66,6 +83,7 @@ func (e *Engine) opSpaceFight() {
 	if _, err := ships.BeginShips(enc, nil); err != nil {
 		panic(fmt.Sprintf("script: SpaceFight: %v", err))
 	}
+	e.writePostCombatMode(rules.ShipNotOver) // shipcbt.pas 1217
 	e.takeover()
 	e.push(cont{kind: kOpCombatEnd})
 	e.shipRun = &shipRun{}
@@ -246,10 +264,9 @@ func (e *Engine) shipResolve(a rules.Action) {
 	}
 }
 
-// shipOver ends the fight: the ruleset's end (repairs, experience), the script's FightState, the last page.
+// shipOver ends the fight: the ruleset's end (repairs, experience), the script's ShipOutcome and PostCombatMode, the last page.
 func (e *Engine) shipOver() {
 	run, ships := e.shipRun, e.ships()
-	verdict := ships.ShipVerdict(ships.ShipState())
 	res := ships.EndShips(ships.ShipState(), nil)
 	for _, f := range res.Effects {
 		n, ok := f.(rules.Narrated)
@@ -258,13 +275,8 @@ func (e *Engine) shipOver() {
 		}
 		run.log = append(run.log, n.Text)
 	}
-	if r, ok := e.layoutField(fieldFightState); ok {
-		state := int64(fightStateLost)
-		if verdict == rules.PartyWon {
-			state = fightStateWon
-		}
-		e.host.Set(r, state)
-	}
+	e.writeShipOutcome(res.ShipEnd)
+	e.writePostCombatMode(res.ShipEnd)
 	run.stage = stageOver
 	e.eclWait = &eclWait{ask: &game.Question{Continue: true}, shape: shPause, done: askDone{kind: dShipEnd}}
 }

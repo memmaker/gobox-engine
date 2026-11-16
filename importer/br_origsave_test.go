@@ -122,7 +122,7 @@ func TestBRSavedGameConstructed(t *testing.T) {
 			brSetCell(t, l, b, "TravelKind", areaOrbit)
 			brSetCell(t, l, b, "ShipHull", 300)            // damaged: 600 whole
 			brSetCell(t, l, b, "FoeHull", 7)               // the last foe
-			brSetCell(t, l, b, "SpaceOwnShip", 1)          // zone 0 shipCombatOutcome
+			brSetCell(t, l, b, "ShipOutcome", 1)          // zone 0 shipCombatOutcome
 			b[brFileOffset(0x4BB6)] = 4                    // difficulty: Ace
 			for i, v := range []int{3, 4, 5, 6, 7, 8, 9} { // the clock, smallest unit first (the day, month and year within their scales)
 				b[brFileOffset(0x4BC6+i)] = byte(v)
@@ -142,7 +142,7 @@ func TestBRSavedGameConstructed(t *testing.T) {
 			if s.X != 3 || s.Y != 5 || s.Facing != 4 || s.Pos3 != 1 || s.Pos4 != 2 || s.ViewMode != 2 {
 				t.Errorf("position %d,%d facing %d view %d", s.X, s.Y, s.Facing, s.ViewMode)
 			}
-			if !slices.Equal(s.Fields["Word4C31"], []int64{5}) || !slices.Equal(s.Fields["Word7B04"], []int64{'A'}) || !slices.Equal(s.Fields["Word4CE6"], []int64{70000}) || !slices.Equal(s.Fields["SpaceOwnShip"], []int64{1}) {
+			if !slices.Equal(s.Fields["Word4C31"], []int64{5}) || !slices.Equal(s.Fields["Word7B04"], []int64{'A'}) || !slices.Equal(s.Fields["Word4CE6"], []int64{70000}) || !slices.Equal(s.Fields["ShipOutcome"], []int64{1}) {
 				t.Errorf("fields %v", s.Fields)
 			}
 			w := *s.World
