@@ -23,7 +23,6 @@ const (
 	callItem                       // UseItem
 	callPower                      // UsePower
 	callLoot                       // LootLeave
-	callSell                       // Sell, after the ruleset's question
 	callDrop                       // dropping a member, target the questions still to ask
 	callClass                      // newClass
 	callCastChoice                 // the reply to a spell's own question (SpellAim.Choose): the waiting cast goes off
@@ -78,8 +77,6 @@ func (e *Engine) makeCall(p pendingCall) error {
 		return e.newClass(p.member, p.class, p.sure)
 	case callCastChoice:
 		e.castChosen(p.choice)
-	case callSell:
-		return e.browsing(p.member, func() error { return e.sell(p.item, p.member, p.sure) })
 	case callDrop:
 		if p.target > 0 { // ovr17:1F93: asked again
 			e.ext.pq = &playQuestion{q: game.Question{Text: "Are you sure? ", YesNo: true, Replies: []string{"No", "Yes"}, Default: 1},

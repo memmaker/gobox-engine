@@ -220,7 +220,7 @@ func (e *Engine) lootState(cm game.Common) game.Looting {
 	for i := range goods {
 		goods[i].Price = 0 // treasure is taken for nothing
 	}
-	return game.Looting{Common: cm, Items: goods, Money: purseMoney(e.purse(true)), Announce: !e.lootSeen}
+	return game.Looting{Common: cm, Items: goods, Money: e.purseMoney(e.purse(true)), Announce: !e.lootSeen}
 }
 
 // trainingState is the training hall while it is open, nil when shut.
@@ -248,7 +248,10 @@ func (e *Engine) trainingState() *game.Training {
 }
 
 // purseMoney is p as gobox's coin map.
-func purseMoney(p rules.Purse) map[string]int {
+func (e *Engine) purseMoney(p rules.Purse) map[string]int {
+	if c := e.gameData.Coin; c != "" { // the game counts in one coin of its own (game.Data.Coin: BR's credits): the purse's base unit (rules.Purse: Copper), and no gold or copper beside it
+		return map[string]int{c: int(p.Copper), game.Gems: int(p.Gems), game.Jewelry: int(p.Jewelry)}
+	}
 	return map[string]int{game.Gold: int(p.Gold), game.Copper: int(p.Copper), game.Gems: int(p.Gems), game.Jewelry: int(p.Jewelry)}
 }
 
@@ -284,7 +287,7 @@ func (e *Engine) itemsState(id rules.CharID) []game.Item {
 		card := e.itemCard(id, h)
 		g := gameItem(h, card)
 		g.Wrong = g.Kind != "misc" && card.CannotUse
-		g.Sale = purseMoney(card.Sale)
+		g.Sale = e.purseMoney(card.Sale)
 		if len(card.Scroll) > 0 {
 			g.Spell, g.Scribe = int(card.Scroll[0].Number), card.Scribe
 		}

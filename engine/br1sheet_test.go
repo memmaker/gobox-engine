@@ -60,3 +60,13 @@ func TestBR1Roster(t *testing.T) {
 		t.Fatalf("Add the last: %v, party %d", err, e.partySize())
 	}
 }
+
+// TestBR1PurseInCredits: the state's purse counts in the game's own coin (game.Data.Coin, BR's credits), which
+// is what the front shows; it showed 0 while the purse was published as gold and copper only.
+func TestBR1PurseInCredits(t *testing.T) {
+	e := br1Begun(t)
+	have := int(e.purse(false).Copper)
+	if got := commonOf(e.build()).Purse[game.Credits]; e.gameData.Coin != game.Credits || have == 0 || got != have || commonOf(e.build()).Purse[game.Copper] != 0 {
+		t.Fatalf("purse %v under %q, the party holds %d", commonOf(e.build()).Purse, e.gameData.Coin, have)
+	}
+}

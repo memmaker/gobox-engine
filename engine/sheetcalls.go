@@ -217,21 +217,20 @@ func (e *Engine) drop(h rules.ItemHandle) error {
 
 // sell sells item h where the inventory sells (the shop's). A ruleset that asks first (Outcome.Confirm: BR's
 // "I'll give you N credits...") has the question asked (askSure: Yes sells, sure); sure: it was asked.
-func (e *Engine) sell(h rules.ItemHandle, member int, sure bool) error {
+func (e *Engine) sell(h rules.ItemHandle) error {
 	cID, h := e.carriedBy(h)
 	if h == rules.NoItem || !e.inventoryView(cID).Sell {
 		return rules.ErrNotNow
 	}
-	var a rules.Action = rules.Sell{Who: cID, Item: h}
-	if sure {
-		a = rules.Confirmed{Action: a}
-	}
+	a := rules.Sell{Who: cID, Item: h}
 	o, err := e.ruleset().Resolve(nil, a, nil)
 	if err != nil {
 		return err
 	}
-	if o.Confirm != "" {
-		return e.askSure(o.Confirm, pendingCall{kind: callSell, member: member, item: h})
+	if o.Confirm != "" { // the ruleset asks first (XXVc: "I'll give you ..."): the front has asked already, with the Sale it was shown (game.Data.Confirms)
+		if o, err = e.ruleset().Resolve(nil, rules.Confirmed{Action: a}, nil); err != nil {
+			return err
+		}
 	}
 	e.traded(o, "Sold!")
 	return nil

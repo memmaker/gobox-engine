@@ -241,7 +241,7 @@ func (e *Engine) common(mode game.Mode, pending *game.Question, pg *textPage, do
 	cm.Picture, cm.Frames, cm.Delays, cm.Portrait = e.viewState()
 	cm.Party, cm.Selected = e.partyState()
 	if e.partySize() > 0 {
-		cm.Purse = purseMoney(e.purse(false))
+		cm.Purse = e.purseMoney(e.purse(false))
 	}
 	cm.Picker, cm.IconEditor = e.pickState()
 	if note, _ := e.Note(); len(cm.Text) == 0 && note != "" {
@@ -1451,7 +1451,7 @@ func (e *Engine) itemDo(a game.Action, native func(func() error) error) (bool, e
 	case game.Buy: // the Buy list opens for the buy and closes after: the state stays Trading
 		return true, native(func() error { return e.browsing(a.Member, func() error { return e.Buy(a.Item) }) })
 	case game.Sell:
-		return true, native(func() error { return e.runCall(pendingCall{kind: callSell, member: a.Member, item: a.Item}) })
+		return true, native(func() error { return e.browsing(a.Member, func() error { return e.sell(a.Item) }) })
 	case game.Reload:
 		kind := rules.ReloadClip
 		if a.Fill {

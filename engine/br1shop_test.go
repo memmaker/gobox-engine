@@ -3,7 +3,6 @@ package engine
 import (
 	"path/filepath"
 	"slices"
-	"strings"
 	"testing"
 
 	"gobox/adventure"
@@ -95,15 +94,8 @@ func TestBR1Shop(t *testing.T) {
 	if _, err := e.doNow(game.Sell{Member: 0, Item: bought}); err != nil {
 		t.Fatal("sell:", err)
 	}
-	q := commonOf(e.build()).Ask
-	if q == nil || !q.YesNo || br1Credits(e) != paid {
-		t.Fatalf("no question before the sale: %+v credits %d", q, br1Credits(e))
-	}
-	if !strings.Contains(q.Text, "I'll give you") {
-		t.Errorf("the shop's offer: %q", q.Text)
-	}
-	if _, err := e.doNow(game.Reply{N: 1}); err != nil {
-		t.Fatal(err)
+	if q := commonOf(e.build()).Ask; q != nil { // the front asks (its sell question with the published Sale); the engine does not ask again
+		t.Fatalf("a second question after the front's sale: %+v", q)
 	}
 	if got := br1Credits(e); got != paid+sale || len(e.listedItems(e.partyIDs()[0])) != n {
 		t.Errorf("after the sale: credits %d, want %d; %d items", got, paid+sale, len(e.listedItems(e.partyIDs()[0])))
