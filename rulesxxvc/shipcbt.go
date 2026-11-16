@@ -1135,6 +1135,9 @@ func (r *Rules) shipPatients(c *Character) []rules.CharID {
 	return ps
 }
 
+// shipTargetGroup is the crew menu's Target submenu (shipcbt.pas BuildPlayerMenu 'T').
+const shipTargetGroup = "Target"
+
 // shipAllowed is BuildPlayerMenu for the member at the menu.
 func (r *Rules) shipAllowed(sf rules.ShipFight) rules.Allowed {
 	id := r.crewActor()
@@ -1155,9 +1158,10 @@ func (r *Rules) shipAllowed(sf rules.ShipFight) rules.Allowed {
 	}
 	if r.bestWeapon(partySide, !pilot) >= 0 {
 		offer(rules.ShipFire{}, "Fire")
+		a.Offers[len(a.Offers)-1].EscFor = shipTargetGroup                         // Esc on 'Target which system?' fires untargeted (shipcbt.pas 1137: Esc is not RIGHT_BRACKET)
 		for i, sys := range append(slices.Clone(xxvc.ShipSystems), xxvc.Weapons) { // 'T': the systems' short names, one submenu
 			offer(rules.ShipFire{Target: sys}, [7]string{"Hull", "Sens", "Ctrl", "Life", "Fuel", "Engn", "Weap"}[i])
-			a.Offers[len(a.Offers)-1].Group, a.Offers[len(a.Offers)-1].Ask = "Target", "Target which system?"
+			a.Offers[len(a.Offers)-1].Group, a.Offers[len(a.Offers)-1].Ask = shipTargetGroup, "Target which system?"
 		}
 	}
 	if !pilot {

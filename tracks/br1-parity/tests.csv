@@ -49,7 +49,7 @@ create,TestSkillsEscDone,Esc on the skill screen is Done,differs,,"the skill scr
 cull,TestSkillCull,"the remaster culls skills, restores 69/70/82, shrinks career lists",differs,,"the shared engine follows the Pascal tables (xxvc_compare knownDiff, REFACTOR b2 notOffered)"
 debug,TestDebugBegin,"each test start lands in its state (shop, fight)",n/a,,"the old engine's dev starts; shared has DevAt (TestBR1NewBlock, TestScriptedPlace)"
 debug,TestShopShows,goods carry a price and the purse is the credits,covered,TestBR1Shop;TestBR1PurseInCredits,
-deskew,TestDeskewWestColumn,"on the deskewed map every west wall is one straight column, rows 1..4, post above",port-done,TestDeskewWestColumn (rulesxxvc);TestBR1DeskewFight,"the Pool definition (rules.StraightX, 5-wide squares), BR tiles; rulesxxvc/dungeongen.go squareWalls"
+deskew,TestDeskewWestColumn,"on the deskewed map every west wall is one straight column, rows 1..4, post above",port-done,TestDeskewWestColumn;TestBR1DeskewFight,"the Pool definition (rules.StraightX, 5-wide squares), BR tiles; rulesxxvc/dungeongen.go squareWalls"
 dispatch,TestClassOpsPorted,every case of the original ECL dispatch has an op and the port adds none,covered,TestBR1OpsPorted;TestBR2OpsPorted,"compared with the scripts' used commands, not the Pascal dispatch list"
 dispatch,TestClassStubOps,"pause waits the game speed, sound is an event",covered,TestBR1DelayMs;TestBR1ScriptSound,
 ds,TestDSImg,the data-segment image holds the tables at their offsets,n/a,,old engine internals; the importer reads START.EXE (importer br_creation/br_space tests)
@@ -97,7 +97,7 @@ spaceaid,TestSpaceAid,first aid in a ship fight bandages the dying member with i
 spacefight_e2e,TestSpaceFightE2E,"ECL 31 through the foe figures, after-combat, repairs, resume",covered,TestBR1SpaceFightPlayed;TestBR2SpaceFightPlayed,
 spacefight_e2e,TestSpaceScreen,the ship fight screen and its systems menu,covered,TestBR1SpaceFightScene,
 spacefight_e2e,TestSpaceSheet,"the ship sheet: range bands, known from the roll, weapons",covered,TestBR1SpaceFightSheet,
-spacefight_e2e,TestSpaceMenuEsc,Esc on the crew menu re-asks; Esc on the target menu fires untargeted,port-open,,REFACTOR p2 Open: Esc in the Target submenu; needs the engine to answer Esc from Offer.Group
+spacefight_e2e,TestSpaceMenuEsc,Esc on the crew menu re-asks; Esc on the target menu fires untargeted,port-done,TestBR1SpaceMenuEsc,"shipcbt.pas 1137: Esc is not RIGHT_BRACKET, so no system is chosen and the volley goes untargeted (it does not go back to the crew menu); rules.Offer.EscFor, Allowed offers Leave"
 spacefight_e2e,TestSpaceNotices,coma and dying notices are status lines held for the message speed,port-done,TestShipDyingCount,"the texts and counts are ported; the old engine showed them as held status lines, the shared engine as narrated lines"
 spacefight_e2e,TestRocketSheet,the rocket R shows the own sheet beside the panel,covered,TestBR1RocketVerbs,
 spacefight_e2e,TestLootStatus,"after a ship fight the loot screen S shows the ship and ""Enemy ship destroyed.""",port-open,,postcbt.pas:762: a Looting verb for the ship sheet and its text; a new screen state

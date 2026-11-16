@@ -16,6 +16,8 @@ type Offer struct {
 	Note   string // what taking it costs, in the rules' words (a class change's consequences)
 	// Group: the offer is one choice of a submenu of this name (shown as one entry), which Ask asks about ("": a top-level offer).
 	Group, Ask string
+	// EscFor: Esc in the submenu of this name answers with this offer (a top-level one: shipcbt.pas's Target menu, Esc fires untargeted).
+	EscFor string
 }
 
 // Aimed is an action that takes squares (play.Aimed).

@@ -785,6 +785,9 @@ func (r *frontState) cancel() game.Result {
 			return r.answer(ps, game.Reply{N: i}, rules.BoardPos{})
 		}
 	}
+	if q := game.CommonOf(ps).Ask; q != nil && r.ask == nil && r.aim == nil && !q.NoEsc && slices.Contains(game.CommonOf(ps).Allowed.Plain, game.Action(game.Leave{})) { // Esc on a menu whose Esc is a reply it does not list: its Leave
+		return r.do(game.Leave{})
+	}
 	bare := r.ask == nil && r.aim == nil
 	r.ask, r.moves, r.aim = nil, nil, nil
 	if _, fight := ps.(game.Fighting); fight && lone { // Esc on the aim the game asks: its Leave

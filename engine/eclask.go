@@ -28,6 +28,7 @@ type eclWait struct {
 	anim   bool        // the picture animates while it waits
 	shape  askShape    // how its replies answer it
 	ids    []int       // a choice: the menu place of each reply
+	esc    *ansv       // a choice: what Esc answers (nil: Esc is refused, the choice forced)
 	list   []*ListNode // a list's nodes
 	enter  bool        // a choice: Enter answers it (place 0)
 	clear  bool        // the prompt row is cleared once it is answered
@@ -153,6 +154,11 @@ func (e *Engine) answer(r game.Action) {
 		e.showAsk()
 		return
 	}
+	e.answered(w, v)
+}
+
+// answered completes w with its answer v.
+func (e *Engine) answered(w *eclWait, v ansv) {
 	if w.clear {
 		e.clearPrompt()
 	}
@@ -190,6 +196,10 @@ func (e *Engine) answer(r game.Action) {
 func (e *Engine) leaveAsk(q *game.Question) error {
 	if i, ok := q.Esc.Reply(); ok {
 		e.answer(game.Reply{N: i})
+		return nil
+	}
+	if w := e.eclWait; w != nil && w.esc != nil {
+		e.answered(w, *w.esc)
 		return nil
 	}
 	var r game.Action

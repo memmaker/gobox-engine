@@ -173,16 +173,21 @@ func (e *Engine) askShipMenu(al rules.Allowed) {
 
 // askShipGroup asks a submenu of the crew menu: the offers of the group, by their place in Allowed.Offers.
 func (e *Engine) askShipGroup(al rules.Allowed, group string) {
-	q := &game.Question{NoEsc: true} // ponytail: the original's Esc goes back to the menu; here a choice is forced
+	q := &game.Question{}
 	var ids []int
+	var esc *ansv // shipcbt.pas 1137: Esc (C_Keys.NONE) is no system chosen, the volley goes untargeted
 	for i, o := range al.Offers {
 		if o.Group == group {
 			q.Text = o.Ask
 			q.Replies = append(q.Replies, o.Name)
 			ids = append(ids, i)
 		}
+		if o.EscFor == group {
+			esc = &ansv{n: i}
+		}
 	}
-	e.eclWait = &eclWait{ask: q, shape: shChoice, ids: ids, done: askDone{kind: dShipGroup}}
+	q.NoEsc = esc == nil
+	e.eclWait = &eclWait{ask: q, shape: shChoice, ids: ids, esc: esc, done: askDone{kind: dShipGroup}}
 }
 
 // shipAnswered takes an answer of the fight's questions and plays on.
@@ -363,6 +368,9 @@ func (e *Engine) shipAllowed() game.Allowed {
 	default:
 		for i := range q.Replies {
 			a.Plain = append(a.Plain, game.Reply{N: i})
+		}
+		if w := e.eclWait; w != nil && w.esc != nil && !q.NoEsc { // Esc answers a reply the menu does not list (the Target menu: untargeted)
+			a.Plain = append(a.Plain, game.Leave{})
 		}
 	}
 	return a
