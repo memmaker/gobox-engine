@@ -470,6 +470,11 @@ func diceText(d rules.Dice) string {
 	return s
 }
 
+// dollSlots names the doll slot (game.Item.Slot) of each equipment slot that has one: the weapon, the armour and the
+// grenade launcher (c_equip.pas WEAPON, ARMOR, GRENADE_LAUNCHER).
+var dollSlots = map[xxvc.EquipSlot]string{xxvc.SlotWeapon: rules.DollNames[rules.DollWeapon], xxvc.SlotArmor: rules.DollNames[rules.DollArmor],
+	xxvc.SlotGrenadeLauncher: rules.DollNames[rules.DollLauncher]}
+
 // itemCard is the card of c's item h from its template and type (Item).
 func (r *Rules) itemCard(c *Character, h rules.ItemHandle) (rules.ItemCard, error) {
 	i := heldAt(c, h)
@@ -482,7 +487,11 @@ func (r *Rules) itemCard(c *Character, h rules.ItemHandle) (rules.ItemCard, erro
 		return rules.ItemCard{}, err
 	}
 	t := r.tables.Items[ci.Ref.ID]
-	return rules.ItemCard{Item: h, Name: strings.Join(it.NameWords, " "), Type: t.Type, Count: it.Count, Price: it.Price, Sale: rules.Purse{Copper: uint64(r.sellPrice(ci))}, // credits are Copper
+	slot := ""
+	if _, ty, ok := r.itemType(ci); ok && ci.Readied { // the doll slot it is readied in (c_equip.pas); the jetpack and ECM have none
+		slot = dollSlots[ty.Slot]
+	}
+	return rules.ItemCard{Item: h, Slot: slot, Name: strings.Join(it.NameWords, " "), Type: t.Type, Count: it.Count, Price: it.Price, Sale: rules.Purse{Copper: uint64(r.sellPrice(ci))}, // credits are Copper
 
 		Kind: ci.Ref.ID, Weight: t.Weight, Readied: ci.Readied, Identified: it.Identified, Tab: string(it.Kind)}, nil
 }
