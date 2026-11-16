@@ -10,11 +10,19 @@ import (
 // aimConfirm = ovr14:2C3D (c, cand, mode): take cand as the target. With
 // mode 1 (a missile attack) the attack is made at once, after "Attack
 // Ally?" (mayAttack) for a friend; the results are found and the target.
-func (e *Engine) aimConfirm(cID, candID rules.CharID, mode int, ranged bool) (found bool, t aimTarget) {
-	t = aimTarget{C: candID, At: e.at(candID)}
+// A bare square (candID NoChar: the ruleset took it, a thrown area weapon) is the attack's At.
+func (e *Engine) aimConfirm(cID, candID rules.CharID, at rules.BoardPos, mode int, ranged bool) (found bool, t aimTarget) {
+	if candID != rules.NoChar {
+		at = e.at(candID) // the target's own square
+	}
+	t = aimTarget{C: candID, At: at}
 	found = true
 	if mode == 1 { // the blow is core.Rules Resolve(Attack); an ally asks first
-		var a rules.Action = rules.Attack{Target: candID, Ranged: ranged}
+		blow := rules.Attack{Target: candID, Ranged: ranged}
+		if candID == rules.NoChar {
+			blow.At = &at
+		}
+		var a rules.Action = blow
 		if e.cs.sure { // the call asks first (cs.ask: turnActs makes it the pending one)
 			a = rules.Confirmed{Action: a}
 		}
@@ -141,7 +149,7 @@ func (h *aimRun) apply(a TurnAct) bool {
 	}
 	h.t = aimTarget{C: ck.Target, At: rules.BoardPos{X: a.X, Y: a.Y}}
 	if h.showRange == 1 || ck.Target != rules.NoChar && ck.Occupied {
-		f, at := e.aimConfirm(h.c, ck.Target, h.showRange, h.then.ranged) // ovr14:2C3D: the target's own square; a weapon strikes
+		f, at := e.aimConfirm(h.c, ck.Target, h.t.At, h.showRange, h.then.ranged) // ovr14:2C3D: the target's own square; a weapon strikes
 		h.found, h.finished = f, f
 		if f {
 			h.t = at

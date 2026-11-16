@@ -272,7 +272,7 @@ func (e *Engine) attackUnit(cID rules.CharID, n int, walks map[int]rules.BoardPo
 			return false
 		}
 	}
-	found, _ := e.aimConfirm(cID, t, 1, false)
+	found, _ := e.aimConfirm(cID, t, rules.BoardPos{}, 1, false)
 	e.later(resume{kind: rBool, ok: found})
 	return false
 }
