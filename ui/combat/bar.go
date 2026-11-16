@@ -4,7 +4,6 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
-	"math"
 	"slices"
 	"strconv"
 	"strings"
@@ -323,7 +322,7 @@ func buttonRect(w, n, i, k int) image.Rectangle {
 }
 
 // Click takes a click at screen pixel (x, y): a button of the bar, else
-// a square of the map (aiming: the aim; a foe of the turn's targets: the
+// the square of the map the hover marker shows (hoverSquare's floor pick) (aiming: the aim; a foe of the turn's targets: the
 // attack; a square in reach: the walk). It reports whether it was taken.
 func (p *Presenter) Click(x, y int) bool {
 	for i, r := range p.bar.rects {
@@ -332,40 +331,12 @@ func (p *Presenter) Click(x, y int) bool {
 			return true
 		}
 	}
-	if u, ok := p.unitUnder(x, y); ok { // a unit stands in front of the floor behind it: the click is on the unit
-		return p.clickSquare(image.Pt(u.X, u.Y))
-	}
-	sq, hit := p.pickPlane(x, y)
+	sq, hit := p.marked(x, y) // the square the hover marker shows: figures and their bases never take a click
+
 	if u, ok := p.activeUnit(); hit && ok && !onBoard(sq) { // past the board: only the square beside the turn's unit, off the edge, takes (the step off it)
 		return max(abs(sq.X-u.X), abs(sq.Y-u.Y)) == 1 && p.clickSquare(sq)
 	}
 	return hit && p.clickSquare(sq)
-}
-
-// unitUnder is the unit whose standing figure (a square wide, a square tall,
-// over its footprint) is under screen pixel (x, y), the nearest one first.
-func (p *Presenter) unitUnder(x, y int) (Unit, bool) {
-	r := p.screen
-	if p.b == nil || r.Empty() || !image.Pt(x, y).In(r) {
-		return Unit{}, false
-	}
-	nx, ny := 2*float64(x-r.Min.X)/float64(r.Dx())-1, 1-2*float64(y-r.Min.Y)/float64(r.Dy())
-	var best Unit
-	bestY, found := 2.0, false
-	for _, u := range p.b.Units {
-		c := unitCentre(u)
-		bx, by, ok1 := p.cam.ndc(vec{c[0], 0, c[1]})
-		ex, _, ok2 := p.cam.ndc(vec{c[0] + .4, 0, c[1]})
-		_, ty, ok3 := p.cam.ndc(vec{c[0], float64(max(u.Size, 1)), c[1]})
-		if !ok1 || !ok2 || !ok3 {
-			continue
-		}
-		hw := math.Hypot(ex-bx, 0) + 1e-9
-		if nx >= bx-hw && nx <= bx+hw && ny >= by && ny <= ty && by < bestY { // the lowest base on screen is the nearest
-			best, bestY, found = u, by, true
-		}
-	}
-	return best, found
 }
 
 // clickSquare takes a click (or the keys' cursor's Enter) on square sq:
@@ -542,16 +513,26 @@ func barPixels(glyph func(byte) [8]byte, items []barItem, hover, w, h, k int, ic
 	return im
 }
 
-// hoverSquare is the square the hover frame and the walk preview show: the
+// HoverSquare is the square the hover frame and the walk preview show: the
 // keys' cursor, else the one under the mouse (not over the bar).
-func (p *Presenter) hoverSquare() (int, int, bool) {
+func (p *Presenter) HoverSquare() (int, int, bool) {
+	x, y := gpu.CursorPosition()
+	if p.free == nil && p.overBar(x, y) {
+		return 0, 0, false
+	}
+	sq, hit := p.marked(x, y)
+	return sq.X, sq.Y, hit && onBoard(sq)
+}
+
+// marked is the square the hover marker is on with the pointer at screen
+// pixel (x, y): the keys' cursor, else the floor under the pointer, on the
+// board or past its edge (hit false: no ground there). A click takes it
+// (Click): the one way a square is chosen, never a figure in front of it.
+func (p *Presenter) marked(x, y int) (image.Point, bool) {
 	if c := p.free; c != nil {
-		return c.X, c.Y, true
+		return *c, true
 	}
-	if x, y := gpu.CursorPosition(); !p.overBar(x, y) {
-		return p.Pick(x, y)
-	}
-	return 0, 0, false
+	return p.pickPlane(x, y)
 }
 
 func abs(n int) int { return max(n, -n) }

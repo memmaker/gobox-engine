@@ -307,7 +307,7 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 		dst.DrawMesh(p.box, p.white, vp, &o)
 	}
 	if r := b.AimArea - 1; r >= 0 && len(b.AreaAt) == 0 { // the area previewed round the hovered square
-		if hx, hy, ok := p.hoverSquare(); ok {
+		if hx, hy, ok := p.HoverSquare(); ok {
 			for _, a := range areaRound(image.Pt(hx, hy), r) {
 				o := gpu.MeshOptions{Blend: gpu.MeshAdd, Tint: areaFill, Model: place(float32(a.X)+.5, 0.0035, float32(a.Y)+.5, 0, .96, .005, .96)}
 				dst.DrawMesh(p.box, p.white, vp, &o)
@@ -333,7 +333,7 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 		o := gpu.MeshOptions{Blend: gpu.MeshAdd, Tint: reachGlow, Model: place(float32(r.X)+.5, 0.003, float32(r.Y)+.5, 0, .96, .005, .96)}
 		dst.DrawMesh(p.box, p.white, vp, &o)
 	}
-	if mx, my, ok := p.hoverSquare(); ok {
+	if mx, my, ok := p.HoverSquare(); ok {
 		frame(mx, my, hoverGlow, 0)
 		for i, s := range b.Paths[image.Pt(mx, my)] { // the walk a click takes; red where leaving lets a foe strike
 			if i == 0 || aiming || !b.CanMove { // the mover's own square

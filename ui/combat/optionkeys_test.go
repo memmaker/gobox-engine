@@ -56,23 +56,27 @@ func TestMoveOption(t *testing.T) {
 	}
 }
 
-// TestClickHitsUnit: a click on a foe's figure (above its square, where the
-// floor ray lands on the square behind) is on the foe.
-func TestClickHitsUnit(t *testing.T) {
-	foe := Unit{ID: 7, X: 14, Y: 8, Squares: []image.Point{{14, 8}}}
-	b := &Board{Units: []Unit{{ID: 1, X: 18, Y: 14, Active: true}, foe}, Targets: []int{7}, Turn: &Turn{Can: []Kind{DecideAttack}}}
-	p := &Presenter{b: b, screen: image.Rect(0, 0, 800, 600)}
+// TestClickTakesMarkedSquare: a click takes the square the hover marker
+// shows (the floor under the pointer), never a figure standing in front of
+// it: a click past an ally's head onto the square behind it walks there,
+// it does not open the ally's sheet.
+func TestClickTakesMarkedSquare(t *testing.T) {
+	ally := Unit{ID: 1, X: 14, Y: 8, Party: true, Active: true, Squares: []image.Point{{14, 8}}}
+	p := &Presenter{screen: image.Rect(0, 0, 800, 600)}
 	p.cam = camera{eye: vec{20, 9, 20}, at: vec{14, 0, 8}, fovy: 0.8, aspect: 4.0 / 3}
 	nx, ny, _ := p.cam.ndc(vec{14.5, 0.8, 8.5}) // the figure's head
 	x, y := int((nx+1)/2*800), int((1-ny)/2*600)
-	if sx, sy, _ := p.Pick(x, y); sx == 14 && sy == 8 {
-		t.Fatal("the floor ray already lands on the foe's square: no test")
+	sx, sy, ok := p.Pick(x, y)
+	behind := image.Pt(sx, sy)
+	if !ok || behind == image.Pt(14, 8) {
+		t.Fatal("the floor ray lands on the ally's square: no test")
 	}
+	p.b = &Board{Units: []Unit{ally}, Reach: []image.Point{behind}, CanMove: true, Turn: &Turn{Can: []Kind{DecideWalk, DecideView}}}
 	if !p.Click(x, y) {
 		t.Fatal("click not taken")
 	}
-	if got := p.Actions(); len(got) != 1 || got[0] != (Decision{Kind: DecideAttack, N: 7}) {
-		t.Fatalf("%+v", got)
+	if got := p.Actions(); len(got) != 1 || got[0] != (Decision{Kind: DecideWalk, X: behind.X, Y: behind.Y}) {
+		t.Fatalf("%+v, want the walk to the marked %v", got, behind)
 	}
 }
 
@@ -93,8 +97,8 @@ func TestOptionChords(t *testing.T) {
 	}
 }
 
-// TestAimClickFoe: aiming, a click on a foe's figure answers the foe's square
-// (not the cursor's, which starts on the shooter).
+// TestAimClickFoe: aiming, a click answers the marked square under the
+// pointer, not a figure in front of it (nor the cursor's start on the shooter).
 func TestAimClickFoe(t *testing.T) {
 	foe := Unit{ID: 7, X: 14, Y: 8, Squares: []image.Point{{14, 8}}}
 	b := &Board{Units: []Unit{{ID: 1, X: 18, Y: 14, Active: true}, foe}, Cursor: image.Pt(18, 14), Turn: &Turn{Aim: true, Can: []Kind{DecideAim}}}
@@ -102,13 +106,14 @@ func TestAimClickFoe(t *testing.T) {
 	p.cam = camera{eye: vec{20, 9, 20}, at: vec{14, 0, 8}, fovy: 0.8, aspect: 4.0 / 3}
 	nx, ny, _ := p.cam.ndc(vec{14.5, 0.8, 8.5})
 	x, y := int((nx+1)/2*800), int((1-ny)/2*600)
+	sx, sy, _ := p.Pick(x, y)
 	p.Point(x, y)
 	if !p.Click(x, y) {
 		t.Fatal("click not taken")
 	}
 	got := p.Actions()
-	if len(got) == 0 || got[len(got)-1] != (Decision{Kind: DecideAim, X: 14, Y: 8}) {
-		t.Fatalf("%+v", got)
+	if len(got) == 0 || got[len(got)-1] != (Decision{Kind: DecideAim, X: sx, Y: sy}) {
+		t.Fatalf("%+v, want the aim at the marked %d,%d", got, sx, sy)
 	}
 }
 

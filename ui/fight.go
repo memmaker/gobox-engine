@@ -173,7 +173,7 @@ func (p *Presenter) drawFightRows(dst *gpu.Image, note Note, b *combat.Board, k 
 		panel = b.Turn.Unit
 	}
 	hover := false
-	if mx, my, ok := p.battle.Pick(gpu.CursorPosition()); ok && my < p.mapBottom {
+	if mx, my, ok := p.battle.HoverSquare(); ok && my < p.mapBottom { // the marked square's unit
 		for _, u := range b.Units {
 			for _, s := range u.Squares {
 				if s == image.Pt(mx, my) {
