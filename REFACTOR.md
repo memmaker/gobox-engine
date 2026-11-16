@@ -521,6 +521,34 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
          plays four members. Coverage did NOT rise (about 20% of 17830 instructions): walks are
          short and random. Open: a loop without asking in blocks 50, 80, 94.
 
+      7d. [x] p2: a unit's action pose while it attacks (`Unit.Action`, `ArtNames.ActionIcons`);
+         cloud and corpse markers (`rules.Square.Mark`, `ArtNames.Marks`, `Ground.Overlay`); the
+         ship fight's foe picture, manoeuvre text, Target as a submenu (`Offer.Group`), the pilot
+         narrated; the rocket menu "Move Rocket Save" and the rest menu "Rest Save Exit" (Save
+         is the original's SaveQuit); the overland's party mark (`Common.Mark`,
+         `ArtNames.OverlandCursor`); the sky's ink from the script's sky cells (`Sky`,
+         `SkyInside` named in both BR layouts, `rules.SkyInk`; BR import version 15); the skill
+         screen's group headings and its unspent-points questions. Open: hit/miss frames (not
+         found in the Pascal); the ship fight's Blink and Blast (the ruleset throws the draws
+         away; `ShipShown` events have no emitter), its character view, Esc in the Target
+         submenu; the Change menu (CampAlterMenu: order, purge, messages, animation, level); the
+         overland's "Move Save" menu; `FloorInk` (the Pascal sets it for CGA only); skills one
+         ability group at a time; BR icons are not in the ui's shared icon collection
+      7e. [~] b2: Buck Rogers 2 starts and plays its opening on the shared engine
+         (`TestBR2Opening`: block 19's briefing, the treasure, the dock, block 17) with the same
+         mechanisms and its own data: Log Book (`importer/br2/journal`), walls and backs, places
+         and music, the front's data, the system map (identical to BR1's), the overland size;
+         test helpers take the game (`engine/brgame_test.go`); `TestBR2OpsPorted` (empty);
+         `TestBR2Sweep` (33 blocks, 16% of 24983 instructions). Engine: a number read of a bound
+         text field is its first character; text in a byte buffer; a write to a literal
+         destination does nothing (as WriteGbvm below every zone). Rule differences between the
+         two old engines NOT yet in `rulesxxvc`: BR2's skill tables (culled, unlisted,
+         prerequisites, skill 38 blocked by 68/77), the skill cap (12 at level 7; BR1 7 at
+         level 2), only six races offered, the sprint offer's test. Open: BR2 creation and the
+         skill screen with BR2's tables; no ui test, no overland/rocket/fight play test for
+         BR2; `cmd/gobox -shared br2` untested; the old BR2 engine's `play.go`, `shop.go`,
+         `loot.go`, `combatturn.go` only sampled for differences
+
       8. [ ] every BR1 block's entries run headless without a panic (a sweep test over the
          scripts' reachable commands, like the Pool games' sweeps); then BR2 the same
       9. [ ] B1g: `cmd/gobox` plays BR1 and BR2 from data folders only; the BR engines and repos
