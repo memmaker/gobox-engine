@@ -40,10 +40,20 @@ type World struct {
 	AttackedAlly uint16 // 1: the party attacked an ally this fight
 	// The place, a rest and a hall: the 1e rules read them, the engine hands them in with the
 	// question that needs them (AreaMarks, BuildGround, SkyDay, HallTerms, CampOpen ...).
-	NoMagic     uint16 // nonzero: no spellcasting here
-	In3D        uint16 // nonzero: a 3D area; zero: the overland map
-	Scripted    uint16 // nonzero: the place is run by its script: no walking, the move entry runs again until it asks (BR view kind 3)
-	MapX, MapY  uint16 // the party's square on the overland map
+	NoMagic    uint16 // nonzero: no spellcasting here
+	In3D       uint16 // nonzero: a 3D area; zero: the overland map
+	Scripted   uint16 // nonzero: the place is run by its script: no walking, the move entry runs again until it asks (BR view kind 3)
+	MapX, MapY uint16 // the party's square on the overland map
+
+	// The rocket's flight (BR view kind 2, the system map): the engine owns where the party is. The bodies' squares are derived from
+	// OrbitStep (adventure.SpaceMap.Body), never kept.
+	Flying        uint16 // nonzero: the party flies the rocket on the system map (the overland's map data is the system map's)
+	RocketX       uint16 // the ship's square on the system map
+	RocketY       uint16
+	RocketHeading uint16 // the way the ship points: an index of SpaceMap.Steps (counterclockwise from north)
+	OrbitTick     uint16 // time on the map: a move adds SpaceMove.Ticks, a wrap of SpaceMove.TickCycle moves the bodies on
+	OrbitStep     uint16 // where the bodies stand on their orbits, counted down through 0..SpaceMap.Cycle-1
+
 	Boss        uint16 // > 0xFD: map marks 8 and 9; 0xFE: the river ending; 0xFF: the combat terrain kind
 	MarkFlags4  uint16 // bit 3: area map mark 4 shown
 	Mark3       uint16 // 0xFF: area map mark 3 hidden
@@ -69,7 +79,7 @@ func (w *World) Cells() map[string]*uint16 {
 		"Morale": &w.Morale, "Surprise": &w.Surprise, "MonsterHit": &w.MonsterHit, "PartyHit": &w.PartyHit,
 		"PartyMove": &w.PartyMove, "NoLoot": &w.NoLoot, "Duel": &w.Duel, "MonsterDist": &w.MonsterDist,
 		"CombatEnd": &w.CombatEnd, "Beaten": &w.Beaten, "AttackedAlly": &w.AttackedAlly,
-		"NoMagic": &w.NoMagic, "In3D": &w.In3D, "MapX": &w.MapX, "MapY": &w.MapY, "Boss": &w.Boss,
+		"NoMagic": &w.NoMagic, "In3D": &w.In3D, "MapX": &w.MapX, "MapY": &w.MapY, "RocketX": &w.RocketX, "RocketY": &w.RocketY, "Boss": &w.Boss,
 		"MarkFlags4": &w.MarkFlags4, "Mark3": &w.Mark3, "Mark4Off": &w.Mark4Off, "MarkFlags57": &w.MarkFlags57,
 		"Mark4": &w.Mark4, "Sky": &w.Sky, "SkyInside": &w.SkyInside, "RestEvery": &w.RestEvery,
 		"RestChance": &w.RestChance, "PartyExp": &w.PartyExp,

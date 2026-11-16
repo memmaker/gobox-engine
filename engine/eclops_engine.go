@@ -233,7 +233,7 @@ func (e *Engine) opPicture() {
 const (
 	viewKind3D       = 0 // the 3D view
 	viewKindKeep     = 1 // the view stays as it is: only the picture changes
-	viewKindRocket   = 2
+	viewKindRocket   = 2 // the rocket on the system map (explore.pas ORBIT_MAP)
 	viewKindScripted = 3 // a place run by its script (a base's menus): no walking
 	viewKindOverland = 4 // the overland map
 )
@@ -243,13 +243,15 @@ func (e *Engine) opAreaKind() {
 	e.vm.ReadArgs(2)
 	switch k := int(byte(e.vm.Arg(1, e.host))); k {
 	case viewKind3D:
-		e.world.In3D, e.world.Scripted = 1, 0
+		e.world.In3D, e.world.Scripted, e.world.Flying = 1, 0, 0
 	case viewKindOverland:
-		e.world.In3D, e.world.Scripted = 0, 0
+		e.world.In3D, e.world.Scripted, e.world.Flying = 0, 0, 0
 	case viewKindScripted:
-		e.world.Scripted = 1
+		e.world.Scripted, e.world.Flying = 1, 0
+	case viewKindRocket:
+		e.startFlying()
 	case viewKindKeep:
-	default: // the rocket's view (2): REFACTOR.md B1e
+	default:
 		panic(fmt.Sprintf("ecl: view kind %d not ported", k))
 	}
 	e.showPicture(int(byte(e.vm.Arg(2, e.host))))
@@ -790,6 +792,7 @@ type eclRun struct {
 	savedSel   rules.CharID // DS:4436
 	// a scripted place (World.Scripted): the questions opened when its move entry last ran, and the runs since without one
 	scriptedOpened, scriptedSpins int
+	rocketMoving                  bool    // the flying party is in the move mode (explore.pas isMoveMode): the next command is a heading
 	scriptLoad                    byte    // DS:4431
 	needFrame                     byte    // DS:4432: main screen not drawn yet
 	walldefSet                    byte    // DS:4433

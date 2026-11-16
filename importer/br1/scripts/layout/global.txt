@@ -7,32 +7,7 @@
 # Word<ADDR> is a cell the Pascal names no field for. Engine ranges not listed (they overlay script-used addresses):
 # ship record Area[512..619]=4D00..4D6B, space-fight foe summary Area[620..642]=4D6C..4D82.
 4B80 1 byte game ShipStageFlag # Area[128]: 0 picks the StHeal stage after combat, else StShip (loot.go:81, spacefight.go:1272); engine only (not in BR1 scripts)
-4B85 1 byte game Word4B85 # scripts: byte r1/w0
-4B86 1 byte game Word4B86 # scripts: byte r1/w0
-4B87 1 byte game Word4B87 # scripts: byte r1/w0
-4B88 1 byte game Word4B88 # scripts: byte r1/w0
-4B89 1 byte game Word4B89 # scripts: byte r3/w0
-4B8A 1 byte game Word4B8A # scripts: byte r3/w0
-4B8B 1 byte game Word4B8B # scripts: byte r1/w0
-4B8C 1 byte game Word4B8C # scripts: byte r1/w0
-4B8D 1 byte game Word4B8D # scripts: byte r1/w0
-4B8E 1 byte game Word4B8E # scripts: byte r1/w0
-4B8F 1 byte game Word4B8F # scripts: byte r1/w0
-4B90 1 byte game Word4B90 # scripts: byte r1/w0
-4B91 1 byte game Word4B91 # scripts: byte r1/w0
-4B92 1 byte game Word4B92 # scripts: byte r1/w0
-4B93 1 byte game Word4B93 # scripts: byte r1/w0
-4B94 1 byte game Word4B94 # scripts: byte r1/w0
-4B95 1 byte game Word4B95 # scripts: byte r1/w0
-4B96 1 byte game Word4B96 # scripts: byte r1/w0
-4B97 1 byte game Word4B97 # scripts: byte r1/w0
-4B98 1 byte game Word4B98 # scripts: byte r1/w0
-4B99 1 byte game Word4B99 # scripts: byte r1/w0
-4B9A 1 byte game Word4B9A # scripts: byte r1/w0
-4B9B 1 byte game Word4B9B # scripts: byte r1/w0
-4B9C 1 byte game Word4B9C # scripts: byte r1/w0
-4B9D 1 byte game Word4B9D # scripts: byte r1/w0
-4B9E 1 byte game Word4B9E # scripts: byte r1/w0
+4B85 26 byte game BodySquares readonly # Area[133..158] zone0 bodyPositions: the 13 bodies' squares (x, y), derived from the orbit step by the system map (adventure.SpaceMap.Body), the rocket's; scripts: byte r1 each
 4BA5 1 byte game Word4BA5 # scripts: byte r14/w4
 4BA6 1 byte game AreaViewKind # Area[166]: view kind the AreaKind command writes (eclops.go:535: 0 3D, 2 rocket, 3 ?, 4 overland); engine only (not in BR1 scripts)
 4BAA 1 byte game Word4BAA # loot gate: monster-side items only when 0 (loot.go:335); scripts: byte r0/w2
@@ -43,8 +18,8 @@
 4BB7 1 byte game WildTerrain # Area[183] zone0 wildernessTerrain (types.pas: BuildWildernessArena's terrain, +10 when the area kind's low nibble is 8; old engine cmap.go wild(): Area[183]); written with Area[230] on the overland (BR1 only); scripts: byte r13/w32
 4BB8 1 byte game ItemsStashed # Area[184]: opStash flag (eclops.go:817); engine only (not in BR1 scripts)
 4BBA 1 byte game SpaceOwnShip # Area[186]: space fight 1 own ship (spacefight.go:383,388); engine only (not in BR1 scripts)
-4BBE 1 byte game Word4BBE # scripts: byte r7/w6
-4BBF 1 byte game Word4BBF # scripts: byte r7/w6
+4BBE 1 byte game RocketX # Area[190] zone0 orbit.rocketX: the rocket's column on the system map 0..21 (the engine's, rules.World); scripts: byte r7/w6
+4BBF 1 byte game RocketY # Area[191] zone0 orbit.rocketY: the rocket's row (the engine's, rules.World); scripts: byte r7/w6
 4BC3 1 byte game MapX # Area[195]: the overland's square x (buckrogers-go rules/adv.go overland(): 0..37), the Pool's MapX; scripts: byte r47/w14
 4BC4 1 byte game MapY # Area[196]: the overland's square y (0..14), the Pool's MapY; scripts: byte r7/w13
 4BC5 1 byte game GeoBlock # Area[197]: current GEO map block, 127 none (eclops.go:430, savegame.go:172); engine only (not in BR1 scripts)

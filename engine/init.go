@@ -54,8 +54,9 @@ func (e *Engine) Init() {
 // (a wipe on the first square after an area change loaded the old area,
 // whose block still named it, at the new one's square: inside the water).
 func (e *Engine) resetAdventure() {
-	e.do(rules.NewAdventure{})                    // game and area records DS:49D6, 49D2, an empty purse
-	e.world = rules.World{}                       // the words of those records that are the engine's
+	e.do(rules.NewAdventure{}) // game and area records DS:49D6, 49D2, an empty purse
+	e.world = rules.World{}    // the words of those records that are the engine's
+	e.spaceStart()
 	e.world.In3D = 1                              // the 3D view (a dialect that keeps the view across blocks starts in it; the others' InitAreaScript sets it)
 	e.posX, e.posY, e.facing = 0xF, 1, 6          // the start square DS:6AAD/6AAE/6AAF (the Engine's)
 	e.vars, e.locals = fieldCells{}, fieldCells{} // DS:49DA

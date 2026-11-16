@@ -201,6 +201,7 @@ func (e *Engine) newEngineFields() map[string]engineField {
 	}
 	maps.Copy(m, e.memberFields())
 	maps.Copy(m, e.shipFields())
+	maps.Copy(m, e.spaceFields())
 	for i, name := range selFlagFields {
 		f := rules.FlagFact{Slot: i}
 		m[name] = engineField{get: func(int) (int64, bool) { return e.selFact(f), true },

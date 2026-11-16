@@ -318,6 +318,9 @@ func gameItem(h rules.ItemHandle, card rules.ItemCard) game.Item {
 // one; a wall's Kind is its wall set), the labels (built in and the
 // player's) as Marked and Notes, Area the map's name.
 func (e *Engine) mapState(w *game.Where) game.Automap {
+	if e.world.Flying != 0 {
+		return e.spaceMapState(w)
+	}
 	if !e.mapView() {
 		if e.world.In3D == 0 && e.adventure() { // the overland: its terrain
 			size := rules.Size{W: 44, H: 36}

@@ -159,6 +159,9 @@ func (e *Engine) stateOf(mode game.Mode, pending *game.Question, pg *textPage, d
 			sc.Kind, sc.Ask, q.Number, q.Max = game.SceneTalk, q, true, a.Max
 		default: // a yes/no (No, Yes), a menu, a list, a member pick
 			sc.Kind, sc.Ask = game.SceneTalk, q
+			if a.Heading { // the rocket's heading (game.Heading, Leave for Done)
+				sc.Kind, q.Heading = game.SceneHeading, true
+			}
 			for _, r := range a.Replies {
 				q.Replies = append(q.Replies, strings.TrimSpace(r))
 			}
@@ -216,7 +219,7 @@ func (e *Engine) ask(mode game.Mode, a *game.Question, door *game.Door) *game.Qu
 		return nil
 	}
 	q := &game.Question{Text: a.Text, Default: a.Default, Max: a.Max, NoEsc: a.NoEsc, NoPick: a.NoPick, YesNo: a.YesNo,
-		Typed: a.Typed, Number: a.Number, Keys: a.Keys, Esc: a.Esc, Continue: a.Continue, Ms: a.Ms}
+		Typed: a.Typed, Number: a.Number, Keys: a.Keys, Esc: a.Esc, Continue: a.Continue, Ms: a.Ms, Heading: a.Heading}
 	if !a.Typed && !a.Number {
 		for _, r := range a.Replies {
 			q.Replies = append(q.Replies, strings.TrimSpace(r))
@@ -618,6 +621,12 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 			for i := range pending.Replies {
 				add(game.Reply{N: i})
 			}
+			if pending.Heading { // the rocket's heading: the eight ways, Leave for Done
+				for d := range headings {
+					add(game.Heading{Dir: d})
+				}
+				add(game.Leave{})
+			}
 		}
 	}
 	return a
@@ -869,6 +878,8 @@ func (e *Engine) Do(a game.Action) (game.Outcome, error) {
 		err = native(func() error { return e.answerPlay(0, "") })
 	case game.Reply:
 		err = native(func() error { return e.answerPlay(a.N, a.Text) })
+	case game.Heading:
+		err = native(func() error { return e.answerHeading(a) })
 	case game.Leave:
 		if e.ext.read != nil { // the handout: Leave puts it away (native clears it)
 			err = native(func() error { return nil })

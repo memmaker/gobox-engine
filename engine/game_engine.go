@@ -363,6 +363,10 @@ func (e *Engine) commandBegin() {
 		e.loadAreaIcon(2, 0xB)
 		e.areaMapIcons() // 00BA:2B5E
 	}
+	if e.world.Flying != 0 { // the rocket's menu asks (explore.pas MapMainMenu, orbit map)
+		e.flyBegin()
+		return
+	}
 	if e.world.Scripted != 0 { // no input: the move entry runs again, which asks (BR1 pO0CA input's default, mode 10)
 		if e.ext.opened != e.run.scriptedOpened {
 			e.run.scriptedOpened, e.run.scriptedSpins = e.ext.opened, 0

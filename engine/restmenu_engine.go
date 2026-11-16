@@ -27,10 +27,15 @@ func (e *Engine) restMenuAnswered(n int) {
 		return
 	}
 	e.say(restTeamText)
-	e.do(rules.AdvanceClock{Count: 1, Unit: clockDay})
+	e.restDays(1)
+	e.askRest()
+}
+
+// restDays is gametime.pas RestAndHeal(days): the clock days on, the ruleset's rest of those days.
+func (e *Engine) restDays(days int) {
+	e.do(rules.AdvanceClock{Count: int32(days), Unit: clockDay})
 	const minutesPerDay = 24 * 60
-	if _, err := e.ruleset().Resolve(rules.Camping{Party: e.partyIDs()}, rules.Rest{Minutes: minutesPerDay}, nil); err != nil {
+	if _, err := e.ruleset().Resolve(rules.Camping{Party: e.partyIDs()}, rules.Rest{Minutes: int32(days * minutesPerDay)}, nil); err != nil {
 		panic("rules: Rest: " + err.Error())
 	}
-	e.askRest()
 }

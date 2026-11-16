@@ -1,6 +1,7 @@
 package importer
 
 import (
+	"slices"
 	"testing"
 
 	"gobox/adventure"
@@ -22,8 +23,8 @@ func TestBR1SpaceMap(t *testing.T) {
 	if len(s.Squares) != 58 || s.Squares[0] != (adventure.SpaceSquare{X: 12, Y: 10, Sprite: 1}) || s.Squares[57] != (adventure.SpaceSquare{X: 10, Y: 0, Sprite: 67}) {
 		t.Errorf("squares %v", s.Squares)
 	}
-	if want := []adventure.SpaceOrbit{{0, 2, 0}, {2, 4, 0}, {6, 8, 7}, {14, 16, 9}, {30, 28, 7}}; len(s.Orbits) != 5 || s.Orbits[0] != want[0] || s.Orbits[1] != want[1] ||
-		s.Orbits[2] != want[2] || s.Orbits[3] != want[3] || s.Orbits[4] != want[4] {
+	want := []adventure.SpaceOrbit{{First: 0, Length: 2}, {First: 2, Length: 4}, {First: 6, Length: 8, Phase: 7}, {First: 14, Length: 16, Phase: 9}, {First: 30, Length: 28, Phase: 7}}
+	if !slices.Equal(s.Orbits, want) {
 		t.Errorf("orbits %v", s.Orbits)
 	}
 	if len(s.Offsets) != 8 || s.Offsets[0] != 3 || s.Offsets[7] != 26 {

@@ -41,12 +41,13 @@ type eclWait struct {
 type askShape int
 
 const (
-	shChoice askShape = iota // a hotkey menu: the reply is the menu place
-	shYesNo                  // no, yes
-	shList                   // a line of list, or -1
-	shLine                   // a typed line (or number)
-	shMember                 // a party member
-	shPause                  // a key, after the presenter's pause
+	shChoice  askShape = iota // a hotkey menu: the reply is the menu place
+	shYesNo                   // no, yes
+	shList                    // a line of list, or -1
+	shLine                    // a typed line (or number)
+	shMember                  // a party member
+	shPause                   // a key, after the presenter's pause
+	shHeading                 // a heading (game.Heading, the front's clockwise eight) or Done
 )
 
 // doneKind is what answering a question completes (askDone): the
@@ -76,6 +77,8 @@ const (
 	dShipRam                       // the ship fight's ram question
 	dShipSheet                     // a ship's record had its key
 	dShipEnd                       // the ship fight's last page had its key
+	dRocketMenu                    // BR's orbit-map menu: Move starts the move mode
+	dRocketMove                    // the rocket's heading, or Done
 	dDevParlay                     // dev scene: the encounter menu's choice
 	dDevPassword                   // dev scene: the word said
 )
@@ -390,6 +393,17 @@ func (e *Engine) accept(w *eclWait, a game.Action) (ansv, bool) {
 		if _, ok := a.(game.ContinueAction); ok {
 			return ansv{}, true
 		}
+	case shHeading:
+		switch a := a.(type) {
+		case game.Heading:
+			if a.Dir >= 0 && a.Dir < headings {
+				return ansv{n: a.Dir}, true
+			}
+		case game.Reply: // Done, the one reply (Esc answers it too)
+			if a.N == 0 {
+				return ansv{n: headingDone}, true
+			}
+		}
 	}
 	return ansv{}, false
 }
@@ -441,6 +455,10 @@ func (e *Engine) complete(d askDone, v ansv) {
 		e.restMenuAnswered(v.n)
 	case dShipMenu, dShipDodge, dShipRam, dShipSheet, dShipEnd:
 		e.shipAnswered(d.kind, v)
+	case dRocketMenu:
+		e.rocketMenuAnswered()
+	case dRocketMove:
+		e.rocketMoved(v.n)
 	case dContinueFight:
 		e.cs.phase = fightOver
 		if v.n == 1 {

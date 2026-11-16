@@ -32,7 +32,6 @@ var br1SweepKnown = []struct{ Pattern, Why string }{
 	// (opOnGotoGosub in a step entry; replay 50 0 0 6 12138934 at commit "rulesxxvc: a move's reach"). Unverified, unexplained.
 	{`^the scripts of block # loop without asking`, "open, vw1 (AreaKind / view kind): 17 -> Port -> block 32 whose load exits at once (ScriptBlock >= 32) keeps the scripted view kind 3 of block 17, so its move entry exits without asking; replay 17 0 0 2 1259865"},
 	{`^rules: rules.AddLoot: .*not ported yet`, "open, sw1 (needs an engine change): BR's TreasureOf(credits, count, items...) (eclvm.pas EclTreasure) reaches the Pool handler opTreasureOf, which reads 4 fixed operands (platinum, gems, jewelry, count) and converts by GoldBoxRates; V4 has 2 fixed. Wants a Behaviour for the coin operands, rulesxxvc AddLoot (pool credits) and AddLibraryItems (templates to the loot, newest first). The GainExperience text is also the Pool's (BR: 'Congrats. The team gains experience!')"},
-	{`^ecl: view kind # not ported`, "vw1: the rocket's view (AreaKind view kind 2)"},
 	{`^LOG: script: area \d+: T_\w+\[\d+\] is past the field's \d+ entries`, "none: the entry skips the story, so the index variable (Word4C61 ...) holds 0 and the table is read past its end as the original does (engine log, TableFaults)"},
 }
 
