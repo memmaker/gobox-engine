@@ -248,7 +248,7 @@ func TestEngineQuestions(t *testing.T) {
 		{"Purse", rules.PurseFact{}, rules.NoChar, rules.Purse{Copper: 250}}, // the party's: Buck's own; the hireling has not joined
 		{"Loot", rules.PurseFact{Loot: true}, rules.NoChar, rules.Purse{}},
 		{"ItemCard", rules.ItemCardFact{Item: 1}, id, rules.ItemCard{Item: 1, Name: "Laser Pistol", Count: 1, Price: 30, Sale: rules.Purse{Copper: 15}, Kind: seamItem, Weight: 4,
-			Readied: true, Identified: true, Tab: string(rules.KindWeapon)}},
+			Readied: true, Identified: true, Tab: string(rules.KindWeapon), Slot: "weapon"}}, // a readied weapon names its doll slot
 	}
 	for _, c := range facts {
 		got, err := r.Fact(c.who, c.f)
