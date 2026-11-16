@@ -39,3 +39,10 @@ var fromCore = map[rules.Status]Status{
 	rules.StatusUnconscious: StUnconscious, rules.StatusRunning: StFleeing,
 	rules.StatusPoisoned: StPoisoned, rules.StatusComatose: StComatose, rules.StatusNotHere: StNotHere,
 }
+
+// statusNames are gdconsts.pas statusNames, which the sheet and the cards show.
+var statusNames = map[Status]string{
+	StNoStatus: "No status", StOkay: "Okay", StGone: "Gone", StDead: "Dead", StDying: "Dying", StUnconscious: "Unconc",
+	StFleeing: "Fleeing", StPoisoned: "Poisoned", StComatose: "Comatose", StNotHere: "Not here", StDodging: "Dodging",
+	StSprinting: "Sprinting", StFailedZeroG: "Failed ZeroG", StUsedJetpack: "Used Jetpack", StUsingJetpack: "Using Jetpac",
+}

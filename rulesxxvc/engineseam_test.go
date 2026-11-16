@@ -231,20 +231,20 @@ func TestEngineQuestions(t *testing.T) {
 		who  rules.CharID
 		want rules.Value
 	}{
-		{"MemberCard", rules.MemberCardFact{}, id, rules.MemberCard{Party: true, Class: string(xxvc.Warrior)}},
+		{"MemberCard", rules.MemberCardFact{}, id, rules.MemberCard{Party: true, Class: "Warrior"}},
 		{"PoolPics", rules.PoolPicsFact{}, id, rules.PoolPics{}},
 		{"Portrait", rules.PortraitFact{}, id, rules.Portrait{}},
 		{"IconPics", rules.IconPicsFact{}, id, rules.IconPics{}},
-		{"Book", rules.BookFact{}, id, rules.Book{Levels: []int32{3, 0, 0, 0, 0, 0, 0, 0}}},
+		{"Book", rules.BookFact{}, id, rules.Book{Levels: []int32{3}}},
 		{"SpellMenu", rules.SpellMenuFact{}, id, rules.SpellMenu(nil)},
 		{"Owed", rules.OwedFact{}, id, rules.PowerOwed{}},
 		{"Figures", rules.FiguresFact{}, id, rules.Figures(nil)},
 		{"Train", rules.TrainFact{}, id, rules.TrainCard{}},
 		{"Damage", rules.DamageFact{}, id, rules.Text("1d6+6")}, // the readied pistol's dice as RecalcStats has them, not the c.Damage set above
 		{"Listed", rules.ListedFact{}, id, rules.Handles{1}},
-		{"Word status", rules.WordFact{Of: rules.FactStatus}, id, rules.Text("okay")},
-		{"Word race", rules.WordFact{Of: rules.FactRace}, id, rules.Text("martian")},
-		{"Word class", rules.WordFact{Of: rules.FactClasses}, id, rules.Text("warrior")},
+		{"Word status", rules.WordFact{Of: rules.FactStatus}, id, rules.Text("Okay")},
+		{"Word race", rules.WordFact{Of: rules.FactRace}, id, rules.Text("Martian")},
+		{"Word class", rules.WordFact{Of: rules.FactClasses}, id, rules.Text("Warrior")},
 		{"Word sex", rules.WordFact{Of: rules.FactSex}, id, rules.Text("")},
 		{"Word alignment", rules.WordFact{Of: rules.FactAlignment}, id, rules.Text("")},
 		{"Word exceptional", rules.WordFact{Of: rules.FactExceptional}, id, rules.Text("")},
@@ -296,7 +296,7 @@ func TestEngineQuestions(t *testing.T) {
 	}
 
 	sh := r.Sheet(id)
-	if sh.Name != "Buck" || sh.HP != 17 || sh.MaxHP != 20 || sh.AC != 7 || sh.RearAC != 9 || sh.Move != 12 || sh.Exp != 900 ||
+	if sh.Name != "Buck" || sh.HP != 17 || sh.MaxHP != 20 || sh.AC != 53 || sh.RearAC != 51 || sh.THAC0 != sheetBase || sh.Move != 12 || sh.Exp != 900 ||
 		sh.Classes != (rules.ClassSet{xxvc.Warrior}) || sh.Health != rules.Hale || sh.Levels[xxvc.Warrior] != 3 {
 		t.Errorf("Sheet %+v", sh)
 	}

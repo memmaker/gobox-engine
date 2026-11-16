@@ -67,7 +67,8 @@ type SheetPage struct {
 	Damage             string
 	Move               int
 	Saves              []int          // extra: the saving throw targets, paralysis, petrification, rod, breath, spell (0: not shown)
-	Mods               [6]int         // extra: the rule set's ability modifiers, STR .. CHA (shown with Rules)
+	Mods               [6]int         // extra: the rule set's ability modifiers, STR .. CHA (shown with ShowMods)
+	ShowMods           bool           // the rule set has ability modifiers (FiguresFact answers)
 	Rules              []rules.Figure // extra: the rule set's own figures (CombatRules.Sheet; nil: none, and no Mods)
 	Status             string
 	Weapon, Armour     string   // extra: the readied weapon and armour ("": none shown; POR shows them on its inventory)

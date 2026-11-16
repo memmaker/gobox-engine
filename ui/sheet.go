@@ -210,7 +210,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note) {
 	text(sp.Alignment, rx, row(1), white)
 	for j, l := range abilityNames {
 		help := abilityHelp[j]
-		if sp.Rules != nil {
+		if sp.ShowMods {
 			help = append(slices.Clone(help), "", "Yellow: the 4e modifier,", "(score - 10) / 2, rounded down.")
 		}
 		line(l, strconv.Itoa(sp.Stats[j]), 3+j, help)
@@ -218,7 +218,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note) {
 		if j == 0 {
 			text(sp.Str00, num, row(3), green)
 		}
-		if sp.Rules != nil {
+		if sp.ShowMods {
 			m := strconv.Itoa(sp.Mods[j])
 			if sp.Mods[j] >= 0 {
 				m = "+" + m

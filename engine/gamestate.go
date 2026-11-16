@@ -35,9 +35,11 @@ func (e *Engine) partyState() (party []game.Member, selected int) {
 					Planned: int(sp.Planned), Group: spellGroup(sp.Class, byte(sp.Level))})
 			}
 			gm.SlotsMax = map[string]int{}
-			for cls, levels := range book.Slots {
-				for lvl, n := range levels {
-					gm.SlotsMax[spellGroup(rules.SpellClass(cls), byte(lvl+1))] = int(n)
+			if slices.Contains(e.ruleset().Catalog().Features, rules.FeatureSpells) { // a ruleset without spells has no slots to list
+				for cls, levels := range book.Slots {
+					for lvl, n := range levels {
+						gm.SlotsMax[spellGroup(rules.SpellClass(cls), byte(lvl+1))] = int(n)
+					}
 				}
 			}
 			gm.CanCast = e.canCast(id)

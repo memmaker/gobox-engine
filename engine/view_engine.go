@@ -36,7 +36,7 @@ func (e *Engine) sheetPage(id rules.CharID) *SheetPage {
 	}
 	e.combatStats(id, sp)
 	if !e.ext.creating { // extra: the creation's sheet: no level, experience or status yet (create.go)
-		for _, l := range e.fact(id, rules.BookFact{}).(rules.Book).Levels[:8] {
+		for _, l := range e.fact(id, rules.BookFact{}).(rules.Book).Levels {
 			if int8(l) > 0 {
 				if sp.Levels != "" {
 					sp.Levels += "/"
@@ -88,11 +88,13 @@ func (e *Engine) combatStats(id rules.CharID, sp *SheetPage) {
 	sh := e.ruleset().Sheet(id)
 	sp.AC, sp.RearAC, sp.HP, sp.MaxHP = int(sh.AC), int(sh.RearAC), int(sh.HP), int(sh.MaxHP)
 	sp.THAC0, sp.Damage, sp.Move = int(sh.THAC0), rules.Cut(string(e.fact(id, rules.DamageFact{}).(rules.Text)), textCols), int(sh.Move)
-	if sp.Rules = e.fact(id, rules.FiguresFact{}).(rules.Figures); sp.Rules != nil { // extra: the rule set's modifiers and figures
+	figs := e.fact(id, rules.FiguresFact{}).(rules.Figures) // extra: the rule set's figures and, when it has them, its modifiers
+	if sp.ShowMods = figs != nil; sp.ShowMods {
 		for a := range sp.Mods {
 			sp.Mods[a] = e.mod(id, a)
 		}
 	}
+	sp.Rules = append(figs, sh.Figures...)
 }
 
 // sheetView is the sheet's decisions for the View.

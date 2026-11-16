@@ -106,6 +106,7 @@ type Feature string
 
 const (
 	FeatureSpaceCombat Feature = "space-combat" // BR OpSpaceFight: Rules.Ships
+	FeatureSpells      Feature = "spells"       // characters cast: books, slots, memorizing
 )
 
 // Handles. A ruleset hands out CharID; the engine stores it.

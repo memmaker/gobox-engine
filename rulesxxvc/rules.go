@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"slices"
+	"strconv"
 
 	"gobox/rules"
 	"gobox/rules/xxvc"
@@ -195,8 +196,9 @@ func (r *Rules) Sheet(id rules.CharID) rules.Sheet {
 	s := rules.Sheet{Name: c.Name, Race: c.Race, Levels: map[rules.Class]int32{c.Career: int32(c.Level)},
 		HP: int32(c.HP), MaxHP: int32(c.MaxHP), Status: coreStatus[c.Status], Exp: c.Exp, Scores: map[rules.Ability]int32{},
 		Saves: map[rules.Save]int32{}, Skills: map[rules.Skill]int32{},
-		Classes: rules.ClassSet{c.Career}, AC: int32(c.ArmorClass[0]), RearAC: int32(c.ArmorClass[1]), Move: int32(c.Movement),
-		Health: health(c.Status)} // no THAC0 (BR's to-hit is AttackBonus), no age, no experience still to reach: 0
+		Classes: rules.ClassSet{c.Career}, AC: shownArmorClass(c.ArmorClass[0]), RearAC: shownArmorClass(c.ArmorClass[1]),
+		THAC0: int32(sheetBase - c.AttackBonus), Move: int32(c.Movement), Figures: figures(c),
+		Health: health(c.Status)} // no age (the record's is not kept), no experience still to reach: 0
 	for a, v := range c.Scores {
 		s.Scores[a] = int32(v)
 	}
@@ -209,6 +211,27 @@ func (r *Rules) Sheet(id rules.CharID) rules.Sheet {
 		}
 	}
 	return s
+}
+
+// sheetBase is the 60 the sheet counts armour class and THAC0 from (viewchar.pas PrintCombatStats: 60 less attackBonus;
+// menucore.pas PrintArmorClass: Abs(armorClass - 60)).
+const sheetBase = 60
+
+// shownArmorClass is the armour class the sheet shows for the record's value.
+func shownArmorClass(record int) int32 { return int32(max(record-sheetBase, sheetBase-record)) }
+
+// figures are the lines the sheet adds to the six scores (viewchar.pas DisplayChar's seventh, TCH, and
+// DisplayCareerSkills: the career's eight skills with their values).
+func figures(c *Character) []rules.Figure {
+	out := []rules.Figure{{Name: xxvc.TechLabel, Value: strconv.Itoa(c.Scores[xxvc.Tech])}}
+	i := slices.Index(xxvc.Careers, c.Career)
+	if i < 0 {
+		return out
+	}
+	for _, n := range CareerSkills[i] {
+		out = append(out, rules.Figure{Name: xxvc.SkillNames[xxvc.Skills[n-1]], Value: strconv.Itoa(int(skillValue(c, n)))})
+	}
+	return out
 }
 
 // skillNo is the number of a roster skill.

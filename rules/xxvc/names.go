@@ -1,0 +1,121 @@
+package xxvc
+
+import "gobox/rules"
+
+// The words the original shows (gdconsts.pas), kept as it spells them.
+
+// RaceNames are raceNames (a monster has no entry).
+var RaceNames = map[rules.Race]string{
+	Terran:       "Terran",
+	Martian:      "Martian",
+	Venusian:     "Venusian",
+	Mercurian:    "Mercurian",
+	Tinker:       "Tinker",
+	DesertRunner: "Desert Runner",
+	Lunarian:     "lunarian",
+	Lowlander:    "lowlander",
+}
+
+// CareerNames are careerNames.
+var CareerNames = map[rules.Class]string{
+	RocketJock: "Rocket Jock",
+	Medic:      "Medic",
+	Warrior:    "Warrior",
+	Engineer:   "Engineer",
+	Rogue:      "Rogue",
+	Scout:      "Scout",
+}
+
+// SkillNames are skillDefinitions' names, as the original spells them (its typos too).
+var SkillNames = map[rules.Skill]string{
+	"repair-electrical":          "Repair Electrical",
+	"repair-mechanical":          "Repair Mechanical",
+	"repair-nuclear-engine":      "Repair Nuclear Engine",
+	"repair-life-support":        "Repair Life Support",
+	"repair-rocket-hull":         "Repair Rocket Hull",
+	"jury-rig":                   "Jury Rig",
+	"bypass-security":            "Bypass Security",
+	"open-lock":                  "Open Lock",
+	"commo-operation":            "Commo Operation",
+	"sensor-operation":           "Sensor Operation",
+	"demolitions":                "Demolitions",
+	"cook":                       "Cook",
+	"first-aid":                  "First Aid",
+	"repair-weapon":              "Repair Weapon",
+	"repair-computer":            "Repair Computer",
+	"life-suspension-tech":       "Life Suspension Tech",
+	"treat-light-wounds":         "Treat Light Wounds",
+	"treat-serious-wounds":       "Treat Serious Wounds",
+	"treat-critical-wounds":      "Treat Critical Wounds",
+	"treat-poisoning":            "Treat Poisoning",
+	"treat-stun-paralysis":       "Treat Stun/Paralysis",
+	"treat-disease":              "Treat Disease",
+	"diagnose":                   "Diagnose",
+	"general-knowledge":          "General Knowledge",
+	"ship-lore":                  "Ship Lore",
+	"composition":                "Composition",
+	"mathematics":                "Mathematics",
+	"physics":                    "Physics",
+	"geology":                    "Geology",
+	"planetology":                "Planetology",
+	BattleTactics:                "Battle Tactics",
+	"chemistry":                  "Chemistry",
+	"biology":                    "Biology",
+	"design-engineering":         "Design Engineering",
+	"history":                    "History",
+	"astronomy":                  "Astronomy",
+	"botany":                     "Botany",
+	"literature":                 "Literature",
+	"economics":                  "Economics",
+	"metallurgy":                 "Metallurgy",
+	"speak-read-language":        "Speak/Read Lang.",
+	"law":                        "Law",
+	"programming":                "Programming",
+	"cryptography":               "Crytography",
+	"library-search":             "Library Search",
+	"astrogation":                "Astrogation",
+	"navigation":                 "Navigation",
+	"mimic":                      "Mimic",
+	"memorize":                   "Memorize",
+	"disguise":                   "Disguise",
+	"pilot-rocket":               "Pilot Rocket",
+	"pilot-fixed-wing":           "Pilot Fixed Wing",
+	"drive-ground-car":           "Drive Ground Car",
+	"pilot-rotor-wing":           "Pilot Rotor Wing",
+	"drive-motorcycle":           "Drive Motorcycle",
+	"use-jetpack":                "Use Jetpack",
+	"pilot-ship-sub":             "Pilot Ship/Sub",
+	"drive-heavy-ground-vehicle": "Drive Hvy Grnd Vehc",
+	"drive-jetcar":               "Drive Jetcar",
+	"animal-riding":              "Animal Riding",
+	"hide-in-shadows":            "Hide in Shadows",
+	"move-silently":              "Move Silently",
+	"pick-pockets":               "Pick Pockets",
+	"acrobatics":                 "Acrobatics",
+	"climb":                      "Climb",
+	"swimming":                   "Swimming",
+	"maneuver-in-0g":             "Maneuver in 0G",
+	"play-instrument":            "Play Instrumnt",
+	"paint-draw":                 "Paint/Draw",
+	"hypnosis":                   "Hypnosis",
+	"act":                        "Act",
+	"intimidate":                 "Intimidate",
+	"leadership":                 "Leadership",
+	"befriend-animal":            "Befriend Animal",
+	"animal-training":            "Animal Training",
+	"fast-talk-convince":         "Fast Talk/Convince",
+	"singing":                    "Singing",
+	"distract":                   "Distract",
+	"etiquette":                  "Etiquette",
+	"tracking":                   "Tracking",
+	"shadowing":                  "Shadowing",
+	"read-lips":                  "Read Lips",
+	"notice":                     "Notice",
+	"planetary-survival":         "Planetary Survival",
+}
+
+// GenderNames are genderNames.
+var GenderNames = map[rules.Sex]string{rules.Male: "Male", rules.Female: "Female"}
+
+// TechLabel is the sheet's name for the seventh score (abilityAbbreviations' 'TCH' as the sheet's figures word it).
+const TechLabel = "Tech"

@@ -77,7 +77,7 @@ var ErrNotPorted = errors.New("rules1e: not behind core.Rules yet")
 
 // Catalog: what the records number (the engine reads the tables by place): the races, alignments and class combinations in record order, the classes in the order of a record's level columns, the saving throws in sheet order.
 func (r *Rules) Catalog() rules.Catalog {
-	return rules.Catalog{Races: RecordRace[:], Alignments: RecordAlignment[:], Classes: PorClass[:], ClassSets: RecordClassSets[:], Saves: SaveOrder[:]}
+	return rules.Catalog{Races: RecordRace[:], Alignments: RecordAlignment[:], Classes: PorClass[:], ClassSets: RecordClassSets[:], Saves: SaveOrder[:], Features: []rules.Feature{rules.FeatureSpells}}
 }
 
 func (r *Rules) Begin(c rules.Campaign, o rules.Options) { r.campaign, r.options = c, o }

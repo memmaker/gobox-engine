@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"gobox/rules"
+	"gobox/rules/xxvc"
 )
 
 // The session: what the shared engine asks and writes by typed kinds from
@@ -42,9 +43,6 @@ const (
 // nonPlayerFlag is the NON_PLAYER_FLAG of the record's morale byte (BR r[231]):
 // a hireling's control byte, which the engine reads as above 0x7F.
 const nonPlayerFlag = 0x80
-
-// levelColumns is the class columns Book.Levels has: the engine reads the first eight.
-const levelColumns = 8
 
 // daySkyColour is the sky colour of daytime (the cyan of O120:010A); skyColours
 // maps the area's sky byte (low four bits) to its colour (d0D86).
@@ -276,7 +274,7 @@ func (r *Rules) factSession(id rules.CharID, f rules.Fact) (v rules.Value, ok bo
 	switch f := f.(type) {
 	case rules.MemberCardFact:
 		// No spells: nothing ready, no slots. The portrait is the engine's pool's.
-		return rules.MemberCard{Party: c.team(), Class: string(c.Career)}, true, nil
+		return rules.MemberCard{Party: c.team(), Class: xxvc.CareerNames[c.Career]}, true, nil
 	case rules.PoolPicsFact:
 		return rules.PoolPics{}, true, nil // no pool pictures held
 	case rules.PortraitFact:
@@ -285,9 +283,7 @@ func (r *Rules) factSession(id rules.CharID, f rules.Fact) (v rules.Value, ok bo
 		return rules.IconPics{}, true, nil // no combat icon held
 	case rules.BookFact:
 		// No spells: the empty book. Its one level column is the career's level.
-		b := rules.Book{Levels: make([]int32, levelColumns)}
-		b.Levels[0] = int32(c.Level)
-		return b, true, nil
+		return rules.Book{Levels: []int32{int32(c.Level)}}, true, nil
 	case rules.SpellMenuFact:
 		return rules.SpellMenu(nil), true, nil // no spells to cast
 	case rules.OwedFact:
@@ -376,16 +372,19 @@ func (r *Rules) setCredits(a rules.SetCredits) error {
 	return nil
 }
 
-// word is the sheet word of c's fact of: what XXVc keeps. It has no sex,
-// alignment or exceptional strength (the zero word).
+// word is the sheet word of c's fact of, as the original's sheet spells it
+// (viewchar.pas DisplayChar: raceNames, genderNames, careerNames, statusNames).
+// XXVc has no alignment or exceptional strength (the zero word).
 func (r *Rules) word(c *Character, of rules.PlainFact) rules.Text {
 	switch of {
 	case rules.FactStatus:
-		return rules.Text(coreStatus[c.Status])
+		return rules.Text(statusNames[c.Status])
 	case rules.FactRace:
-		return rules.Text(c.Race)
+		return rules.Text(xxvc.RaceNames[c.Race])
+	case rules.FactSex:
+		return rules.Text(xxvc.GenderNames[c.Sex])
 	case rules.FactClasses:
-		return rules.Text(c.Career)
+		return rules.Text(xxvc.CareerNames[c.Career])
 	}
 	return ""
 }

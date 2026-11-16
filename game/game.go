@@ -246,6 +246,7 @@ type SheetPage struct {
 	Move                        int
 	Saves                       []int // the saving throws in the ruleset's order (Catalog.Saves); nil: not shown
 	Mods                        [6]int
+	ShowMods                    bool // the ruleset has ability modifiers: Mods is shown beside the scores
 	Rules                       []Stat
 	Status                      string
 	Weapon, Armour              string
