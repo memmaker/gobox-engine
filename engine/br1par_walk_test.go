@@ -57,3 +57,48 @@ func TestBR1WallBump(t *testing.T) {
 		t.Errorf("a step into the open side: Arrive offered %v at %d,%d", arriveOffered(e), e.posX, e.posY)
 	}
 }
+
+// brSettle answers what a step leaves up (its script's pages).
+func brSettle(t *testing.T, e *Engine) {
+	t.Helper()
+	for range 40 {
+		if commonOf(e.build()).Ask == nil {
+			return
+		}
+		br1Answer(t, e)
+	}
+	t.Fatal("the pages do not end")
+}
+
+// TestBR1SidestepTwin ports rules TestSidestepTwin: a sidestep (a step to the side, the back or the other side with
+// the facing kept) ends where turning, stepping and turning back ends, with the facing the same and the clock the
+// same; at least one of them moves.
+func TestBR1SidestepTwin(t *testing.T) {
+	moved := false
+	for _, by := range []int{2, 4, 6} {
+		e, twin := br1Begun(t), br1Begun(t)
+		f := e.facing
+		if err := stepBy(e, by); err != nil {
+			t.Fatalf("sidestep %d: %v", by, err)
+		}
+		brSettle(t, e)
+		if _, err := twin.doNow(game.Face{Facing: (f + by) % 8}); err != nil {
+			t.Fatal(err)
+		}
+		if err := stepBy(twin, 0); err != nil {
+			t.Fatal(err)
+		}
+		brSettle(t, twin)
+		if _, err := twin.doNow(game.Face{Facing: f}); err != nil {
+			t.Fatal(err)
+		}
+		got, want := commonOf(e.build()).Where, commonOf(twin.build()).Where
+		if got.X != want.X || got.Y != want.Y || got.Facing != want.Facing || got.Facing != f || got.Minute != want.Minute || got.Hour != want.Hour {
+			t.Errorf("sidestep %d: %+v, the twin %+v (facing was %d)", by, got, want, f)
+		}
+		moved = moved || e.posX != 5 || e.posY != 6
+	}
+	if !moved {
+		t.Error("no sidestep moved")
+	}
+}
