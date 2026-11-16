@@ -176,6 +176,7 @@ func sweepReport(t *testing.T, w *sweepWorld, elapsed time.Duration) {
 	t.Logf("%-6s %8s %8s %5s %6s %6s %6s", "block", "run", "total", "%", "runs", "left", "secs")
 	classes := map[string]int{}
 	byClass := map[string][]sweepRegion{}
+	texts := map[int][]string{} // the scripts' lines, by block
 	for _, block := range br1Blocks {
 		s, err := e.parseScriptFile(block)
 		if err != nil {
@@ -188,7 +189,8 @@ func sweepReport(t *testing.T, w *sweepWorld, elapsed time.Duration) {
 		n := len(w.hit[block])
 		run, total = run+n, total+len(s.Code)
 		t.Logf("%-6d %8d %8d %4d%% %6d %6d %6.0f", block, n, len(s.Code), 100*n/max(len(s.Code), 1), w.runs[block], len(w.queue[block]), w.took[block].Seconds())
-		for _, r := range sweepRegions(t, w, s, block, strings.Split(string(b), "\n")) {
+		texts[block] = strings.Split(string(b), "\n")
+		for _, r := range sweepRegions(t, w, s, block, texts[block]) {
 			classes[r.Class] += r.To - r.From + 1
 			byClass[r.Class] = append(byClass[r.Class], r)
 		}
@@ -222,7 +224,11 @@ func sweepReport(t *testing.T, w *sweepWorld, elapsed time.Duration) {
 	}
 	sort.Slice(overs, func(i, j int) bool { return w.over[overs[i]] > w.over[overs[j]] })
 	for _, pos := range overs[:min(len(overs), 12)] {
-		t.Logf("game over after script place %v: %d runs", pos, w.over[pos])
+		line := ""
+		if code, ok := sweepCodeAt(e, pos); ok && code.Line >= 1 && code.Line <= len(texts[pos.Block]) {
+			line = strings.TrimSpace(texts[pos.Block][code.Line-1])
+		}
+		t.Logf("game over (the party beaten, or a script ended the game) after script place %v: %d runs: %s", pos, w.over[pos], line)
 	}
 	never := 0
 	for pos, n := range w.offered {
@@ -281,4 +287,13 @@ func sweepWordNote(t testing.TB, w *sweepWorld, word, text string) string {
 		return "word " + word
 	}
 	return strings.Join(parts, "; ")
+}
+
+// sweepCodeAt is the instruction at a script place.
+func sweepCodeAt(e *Engine, pos sweepPos) (ecl.Instr, bool) {
+	s, err := e.parseScriptFile(pos.Block)
+	if err != nil || pos.Instr >= len(s.Code) {
+		return ecl.Instr{}, false
+	}
+	return s.Code[pos.Instr], true
 }

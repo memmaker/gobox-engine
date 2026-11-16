@@ -179,7 +179,14 @@ func TestBR1Journey(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b := br1Loaded(t, blob)
+	b := br1EngineIn(t, e.adv) // a FRESH engine on the same import
+	b.Open("")
+	b.titleDone()
+	b.Advance()
+	if err := b.Load(blob); err != nil {
+		t.Fatal(err)
+	}
+	br1Settle(b)
 	wb := commonOf(b.build())
 	if _, ok := b.build().(game.Exploring); !ok {
 		t.Fatalf("loaded into %T %q", b.build(), paneText(wb))

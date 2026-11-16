@@ -542,7 +542,13 @@ func (r *sweepRun) choose(s game.State) (sweepTok, bool) {
 			return sweepTok{}, false
 		}
 		return r.step(v)
-	case game.Assembling, game.Over: // the game is over: a script ended it, or nobody is left
+	case game.Assembling: // the party menu again: a script opened it (Program 0, HQ's team menu; the run ends there: a long game on is not what the sweep is for) or nobody is left
+		r.w.over[r.last]++
+		if sc := e.vm.Script; sc != nil && sc.Area == r.last.Block && r.last.Instr < len(sc.Code) && sc.Code[r.last.Instr].Op == ecl.OpCombat && !r.inFight {
+			r.w.lost[r.last]++ // the party was beaten by a Combat whose fight was over inside one token
+		}
+		return sweepTok{}, false
+	case game.Over: // the game is over
 		r.w.over[r.last]++
 		return sweepTok{}, false
 	}
