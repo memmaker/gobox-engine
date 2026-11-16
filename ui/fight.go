@@ -388,15 +388,10 @@ func (p *Presenter) Play(ms []Moment) {
 }
 
 // missileFlight is the moment m (a missile held on its board) as the
-// sprite's flight from m.Unit's square (else At) to To, a frame a third of
-// a square, the moment's time shared among them.
+// sprite's flight from At (the game's start square, the shooter's) to To,
+// a frame a third of a square, the moment's time shared among them.
 func missileFlight(m Moment, art game.Picture, step int) []frame {
 	from := m.At
-	for _, u := range m.Board.Units {
-		if u.ID == m.Unit {
-			from = u.At
-		}
-	}
 	d := m.To.Sub(from)
 	n := 3 * max(d.X, -d.X, d.Y, -d.Y, 1)
 	out := make([]frame, 0, n+1)

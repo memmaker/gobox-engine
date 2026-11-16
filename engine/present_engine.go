@@ -52,7 +52,7 @@ func (e *Engine) apply(f rules.Effect) {
 		e.event(game.CastSpell{From: int(f.From), Spell: e.spellNumber(f.Spell), Ats: f.Ats})
 	case rules.Shot:
 		shown, delay := e.missileArt(f)
-		ev := game.Shot{From: int(f.From), To: f.To, StepMs: delay} // the original's pace: 10 pointed, 20 tumbling, 50 spinning, 30 a spell
+		ev := game.Shot{From: int(f.From), Start: f.Start, To: f.To, StepMs: delay} // the original's pace: 10 pointed, 20 tumbling, 50 spinning, 30 a spell
 		if shown && e.spr != nil {                                  // the original's art choice, the frame the sprite holds
 			ev.Art = gamePicture(e.picPix(e.spr, 0, false, nil))
 		}

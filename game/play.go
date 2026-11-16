@@ -426,6 +426,7 @@ type (
 	}
 	Shot struct {
 		From   int
+		Start  rules.BoardPos // the square it flies from (the shooter's)
 		To     rules.BoardPos
 		Art    Picture
 		StepMs int // the flight's time per third of a square, the original's (10 pointed, 20 tumbling, 50 spinning, 30 a spell; 0: gobox's); gobox scales it by the player's speed
