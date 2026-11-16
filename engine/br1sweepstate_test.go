@@ -9,8 +9,6 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-
-	"gobox/rules"
 )
 
 // The sweep's entry states and guided replies (see br1sweep_test.go). Entering a block directly leaves the story
@@ -21,7 +19,6 @@ import (
 const (
 	sweepParty     = 4 // roster characters added through the party menu before Begin (the party menu's limit): a stronger party outlives more fights
 	sweepStatesMax = 8 // states a block is entered in
-	sweepWalksEach = 2 // walks per entry square
 )
 
 // sweepCell is a layout cell a state sets before the block is entered.
@@ -126,74 +123,6 @@ func sweepApply(t testing.TB, e *Engine, cells []sweepCell) {
 		}
 		e.host.Set(r, c.Value)
 	}
-}
-
-// sweepPlan is a block's walks in the order they run: entries squares, each in the next state, sweepWalksEach walks
-// each. Per-block generator: a walk's spec does not depend on the other blocks.
-func sweepPlan(t testing.TB, adv string, block, entries int) []sweepSpec {
-	t.Helper()
-	rng := &rules.RNG{State: sweepSeed ^ uint32(block)<<16}
-	states := sweepStatesOf(t, adv, block)
-	var plan []sweepSpec
-	for i, at := range sweepEntries(t, adv, block, entries, rng) {
-		for range sweepWalksEach {
-			plan = append(plan, sweepSpec{Block: block, X: at[0], Y: at[1], Facing: rng.N(4) * 2, Seed: uint32(rng.N(60000))<<8 | uint32(rng.N(250)) + 1, State: i % len(states)})
-		}
-	}
-	return plan
-}
-
-// sweepAsked is where a question was asked: the script's block and the instruction of the asking command.
-type sweepAsked struct{ Block, Instr int }
-
-// sweepGuide remembers, per place a question was asked, how often each reply was taken in the walks of this entry
-// block so far: a question prefers a reply not yet taken there (ties by the walk's generator). Reset per entry block.
-var sweepGuide map[sweepAsked][]int
-
-// sweepReplyFor is the reply to a question with n replies asked by e's running command.
-func sweepReplyFor(e *Engine, rng *rules.RNG, n int) int {
-	if sweepGuide == nil {
-		sweepGuide = map[sweepAsked][]int{}
-	}
-	at := sweepAsked{}
-	if e.vm.Script != nil {
-		at = sweepAsked{e.vm.Script.Area, e.vm.Cur()}
-	}
-	taken := sweepGuide[at]
-	for len(taken) < n {
-		taken = append(taken, 0)
-	}
-	least := slices.Min(taken[:n])
-	var cands []int
-	for i := range n {
-		if taken[i] == least {
-			cands = append(cands, i)
-		}
-	}
-	pick := cands[rng.N(len(cands))]
-	taken[pick]++
-	sweepGuide[at] = taken
-	return pick
-}
-
-// sweepRunBlock runs a block's plan on a fresh guide. With until, the walks run up to that spec and its finding
-// is returned (the replay); otherwise every finding is put into groups.
-func sweepRunBlock(t testing.TB, adv string, block, entries int, hit map[int]map[int]bool, groups map[string][]*sweepFinding, until *sweepSpec) *sweepFinding {
-	t.Helper()
-	sweepGuide = map[sweepAsked][]int{}
-	for _, sp := range sweepPlan(t, adv, block, entries) {
-		f := br1SweepWalk(t, adv, sp, hit)
-		if until != nil {
-			if sp == *until {
-				return f
-			}
-			continue
-		}
-		if f != nil {
-			groups[f.Key] = append(groups[f.Key], f)
-		}
-	}
-	return nil
 }
 
 // sweepCoverageTotal logs the distinct instructions run over all blocks' (the table's last row).

@@ -321,14 +321,17 @@ func br1AnswerOut(t testing.TB, e *Engine) game.Outcome {
 }
 
 // br1North is gobox's step north with the square's event run.
-func br1North(e *Engine) error {
-	if err := stepBy(e, 0); err != nil {
+func br1North(e *Engine) error { return br1NorthVia(e, e.doNow) }
+
+// br1NorthVia is br1North sending its actions through do.
+func br1NorthVia(e *Engine, do func(game.Action) (game.Outcome, error)) error {
+	if err := stepVia(e, do, 0); err != nil {
 		return err
 	}
 	if e.ext.owed == nil {
 		return nil
 	}
-	_, err := e.doNow(game.RunEvent{})
+	_, err := do(game.RunEvent{})
 	return err
 }
 
