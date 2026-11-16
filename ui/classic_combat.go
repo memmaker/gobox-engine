@@ -116,7 +116,7 @@ func (p *Presenter) boardOf(c *game.Combat, party []game.Member, fly *flight) *c
 		WallTiles: dungeonTiles, StoneTile: 3, TileNames: slices.Clone(c.Tiles),
 		Floor: combatGround(), Dungeon: c.Dungeon,
 		Marks: pts(c.Marks), Targets: slices.Clone(c.Targets), Panel: c.Panel, Log: slices.Clone(c.Log),
-		Area: c.Area, AreaAt: pts(c.AreaAt), Skipped: pts(c.Skipped), AimWhy: c.Why,
+		AimArea: c.AimArea, AreaAt: pts(c.AreaAt), Skipped: pts(c.Skipped), AimWhy: c.Why,
 		Strike: combat.Strike{Seq: c.Strike.Seq, From: c.Strike.From, To: c.Strike.To, Hit: c.Strike.Hit, Damage: c.Strike.Damage},
 	}
 	grid := image.Rect(0, 0, len(b.Ground[0]), len(b.Ground))

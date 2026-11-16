@@ -745,9 +745,10 @@ func (p *Presenter) moveMarks(b *combat.Board) *combat.Board {
 	return b
 }
 
-// aimPreview is b with the aimed spell's area washed round the hovered
-// square, while it has none of its own (the live board; a replayed one never
-// aims).
+// aimPreview is b with the area of a spell aimed from the bar (the ui's own
+// aim) washed round the hovered square; the engine's own aim (a spell that
+// went off after its casting time) brings its AimArea in the board (the live
+// board; a replayed one never aims).
 func (p *Presenter) aimPreview(b *combat.Board) *combat.Board {
 	if p.eng == nil || p.Playing() || p.eng.r.aim == nil || len(b.AreaAt) != 0 {
 		return b

@@ -288,7 +288,7 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 		}
 	}
 	marks, fill, cursor := markGlow, areaFill, cursorGlow
-	if b.Area { // a spell's area: XCOM's orange
+	if b.AimArea > 0 { // a spell's area: XCOM's orange
 		marks = areaGlow
 	}
 	if b.AimWhy != "" { // the aimed square cannot be taken: say so in red

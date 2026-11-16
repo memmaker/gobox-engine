@@ -67,11 +67,11 @@ type Combat struct {
 	Aims    []SpellRef // spells that take a square, with their Range, Targets and Area
 	Targets []int      // unit IDs the turn's Attack takes; while aiming, the foes Tab cycles through
 	Panel   int        // the unit ID the status row shows (who acts, or is being hit), 0 none
-	// Marks are the squares framed for a choice: with Area, a spell's area
+	// Marks are the squares framed for a choice: with AimArea, a spell's area
 	// (AreaAt the squares it covers round the aimed square, Skipped the allies
 	// in it that it passes over), else the units an aim would hit.
 	Marks, AreaAt, Skipped []rules.BoardPos
-	Area                   bool
+	AimArea                int    // aiming an area: its radius+1 round the aimed square (0: none)
 	Why                    string // aiming: why the aimed square cannot be taken, "" when it can
 
 	// The ground as a view draws it: Squares' Tile numbers index Tiles, the

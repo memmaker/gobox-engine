@@ -190,3 +190,16 @@ func TestMoveThenArrowSteps(t *testing.T) {
 		t.Fatalf("M, off-Reach step: %+v, want a walk", got)
 	}
 }
+
+// TestAimMarksAimCursor: aiming, the marked square (the hover frame, an
+// area spell's wash, a click) is the aim the keys moved, not the floor
+// under a pointer that has not moved since.
+func TestAimMarksAimCursor(t *testing.T) {
+	b := &Board{Units: []Unit{{ID: 1, X: 18, Y: 14, Active: true}}, Turn: &Turn{Aim: true, Can: []Kind{DecideAim}}}
+	p := &Presenter{b: b, screen: image.Rect(0, 0, 800, 600)}
+	p.cam = camera{eye: vec{20, 9, 20}, at: vec{14, 0, 8}, fovy: 0.8, aspect: 4.0 / 3}
+	p.aimTo(image.Pt(10, 5))
+	if sq, ok := p.marked(400, 300); !ok || sq != image.Pt(10, 5) {
+		t.Fatalf("marked %v %v, want the aim 10,5", sq, ok)
+	}
+}

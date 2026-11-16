@@ -281,7 +281,7 @@ type Battle struct {
 	Turn      *Turn                           // the player's turn waits for an action (nil: no one to act for). The game fills it on every player's turn, even one whose only offer is Can: the presenter builds a Turn itself only for an AskSquare or AskMove question (askedBattle), since pace, the bar, the Cast list and the status row all read this one field
 	Panel     int                             // the unit the status row shows (who acts, or is being hit)
 	Log       []string                        // this battle's messages, oldest first
-	Area      bool                            // Marks are a spell's area (else a move's reach or a choice)
+	AimArea   int                             // aiming an area: its radius+1 round the aimed square (0: none); Marks are then its area
 	AreaAt    []rules.BoardPos                // the squares a spell's area covers round the aimed square
 	Skipped   []rules.BoardPos                // squares of allies in the area the spell passes over (Bless: an enemy next to them)
 	AimWhy    string                          // aiming: why the aimed square cannot be taken ("" when it can); views draw the aim red

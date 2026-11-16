@@ -21,7 +21,7 @@ func (e *Engine) battle() *Battle {
 		return nil
 	}
 	b := &Battle{
-		Marks: s.marks, Reach: s.reach, Paths: s.paths, Targets: s.targets, Turn: s.turn, Area: e.ext.aoe != 0, AreaAt: s.area, Skipped: s.skipped, AimWhy: s.aimWhy, Dungeon: s.dungeon,
+		Marks: s.marks, Reach: s.reach, Paths: s.paths, Targets: s.targets, Turn: s.turn, AimArea: e.ext.aoe, AreaAt: s.area, Skipped: s.skipped, AimWhy: s.aimWhy, Dungeon: s.dungeon,
 		Strike: s.strike, Log: slices.Clone(e.ext.battleLog[max(0, len(e.ext.battleLog)-100):]),
 	}
 	g := e.fact(rules.NoChar, rules.GroundFact{}).(rules.Ground)

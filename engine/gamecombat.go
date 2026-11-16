@@ -39,7 +39,7 @@ func (e *Engine) fightState() *game.Combat {
 	}
 	b := e.battle()
 	c := &game.Combat{Size: rules.Size{W: len(b.Ground[0]), H: len(b.Ground)}, Round: int(e.ruleset().Check(rules.FightRound{}, nil).Value), Dungeon: b.Dungeon,
-		Targets: slices.Clone(b.Targets), Panel: b.Panel, Marks: slices.Clone(b.Marks), Area: b.Area,
+		Targets: slices.Clone(b.Targets), Panel: b.Panel, Marks: slices.Clone(b.Marks), AimArea: b.AimArea,
 		AreaAt: slices.Clone(b.AreaAt), Skipped: slices.Clone(b.Skipped), Why: b.AimWhy,
 		Strike: game.Strike{Seq: b.Strike.Seq, From: b.Strike.From, To: b.Strike.To, Hit: b.Strike.Hit, Damage: b.Strike.Damage},
 		Log:    slices.Clone(b.Log)}

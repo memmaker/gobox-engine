@@ -525,11 +525,16 @@ func (p *Presenter) HoverSquare() (int, int, bool) {
 }
 
 // marked is the square the hover marker is on with the pointer at screen
-// pixel (x, y): the keys' cursor, else the floor under the pointer, on the
-// board or past its edge (hit false: no ground there). A click takes it
-// (Click): the one way a square is chosen, never a figure in front of it.
+// pixel (x, y): the keys' cursor, aiming the aim (the keys' or the
+// pointer's, Point), else the floor under the pointer, on the board or past
+// its edge (hit false: no ground there). A click takes it (Click), an area
+// spell is washed round it: the one way a square is chosen, never a figure
+// in front of it.
 func (p *Presenter) marked(x, y int) (image.Point, bool) {
 	if c := p.free; c != nil {
+		return *c, true
+	}
+	if c := p.aimAt; c != nil && p.b != nil && p.b.Turn != nil && p.b.Turn.Aim {
 		return *c, true
 	}
 	return p.pickPlane(x, y)

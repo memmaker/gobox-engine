@@ -222,3 +222,41 @@ func TestTurnWeaponChoice(t *testing.T) {
 		t.Error("the melee aim opened after the turn struck with the darts")
 	}
 }
+
+// TestSpellAimArea: a spell that goes off after its casting time aims with
+// the engine's own aim; the board carries its area (radius+1) for the
+// preview round the marked square (POR's Curse, area 3: a 5x5 square,
+// showed one square).
+func TestSpellAimArea(t *testing.T) {
+	e := testEngine(t)
+	e.Explore = true
+	e.DevAction = e.DevScene("combat")
+	seed := uint32(1)
+	e.FixedSeed = &seed
+	e.Init()
+	e.Start(e.Play)
+	for range 400 {
+		if e.cs.turn != nil && e.cs.actor != rules.NoChar && e.cs.aim == nil {
+			break
+		}
+		if e.waiting(PendFight) {
+			e.Step()
+		} else {
+			press(e)
+		}
+	}
+	if e.member(e.cs.actor) == nil || e.cs.turn == nil {
+		t.Skip("no party turn")
+	}
+	if a := e.fightState().AimArea; a != 0 {
+		t.Fatalf("before aiming: AimArea %d", a)
+	}
+	e.cs.sa = &spellAim{c: e.charID(e.member(e.cs.actor)), kind: rules.SpellAimArea, aoe: 3}
+	e.aimOne(1)
+	if e.cs.aim == nil {
+		t.Fatal("no aim")
+	}
+	if a := e.fightState().AimArea; a != 3 {
+		t.Fatalf("aiming: AimArea %d, want 3", a)
+	}
+}

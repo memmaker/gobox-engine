@@ -28,9 +28,8 @@ type Board struct {
 	Turn      *Turn // nil: no one to act for
 	Panel     int
 	Log       []string
-	Area      bool
 	AreaAt    []image.Point
-	AimArea   int // no AreaAt: radius+1 washed round the hovered square (0 none)
+	AimArea   int // aiming an area: radius+1 (0 none); no AreaAt: washed round the hovered square
 	Skipped   []image.Point
 	AimWhy    string
 	Effects   []Effect
