@@ -22,3 +22,16 @@ func TestBR1TravelKindScreen(t *testing.T) {
 		t.Fatalf("wilderness: scripted %d In3D %d flying %d, want the overland", e.world.Scripted, e.world.In3D, e.world.Flying)
 	}
 }
+
+// TestBR1NewECLNotesTheBlockLeft: NewECL saves the block it leaves in ScriptBlock before the new block's load entry runs
+// (eclvm.pas EclNewEcl: zone0's savedEclId := eclId), whether or not the block's move entry ever ran. Block 64's load entry
+// calls NewECL(65) from its talk scene, and 65's `if ScriptBlock == 65 { exit }` (a loaded game) must not take it: it did,
+// and the scripted place it came from stood on (sweep finding "loop without asking", replay 64/2/0,0/0).
+func TestBR1NewECLNotesTheBlockLeft(t *testing.T) {
+	e := br1Begun(t)
+	br1OwnBlock(t, e, 202, "    NewGameBytes = ScriptBlock") // the block's own file for the next call to enter
+	br1OwnBlock(t, e, 201, "    NewECL(202)")                // 201's load entry leaves for 202 before any move entry ran
+	if got := br1Cell(t, e, "NewGameBytes"); got != 201 {
+		t.Fatalf("ScriptBlock in block 202's load entry is %d, want the block left, 201", got)
+	}
+}

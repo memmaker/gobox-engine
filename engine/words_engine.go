@@ -59,6 +59,9 @@ func (e *Engine) setLastBlock(block int) {
 		e.host.Set(r, int64(block))
 		return
 	}
+	if r, ok := e.layoutField(fieldScriptBlock); ok { // Buck Rogers: EclNewEcl saves the block left in zone0's savedEclId (eclvm.pas), which the scripts read as ScriptBlock
+		e.host.Set(r, int64(block))
+	}
 	e.world.AreaKind = uint16(block)
 }
 
