@@ -576,6 +576,23 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
          `walldefRecorded`'s block 10 quirk stays in the engine; one key slot during computer
          play (the Pascal takes the first key, we the last)
 
+      9a. [~] par1: the parity audit of the old BR1 engine's 125 tests (`tracks/br1-parity/`,
+         kept honest by `TestBR1ParityTable`): 65 covered, 22 ported now, 17 the old engine's
+         internals, 7 deliberately different, 14 OPEN. Fixed on the way: Unready did nothing
+         in BR; Ready/Drop/Unready in a fight panicked (`SetSpeed`); Make Camp offered where
+         rest is a menu; a computer-played member treats adjacent patients first (the Pascal;
+         the old engine does not: golden fight "two-vs-41x4+32+39x3" now diverges at round 0
+         and is pinned: regenerate it from the old engine patched); a thrown area weapon at a
+         bare square panicked; item cards had no doll slot; BR1's places have names (BR import
+         version 18). OPEN (each needs more than a test): training and level-up skill points;
+         the Change menu (order, purge) and the party menu's Remove; item Trade/Halve/Join; the
+         old engine's party pack (not in the Pascal: differs unless ruled otherwise); reading an
+         ORIGINAL BR save (SAVGAMx.DAT); the deskewed arena (`Board.Straight`); edge exits
+         (block 81's map shows walls where the old test read an open edge); Esc in the ship
+         fight's Target submenu; the ship fight's loot/status screen. New BR2 sweep finding:
+         STUCK in a ship fight (no allowed action, no question; replay 2 14 6 6 10032243 3).
+         Many `covered` rows were matched by topic, not line by line.
+
       8. [ ] every BR1 block's entries run headless without a panic (a sweep test over the
          scripts' reachable commands, like the Pool games' sweeps); then BR2 the same
       9. [ ] B1g: `cmd/gobox` plays BR1 and BR2 from data folders only; the BR engines and repos
