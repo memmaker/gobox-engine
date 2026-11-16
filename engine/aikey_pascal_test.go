@@ -65,9 +65,9 @@ func TestAiKeyActions(t *testing.T) {
 	run := func(f func() error) error { return f() }
 	for _, c := range []struct {
 		a    game.Action
-		want rules.AutoKey
-	}{{game.Manual{}, rules.AutoKeyTakeOver}, {game.QuickMagic{}, rules.AutoKeyQuickMagic}} {
-		e.aiKey = rules.AutoKeyNone
+		want rules.Action
+	}{{game.Manual{}, rules.TakeBack{}}, {game.QuickMagic{}, rules.QuickMagic{}}} {
+		e.aiKey = nil
 		if ok, err := e.combatDo(c.a, game.Allowed{}, run); !ok || err != nil || e.aiKey != c.want {
 			t.Errorf("%T: taken %v, err %v, key %d", c.a, ok, err, e.aiKey)
 		}

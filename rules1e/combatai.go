@@ -10,11 +10,10 @@ import (
 
 // ComputerTurn is one computer turn and what it showed, in order: the
 // engine's Decide then Resolve, compared at whole turns (TestDecideAgainstPascal).
-// key is the key the player pressed before it, which the turn's first poll
-// takes (aiKeys).
-func (e *RuleState) ComputerTurn(c *Character, key AiKey) rules.Outcome {
+// Fight.Key is the key the player pressed before it (TakeBack, QuickMagic), which
+// the turn's first poll takes (aiKeys).
+func (e *RuleState) ComputerTurn(c *Character) rules.Outcome {
 	n := len(e.Fx)
-	e.Fight.Key = key
 	e.aiTurn(c)
 	e.Fight.Key = AiKeyNone
 	out := rules.Outcome{Effects: slices.Clone(e.Fx[n:])}

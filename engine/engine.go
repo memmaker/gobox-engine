@@ -79,15 +79,15 @@ type Engine struct {
 	set   rules.Set       // DS:5376: the data set the current area reads
 	start time.Time
 
-	restLine  bool          // DS:6DDA (ovr21 rest): the rest time is on row 17, messages go below it
-	restShown int           // steps since the rest time was last drawn (RestStep)
-	tempSel   rules.CharID  // selectTemp: selected but not in the party
-	temps     []tempSel     // the selections selectTemp replaced
-	creation  *creation     // the creation sheet up (Creation)
-	sel       int           // the selected member: whom the screens show and the player's commands name, handed to the rules as their actor (as)
-	aiKey     rules.AutoKey // the key pressed for the next computer turn (takeKey): game.Manual, game.QuickMagic
-	soundNow  bool          // PlayEventSound: the sound plays now, not as an event
-	msgDelay  byte          // DS:49E2, message delay factor (ovr12 sets 1)
+	restLine  bool         // DS:6DDA (ovr21 rest): the rest time is on row 17, messages go below it
+	restShown int          // steps since the rest time was last drawn (RestStep)
+	tempSel   rules.CharID // selectTemp: selected but not in the party
+	temps     []tempSel    // the selections selectTemp replaced
+	creation  *creation    // the creation sheet up (Creation)
+	sel       int          // the selected member: whom the screens show and the player's commands name, handed to the rules as their actor (as)
+	aiKey     rules.Action // the key pressed for the next computer turn (takeKey): game.Manual is rules.TakeBack, game.QuickMagic rules.QuickMagic; nil: none
+	soundNow  bool         // PlayEventSound: the sound plays now, not as an event
+	msgDelay  byte         // DS:49E2, message delay factor (ovr12 sets 1)
 
 	rosterHi   rules.CharID // SelectCharacter: 00BA:0767 highlights this one (nil: sel)
 	rosterNone bool         // ... or no one (who = nil)

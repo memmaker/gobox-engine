@@ -35,7 +35,7 @@ func (r *Rules) BeginTurn(_ rules.Fight, id rules.CharID, _ *rules.RNG) rules.Tu
 }
 
 // autoTurn = por computerTurn for the Fight's Actor.
-func (r *Rules) autoTurn(sit rules.Situation, a rules.AutoTurn) (rules.Outcome, error) {
+func (r *Rules) autoTurn(sit rules.Situation, _ rules.AutoTurn) (rules.Outcome, error) {
 	f, ok := sit.(rules.Fight)
 	if !ok {
 		return rules.Outcome{}, errNotFight
@@ -44,14 +44,7 @@ func (r *Rules) autoTurn(sit rules.Situation, a rules.AutoTurn) (rules.Outcome, 
 	if c == nil {
 		return rules.Outcome{}, errNoChar
 	}
-	return r.S.ComputerTurn(c, aiKeys[a.Key]), nil
-}
-
-// aiKeys maps the engine's keys onto the original's.
-var aiKeys = map[rules.AutoKey]AiKey{
-	rules.AutoKeyNone:       AiKeyNone,
-	rules.AutoKeyQuickMagic: AiKeyQuickMagic,
-	rules.AutoKeyTakeOver:   AiKeyTakeOver,
+	return r.S.ComputerTurn(c), nil
 }
 
 // BeginFight = por combatSetup's rules opening (ovr11:1E31): the rule set's

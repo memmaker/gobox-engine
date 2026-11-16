@@ -86,9 +86,13 @@ type (
 	Quick      struct{ All bool }
 	// TakeBack: the player takes the quick-played members back, the key Space during a computer turn (buckroger-re
 	// combatai.pas CheckKeystroke): every member of the party that is no companion is the player's again, and the
-	// turn of the acting one ends if it was one of them. A ruleset that plays a turn whole (AutoTurn) takes the key in
-	// AutoTurn.Key instead.
-	TakeBack   struct{}
+	// turn of the acting one ends if it was one of them. The engine resolves it before the computer turn's first
+	// action; a ruleset that plays the turn whole (AutoTurn, por) remembers it for the polls inside that turn
+	// (por combatai.pas CheckKeystroke, polled at the start, before the attack loop and at each step).
+	TakeBack struct{}
+	// QuickMagic: the key Alt-M during a computer turn (por combatai.pas CheckKeystroke): the computer casts for the
+	// party's quick-played members, or stops. Only a ruleset that answers CanQuickMagic has it (XXVc's has no such key).
+	QuickMagic struct{}
 	Flee       struct{}
 	EndTurn    struct{}
 	Aid        struct{ Target CharID } // BR
@@ -97,8 +101,8 @@ type (
 	Intimidate struct{}                // BR
 	Jetpack    struct{ To BoardPos }   // BR
 	// AutoTurn is a whole computer turn the rules play at once (por
-	// computerTurn); Key is the player's key its polls take, the engine's input.
-	AutoTurn struct{ Key AutoKey }
+	// computerTurn); the keys the player pressed for it came before it as TakeBack and QuickMagic.
+	AutoTurn struct{}
 	// FightPlaced: the engine has built the board and placed everyone
 	// (after BeginFight); the rules' start-of-fight effects run.
 	FightPlaced struct{}
@@ -369,6 +373,7 @@ func (Guard) action()         {}
 func (Delay) action()         {}
 func (Quick) action()         {}
 func (TakeBack) action()      {}
+func (QuickMagic) action()    {}
 func (Flee) action()          {}
 func (EndTurn) action()       {}
 func (Aid) action()           {}
@@ -431,15 +436,6 @@ type ReloadKind int8
 const (
 	ReloadClip ReloadKind = iota + 1
 	ReloadFill
-)
-
-// AutoKey is a key the player pressed for a computer turn (por aiKeys).
-type AutoKey uint8
-
-const (
-	AutoKeyNone       AutoKey = iota
-	AutoKeyQuickMagic         // the computer casts for the party, or stops
-	AutoKeyTakeOver           // every player character back under manual control
 )
 
 // Policy is when a reaction fires: a member's standing choice per reaction.

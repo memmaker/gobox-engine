@@ -25,6 +25,8 @@ func (r *Rules) checkParty(k rules.Check) (rules.Answer, bool) {
 		return rules.Answer{Yes: c != nil && s.PaladinCan(c, used)}, true
 	case rules.PartySize:
 		return rules.Answer{Value: int32(len(s.Party))}, true
+	case rules.CanQuickMagic:
+		return rules.Answer{Yes: true}, true
 	case rules.PartyAuto:
 		return rules.Answer{Yes: s.PartyAuto()}, true
 	case rules.CanJoin:

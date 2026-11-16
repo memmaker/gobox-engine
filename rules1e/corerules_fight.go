@@ -44,6 +44,12 @@ func (r *Rules) resolveFight(sit rules.Situation, a rules.Action) (rules.Outcome
 	case rules.CombatSay:
 		s.CombatSay(r.chars[a.Who], a.Text, true)
 		return rules.Outcome{}, true, nil
+	case rules.TakeBack: // Space: polled inside the turn (aiKeys), so the rules remember it for the next ComputerTurn
+		s.Fight.Key = AiKeyTakeOver
+		return rules.Outcome{}, true, nil
+	case rules.QuickMagic: // Alt-M, remembered the same way (the last key pressed wins, as the one key slot did)
+		s.Fight.Key = AiKeyQuickMagic
+		return rules.Outcome{}, true, nil
 	case rules.AutoTurn:
 		o, err := r.autoTurn(sit, a)
 		return o, true, err

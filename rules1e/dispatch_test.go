@@ -126,7 +126,6 @@ var notAnswered = map[string]bool{
 	"NewCharacter":  true,
 	"PickSkill":     true,
 	"PointBuy":      true,
-	"TakeBack":      true, // por takes the key inside AutoTurn.Key (aiKeys polls at several points of one turn)
 	"Reload":        true,
 	"RemoveMember":  true,
 	"Rename":        true,

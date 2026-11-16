@@ -83,7 +83,7 @@ func aiTurnVector(e *Engine, v aiVaried, seed, dist, hp, lvl, flank int) string 
 	} else if v.outStatus != 0 {
 		e.state().KillCharacter(d, v.outStatus, "")
 	} else {
-		e.state().ComputerTurn(a, rules1e.AiKeyNone)
+		e.state().ComputerTurn(a)
 	}
 	return fmt.Sprintf("%d %d %d %d %d %d %d %d", d.HP, d.Status, e.state().Cpos[2].X, e.state().Cpos[2].Y, a.Attacks[0], int32(e.state().RandSeed), a.Status, a.Combat.Fleeing)
 }

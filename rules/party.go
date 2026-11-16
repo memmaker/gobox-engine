@@ -236,6 +236,11 @@ type PartyAuto struct{}
 
 func (PartyAuto) check() {}
 
+// CanQuickMagic: the ruleset has the key Alt-M during a computer turn (QuickMagic): por's, not Buck Rogers'.
+type CanQuickMagic struct{}
+
+func (CanQuickMagic) check() {}
+
 // MoveMember: Who takes place To in the party (camp's order); ErrNotNow out of camp or out of range.
 type MoveMember struct {
 	Who CharID

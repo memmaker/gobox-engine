@@ -5,41 +5,39 @@ import (
 	"gobox/rules"
 )
 
-// takeKey is the key pressed for the next computer turn, taken.
-func (e *Engine) takeKey() rules.AutoKey {
+// takeKey is the key pressed for the next computer turn (nil: none), taken.
+func (e *Engine) takeKey() rules.Action {
 	k := e.aiKey
-	e.aiKey = rules.AutoKeyNone
+	e.aiKey = nil
 	return k
 }
 
 // maxComputerSteps bounds one computer turn's Decide/Resolve rounds: a ruleset that never ends a turn is a bug.
 const maxComputerSteps = 1000
 
-// computerTurn plays c's turn as the ruleset decides it, the key pressed for it carried in the action. A ruleset
-// that answers AutoTurn plays the whole turn in one Resolve (por); one that decides action by action (XXVc's
-// CombatAiControl) is asked again until an action uses the turn up (Outcome.TurnOver); there the key pressed is
-// the typed rules.TakeBack, resolved once before the turn's first action (CheckKeystroke), and a member handed
-// back ends the turn.
+// computerTurn plays c's turn as the ruleset decides it. The key pressed for it is a typed action (rules.TakeBack,
+// rules.QuickMagic), resolved once before the turn's first action for every ruleset (CheckKeystroke): XXVc takes the
+// members back there; por's rules remember it for the polls inside its whole turn. A ruleset that answers AutoTurn
+// plays the turn in one Resolve; one that decides action by action (XXVc's CombatAiControl) is asked again until an
+// action uses the turn up (Outcome.TurnOver); a member handed back ends the turn.
 func (e *Engine) computerTurn(cID rules.CharID) {
 	key := e.takeKey()
 	for range maxComputerSteps {
 		f := e.fightBy(cID)
-		a := e.ruleset().Decide(f, f.Actor, nil)
-		t, auto := a.(rules.AutoTurn)
-		if auto {
-			t.Key = key
-			a = t
-		} else if key == rules.AutoKeyTakeOver {
-			key = rules.AutoKeyNone
-			back, err := e.ruleset().Resolve(f, rules.TakeBack{}, nil)
+		if key != nil {
+			pressed := key
+			key = nil
+			back, err := e.ruleset().Resolve(f, pressed, nil)
 			if err != nil {
-				panic(fmt.Sprintf("computer turn: take back: %v", err))
+				panic(fmt.Sprintf("computer turn: key %T: %v", pressed, err))
 			}
 			e.present(back.Effects...)
 			if back.TurnOver {
 				return
 			}
 		}
+		a := e.ruleset().Decide(f, f.Actor, nil)
+		_, auto := a.(rules.AutoTurn)
 		out, err := e.ruleset().Resolve(f, a, nil)
 		if err != nil {
 			panic(fmt.Sprintf("computer turn: %v", err))

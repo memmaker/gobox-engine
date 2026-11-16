@@ -505,7 +505,10 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 			}
 		}
 		if e.battleUp() && e.ruleset().Check(rules.PartyAuto{}, nil).Yes && (b == nil || b.Turn == nil) { // the keys a computer turn polls (aiKeys): Space and Alt-M
-			add(game.Manual{}, game.QuickMagic{})
+			add(game.Manual{})
+			if e.ruleset().Check(rules.CanQuickMagic{}, nil).Yes {
+				add(game.QuickMagic{})
+			}
 		}
 		if b == nil || b.Turn == nil || !e.battleUp() || e.battle().Turn == nil {
 			break
@@ -959,9 +962,9 @@ func (e *Engine) combatDo(a game.Action, al game.Allowed, native func(func() err
 	case game.Quick:
 		return turn(TurnAct{Verb: VerbQuick})
 	case game.Manual:
-		return true, native(func() error { e.aiKey = rules.AutoKeyTakeOver; return nil })
+		return true, native(func() error { e.aiKey = rules.TakeBack{}; return nil })
 	case game.QuickMagic:
-		return true, native(func() error { e.aiKey = rules.AutoKeyQuickMagic; return nil })
+		return true, native(func() error { e.aiKey = rules.QuickMagic{}; return nil })
 	case game.Bandage:
 		return turn(TurnAct{Verb: VerbBandage})
 	case game.EndTurn:
