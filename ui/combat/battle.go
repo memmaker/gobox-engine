@@ -181,7 +181,7 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 	if p.tabTo != nil {
 		focus = *p.tabTo
 	}
-	if c := p.free; c != nil { // the keys' cursor: the eye follows it out of the comfort box
+	if c := p.free; c != nil { // the keys' cursor: the eye follows it out of the frame box
 		focus = vec{float64(c.X) + .5, 0, float64(c.Y) + .5}
 	}
 	if n := len(b.Effects); n > 0 {
