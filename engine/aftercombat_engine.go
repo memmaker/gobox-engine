@@ -35,6 +35,9 @@ func (e *Engine) endFight() {
 	if res.Verdict == rules.PartyFled {
 		e.world.CombatEnd = combatEndFled
 	}
+	if res.Verdict == rules.PartyLost && e.duel() && e.eclVersion.Behaviour.LostDuelResult {
+		e.world.CombatEnd = combatEndDied
+	}
 	e.world.AttackedAlly = 0
 	if res.AttackedAlly {
 		e.world.AttackedAlly = 1

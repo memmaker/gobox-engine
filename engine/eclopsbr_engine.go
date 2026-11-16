@@ -15,6 +15,7 @@ func init() {
 	eclOps[ecl.OpTakeItem] = (*Engine).opTakeItem
 	eclOps[ecl.OpStash] = (*Engine).opStash
 	eclOps[ecl.OpSkillDamage] = (*Engine).opSkillDamage
+	eclOps[ecl.OpDuel] = (*Engine).opDuel
 }
 
 // opWallDistance = BR eclvm.pas EclDistanceAhead (result, direction 0..3): the squares from the party's
@@ -118,4 +119,14 @@ func (e *Engine) opSkillDamage() {
 		}
 	}
 	e.vm.Stop = !whole
+}
+
+// soloCombat is run.duelMode (DS:84D4) of a fight only the selected member takes part in.
+const soloCombat = 1
+
+// opDuel = BR eclvm.pas EclSoloCombat: Combat with only the selected member fighting. The ruleset
+// disables the others for the fight (FightTerms.Duel) and settles only the duelist after it.
+func (e *Engine) opDuel() {
+	e.run.duelMode = soloCombat
+	e.opCombat()
 }

@@ -77,6 +77,7 @@ type Behaviour struct {
 	WhoEndsNoMember bool
 	NPCSideBit      bool // AddNPC writes the side bit alone, the hostile one for monster 0x18 (por ovr04:2B7E); BR's EclAddNpc leaves the side as the record has it
 	HitPadded       bool // a script's damage message pads the number to three columns (the Pool's Str(dmg:3)); BR's EclInflictDamage does not
+	LostDuelResult  bool // a lost solo fight leaves the combat result at 0x80, the team beaten (BR postcbt.pas DetermineCombatResults); the Pool's leaves it 0
 	FarSight        bool // the squares ahead counted before a wall run to 5 (BR eclmenu.pas MaxMonsterDist); otherwise to 2 (the Pool's ovr08:0482)
 	ClearExitText   bool // ClearExit empties the text pane too (BR pO035_2DCC case 66, 2837); otherwise only the view comes back (pod O040:24AE)
 	PictureAnimates bool // Picture marks the view drawn, so a wait under it cycles the picture's frames (cotab's and sotsb's b8B7D, pod's alike); otherwise only a step or Picture(255) does (POR's picDrawn, eclvm.pas:371, 1874)
@@ -293,7 +294,7 @@ var V4 = func() *Version {
 		// BR1 pO035_2DCC case 56 (buckrogers-go opMenuCall): 0 the team menu, 9 the rest menu (holds the script, which
 		// goes on after it: not the Pool games' camp, which ends it)
 		Programs:  map[byte]ProgramFn{0: ProgramPartyMenu, 9: ProgramUnported},
-		Behaviour: Behaviour{SetupMonsterSides: true, ReturnEndsScript: true, StoreByOperand: true, ClearExitText: true, WhoEndsNoMember: true, FarSight: true}}
+		Behaviour: Behaviour{SetupMonsterSides: true, ReturnEndsScript: true, StoreByOperand: true, ClearExitText: true, WhoEndsNoMember: true, FarSight: true, LostDuelResult: true}}
 }()
 
 // Versions are the dialects by ID.

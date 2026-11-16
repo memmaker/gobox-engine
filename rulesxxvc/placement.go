@@ -223,7 +223,7 @@ func (p *placer) findPlacement(id rules.CharID, team int) bool {
 // placeAllCreatures is combatst.pas PlaceAllCreatures (monsterApproach: the hostiles from the sides it names): every creature of the party list placed,
 // each team facing the other. A downed creature in play that is placed leaves a corpse; one out of play (past the
 // game's party count) that finds no place Left the list.
-// ponytail: isSoloCombat is not in FightTerms (no BR1 script sets it); unported.
+// A solo combat (FightTerms.Duel) places only the enabled.
 func (r *Rules) placeAllCreatures(f rules.Fight, walls rules.MapSides) rules.Outcome {
 	var o rules.Outcome
 	p := &placer{r: r, f: f, walls: walls, b: r.board(rules.Board{}), wildernes: f.Terms.Area == rules.AreaWilderness}
@@ -264,7 +264,7 @@ func (r *Rules) placeAllCreatures(f rules.Fight, walls rules.MapSides) rules.Out
 			face = (facing + 4) % 8
 		}
 		p.b.Units = append(p.b.Units, rules.BoardUnit{ID: id, Size: int32(c.IconDimensions & iconSizeLowBits), Facing: rules.Facing(quarterDirections[face/2]), Side: c.Side})
-		if p.findPlacement(id, team) {
+		if !(f.Terms.Duel && !c.Enabled) && p.findPlacement(id, team) { // a solo combat places only who is enabled (combatst.pas:948)
 			if !c.Enabled && !outOfPlay {
 				u := p.b.Units[len(p.b.Units)-1]
 				r.layCorpses(&p.b, []rules.CharID{id}, func(rules.CharID) (rules.BoardPos, bool) { return u.At, true }, &o)

@@ -171,3 +171,44 @@ func TestSkillDamage(t *testing.T) {
 		t.Errorf("3 + 10 < 15 (overkill 12: comatose): %+v %v", o.Effects, r.chars[down].Status)
 	}
 }
+
+// soloRig is a team of two, the second the current character, and one downed monster worth 30.
+func soloRig() (r *Rules, other, duelist, monster rules.CharID) {
+	r = New()
+	other, duelist = r.Add(member("other", 10, 0, 0, 0)), r.Add(member("duelist", 10, 0, 0, 0))
+	foe := member("foe", 10, 0, 0, 0)
+	foe.Side, foe.Status, foe.Enabled, foe.XPAward = rules.SideMonsters, StDead, false, 30
+	monster = r.Add(foe)
+	r.party, r.memberCount, r.acting = []rules.CharID{other, duelist, monster}, 2, 1
+	return
+}
+
+// EclCombat's solo combat: the others sit out (disabled, so placed on no board); a win gives the duelist the
+// whole xpAward and no one else, and the duelist is okay and enabled again; the monsters leave.
+func TestSoloCombatWon(t *testing.T) {
+	r, other, duelist, monster := soloRig()
+	f := rules.Fight{Terms: rules.FightTerms{Duel: true}}
+	r.BeginFight(f, nil)
+	if r.chars[other].Enabled || !r.chars[duelist].Enabled || r.duelist != duelist {
+		t.Fatalf("other %v duelist %v (%d)", r.chars[other].Enabled, r.chars[duelist].Enabled, r.duelist)
+	}
+	res := r.EndFight(f, nil)
+	if res.Verdict != rules.PartyWon || res.Exp != 30 || res.Beaten != 1 || r.chars[duelist].Exp != 30 || r.chars[other].Exp != 0 {
+		t.Errorf("%+v exp %d / %d", res, r.chars[duelist].Exp, r.chars[other].Exp)
+	}
+	if !r.chars[other].Enabled || r.chars[monster] != nil || len(r.party) != 2 {
+		t.Errorf("sat-out member enabled %v, monster %v, party %v", r.chars[other].Enabled, r.chars[monster], r.party)
+	}
+}
+
+// A beaten duelist: lost, the dying fall unconscious, no experience, no one leaves the party.
+func TestSoloCombatLost(t *testing.T) {
+	r, other, duelist, _ := soloRig()
+	f := rules.Fight{Terms: rules.FightTerms{Duel: true}}
+	r.BeginFight(f, nil)
+	r.chars[duelist].Status, r.chars[duelist].Enabled = StDying, false
+	res := r.EndFight(f, nil)
+	if res.Verdict != rules.PartyLost || res.Exp != 0 || r.chars[duelist].Status != StUnconscious || len(r.party) != 2 || !r.chars[other].Enabled {
+		t.Errorf("%+v status %v party %v", res, r.chars[duelist].Status, r.party)
+	}
+}

@@ -62,7 +62,56 @@ func (r *Rules) BeginFight(f rules.Fight, _ *rules.RNG) rules.Outcome {
 	r.moveBonus = int(f.Terms.PartyMove)
 	r.terms = f.Terms
 	r.hpPercent = r.hostileHpPercent(f) // combatst.pas setup
+	r.duelist = rules.NoChar
+	if f.Terms.Duel {
+		r.beginSolo(f)
+	}
 	return o
+}
+
+// beginSolo is eclvm.pas EclCombat's UpdateCharacters(True) of a solo combat: every team member but the current
+// character is disabled for the fight (PlaceAllCreatures then places none of them).
+func (r *Rules) beginSolo(f rules.Fight) {
+	if r.acting >= 0 && r.acting < len(r.party) {
+		r.duelist = r.party[r.acting]
+	}
+	for _, id := range r.fightParty(f) {
+		if c := r.chars[id]; c != nil && c.team() && id != r.duelist {
+			c.Enabled = false
+		}
+	}
+}
+
+// endSolo is postcbt.pas DetermineCombatResults' solo branch: only the duelist is settled. It won when it is
+// enabled and okay: the defeated hostiles' whole xpAward is its experience (DetermineLootExp, AwardExperience: no
+// share, no credits, no items); else the fight is lost: dead or dying it falls unconscious, fleeing it is okay.
+// No one leaves the party.
+// ponytail: the original tests the character that acted last, which is the duelist unless a monster did.
+func (r *Rules) endSolo(ids []rules.CharID) rules.FightResult {
+	var res rules.FightResult
+	var total int64
+	for _, id := range ids {
+		if c := r.chars[id]; !c.team() && c.Status != StOkay && c.Status != StFleeing {
+			total += c.XPAward
+			res.Beaten++
+		}
+	}
+	c := r.chars[r.duelist]
+	if c != nil && c.Enabled && c.Status == StOkay {
+		c.Exp += total
+		res.Exp, res.Verdict = int32(total), rules.PartyWon
+		return res
+	}
+	res.Verdict = rules.PartyLost
+	if c != nil {
+		switch c.Status {
+		case StDead, StDying:
+			c.Status = StUnconscious
+		case StFleeing:
+			c.Status, c.Enabled = StOkay, true
+		}
+	}
+	return res
 }
 
 // surprised is zone1's sideMask bit (side + 1) for c's side: WordSurprise.
@@ -265,6 +314,12 @@ func (r *Rules) EndFight(f rules.Fight, _ *rules.RNG) rules.FightResult {
 			c.Status, c.Enabled = StOkay, true
 		}
 	}
+	if f.Terms.Duel {
+		res := r.endSolo(ids)
+		r.dropMonsters()
+		r.fight = nil
+		return res
+	}
 	var res rules.FightResult
 	r.pool = 0
 	verdict := r.Verdict(f)
@@ -322,17 +377,22 @@ func (r *Rules) EndFight(f rules.Fight, _ *rules.RNG) rules.FightResult {
 	}
 	r.pool = rules.Copper(res.Money.Copper) // DetermineLootExp's poolCredits
 	if verdict != rules.PartyLost {         // the monsters leave the party list and the ruleset's characters (CharGen.RemoveCreature, old engine 1F6B leaveField)
-		r.party = slices.DeleteFunc(r.party, func(id rules.CharID) bool {
-			c := r.chars[id]
-			gone := c != nil && !c.team()
-			if gone {
-				delete(r.chars, id)
-			}
-			return gone
-		})
+		r.dropMonsters()
 	}
 	r.fight = nil
 	return res
+}
+
+// dropMonsters takes the hostile characters out of the party list and the ruleset (PostCombatCreatureCleanup).
+func (r *Rules) dropMonsters() {
+	r.party = slices.DeleteFunc(r.party, func(id rules.CharID) bool {
+		c := r.chars[id]
+		gone := c != nil && !c.team()
+		if gone {
+			delete(r.chars, id)
+		}
+		return gone
+	})
 }
 
 // removeMembers is CharGen.RemoveCreature(False, True) for each of ids: the member leaves the party list with its

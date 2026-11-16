@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"gobox/game"
 	"gobox/rules"
 )
 
@@ -213,5 +214,50 @@ func TestBR1SkillDamage(t *testing.T) {
 	}
 	if got := paneText(commonOf(e.build())); !strings.Contains(got, " is hit FOR 5 points of Damage.") {
 		t.Errorf("text %q", got)
+	}
+}
+
+// TestBR1Duel: Duel() is Combat with only the selected member fighting (eclvm.pas EclSoloCombat): the other
+// member is on no board, both are in the party after it, the monsters are gone, and a duelist beaten
+// leaves the result 0x80 (postcbt.pas RESULT_TEAM_BEATEN) with no one removed.
+func TestBR1Duel(t *testing.T) {
+	e := br1Begun(t)
+	br1Join(t, e)
+	ids := e.partyIDs()
+	duelist, other := e.ruleset().Sheet(ids[1]).Name, e.ruleset().Sheet(ids[0]).Name
+	br1OwnBlock(t, e, 201, "    ClearMonsters()\n    LoadMonster(41, count=2, icon=32)\n    Duel()")
+	fought := 0
+	for range br1FightCap {
+		s := e.build()
+		f, ok := s.(game.Fighting)
+		if !ok {
+			break
+		}
+		fought++
+		for _, u := range f.Field.Units {
+			if u.Name == other {
+				t.Fatalf("%s is on the board of %s's duel", other, duelist)
+			}
+		}
+		if e.waiting(PendFight) {
+			e.Step()
+		} else {
+			press(e)
+		}
+	}
+	if fought == 0 {
+		t.Fatal("no fight")
+	}
+	if got := e.partyIDs(); len(got) != 2 {
+		t.Fatalf("party of %d after the duel", len(got))
+	}
+	if e.fact(ids[0], rules.FactActive) != rules.Yes(true) {
+		t.Errorf("%s sat the duel out and is not active after it", other)
+	}
+	if e.fact(ids[1], rules.FactActive) == rules.Yes(true) && e.world.CombatEnd != 0 {
+		t.Errorf("the duelist stands and the result is %#x", e.world.CombatEnd)
+	}
+	if e.fact(ids[1], rules.FactActive) != rules.Yes(true) && e.world.CombatEnd != combatEndDied {
+		t.Errorf("the duelist is down and the result is %#x, want %#x", e.world.CombatEnd, combatEndDied)
 	}
 }
