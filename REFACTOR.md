@@ -421,7 +421,13 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
       3. [ ] t1: the sheet, team menu and roster for XXVc (AC as shown, health, no AD&D spell
          slots, the catalog's saves and abilities with their names, who seeds a new save
          folder's roster, BR's character creation in `rulesxxvc`)
-XX
+      4. [x] l2: BR2's full script layout (`importer/br2/scripts/layout/global.txt`, 280 fields, 55
+         with BR1's names, proven on all 33 blocks: 9882 operands) and `ImportBREngine` for BR2
+         (start-up values per game in `brStarts`); V4 decodes BR2 unchanged; member fields
+         `SelInt`, `SelRace enc=BrSelRace`, `SelSkills` bound. Open for BR2: the Log Book (no
+         journal source), text addresses used as numbers (7A00, 7B04, 7C00 in areas 19, 20, 36),
+         text put into the byte buffers (`EntryBytes`, `NewGameBytes`), a SaveTable past
+         `Word4B00` (area 1), 221 placeholder names; only `engine.New` is tested, no play
       5. [ ] w1: BR on `cmd/gobox` through the shared engine (a host naming `rulesxxvc`), the
          front's data (`game.Data`: border, party menu, texts), walls without WALLDEF, sounds,
          portraits; windowed scripted smoke run
