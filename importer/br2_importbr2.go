@@ -16,7 +16,7 @@ func init() {
 }
 
 // BR2EXE is where BR2's START.EXE keeps what the import reads.
-var BR2EXE = BREXE{DS: 0xE87, ItemWords: 0x1EEC, NumWords: 45, AmmoPrices: 0xD86, ShipWeapons: 0x242A, WeaponShort: 0x1177, ShipTypes: 0x124E, Explosion: xxvc.ExplosionFixed}
+var BR2EXE = BREXE{DS: 0xE87, ItemWords: 0x1EEC, NumWords: 45, AmmoPrices: 0xD86, ShopLists: 0x18, ShipWeapons: 0x242A, WeaponShort: 0x1177, ShipTypes: 0x124E, Explosion: xxvc.ExplosionFixed}
 
 // creditAt is pO025_04F1's credits page (English v1.0 O030): each
 // displayString's cell, colour and its string's GAME.OVR offset.

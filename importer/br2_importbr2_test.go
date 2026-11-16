@@ -122,6 +122,9 @@ func TestBR2ImportEqualsDecode(t *testing.T) {
 	if a := tab.AmmoPrices; len(a) != 14 || a[5] != 10 || a[6] != 5 || a[8] != 0 || a[11] != 100 || a[18] != 100 {
 		t.Errorf("ammo prices %v", a)
 	}
+	if l := tab.ShopLists; len(l) != 16 || len(l[1]) == 0 || len(l[16]) == 0 { // the lists' offsets are the same as BR1's (found by the pattern of BR1's starts)
+		t.Errorf("shop lists %v", l)
+	}
 	if len(tab.Monsters) != len(mons) {
 		t.Errorf("%d typed monsters, %d records", len(tab.Monsters), len(mons))
 	}

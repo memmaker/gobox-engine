@@ -78,6 +78,9 @@ const (
 // ShipSystems in the original's order (TShip.systemStatus' index).
 var ShipSystems = []rules.ShipSystem{Hull, Sensors, Control, LifeSupport, Fuel, Engines}
 
+// ShopListID numbers a shop item list (1..16; EclShop's operand 1).
+type ShopListID int32
+
 // Tables are a game's numbers that differ between BR1 and BR2 (START.EXE's
 // data segment), written by the importer and passed at Begin as
 // core.Campaign.Tables.
@@ -89,6 +92,9 @@ type Tables struct {
 	// AmmoPrices is gdconsts.pas ammoPrices: a clip's price by weapon item
 	// type (ItemTemplate.Type 5..18), the shop's Reload.
 	AmmoPrices map[int32]rules.Copper
+	// ShopLists is gdconsts.pas itemListStarts/Counts/Entries: the templates (Items' IDs) each shop list
+	// stocks, in the original's order (EclShop's operand 1 names the list).
+	ShopLists map[ShopListID][]rules.ItemID
 	// ShipWeapons is gdconsts.pas shipWeapons by kind (ShipMount.Kind 1..8).
 	ShipWeapons map[ShipWeaponKind]ShipWeapon
 	// Ships is the SHIPS records by id (SaveLoad.LoadShipData: record 40 + n;

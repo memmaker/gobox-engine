@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"gobox/adventure"
@@ -117,6 +118,11 @@ func TestBR1ImportEqualsDecode(t *testing.T) {
 	}
 	if a := tab.AmmoPrices; len(a) != 14 || a[5] != 10 || a[6] != 5 || a[8] != 0 || a[11] != 100 || a[18] != 100 {
 		t.Errorf("ammo prices %v", a)
+	}
+	// itemListStarts/Counts/Entries (gdconsts.pas): list 1 has 16 entries from 1, 3, 4; list 2 has the 5 of 2, 8, 11, 13, 16; list 16 has 38 (1..38).
+	if l := tab.ShopLists; len(l) != 16 || !slices.Equal(l[1][:3], []rules.ItemID{1, 3, 4}) || len(l[1]) != 16 || !slices.Equal(l[2], []rules.ItemID{2, 8, 11, 13, 16}) ||
+		len(l[16]) != 38 || l[16][37] != 38 || l[9][0] != 26 || l[9][9] != 93 {
+		t.Errorf("shop lists %v", l)
 	}
 	if len(tab.Monsters) != len(mons) {
 		t.Errorf("%d typed monsters, %d records", len(tab.Monsters), len(mons))

@@ -6,7 +6,7 @@ import (
 )
 
 // BR1EXE is where BR1's START.EXE keeps what the import reads.
-var BR1EXE = BREXE{DS: 0xDAF, ItemWords: 0x1DB4, NumWords: 44, AmmoPrices: 0xC50, ShipWeapons: 0x22DC, WeaponShort: 0x103F, ShipTypes: 0x1116}
+var BR1EXE = BREXE{DS: 0xDAF, ItemWords: 0x1DB4, NumWords: 44, AmmoPrices: 0xC50, ShopLists: 0x18, ShipWeapons: 0x22DC, WeaponShort: 0x103F, ShipTypes: 0x1116}
 
 // init registers Buck Rogers: Countdown to Doomsday with gobox/importer (scripts,
 // art, maps, records, rule tables into adventures/br1/).

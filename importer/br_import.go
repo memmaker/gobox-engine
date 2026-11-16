@@ -27,6 +27,9 @@ type BREXE struct {
 	NumWords  int // its rows
 	// AmmoPrices is GDConsts.ammoPrices[5]: array[5..18] of Word.
 	AmmoPrices int
+	// ShopLists is GDConsts.itemListStarts[1] (16 Bytes), itemListCounts (16 Bytes) right after it,
+	// itemListEntries (129 Bytes) after those: the lists ECL's Shop stocks a shop from.
+	ShopLists int
 	// ShipWeapons is GDConsts.shipWeapons[1] (TShipWeaponDef rows),
 	// WeaponShort weaponShortNames[1] (String[8]), ShipTypes shipTypeNames[1]
 	// (String[17]).
@@ -47,7 +50,7 @@ const itemWordSize = 21
 // registerBR registers adventure id (br1, br2) with title, its START.EXE and
 // its title sequence start (Game.Start).
 func registerBR(id, title string, e BREXE, start func(dos string) (*adventure.Sequence, error)) {
-	Register(Game{ID: id, Title: title, Ruleset: "rulesxxvc", Sources: BRSources, Version: 4 /* 4: the script commands FindItem (was HasItem), AddNPC (was NPCJoin), SkillShow, TakeItem, Stash, SkillDamage; 3: a monster's isCompanion, npc byte and READIED items in the tables (xxvc.Monster); 2: the script commands Program (was MenuCall) and Who (was PickMember); 1: the credits' Colour a game.Ink (gobox C1) */, Start: start, Import: func(dos, dst string) error { return ImportBR(id, e, dos, dst) }, ImportShared: func(dos, dst string) error { return ImportBREngine(id, e, dos, dst) }})
+	Register(Game{ID: id, Title: title, Ruleset: "rulesxxvc", Sources: BRSources, Version: 5 /* 5: the shop's item lists (xxvc.Tables.ShopLists); 4: the script commands FindItem (was HasItem), AddNPC (was NPCJoin), SkillShow, TakeItem, Stash, SkillDamage; 3: a monster's isCompanion, npc byte and READIED items in the tables (xxvc.Monster); 2: the script commands Program (was MenuCall) and Who (was PickMember); 1: the credits' Colour a game.Ink (gobox C1) */, Start: start, Import: func(dos, dst string) error { return ImportBR(id, e, dos, dst) }, ImportShared: func(dos, dst string) error { return ImportBREngine(id, e, dos, dst) }})
 }
 
 // ImportBR writes adventure id's folder dst from the DOS originals in dos.
@@ -128,6 +131,7 @@ func ImportData(l *orig.Loader, e BREXE, dst string) error {
 	}
 	t.ItemWords = ItemWords(im.Mem[im.DS:], e)
 	t.AmmoPrices = AmmoPrices(im.Mem[im.DS:], e)
+	t.ShopLists = ShopLists(im.Mem[im.DS:], e)
 	t.ShipWeapons = ShipWeapons(im.Mem[im.DS:], e)
 	t.Explosion = e.Explosion
 	if t.Ships, err = Ships(orig.Blocks(l, "SHIPS"), im.Mem[im.DS:], e); err != nil {
@@ -268,6 +272,23 @@ func AmmoPrices(ds []byte, e BREXE) map[int32]rules.Copper {
 	m := map[int32]rules.Copper{}
 	for ty := int32(firstAmmoType); ty <= lastAmmoType; ty++ {
 		m[ty] = rules.Copper(binary.LittleEndian.Uint16(ds[e.AmmoPrices+int(ty-firstAmmoType)*2:]))
+	}
+	return m
+}
+
+// The shop lists' sizes (gdconsts.pas itemListStarts[1..16], itemListCounts[1..16]).
+const shopLists = 16
+
+// ShopLists is the shop item lists from the data segment ds: list number (1..16) -> the templates it stocks,
+// in the original's order (itemListEntries from itemListStarts, itemListCounts of them; an entry is an
+// ITEM0 template number, the ID of xxvc.Tables.Items).
+func ShopLists(ds []byte, e BREXE) map[xxvc.ShopListID][]rules.ItemID {
+	starts, counts, entries := ds[e.ShopLists:], ds[e.ShopLists+shopLists:], ds[e.ShopLists+2*shopLists-1:] // entries[1] is the first entry
+	m := map[xxvc.ShopListID][]rules.ItemID{}
+	for n := range shopLists {
+		for i := range int(counts[n]) {
+			m[xxvc.ShopListID(n+1)] = append(m[xxvc.ShopListID(n+1)], rules.ItemID(entries[int(starts[n])+i]))
+		}
 	}
 	return m
 }
