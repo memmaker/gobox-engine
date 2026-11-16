@@ -644,9 +644,22 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
            tried; a sweep run that takes Purge was not examined; `TestBR1SweepFixed` was dropped
            on the belief that `TestBR1Throw` covers its fix
 
+      9d. [x] df1 (B1g): Buck Rogers is a data-folder game on the shared engine BY DEFAULT.
+         `gobox br1`/`gobox br2` start through the `hosts` table as the Pool games; `-shared`
+         is gone; ONE `ImportBR` (version 23; the old engines' own outputs are no longer
+         written); `cmd/gobox/br.go` and the old-engine tests are gone; go.mod requires no
+         `buckrogers`, `buckrogers2`, `ecl-br`; `foldwt.sh`/`gate.sh` know one repo.
+         `TestInstalledFoldersLaunch` (`cmd/gobox`) launches every folder under data/ headless
+         (all six pass). Gone with br.go: the BR dev flags (-teststart, -block, -credits, -hp,
+         -space, -rest, -fightn, -shop). Deleted cmd front tests whose twins were not checked
+         one by one: font glyph, quick start, items pane / loot list. Left for Felix to delete:
+         the repos buckrogers-go, buckrogers2-go, buckrogers-core and
+         ~/Projects/rulesxxvc-history.bundle (the golden fights are files; regenerating the one
+         pinned as diverging needs buckrogers-go's branch golden/one-rng).
+
       8. [ ] every BR1 block's entries run headless without a panic (a sweep test over the
          scripts' reachable commands, like the Pool games' sweeps); then BR2 the same
-      9. [ ] B1g: `cmd/gobox` plays BR1 and BR2 from data folders only; the BR engines and repos
+      9. [x] B1g: `cmd/gobox` plays BR1 and BR2 from data folders only; the BR engines and repos
          go; `ImportBR` replaced by `ImportBREngine`
       10. [ ] R2f (AD&D names out of neutral `rules`), the one "take back" for the Pool games,
           G3 (the contract by owner)
