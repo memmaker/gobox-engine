@@ -95,7 +95,7 @@ func yardGame(y yard) *walkGame {
 		y.size = image.Pt(4, 1)
 	}
 	g := &walkGame{}
-	g.x.Map.Walk = y
+	g.x.Map.Walk, g.x.Map.Automap = y, allKnown(y.size.X, y.size.Y)
 	g.x.Where.Facing = 2
 	return g
 }
@@ -297,5 +297,22 @@ func TestWalkNoTextStops(t *testing.T) {
 		if at := walkOn(t, g, image.Pt(3, 0)); at != c.want {
 			t.Errorf("%s: at %v, want %v", name, at, c.want)
 		}
+	}
+}
+
+// TestWalkKnownWays: the auto-walk goes only the ways the party knows: never
+// through a side its map shows as a wall (a secret door or an illusionary
+// wall not found yet, open on the game's map), nor over squares it has not
+// seen.
+func TestWalkKnownWays(t *testing.T) {
+	g := yardGame(yard{size: image.Pt(4, 2)})
+	g.x.Map.Automap.Walls = []game.Wall{{At: rules.MapPos{X: 1, Y: 0}, Side: 2}} // the secret door between 1,0 and 2,0
+	from, to := image.Pt(0, 0), image.Pt(3, 0)
+	if side, ok := walkSide(g.x.Map.Walk, knownMap(g.x), image.Pt(1, 0), to); !ok || side == 2 {
+		t.Fatalf("from 1,0: side %d %v, want round the secret door (south)", side, ok)
+	}
+	g.x.Map.Automap.Known = slices.DeleteFunc(g.x.Map.Automap.Known, func(p rules.MapPos) bool { return p.Y == 1 }) // the way round unseen
+	if _, ok := walkSide(g.x.Map.Walk, knownMap(g.x), from, to); ok {
+		t.Fatal("a way through the secret door or over unseen squares")
 	}
 }

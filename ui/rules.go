@@ -1221,8 +1221,44 @@ func walkBlocked(e game.Edge) bool {
 	return e.Kind == game.EdgeWall || e.Kind == game.EdgeDoor && (e.State == game.DoorLocked || e.State == game.DoorWizardLocked)
 }
 
-// walkSide is the side of from the shortest way to goal leaves by, false: none.
-func walkSide(m game.Map, from, goal image.Point) (int, bool) {
+// partyMap is what the party knows of the map it walks: the squares it has
+// seen and the walls as its automap shows them (a secret door or an
+// illusionary wall not found yet is the wall it looks like).
+type partyMap struct {
+	known map[image.Point]bool
+	walls map[[2]image.Point]bool // a wall or a locked door between two squares, each order
+}
+
+// knownMap is x's partyMap, from its automap (the area's, else the map's).
+func knownMap(x game.Exploring) partyMap {
+	am := x.Automap
+	if am.Size == (rules.Size{}) {
+		am = x.Map.Automap
+	}
+	k := partyMap{known: map[image.Point]bool{}, walls: map[[2]image.Point]bool{}}
+	for _, p := range am.Known {
+		k.known[image.Pt(p.X, p.Y)] = true
+	}
+	shut := func(w game.Wall) {
+		a := image.Pt(w.At.X, w.At.Y)
+		b := a.Add(walkOffset(w.Side))
+		k.walls[[2]image.Point{a, b}], k.walls[[2]image.Point{b, a}] = true, true
+	}
+	for _, w := range am.Walls {
+		shut(w)
+	}
+	for _, d := range am.Doors {
+		if d.State == game.DoorLocked || d.State == game.DoorWizardLocked {
+			shut(d)
+		}
+	}
+	return k
+}
+
+// walkSide is the side of from the shortest known way to goal leaves by,
+// false: none. The way goes only over squares the party has seen and never
+// through a wall its map shows (k), nor one the map has (m).
+func walkSide(m game.Map, k partyMap, from, goal image.Point) (int, bool) {
 	first := map[image.Point]int{from: -1} // each square reached: the side the way to it left from by
 	for q := []image.Point{from}; len(q) > 0; q = q[1:] {
 		if q[0] == goal {
@@ -1230,7 +1266,7 @@ func walkSide(m game.Map, from, goal image.Point) (int, bool) {
 		}
 		for _, s := range walkSides {
 			n := q[0].Add(s.d)
-			if _, seen := first[n]; seen || !n.In(image.Rectangle{Max: m.Size()}) || walkBlocked(m.Edge(q[0], s.side)) {
+			if _, seen := first[n]; seen || !n.In(image.Rectangle{Max: m.Size()}) || !k.known[n] || k.walls[[2]image.Point{q[0], n}] || walkBlocked(m.Edge(q[0], s.side)) {
 				continue
 			}
 			first[n] = first[q[0]]
@@ -1263,7 +1299,7 @@ func (r *frontState) walkTo(ps game.State, at image.Point) game.Result {
 	if at == from {
 		return game.Result{}
 	}
-	if _, ok := walkSide(x.Map.Walk, from, at); !ok {
+	if _, ok := walkSide(x.Map.Walk, knownMap(x), from, at); !ok {
 		return game.Result{Err: errors.New("no way there")}
 	}
 	r.walk = &walking{to: at, area: x.Where.Area}
@@ -1337,7 +1373,7 @@ func (r *frontState) walkStep() game.Result {
 	} else {
 		w.last = now
 	}
-	side, ok := walkSide(x.Map.Walk, from, w.to)
+	side, ok := walkSide(x.Map.Walk, knownMap(x), from, w.to)
 	if !ok {
 		r.walk = nil
 		return game.Result{}
@@ -1456,7 +1492,7 @@ func eventsAt(es []game.Event, ms int, engaged func(game.Fighting) game.Report) 
 			out = append(out, game.Report{Kind: game.EvHit, Unit: e.From, Target: e.To},
 				game.Report{Kind: game.EvDamage, Unit: e.To, Target: e.To, N: e.Damage}) // Unit: who takes it (its number floats there)
 		case game.Shot:
-			ev := game.Report{Kind: game.EvMissile, Unit: e.From, To: e.To, Pose: 1, Ms: strikeMs, StepMs: paced(e.StepMs, ms)}
+			ev := game.Report{Kind: game.EvMissile, Unit: e.From, At: e.Start, To: e.To, Pose: 1, Ms: strikeMs, StepMs: paced(e.StepMs, ms)}
 			if e.Art.File != "" || e.Art.Pixels != nil || e.Art.Name != "" { // a shot with no art flies nothing
 				ev.Sprite = []game.Picture{e.Art}
 			}

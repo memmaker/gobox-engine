@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 type openMap struct{}
@@ -20,7 +21,18 @@ type walkerGame struct{ sent []game.Action }
 func (w *walkerGame) Version() uint64 { return fresh() }
 
 func (w *walkerGame) State() game.State {
-	return game.Exploring{Map: game.ExploreMap{Walk: openMap{}}}
+	return game.Exploring{Map: game.ExploreMap{Walk: openMap{}, Automap: allKnown(8, 8)}}
+}
+
+// allKnown is a w x h automap the party has seen all of, with no walls.
+func allKnown(w, h int) game.Automap {
+	am := game.Automap{Size: rules.Size{W: w, H: h}}
+	for y := range h {
+		for x := range w {
+			am.Known = append(am.Known, rules.MapPos{X: x, Y: y})
+		}
+	}
+	return am
 }
 func (w *walkerGame) Do(a game.Action) (game.Outcome, error) {
 	w.sent = append(w.sent, a)
