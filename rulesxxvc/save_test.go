@@ -24,6 +24,7 @@ var savedState = map[string]string{
 	"lastActor": "a fight's: the character who acted last (the solo fight's test)",
 	"held":      "the copies a Modify sheet holds until Keep or Exit: the party menu's, no game is saved under it",
 	"phase":     "the engine's (EnterPhase): entered again when a loaded game's loop starts",
+	"hall":      "the party menu's training hall: no game is saved under it",
 	"shopTerms": "a shop's (StockShop): set each time a script opens one; a loaded game opens it again",
 }
 

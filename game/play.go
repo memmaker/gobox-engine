@@ -196,6 +196,7 @@ type Draft struct {
 	Allotments   []Allotment      // the points the sheet has to spend (Spend), in the game's order
 	Rolls        []rules.RollKind // the ways the rules roll abilities, the ones to offer (nil: none)
 	Derived      []Derived        // the sheet's figures besides the abilities, in the game's order (nil: from Member)
+	Rise         bool             // the picks a level gained at the training hall owes, not a character's sheet (Creation.Rise)
 }
 
 // Exploring: the party walks a map (dungeon, town or wilderness).

@@ -28,16 +28,20 @@ func (p *Presenter) trainItems() (string, []MenuRow) {
 	if why := t.Why[sel]; why != "" {
 		return why, []MenuRow{leave}
 	}
+	g := func(c rune, s string) string { return string(c) + s + string(c) }
+	will := name + " will become\n" + g(InkGold, strings.Join(t.Becomes[sel], " and ")) + "."
+	yes := []MenuRow{{Text: "Yes", Key: 'Y', Do: func() { p.call(func(e *classicGame) { e.do(game.Train{Member: e.sel(-1)}); p.training = p.hallUp() }) }}, {Text: "No", Key: 'N', Do: leave.Do}}
+	if t.NoFee {
+		return will + "\n\nDo you wish to train?", yes
+	}
 	have := game.CommonOf(s).Purse[Coin]
 	cost := InkGold
 	if have < t.Cost {
 		cost = InkRed
 	}
-	g := func(c rune, s string) string { return string(c) + s + string(c) }
-	will := name + " will become\n" + g(InkGold, strings.Join(t.Becomes[sel], " and ")) + "."
 	return fmt.Sprintf("%s\n\nTraining costs %s.\nThe party has %s.\n\nDo you wish to train?",
 			will, g(cost, price(Money{Gold: t.Cost})), g(InkGold, price(Money{Gold: have}))),
-		[]MenuRow{{Text: "Yes", Key: 'Y', Do: func() { p.call(func(e *classicGame) { e.do(game.Train{Member: e.sel(-1)}); p.training = p.hallUp() }) }}, {Text: "No", Key: 'N', Do: leave.Do}}
+		yes
 }
 
 // learning is the spells the selected member may learn now (nil: the hall

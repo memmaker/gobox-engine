@@ -150,6 +150,7 @@ func (e *Engine) begin() error {
 	}
 	e.setPhase(rules.PhaseAreaStart)
 	e.ext.hall = false
+	e.world.PartyExp = 0 // chargen.pas MainMenu's Begin: zone1 trainingMask := 0 (cotab chargen.pas:262 too)
 	e.clearPrompt()
 	e.closeParty()
 	return nil

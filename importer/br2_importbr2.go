@@ -18,8 +18,8 @@ func init() {
 // BR2EXE is where BR2's START.EXE keeps what the import reads.
 var BR2EXE = BREXE{DS: 0xE87, ItemWords: 0x1EEC, NumWords: 45, AmmoPrices: 0xD86, ShopLists: 0x18, ShipWeapons: 0x242A, WeaponShort: 0x1177, ShipTypes: 0x124E, Explosion: xxvc.ExplosionFixed,
 	Space: 0x25E8, MapSteps: 0x0B46,
-	// buckrogers2-re chargen.pas (level := 7, AddLevelHitPoints' level < 10, EditSkills(0, 0, 105, 1) after ApplyInitialSkills), skills.pas (NEW_CHARACTER_GENERAL_SKILLS 12); the tables' offsets are where gdconsts.pas' literals sit in the data segment (careerInitialSkills' first pair: 53, 40)
-	Creation:     xxvc.Creation{StartLevel: 7, FixedGainLevel: 10, CareerPoints: 0, GeneralPoints: 0, MaxPerSkill: 105, StartGeneralSkills: 12},
+	// buckrogers2-re chargen.pas (level := 7, AddLevelHitPoints' level < 10, EditSkills(0, 0, 105, 1) after ApplyInitialSkills), chargen.pas TrainingMenu:1209 (EditSkills(40, 20, 15, 0); MAX_LEVEL 20 at chargen.pas:43), skills.pas (NEW_CHARACTER_GENERAL_SKILLS 12); the tables' offsets are where gdconsts.pas' literals sit in the data segment (careerInitialSkills' first pair: 53, 40)
+	Creation:     xxvc.Creation{StartLevel: 7, FixedGainLevel: 10, CareerPoints: 0, GeneralPoints: 0, MaxPerSkill: 105, StartGeneralSkills: 12, MaxLevel: 20, LevelCareerPoints: 40, LevelGeneralPoints: 20, LevelMaxPerSkill: 15},
 	CareerTables: BRCareerTables{Experience: 0x335A, ExperienceLevels: 19, BaseCombat: 0x3288, BaseCombatLevels: 21, InitialSkills: 0x35CC}} // buckrogers2-go rules/restspace_data.go spaceAt: Rows 0x25E8 (orbitPositions[0]), DX 0x0B46 (mapStepX); the orbit tables after the rows as in BR1 (PlanetBase 0x2696 = Rows+58*3)
 
 // creditAt is pO025_04F1's credits page (English v1.0 O030): each

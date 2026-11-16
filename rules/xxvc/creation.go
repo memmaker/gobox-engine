@@ -20,6 +20,11 @@ type Creation struct {
 	// CareerPoints, GeneralPoints and MaxPerSkill are skills.pas EditSkills's arguments for a new character
 	// (BR1 80, 40, 30; BR2 0, 0, 105: nothing to spend).
 	CareerPoints, GeneralPoints, MaxPerSkill int32
+	// MaxLevel is the highest level the training hall reaches (c_career.pas MAX_LEVEL: BR1 8, chargen.pas MAX_LEVEL: BR2 20).
+	MaxLevel int32
+	// LevelCareerPoints, LevelGeneralPoints and LevelMaxPerSkill are skills.pas EditSkills's arguments for a level
+	// gained at the hall (chargen.pas TrainingMenu: EditSkills(40, 20, 15) in both games).
+	LevelCareerPoints, LevelGeneralPoints, LevelMaxPerSkill int32
 	// StartGeneralSkills is EditSkills's maxGeneral at the start level: no more general skills known than that
 	// (skills.pas: level 2 gives 7; BR2: NEW_CHARACTER_GENERAL_SKILLS 12).
 	StartGeneralSkills int32

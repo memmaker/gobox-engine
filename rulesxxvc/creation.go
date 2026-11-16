@@ -73,17 +73,34 @@ func (c creation) Fields(d rules.Draft) []rules.FieldDef {
 		{ID: fieldGender, Label: "Gender", Options: genders},
 		{ID: fieldCareer, Label: "Class", Options: careers},
 	}
+	if d.Rise { // the picks a level owes: a warrior's weapon at an odd level, then the level's skill points
+		out = nil
+		if c.owesWeapon(d) {
+			out = append(out, c.weaponField(c.specializable()))
+		}
+		return append(out, skillFields(c.r.tables.Creation, d)...)
+	}
 	if d.Of != rules.NoChar { // race, gender and career are not changed on a member
 		return out
 	}
 	if opts := c.specializable(); careerOfDraft(d) == xxvc.Warrior && len(opts) > 0 { // CreateCharacterMenu: if career = CareerWarrior
-		names := make([]string, len(opts))
-		for i, id := range opts {
-			names[i] = c.r.itemName(rules.ItemRef{ID: id})
-		}
-		out = append(out, rules.FieldDef{ID: fieldSpecialization, Label: "Weapon Specialization", Options: names})
+		out = append(out, c.weaponField(opts))
 	}
 	return append(out, skillFields(c.r.tables.Creation, d)...)
+}
+
+// weaponField is the weapon specialization menu over the weapons opts.
+func (c creation) weaponField(opts []rules.ItemID) rules.FieldDef {
+	names := make([]string, len(opts))
+	for i, id := range opts {
+		names[i] = c.r.itemName(rules.ItemRef{ID: id})
+	}
+	return rules.FieldDef{ID: fieldSpecialization, Label: "Weapon Specialization", Options: names}
+}
+
+// owesWeapon is whether the level gained asks a weapon first (chargen.pas TrainingMenu: a warrior at an odd level).
+func (c creation) owesWeapon(d rules.Draft) bool {
+	return careerOfDraft(d) == xxvc.Warrior && d.Sheet.Levels[xxvc.Warrior]%2 == 1 && len(c.specializable()) > 0
 }
 
 // specializable are the weapons the specialization menu offers: itemTemplates 1..15 that are not empty (the tables
@@ -100,6 +117,14 @@ func (c creation) specializable() []rules.ItemID {
 
 // Fits: a career is legal when the race may take it (raceCareers); the other fields have no restriction.
 func (c creation) Fits(d rules.Draft, f rules.FieldID, o int) bool {
+	if d.Rise { // viewchar.pas SpecializationMenu: a weapon at most MAX_SPECIALIZATION times; the points as Spend
+		if f != fieldSpecialization {
+			_, err := c.Spend(d, f, o, 1)
+			return err == nil
+		}
+		opts := c.specializable()
+		return o >= 0 && o < len(opts) && c.r.specializedCount(d.Of, opts[o]) < maxSpecialization
+	}
 	if d.Of != rules.NoChar { // a member keeps its race, gender and career
 		return o == d.Picks[f]
 	}
@@ -123,6 +148,11 @@ func (c creation) Fits(d rules.Draft, f rules.FieldID, o int) bool {
 // menu offers only the race's). A new race or career rolls afresh (the original rolls after the career), a gender
 // keeps the scores.
 func (c creation) Enforce(d rules.Draft, f rules.FieldID, o int, rng *rules.RNG) rules.Draft {
+	if d.Rise && f == fieldSpecialization {
+		d.Picks = maps.Clone(d.Picks)
+		d.Picks[f] = o
+		return d
+	}
 	if d.Of != rules.NoChar {
 		return d
 	}
@@ -231,7 +261,7 @@ func hpMaximum(career rules.Class, level, con int) int32 {
 // Rolls: the original rolls one way (chargen.pas CreateCharacterMenu has no minimums and no bought abilities), and
 // not when it modifies a member.
 func (creation) Rolls(d rules.Draft) []rules.RollKind {
-	if d.Of != rules.NoChar {
+	if d.Of != rules.NoChar || d.Rise {
 		return nil
 	}
 	return []rules.RollKind{rules.RollFull}

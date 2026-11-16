@@ -234,7 +234,8 @@ func (e *Engine) trainingState() *game.Training {
 	if !open {
 		return nil
 	}
-	t := &game.Training{Cost: int(e.ruleset().Check(rules.TrainFee{}, nil).Value), Trains: map[int]string{}, Becomes: map[int][]string{}, Why: map[int]string{}, Learning: learning}
+	fee := e.ruleset().Check(rules.TrainFee{}, nil)
+	t := &game.Training{Cost: int(fee.Value), NoFee: fee.Yes, Trains: map[int]string{}, Becomes: map[int][]string{}, Why: map[int]string{}, Learning: learning}
 	for i, id := range e.partyIDs() {
 		card := e.fact(id, rules.TrainFact{Hall: e.hallTerms()}).(rules.TrainCard)
 		if t.Becomes[i] = card.Becomes; card.Why != "" {
@@ -401,7 +402,7 @@ func (e *Engine) creationState(cr *creation) *game.Draft {
 			mins[e.abilityKey(a)] = int(v)
 		}
 	}
-	g := &game.Draft{Member: d, Minimums: mins, Stats: e.statDefs(id, nil), Rolls: cl.Rolls(cr.d.D)}
+	g := &game.Draft{Member: d, Minimums: mins, Stats: e.statDefs(id, nil), Rolls: cl.Rolls(cr.d.D), Rise: cr.rise}
 	for _, f := range cl.Fields(cr.d.D) { // the four, then the power picks (setPower)
 		if f.Kind == rules.FieldSkills { // points to spend, not a choice
 			g.Allotments = append(g.Allotments, allotmentState(cr.d.D, f))
@@ -447,7 +448,7 @@ func (e *Engine) pendingAsk() *game.Question {
 		}
 		return &game.Question{Text: cr.abandon, YesNo: true, Replies: []string{"No", "Yes"}, Default: 1}
 	}
-	if e.menuUp() {
+	if e.menuUp() && !e.trainingOpen() { // the hall's box is over the menu: Train, Learn and Exit are its own, not replies to the menu's question
 		q := &game.Question{Text: "Choose a function"}
 		for _, k := range e.partyFunctions() { // the engine's, not the View's: the front builds its menu from these
 			q.Replies = append(q.Replies, mainMenuLabels[k])

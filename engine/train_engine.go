@@ -49,9 +49,13 @@ func (e *Engine) train() error {
 		return rules.ErrNotNow
 	}
 	o, err := e.ruleset().Resolve(nil, rules.Train{Who: e.selected(), Hall: e.hallTerms()}, nil)
+	owed := rules.NoChar
 	for _, f := range o.Effects {
-		if n, ok := f.(rules.Narrated); ok { // the hall's words for a Refused{NotTrainable}
-			e.say(n.Text)
+		switch f := f.(type) {
+		case rules.Narrated: // the hall's words for a Refused{NotTrainable}
+			e.say(f.Text)
+		case rules.PicksOwed:
+			owed = f.Who
 		}
 	}
 	if err != nil {
@@ -60,6 +64,27 @@ func (e *Engine) train() error {
 	if open, _ := e.hallOpen(); !open {
 		e.hallClosed()
 	}
+	if owed != rules.NoChar {
+		return e.picksOwed(owed)
+	}
+	return nil
+}
+
+// picksOwed puts up the picks the level gained owes member c (the draft Rise: the ruleset's skill points and weapon) on
+// the creation sheet; leaving it keeps them.
+func (e *Engine) picksOwed(c rules.CharID) error {
+	cl := e.Creation()
+	cd, err := cl.Draft(c)
+	if err != nil {
+		return err
+	}
+	cd.Of, cd.Rise = c, true
+	e.do(rules.HoldCopy{Who: c})
+	d := &Draft{R: cl, D: cd, Fields: cl.Fields(cd)}
+	d.sizeSkills()
+	e.pushCreation(d, c, "")
+	cr := e.creation
+	cr.modify, cr.idx, cr.orig, cr.rise = true, e.sel, c, true
 	return nil
 }
 

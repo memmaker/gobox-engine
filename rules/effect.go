@@ -107,6 +107,8 @@ type (
 		Damage int32
 		Dies   bool
 	}
+	// PicksOwed: Who gained a level at the hall and owes its picks (the draft Rise opens); the engine puts them up.
+	PicksOwed struct{ Who CharID }
 	// Refused is an action the rules turned down, and why.
 	Refused struct {
 		Who CharID
@@ -167,3 +169,4 @@ func (Gained) effect()          {}
 func (Lost) effect()            {}
 func (Took) effect()            {}
 func (Refused) effect()         {}
+func (PicksOwed) effect()       {}

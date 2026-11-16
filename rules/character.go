@@ -167,6 +167,9 @@ type Draft struct {
 	Icon       Icon
 	// Of is the character being modified (NoChar: a new one); Make updates it.
 	Of CharID
+	// Rise: the draft is the picks a level gained at the training hall owes (BR's skill points and a warrior's
+	// weapon), not a character's sheet: Fields lists only those, Make puts them on Of.
+	Rise bool
 	// The roll's values the sheet does not show, so Make keeps the rolled
 	// character: Purse the starting money, HitRoll the hit-dice roll before
 	// adjustments, Ident the ruleset's identity roll (POR RandomID).

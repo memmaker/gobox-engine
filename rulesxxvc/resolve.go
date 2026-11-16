@@ -13,6 +13,9 @@ func (r *Rules) Resolve(s rules.Situation, a rules.Action, rng *rules.RNG) (rule
 	if o, ok, err := r.resolveSession(a); ok {
 		return o, err
 	}
+	if o, ok, err := r.resolveHall(a, rng); ok {
+		return o, err
+	}
 	switch a := a.(type) {
 	case rules.SetSpeed: // combat.pas CombatMain 'V': the sheet closed, CbtActs.RecalcAttacksLeft
 		if c, s := r.chars[a.Who], r.fight[a.Who]; c != nil && s != nil {

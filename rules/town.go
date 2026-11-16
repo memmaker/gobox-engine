@@ -22,7 +22,7 @@ type SetPurseGold struct{ Gold uint64 }
 
 func (SetPurseGold) action() {}
 
-// TrainFee: the gold the hall asks (Value).
+// TrainFee: the gold the hall asks (Value); Yes: it asks none, and its screen says nothing of a fee.
 type TrainFee struct{}
 
 // BundlePrices: a shop's bundle of items costs its count times the price (Yes).

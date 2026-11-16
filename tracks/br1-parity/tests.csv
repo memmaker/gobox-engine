@@ -8,9 +8,9 @@ adv,TestRocketStep,"a rocket step into the sun is undone, counter and orbit step
 adv,TestSidestep,"a step back/strafe is a step at facing+4/6/2, facing kept, a wall stops it",port-done,TestBR1SidestepTwin;TestBR1WallBump,engine/br1par_walk_test.go; also BR1 only (BR2 not run)
 adv,TestSidestepTwin,"a sidestep ends where turn+step+turn back ends, same clock, facing kept",port-done,TestBR1SidestepTwin,
 adv,TestItemSlots,"the quick team readied kit names its doll slot (armor, weapon)",port-done,TestBR1ItemSlots;TestBR2ItemSlots,FIXED rulesxxvc/session.go itemCard: Slot was empty for every BR item
-aid,TestTrainHall,Train is offered only in a training hall,port-open,,"training not ported (rulesxxvc has no TrainFact/Train; chargen.pas TrainingMenu 1151): needs level-up skill points per level, a hall flag"
+aid,TestTrainHall,Train is offered only in a training hall,port-done,TestBR1TrainHall;TestBR2TrainHall,FIXED: the layout names the hall flag PartyExp as the Pool's does; Train is offered in a hall to a member who would rise (rulesxxvc/train.go)
 aid,TestAid,Aid offered only with First Aid and a dying ally beside; bandages the ally,port-done,TestAidOffered;TestAidBandages;TestAidByTheAI,FIXED rulesxxvc/ai.go: a computer-played team member treats patients first (combatai.pas AiMoveAttack:471)
-aid,TestTrainHallLeave,Begin from the hall clears the hall flag,port-open,,as TestTrainHall
+aid,TestTrainHallLeave,Begin from the hall clears the hall flag,port-done,TestBR1TrainHallLeave;TestBR2TrainHallLeave,FIXED: Begin clears the hall flag (chargen.pas MainMenu Begin; cotab chargen.pas:262 too)
 aimed,TestClassAimedSquares,every offered aim square is accepted by the answer,port-done,TestBR1AimKeepsFighting,
 aimed,TestClassSubAskKeepsState,"a square ask inside a fight keeps the Fighting state, offered as Aimed",port-done,TestBR1AimKeepsFighting,
 aimed,TestClassConfirmKeepsShop,the sell confirm stays Trading with an Ask and only replies allowed,differs,,"one sell question, the front's (REFACTOR sh1): no engine confirm in a BR shop; TestBR1Shop asserts no second question"
@@ -112,7 +112,7 @@ treasure,TestRobAndDamage,robbing a member of items and a damage that fells him,
 under,TestUnderCloud,the tile a cloud covers is read from the clouds list,covered,TestGasCloud;TestGroundMarks,
 view,TestView,"View Character: sheet, Ready, Halve, Trade, Exit",covered,TestEquipWeaponAndArmor;TestDropItem;TestBR1SheetFacts,Halve/Trade: see TestClassItemActs
 view,TestPurge,"Purge asks twice, removes the roster file",port-open,,as TestRemove (the Change menu / DropCharacterMenu)
-view,TestTrain,"Train with the experience: question, a level, the skills",port-open,,as TestTrainHall
+view,TestTrain,"Train with the experience: question, a level, the skills",port-done,TestBR1TrainLevel;TestBR2TrainLevel;TestTrainLevel,"rulesxxvc/train.go: level, base combat, AddLevelHitPoints, saves every third level, a warrior's weapon at an odd level, EditSkills(40,20,15) on the creation allotment (Draft.Rise); FIXED: the hall box was blocked by the party menu question (engine pendingAsk)"
 view,TestModify,"Modify steps a stat, clamped; Exit restores",covered,TestBR1Modify;TestModifyMember,
 view,TestIconSelect,"the icon selector from the team menu: a body, ok",differs,,CustomizeIcon: a CHARS body picker is not built (REFACTOR cr2 Open); ruling: games never assemble portraits
 view,TestPickView,View over a script member pick opens the sheet on that member,covered,TestBR1PickMember,

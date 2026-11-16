@@ -232,7 +232,7 @@
 7D00 1 byte member SelStatus enc=BrSelStatus # Party[256] r[212] the status, TStatus (charVar: 0 with no character; setChar r[212] = v&127, r[213] = v==1) [BR2: buckrogers2-go rules/ecl.go:106,189 charVar/setChar r[212]]; scripts: byte r60/w17
 7D0C 1 byte member SelSideFlags # Party[268] side r[214] bit 0, isCompanion r[76] bit 6, isQuickfight r[215] bit 7 (charVar/setChar) [BR2: buckrogers2-go rules/ecl.go:111,195 charVar/setChar r[214] r[76] r[215]; types.pas TCharRecord.sideLead/side]; scripts: byte r6/w0
 7D19 1 word member SelHpCur # Party[281] hitPoints (charVar r[227], setChar) [BR2: buckrogers2-go rules/ecl.go:124,199 charVar/setChar r[227]; types.pas TCharRecord.hitPoints]; scripts: byte/word r12/w13
-7EA8 1 byte game TrainingHall # Party[680]: training hall flag (rules.go:206,404) [BR2: types.pas TZone1.trainingMask (Train Character offered while non-zero)]; scripts: byte r0/w5
+7EA8 1 byte game PartyExp # Party[680]: training hall flag (rules.go:206,404) [BR2: types.pas TZone1.trainingMask (Train Character offered while non-zero)]; scripts: byte r0/w5
 7EB1 1 byte member SelPartyIndex # Party[689]: the selected member's index (ecl.go charVar o==689) [BR2: buckrogers2-go rules/ecl.go:128 charVar o==689]; scripts: byte r4/w0
 7EC0 1 byte game MonsterLimit # Party[704]: SetupMonster arg2 (eclops.go:209) [BR2: buckrogers2-go rules/eclops.go:204; types.pas TZone1.monsterMaxDistance]; engine only (not in BR2 scripts)
 7EC1 1 byte game MonsterDistance # Party[705]: distance to wall/monster ahead (eclops.go:212-231) [BR2: buckrogers2-go rules/eclops.go:208-211, monster.go:121; types.pas TZone1.monsterDistance]; engine only (not in BR2 scripts)

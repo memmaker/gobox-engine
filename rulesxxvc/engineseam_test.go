@@ -230,8 +230,8 @@ func TestEngineQuestions(t *testing.T) {
 		{"SpellMenu", rules.SpellMenuFact{}, id, rules.SpellMenu(nil)},
 		{"Owed", rules.OwedFact{}, id, rules.PowerOwed{}},
 		{"Figures", rules.FiguresFact{}, id, rules.Figures(nil)},
-		{"Train", rules.TrainFact{}, id, rules.TrainCard{}},
-		{"Damage", rules.DamageFact{}, id, rules.Text("1d6+6")}, // the readied pistol's dice as RecalcStats has them, not the c.Damage set above
+		{"Train", rules.TrainFact{}, id, rules.TrainCard{Why: hallMaxLevel}}, // the seam's tables name no level to train to
+		{"Damage", rules.DamageFact{}, id, rules.Text("1d6+6")},              // the readied pistol's dice as RecalcStats has them, not the c.Damage set above
 		{"Listed", rules.ListedFact{}, id, rules.Handles{1}},
 		{"Word status", rules.WordFact{Of: rules.FactStatus}, id, rules.Text("Okay")},
 		{"Word race", rules.WordFact{Of: rules.FactRace}, id, rules.Text("Martian")},

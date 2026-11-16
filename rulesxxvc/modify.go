@@ -63,6 +63,9 @@ func (r *Rules) modifyMember(d rules.Draft) error {
 	if c == nil {
 		return ErrNoMember
 	}
+	if d.Rise {
+		return r.risePicks(c, d)
+	}
 	c.Name = d.Name
 	for _, a := range brStatOrder {
 		c.Scores[a] = int(d.Sheet.Scores[a])

@@ -124,7 +124,7 @@ func (e *Engine) EndCreation(keep bool) error {
 	if cr == nil {
 		return rules.ErrNotNow
 	}
-	err := e.creationDone(cr, keep) // the creation still up: charOf takes its record's DAX pictures
+	err := e.creationDone(cr, keep || cr.rise) // the creation still up: charOf takes its record's DAX pictures
 	e.popRedraw()
 	e.creation, e.ext.creating = nil, false
 	e.snap.iconDrop, e.snap.iconBox = nil, CellRect{}
@@ -278,4 +278,5 @@ type creation struct {
 	modify  bool // ModifyCharacter's: the party member idx (was: as it was), not a new one
 	idx     int
 	orig    rules.CharID // the member modified, as it was held (core.HoldCopy)
+	rise    bool         // the picks a level gained at the hall owes (Draft.Rise): leaving keeps them, as the original's screen cannot be abandoned
 }

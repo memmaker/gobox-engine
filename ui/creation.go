@@ -65,6 +65,9 @@ func Creation(mode game.Mode, c *game.Creation, pending *game.Ask, cols, rows in
 	d := c.Draft
 	winRight, winBottom := max(cols, 40)-2, max(rows, 25)-3
 	v := &FrontCreation{Minimums: minimums(c.Minimums, statsOf(c)), Rolls: c.Rolls, Allotments: c.Allotments, Abandon: "Abandon this character?"}
+	if c.Rise {
+		v.Abandon = "" // a level's picks are not abandoned: Exit keeps them
+	}
 	if a := pending; a != nil && a.Kind == game.YesNo {
 		v.Abandon = a.Prompt
 	}

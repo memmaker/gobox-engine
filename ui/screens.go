@@ -790,6 +790,8 @@ func (p *Presenter) barDo(h byte) func() {
 			p.send(ActKeep, 0)
 		case h == 'E' && (p.iconEditor(p.ink()) != nil || cr == nil):
 			p.send(ActClose, 0)
+		case h == 'E' && cr.Abandon == "": // a level's picks: nothing to abandon, Exit keeps them
+			p.send(ActKeep, 0)
 		case h == 'E':
 			p.askThen(cr.Abandon, func() { p.send(ActClose, 0) })
 		case h == 'R':

@@ -111,9 +111,10 @@ const (
 
 // skillFields are the two skill fields of draft d (EditSkills's career then general screens).
 func skillFields(cr xxvc.Creation, d rules.Draft) []rules.FieldDef {
+	cr = risen(cr, d)
 	career := careerOfDraft(d)
 	l := levelsOfDraft(d)
-	if d.Sheet.Skills == nil {
+	if d.Sheet.Skills == nil && !d.Rise {
 		l = startingSkills(cr, career)
 	}
 	careerList, general := skillLists(career)
@@ -181,17 +182,19 @@ var dependents = func() map[SkillNo][]dependent {
 
 // skillEdit is the skill screen's state while a point is spent: copies of the draft's levels, points and left.
 type skillEdit struct {
-	cr     xxvc.Creation
-	d      rules.Draft
-	career rules.Class
-	levels SkillLevels
-	lists  map[rules.FieldID][]SkillNo
-	field  rules.FieldID // the group on the screen: where a refund goes
+	maxGeneral int // the most general skills known: skills.pas EditSkills's maxGeneral
+	cr         xxvc.Creation
+	d          rules.Draft
+	career     rules.Class
+	levels     SkillLevels
+	lists      map[rules.FieldID][]SkillNo
+	field      rules.FieldID // the group on the screen: where a refund goes
 }
 
 func newSkillEdit(cr xxvc.Creation, d rules.Draft, f rules.FieldID) *skillEdit {
-	e := &skillEdit{cr: cr, d: d, career: careerOfDraft(d), field: f}
-	if d.Sheet.Skills == nil {
+	cr = risen(cr, d)
+	e := &skillEdit{cr: cr, d: d, career: careerOfDraft(d), field: f, maxGeneral: int(cr.StartGeneralSkills)}
+	if d.Sheet.Skills == nil && !d.Rise {
 		e.levels = startingSkills(cr, e.career)
 	} else {
 		e.levels = levelsOfDraft(d)
@@ -203,11 +206,29 @@ func newSkillEdit(cr xxvc.Creation, d rules.Draft, f rules.FieldID) *skillEdit {
 		e.d.Points[id] = make([]int32, len(list))
 		copy(e.d.Points[id], d.Points[id])
 	}
+	if d.Rise { // a level after the start one: one more than the character knew when the screen began
+		known := 0
+		for _, n := range e.lists[fieldGeneralSkills] {
+			if e.started(n) > 0 {
+				known++
+			}
+		}
+		e.maxGeneral = known + 1
+	}
 	e.d.Left = map[rules.FieldID]int32{}
 	for _, f := range skillFields(cr, d) {
 		e.d.Left[f.ID] = d.PointsLeft(f)
 	}
 	return e
+}
+
+// risen is cr with the level's points when d is the picks of a level gained at the hall (chargen.pas TrainingMenu:
+// EditSkills(40, 20, 15)).
+func risen(cr xxvc.Creation, d rules.Draft) xxvc.Creation {
+	if d.Rise {
+		cr.CareerPoints, cr.GeneralPoints, cr.MaxPerSkill = cr.LevelCareerPoints, cr.LevelGeneralPoints, cr.LevelMaxPerSkill
+	}
+	return cr
 }
 
 // where is the field and option of skill n (false: on no list).
@@ -315,7 +336,7 @@ func (e *skillEdit) add(f rules.FieldID, n SkillNo) error {
 			return refuseAtMostThisLevel
 		case !meets:
 			return refuseWants
-		case level == startingSkillLevel(&e.levels, e.career, n) && e.knownGeneral() >= int(e.cr.StartGeneralSkills):
+		case level == startingSkillLevel(&e.levels, e.career, n) && e.knownGeneral() >= e.maxGeneral:
 			return refuseNoNewSkill
 		}
 	}

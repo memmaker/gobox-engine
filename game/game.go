@@ -685,6 +685,7 @@ type Service struct {
 type Training struct {
 	Ready    []int // party indices able to level
 	Cost     int
+	NoFee    bool             // the hall asks no fee: the screen says nothing of cost or purse
 	Trains   map[int]string   // party index to what it trains to
 	Becomes  map[int][]string // party index to its new level per class
 	Why      map[int]string   // party index to why it may not train
@@ -746,6 +747,8 @@ type Creation struct {
 	Rolls []rules.RollKind `json:",omitempty"`
 	// Pools are the points the sheet has to spend, in the game's order.
 	Allotments []Allotment `json:",omitempty"`
+	// Rise: the sheet is the picks of a level gained at the training hall (points, a weapon): Exit keeps them, nothing is abandoned.
+	Rise bool `json:",omitempty"`
 }
 
 // StatDef is one ability on the sheet or the creation sheet.

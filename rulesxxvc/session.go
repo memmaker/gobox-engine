@@ -231,6 +231,10 @@ func (r *Rules) sessionCheck(q rules.Check, rng *rules.RNG) rules.Answer {
 		if u, ok := clockUnit(q.Part); ok {
 			return rules.Answer{Yes: true, Value: int32(r.clock[u])}
 		}
+	case rules.HallOpen:
+		return rules.Answer{Yes: r.hall}
+	case rules.TrainFee: // the hall asks nothing (chargen.pas TrainingMenu): Yes says so, the screen leaves the cost out
+		return rules.Answer{Yes: true}
 	case rules.MemberCount:
 		return rules.Answer{Yes: true, Value: r.memberCount}
 	case rules.ActingFor:
@@ -305,9 +309,6 @@ func (r *Rules) sessionCheck(q rules.Check, rng *rules.RNG) rules.Answer {
 		return rules.Answer{Yes: true, Value: int32(r.round)}
 	case rules.PartyAuto: // a member the computer steers (SideAuto) and the player may take back
 		return rules.Answer{Yes: slices.ContainsFunc(r.party, func(id rules.CharID) bool { c := r.chars[id]; return c != nil && c.Side == rules.SideAuto })}
-	case rules.HallOpen:
-		// No training hall in XXVc.
-		return rules.Answer{}
 	}
 	return rules.Answer{}
 }
@@ -359,7 +360,7 @@ func (r *Rules) factSession(id rules.CharID, f rules.Fact) (v rules.Value, ok bo
 	case rules.FiguresFact:
 		return rules.Figures(nil), true, nil // adds no lines to the sheet
 	case rules.TrainFact:
-		return rules.TrainCard{}, true, nil // no training: it never rises
+		return r.trainCard(c), true, nil
 	case rules.DamageFact:
 		return rules.Text(diceText(r.nextDamageNow(c, r.fight[id]))), true, nil
 	case rules.InventoryFact: // what the shop's screens ask: a shop buys while its phase is up; no one is hired

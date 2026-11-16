@@ -8,7 +8,7 @@ import (
 // br1Creation is BR1's xxvc.Creation as the importer reads it (buckroger-re chargen.pas, skills.pas, gdconsts.pas
 // careerBaseCombat, experienceNeeded; the importer's test holds the EXE's bytes to these).
 var br1Creation = xxvc.Creation{
-	StartLevel: 2, FixedGainLevel: 9, CareerPoints: 80, GeneralPoints: 40, MaxPerSkill: 30, StartGeneralSkills: 7,
+	StartLevel: 2, FixedGainLevel: 9, CareerPoints: 80, GeneralPoints: 40, MaxPerSkill: 30, StartGeneralSkills: 7, MaxLevel: 8, LevelCareerPoints: 40, LevelGeneralPoints: 20, LevelMaxPerSkill: 15,
 	ExperienceNeeded: map[rules.Class][]int64{
 		xxvc.RocketJock: {1250, 2500, 5000, 10000, 20000, 40000, 70000, 110000},
 		xxvc.Medic:      {1500, 3000, 6000, 12000, 24000, 48000, 96000, 192000},
