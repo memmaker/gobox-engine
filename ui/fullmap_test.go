@@ -23,9 +23,13 @@ func TestFullMapMarkUnmark(t *testing.T) {
 	p.SetEngine(g)
 	p.fullMap = &fullMapUI{cursor: image.Pt(3, 4)}
 	p.mapPick(1) // Walk, Mark, Remove
-	for _, k := range []uint16{'h', 'i', 13} {
+	for _, k := range []uint16{'h', 'i'} {
 		p.mapKey(k)
 	}
+	if fm := p.fm(); fm == nil || fm.Label == nil || *fm.Label != "hi" { // the page draws the line being typed (Label: on the prompt row)
+		t.Fatalf("full map label %v, want the line typed", fm)
+	}
+	p.mapKey(13)
 	for _, c := range p.Calls() {
 		c(g)
 	}

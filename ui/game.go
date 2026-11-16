@@ -619,7 +619,7 @@ func (g *Game) TrainingView() *FrontTraining {
 
 // The full map: its cursor and label are the presenter's, classic fills the rest.
 func (g *Game) FullMapView(cursor image.Point, label *string) *FrontFullMap {
-	return g.FullMapOf(&FrontFullMap{Cursor: cursor})
+	return g.FullMapOf(&FrontFullMap{Cursor: cursor, Label: label})
 }
 func (g *Game) Mark(x, y int, text string) { g.do(game.Mark{At: rules.MapPos{X: x, Y: y}, Text: text}) }
 func (g *Game) Unmark(x, y int)            { g.do(game.Unmark{At: rules.MapPos{X: x, Y: y}}) }
