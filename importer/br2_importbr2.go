@@ -16,7 +16,8 @@ func init() {
 }
 
 // BR2EXE is where BR2's START.EXE keeps what the import reads.
-var BR2EXE = BREXE{DS: 0xE87, ItemWords: 0x1EEC, NumWords: 45, AmmoPrices: 0xD86, ShopLists: 0x18, ShipWeapons: 0x242A, WeaponShort: 0x1177, ShipTypes: 0x124E, Explosion: xxvc.ExplosionFixed}
+var BR2EXE = BREXE{DS: 0xE87, ItemWords: 0x1EEC, NumWords: 45, AmmoPrices: 0xD86, ShopLists: 0x18, ShipWeapons: 0x242A, WeaponShort: 0x1177, ShipTypes: 0x124E, Explosion: xxvc.ExplosionFixed,
+	Space: 0x25E8, MapSteps: 0x0B46} // buckrogers2-go rules/restspace_data.go spaceAt: Rows 0x25E8 (orbitPositions[0]), DX 0x0B46 (mapStepX); the orbit tables after the rows as in BR1 (PlanetBase 0x2696 = Rows+58*3)
 
 // creditAt is pO025_04F1's credits page (English v1.0 O030): each
 // displayString's cell, colour and its string's GAME.OVR offset.

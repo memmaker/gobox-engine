@@ -99,9 +99,9 @@ var brStarts = map[string]brStart{
 		Art:     brArt,                                                                                                                                           // br1Start's TITLE
 		Logbook: &adventure.Logbook{Box: "Log Book", Title: "Log Entry "}, Data: br1GameData, Walls: true, Places: brPlaces, Overland: rules.Size{W: 38, H: 15}}, // buckrogers-go adv.go overland(): Area[195] 0..37, [196] 0..14
 	// BR2: buckrogers2-go rules/adv.go:147,161 (block 16), :158 (disk 1), eclops.go:239 (112), buckrogers2-re eclvm.pas:42,48. The
-	// Logbook: buckrogers2-go rules/journal.go logBox "Log Book", logTitle "Log Entry N" over data/journal (importer/br2/journal).
+	// Overland: buckrogers2-go rules/adv.go overland(): area 195 0..37, 196 0..14. Logbook: buckrogers2-go rules/journal.go logBox "Log Book", logTitle "Log Entry N" over data/journal (importer/br2/journal).
 	"br2": {FirstBlock: 16, GameSet: 1, FirstBigPicture: 112, CodeBase: 32768, CodeSize: 9217, Symbols: brSymbols, PictureSets: brPictureSets,
-		Art: brArt, Walls: true, Logbook: &adventure.Logbook{Box: "Log Book", Title: "Log Entry "}}, // br2_importbr2.go br2Start's TITLE
+		Art: brArt, Walls: true, Data: br2GameData, Places: br2Places, Overland: rules.Size{W: 38, H: 15}, Logbook: &adventure.Logbook{Box: "Log Book", Title: "Log Entry "}}, // br2_importbr2.go br2Start's TITLE
 }
 
 // ImportBREngine is ImportBR plus what the shared engine reads from an adventure folder (engine.New, Init): the game's

@@ -14,3 +14,17 @@ var brPlaces = []adventure.Place{
 	{Block: 94, Music: "mercury"}, {Block: 95, Music: "spaceport", Town: true}, {Block: 96, Music: "mercury"}, {Block: 97, Music: "mercury"},
 	{Block: 98, Music: "mariposa-doomsday"}, {Block: 99, Music: "spaceport", Town: true},
 }
+
+// br2Places are BR2's blocks' music triggers (buckrogers2-go rules/data.go blockMusic by block; townBlocks 17, 18 and 32 are the
+// towns, Where.Mode "town"). The shared blocks (clinic, bank, intro, debug) have none.
+var br2Places = []adventure.Place{
+	{Block: 17, Music: "caloris", Town: true}, {Block: 18, Music: "salvation", Town: true}, {Block: 21, Music: "ship-boarding"},
+	{Block: 32, Music: "losangelorg", Town: true}, {Block: 33, Music: "losangelorg"}, {Block: 34, Music: "losangelorg"},
+	{Block: 36, Music: "losangelorg"}, {Block: 37, Music: "losangelorg"}, {Block: 38, Music: "losangelorg"},
+	{Block: 35, Music: "ceres-base"},
+	{Block: 48, Music: "venus"}, {Block: 49, Music: "venus"}, {Block: 50, Music: "venus"},
+	{Block: 64, Music: "luna"}, {Block: 65, Music: "luna"}, {Block: 66, Music: "maelstrom-rider"},
+	{Block: 80, Music: "prison"}, {Block: 81, Music: "purge-hq"}, {Block: 84, Music: "purge-hq"}, {Block: 82, Music: "research-base"},
+	{Block: 96, Music: "living-ship"}, {Block: 98, Music: "living-ship"}, {Block: 97, Music: "fungus-asteroid"},
+	{Block: 112, Music: "floating-school"}, {Block: 113, Music: "genetics-foundation"}, {Block: 114, Music: "mining-rig"},
+}

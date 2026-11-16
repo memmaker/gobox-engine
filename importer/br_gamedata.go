@@ -82,3 +82,25 @@ func br1GameData(id string) game.Data {
 // (audio.NewDriver) needs a table; this one plays nothing.
 const brSilentSound = `{"program":[{}],"speaker":[[0,0,0,0]],"tandy":[[0,0,0,0]],"vibratos":[],"envelopes":[],` +
 	`"speakerPeriods":[0,0,0,0,0,0,0,0,0,0,0,0],"tandyPeriods":[0,0,0,0,0,0,0,0,0,0,0,0]}`
+
+// br2PartyMenu is BR2's team menu: BR1's with "Begin Adventuring" before "Quick Start" (buckrogers2-go rules/data.go partyMenuKeys).
+var br2PartyMenu = []game.MenuKey{{Label: "Create Character", Key: 'C'}, {Label: "Remove Character", Key: 'P'}, {Label: "Modify Character", Key: 'M'},
+	{Label: "Icon Select", Key: 'I'}, {Label: "Train Character", Key: 'T'}, {Label: "View Character", Key: 'V'}, {Label: "Add Character", Key: 'A'},
+	{Label: "Drop Character", Key: 'R'}, {Label: "Load Saved Game", Key: 'L'}, {Label: "Save Current Game", Key: 'S'}, {Label: "Quick Start", Key: 'Q'},
+	{Label: "Begin Adventuring", Key: 'B'}, {Label: "Exit to DOS", Key: 'E'}}
+
+// br2MusicPlaces is every Where.Music trigger of BR2 (buckrogers2-go rules/data.go MusicPlaces).
+var br2MusicPlaces = []string{"space", "caloris", "salvation", "ship-boarding", "losangelorg", "ceres-base", "venus", "luna",
+	"maelstrom-rider", "prison", "purge-hq", "research-base", "living-ship", "fungus-asteroid", "floating-school",
+	"genetics-foundation", "mining-rig"}
+
+// br2GameData is BR2's game.Data (buckrogers2-go rules/data.go Data): BR1's border, texts, chords, coin and quick party (the old BR2
+// engine's QuickParty is BR1's), BR2's masks, party menu, "Aid" key and music places.
+func br2GameData(id string) game.Data {
+	d := br1GameData(id)
+	d.DaxMask = map[string]int{"COMSPR": 8, "CHARS": 8, "CPIC1": 8, "CURSOR": 13, "8X8D0": 13, "8X8D1": 13, "BORDERS": 13} // O0E5 chead_cbody_comspr_icon, O139:00F5, cursor load
+	d.VerbKeys = map[string]rune{"Aid": 'H'}
+	d.PartyMenu = br2PartyMenu
+	d.MusicPlaces = br2MusicPlaces
+	return d
+}
