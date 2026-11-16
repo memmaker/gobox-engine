@@ -409,5 +409,3 @@ func (e *Engine) saveSlot() error {
 func (e *Engine) charBase(cID rules.CharID) string {
 	return adventure.MakeFileName(rules.RemoveSubstr(e.ruleset().Sheet(cID).Name, "."))
 }
-
-const charRecSize = int(adventure.RecordLayout)

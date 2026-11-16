@@ -52,7 +52,7 @@ func (e *Engine) migrateRoster(names []string) {
 	for _, n := range names {
 		p := e.rosterFile(n)
 		b, err := os.ReadFile(p)
-		if err != nil || len(b) < charRecSize {
+		if err != nil || !e.fileFormat().IsRecord(b) {
 			continue
 		}
 		if id := e.fileFormat().RosterOf(b); id == rules.NoRoster {

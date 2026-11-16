@@ -27,6 +27,8 @@ type FileFormat interface {
 	// Unpack is the canonical character as its files; game: a game save's
 	// (the items file carries the shared pack).
 	Unpack(c CharacterFile, game bool) (CharacterFiles, error)
+	// IsRecord says whether the bytes are one of this ruleset's saved records (a roster file that is not one is skipped).
+	IsRecord(record SavedRecord) bool
 	// RosterOf is the roster number stored in a saved record (NoRoster: none).
 	RosterOf(record SavedRecord) RosterID
 	// WithRoster is the saved record with its roster number replaced.

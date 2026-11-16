@@ -15,7 +15,8 @@ import (
 )
 
 // br1Engine is the shared engine on BR1's folder, imported from the originals
-// into a temp dir (importer.ImportBREngine), with the XXVc ruleset. It skips
+// into a temp dir (importer.ImportBREngine), with the XXVc ruleset, its save folder seeded with the shipped characters
+// as cmd/gobox homeSaves does. It skips
 // without the originals.
 func br1Engine(t *testing.T) *Engine {
 	t.Helper()
@@ -31,38 +32,18 @@ func br1Engine(t *testing.T) *Engine {
 	if err != nil {
 		t.Fatal(err)
 	}
+	saves := t.TempDir()
+	if err := os.CopyFS(saves, os.DirFS(filepath.Join(adv, importer.SavesDir))); err != nil { // a new save folder is seeded from the adventure's saves/ (cmd/gobox homeSaves)
+		t.Fatal(err)
+	}
 	e, err := New(rulesxxvc.Builder, tables, adv, t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
+	e.Cfg.SaveDir = saves
 	seed := uint32(7)
 	e.FixedSeed = &seed
 	return e
-}
-
-// br1Roster saves the originals' shipped characters (the import's
-// data/characters) into the engine's roster, as a character saved from the
-// party menu is.
-// ponytail: the test seeds the roster; who seeds a new save folder in play is the team menu's slice (REFACTOR.md B1f).
-func br1Roster(t *testing.T, e *Engine) {
-	t.Helper()
-	files, err := filepath.Glob(filepath.Join(e.adv, adventure.DataDir, importer.CharactersDir, "*.json"))
-	if err != nil || len(files) == 0 {
-		t.Fatal("no imported characters", err)
-	}
-	for _, f := range files {
-		b, err := os.ReadFile(f)
-		if err != nil {
-			t.Fatal(err)
-		}
-		id, err := e.ruleset().Import(b)
-		if err != nil {
-			t.Fatal(f, err)
-		}
-		if err := e.SaveCharacter(id, ""); err != nil {
-			t.Fatal(f, err)
-		}
-	}
 }
 
 // TestBR1Opening: BR1's opening on the shared engine (REFACTOR.md B1f1; the
@@ -75,7 +56,6 @@ func TestBR1Opening(t *testing.T) {
 	if _, ok := e.build().(game.Assembling); !ok {
 		t.Fatalf("first wait is %T, want the party menu", e.build())
 	}
-	br1Roster(t, e)
 	if _, err := e.doNow(game.AddCharacter{Roster: 0}); err != nil {
 		t.Fatal(err)
 	}
@@ -138,7 +118,6 @@ func br1Begun(t *testing.T) *Engine {
 	e.Open("")
 	e.titleDone()
 	e.Advance()
-	br1Roster(t, e)
 	for _, a := range []game.Action{game.AddCharacter{Roster: 0}, game.Begin{}} {
 		if _, err := e.doNow(a); err != nil {
 			t.Fatalf("%T: %v", a, err)

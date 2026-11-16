@@ -35,6 +35,12 @@ func (r *Rules) Unpack(c rules.CharacterFile, _ bool) (rules.CharacterFiles, err
 	return rules.CharacterFiles{Record: c}, nil
 }
 
+// IsRecord: the bytes decode as a Character.
+func (r *Rules) IsRecord(record rules.SavedRecord) bool {
+	_, err := decodeCharacter(rules.CharacterFile(record))
+	return err == nil
+}
+
 // RosterOf is the roster number in the record (NoRoster: none, or not a record).
 func (r *Rules) RosterOf(record rules.SavedRecord) rules.RosterID {
 	c, err := decodeCharacter(rules.CharacterFile(record))

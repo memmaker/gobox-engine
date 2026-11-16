@@ -13,6 +13,9 @@ func (*Rules) Pack(f Files) (rules.CharacterFile, error) { return Pack285(f) }
 // Unpack is Unpack285.
 func (*Rules) Unpack(c rules.CharacterFile, game bool) (Files, error) { return Unpack285(c, game) }
 
+// IsRecord: a record is its 0x11D bytes, then the trailer.
+func (*Rules) IsRecord(record rules.SavedRecord) bool { return len(record) >= int(Layout285) }
+
 // RosterOf is the roster number in a saved record's trailer.
 func (*Rules) RosterOf(record rules.SavedRecord) rules.RosterID { return ReadPoolIDs(record).Roster }
 

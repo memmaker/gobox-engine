@@ -1,10 +1,12 @@
 package engine
 
 import (
+	"os"
 	"slices"
 	"testing"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 // TestBR1SheetFacts: what a BR1 member's card and sheet publish, as the original's sheet shows it
@@ -28,5 +30,33 @@ func TestBR1SheetFacts(t *testing.T) {
 	}
 	if len(pg.Rules) != 9 || pg.Rules[0].Name != "Tech" || pg.Rules[0].Value != "15" || pg.Rules[3].Name != "Battle Tactics" || pg.Rules[3].Value != "47" {
 		t.Errorf("tech and the career's skills: %+v", pg.Rules)
+	}
+}
+
+// TestBR1Roster: a new BR1 save folder, seeded from the adventure's saves/ as cmd/gobox homeSaves does, lists the
+// shipped characters (the originals' CHRDATAn.SAV, the first of each name), each numbered once, and Add joins them.
+func TestBR1Roster(t *testing.T) {
+	e := br1Engine(t)
+	e.Open("")
+	e.titleDone()
+	e.Advance()
+	list := e.BuildCharList()
+	if want := []string{"FLAVIUS", "Rook", "Kade", "Ace", "Vex", "Gizmo", "Doc"}; !slices.Equal(list, want) { // the first CHRDATA of each name, in file order
+		t.Fatalf("roster %v, want %v", list, want)
+	}
+	seen := map[rules.RosterID]bool{}
+	for _, n := range list {
+		b, err := os.ReadFile(e.rosterFile(n))
+		if err != nil || !e.fileFormat().IsRecord(b) {
+			t.Fatalf("%s: not a record (%v)", n, err)
+		}
+		if id := e.fileFormat().RosterOf(b); id == rules.NoRoster || seen[id] {
+			t.Fatalf("%s: roster number %d", n, id)
+		} else {
+			seen[id] = true
+		}
+	}
+	if _, err := e.doNow(game.AddCharacter{Roster: len(list) - 1}); err != nil || e.partySize() != 1 {
+		t.Fatalf("Add the last: %v, party %d", err, e.partySize())
 	}
 }

@@ -86,6 +86,9 @@ func ImportBREngine(id string, e BREXE, dos, dst string) error {
 	if err := ImportBR(id, e, dos, dst); err != nil {
 		return err
 	}
+	if err := writeRoster(dst); err != nil {
+		return err
+	}
 	l, err := orig.NewLoader(dos)
 	if err != nil {
 		return err

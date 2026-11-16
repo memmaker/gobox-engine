@@ -138,3 +138,6 @@ func recolourIcon(im *asset.Image, to [16]byte) {
 		}
 	}
 }
+
+// charRecSize is the 1e record's size, as the tests that build one by hand use it.
+const charRecSize = int(adventure.RecordLayout)
