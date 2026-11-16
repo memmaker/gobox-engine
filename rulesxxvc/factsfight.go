@@ -17,6 +17,8 @@ func (r *Rules) factFight(id rules.CharID, f rules.Fact) (v rules.Value, ok bool
 		return r.groundFact(), true, nil
 	case rules.UnitsFact:
 		return r.unitsFact(), true, nil
+	case rules.FlightFact:
+		return rules.Flight{Kind: r.flight(f.(rules.FlightFact).Item)}, true, nil
 	case rules.UnitCharFact:
 		who := charOf(f.(rules.UnitCharFact).Unit)
 		if _, ok := r.boardUnit(who); !ok {

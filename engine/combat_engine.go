@@ -281,7 +281,11 @@ func (e *Engine) attackUnit(cID rules.CharID, n int, walks map[int]rules.BoardPo
 func (e *Engine) endRound() (done bool) {
 	e.as(e.sel) // the round's actor
 	for _, f := range e.ruleset().EndRound(e.fight(), nil).Effects {
-		e.BottomMessage(f.(rules.Narrated).Text)
+		if n, ok := f.(rules.Narrated); ok { // the round's line on row 24; any other effect (BR's corpse terrain) is shown as the fight's
+			e.BottomMessage(n.Text)
+			continue
+		}
+		e.apply(f)
 	}
 	v := e.ruleset().Verdict(e.fight())
 	e.cmapShown()

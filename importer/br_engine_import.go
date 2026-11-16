@@ -61,15 +61,33 @@ var (
 	brPictureSets = map[int]rules.Set{105: 7, 64: 7, 72: 8, 92: 8, 74: 8, 62: 9}
 )
 
+// brArt is the art BR1 and BR2 name: the combat sprites COMSPR blocks 1..25 in icon rows 13..37 (gameinit.pas
+// LoadIconAnim('COMSPR', index, index + 13 - 1)) and the shots' icons of cbtacts.pas AnimateMissile (the same in both games:
+// the pace 10; the directed ones are Animate(firstKind), the rest the two-frame icons 30 and 37, which also fly for a grenade).
+var brArt = adventure.ArtNames{CombatSprites: "COMSPR", Title: "TITLE",
+	SpriteSlots: []adventure.SpriteLoad{{Block: 1, Slot: 13, Count: 25}},
+	Missiles: []adventure.MissileArt{
+		{Kind: rules.FlightDefault, Slot: 37, Pace: brMissilePace},
+		{Kind: rules.FlightWave, Slot: 30, Pace: brMissilePace},
+		{Kind: rules.FlightHeatBolt, Slot: 13, Directed: true, Pace: brMissilePace},
+		{Kind: rules.FlightLaser, Slot: 16, Directed: true, Pace: brMissilePace},
+		{Kind: rules.FlightCrossbowBolt, Slot: 19, Directed: true, Pace: brMissilePace},
+		{Kind: rules.FlightGunBolt, Slot: 22, Directed: true, Pace: brMissilePace},
+		{Kind: rules.FlightRocket, Slot: 25, Directed: true, Pace: brMissilePace},
+	}}
+
+// brMissilePace is AnimateMissile's local.pace := 10.
+const brMissilePace = 10
+
 // brStarts by game id.
 var brStarts = map[string]brStart{
 	"br1": {FirstBlock: 16, GameSet: 1, FirstBigPicture: 112, CodeBase: 32768, CodeSize: 9217, Symbols: brSymbols, PictureSets: brPictureSets,
-		Art:     adventure.ArtNames{CombatSprites: "COMSPR", Title: "TITLE"},                                                                                     // br1Start's TITLE
+		Art:     brArt,                                                                                                                                           // br1Start's TITLE
 		Logbook: &adventure.Logbook{Box: "Log Book", Title: "Log Entry "}, Data: br1GameData, Walls: true, Places: brPlaces, Overland: rules.Size{W: 38, H: 15}}, // buckrogers-go adv.go overland(): Area[195] 0..37, [196] 0..14
 	// BR2: buckrogers2-go rules/adv.go:147,161 (block 16), :158 (disk 1), eclops.go:239 (112), buckrogers2-re eclvm.pas:42,48. The
 	// Logbook stays unset: buckrogers2-go has no rules/journal to take the titles from (open: BR2's journal).
 	"br2": {FirstBlock: 16, GameSet: 1, FirstBigPicture: 112, CodeBase: 32768, CodeSize: 9217, Symbols: brSymbols, PictureSets: brPictureSets,
-		Art: adventure.ArtNames{CombatSprites: "COMSPR", Title: "TITLE"}}, // br2_importbr2.go br2Start's TITLE
+		Art: brArt}, // br2_importbr2.go br2Start's TITLE
 }
 
 // ImportBREngine is ImportBR plus what the shared engine reads from an adventure folder (engine.New, Init): the game's

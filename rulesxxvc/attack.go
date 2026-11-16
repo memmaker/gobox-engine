@@ -49,8 +49,7 @@ func InflictDamage(c *Character, damage int) bool {
 // The effects: BLIND (attack roll, armour, save), the defender's
 // WEAPON_DAMAGE_DEFENDER immunities before the shielding, the attacker's
 // COND_HIT_PHASE_2 poisons, the stun through AddEffectWithMessage.
-// ponytail: projectiles are not drawn; distance is the king's-move count
-// (CalcDistance's line distance not used).
+// ponytail: distance is the king's-move count (CalcDistance's line distance not used).
 func (r *Rules) attack(f rules.Fight, aid, did rules.CharID, rng *rules.RNG) (rules.Outcome, error) {
 	a, d, s := r.chars[aid], r.chars[did], r.fight[aid]
 	if a == nil || d == nil || s == nil {
@@ -69,8 +68,11 @@ func (r *Rules) attack(f rules.Fight, aid, did rules.CharID, rng *rules.RNG) (ru
 		}
 	}
 	toward := rules.DirectionTo(aat.X, aat.Y, dat.X, dat.Y)
-	_, wt, wty, armed := r.readied(a, xxvc.SlotWeapon)
+	wi, wt, wty, armed := r.readied(a, xxvc.SlotWeapon)
 	weaponRange := r.readiedWeaponRange(a)
+	if weaponRange > 1 { // MakeAttack: AnimateMissile before RollAttacks, for any ranged weapon that launched no area projectile
+		o.Effects = append(o.Effects, rules.Shot{From: unitOf(aid), Start: aat, To: dat, Item: wi.Ref.ID})
+	}
 	rear, backstab := ds != nil && isRearAttack(ds.attacksDrawn, unitSize(f, did), facing, toward), false
 	if rear && weaponRange < 2 && int(facing) == toward { // IsBackstab
 		h := rules.Normal

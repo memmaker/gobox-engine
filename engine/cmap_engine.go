@@ -141,14 +141,6 @@ func (e *Engine) iconToSprite(slot, pose, frame int, flip bool) {
 	}
 }
 
-// hitColours = 00BA:19DE (slot): the four frames of the sprite from an icon.
-func (e *Engine) hitColours(slot int) {
-	e.iconToSprite(slot, 0, 0, false)
-	e.iconToSprite(slot, 0, 1, true)
-	e.iconToSprite(slot, 1, 2, true)
-	e.iconToSprite(slot, 1, 3, false)
-}
-
 // combatViewEnter = ovr32:0105 / combatViewLeave = ovr32:00E3: the EGA
 // palette entries 0 and 8 swap for the combat screen (EGA only, DS:4A1E == 1).
 func (e *Engine) combatViewEnter() {

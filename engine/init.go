@@ -31,10 +31,15 @@ func (e *Engine) Init() {
 		e.LayTiles(l)
 	}
 	spr := e.artNames().CombatSprites
-	for i := 0; i <= 0xB; i++ {
-		e.LoadIconPic(spr, i, i+0xD) // ovr33:01C8
+	slots := e.artNames().SpriteSlots
+	if slots == nil {
+		slots = adventure.PoolSpriteSlots
 	}
-	e.LoadIconPic(spr, 0x19, 0x19)
+	for _, l := range slots {
+		for i := range l.Count {
+			e.LoadIconPic(spr, l.Block+i, l.Slot+i) // ovr33:01C8
+		}
+	}
 	e.do(rules.LoadItemTable{}) // ITEMS file, 2-byte header then the records → DS:5582
 	e.clearPrompt()
 	e.Randomize()           // 0AF8:1247

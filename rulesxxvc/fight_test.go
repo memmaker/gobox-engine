@@ -376,3 +376,18 @@ func TestHitFactIsTheAttacks(t *testing.T) {
 		t.Errorf("HitFact for PartyHit 0, 3, -4: %v", facts)
 	}
 }
+
+// TestFlightKinds: AnimateMissile's picture by item type (cbtacts.pas): each ranged weapon its family, a grenade the default.
+func TestFlightKinds(t *testing.T) {
+	for typ, want := range map[int32]rules.FlightKind{
+		plasmaThrowerType: rules.FlightHeatBolt, heatGunType: rules.FlightHeatBolt, laserPistolType: rules.FlightLaser,
+		laserRifleType: rules.FlightLaser, crossbowType: rules.FlightCrossbowBolt, boltGunType: rules.FlightGunBolt,
+		needleGunType: rules.FlightGunBolt, rocketLauncherType: rules.FlightRocket, rocketPistolType: rules.FlightRocket,
+		rocketRifleType: rules.FlightRocket, microwaveGunType: rules.FlightWave, sonicStunnerType: rules.FlightWave,
+		stunGrenadeType: rules.FlightDefault, explosiveGrenadeType: rules.FlightDefault,
+	} {
+		if got := itemFlights[typ]; got != want {
+			t.Errorf("item type %d flies as %d, want %d", typ, got, want)
+		}
+	}
+}

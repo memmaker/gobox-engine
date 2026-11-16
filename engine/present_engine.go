@@ -2,8 +2,10 @@ package engine
 
 import (
 	"fmt"
+	"gobox/adventure"
 	"gobox/game"
 	"gobox/rules"
+	"slices"
 )
 
 // present applies the effects recorded and not yet shown, then fx, in order.
@@ -49,9 +51,9 @@ func (e *Engine) apply(f rules.Effect) {
 		e.ext.panel = e.unitChar(f.From) // the side pane shows the caster
 		e.event(game.CastSpell{From: int(f.From), Spell: e.spellNumber(f.Spell), Ats: f.Ats})
 	case rules.Shot:
-		frames, delay := e.missileArt(f)
+		shown, delay := e.missileArt(f)
 		ev := game.Shot{From: int(f.From), To: f.To, StepMs: delay} // the original's pace: 10 pointed, 20 tumbling, 50 spinning, 30 a spell
-		if frames > 0 && e.spr != nil {                             // the original's art choice, the frame hitColours put in the sprite
+		if shown && e.spr != nil {                                  // the original's art choice, the frame the sprite holds
 			ev.Art = gamePicture(e.picPix(e.spr, 0, false, nil))
 		}
 		e.event(ev)
@@ -101,54 +103,44 @@ func (e *Engine) apply(f rules.Effect) {
 	}
 }
 
-// missileArt puts what flies in the sprite (DS:6E36) and gives its frames
-// and pace: a weapon as attackAnimation (ovr14:26B0) chose, a spell or power
-// as its caller (hitColours slot, then flyMissile's frames and delay).
-func (e *Engine) missileArt(f rules.Shot) (frames, delay int) {
-	if f.Spell != "" {
-		switch e.flight(f) {
-		case rules.FlightGaze:
-			e.hitColours(0x12)
-			return 4, 0x2D
-		case rules.FlightSpit:
-			e.hitColours(0x17)
-			return 1, 0x1E
-		case rules.FlightBolt:
-			e.hitColours(0x13)
-			return 4, 0x32
-		default:
-			e.hitColours(0x12)
-			return 4, 0x1E
-		}
+// missileArt puts what flies in the sprite (DS:6E36) and gives its pace: the art the game's Missiles table (or the
+// Pool's) names for the flight's kind, as attackAnimation (ovr14:26B0) and AnimateMissile (cbtacts.pas) choose it. Only
+// its first frame is shown (gamePicture of the sprite's frame 0): a flying sprite's later frames are not published.
+func (e *Engine) missileArt(f rules.Shot) (shown bool, pace int) {
+	art, ok := e.missile(f.Spell != "", e.flight(f))
+	if !ok || e.icons[art.Slot][0] == nil { // no art: nothing flies (not the last shot's sprite)
+		return false, 0
+	}
+	if !art.Directed {
+		e.iconToSprite(art.Slot, 0, 0, false)
+		return true, art.Pace
 	}
 	dir := int(e.ruleset().Check(rules.ArcDir{Start: f.Start, To: f.To}, nil).Value)
-	frames, delay, base := 1, 0xA, 0xD // an item with no flight art flies as the default
-	kind := e.flight(f)
-	switch kind {
-	case rules.FlightPointed:
-		switch {
-		case dir&1 == 1 && (dir == 3 || dir == 5):
-			e.iconToSprite(base+1, 1, 0, dir == 5)
-		case dir&1 == 1:
-			e.iconToSprite(base+1, 0, 0, dir == 7)
-		default:
-			e.iconToSprite(base+dir%4, dir>>2, 0, false)
-		}
-	case rules.FlightTumbling:
-		e.hitColours(base + 3)
-		frames, delay = 4, 0x32
-	case rules.FlightFlask:
-		e.hitColours(base + 4)
-		frames, delay = 4, 0x32
+	base := art.Slot
+	switch {
+	case dir&1 == 1 && (dir == 3 || dir == 5):
+		e.iconToSprite(base+1, 1, 0, dir == 5)
+	case dir&1 == 1:
+		e.iconToSprite(base+1, 0, 0, dir == 7)
 	default:
-		if kind == rules.FlightSlingStone {
-			base++
-		}
-		e.iconToSprite(base+7, 0, 0, false)
-		e.iconToSprite(base+7, 1, 1, false)
-		frames, delay = 2, 0x14
+		e.iconToSprite(base+dir%4, dir>>2, 0, false)
 	}
-	return frames, delay
+	return true, art.Pace
+}
+
+// missile is the game's art for a flight of kind (a spell's or an item's): the kind's own row, else the default
+// kind's; none: the game has no art for it.
+func (e *Engine) missile(spell bool, kind rules.FlightKind) (adventure.MissileArt, bool) {
+	table := e.artNames().Missiles
+	if table == nil {
+		table = adventure.PoolMissiles
+	}
+	for _, k := range []rules.FlightKind{kind, rules.FlightDefault} {
+		if i := slices.IndexFunc(table, func(m adventure.MissileArt) bool { return m.Spell == spell && m.Kind == k }); i >= 0 {
+			return table[i], true
+		}
+	}
+	return adventure.MissileArt{}, false
 }
 
 // flight is what the shot is in flight, as the ruleset says.

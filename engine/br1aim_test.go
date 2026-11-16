@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"slices"
 	"testing"
 
 	"gobox/game"
@@ -91,6 +92,7 @@ func TestBR1Aim(t *testing.T) {
 	if err := e.TurnChoice(TurnAct{Verb: VerbAim, X: foe.At.X, Y: foe.At.Y}, false); err != nil {
 		t.Fatal(err)
 	}
+	br1AssertShot(t, e, f, me, foe)
 	st := e.fightState().Strike
 	// one Aim is the round's attacks at that target (combat.pas CreatureAction: the swings start anew each turn),
 	// so more than one strike may follow; the last one is shown
@@ -107,3 +109,45 @@ func TestBR1Aim(t *testing.T) {
 		t.Error("the shot did not use the turn")
 	}
 }
+
+// br1AssertShot: the shot published its flight (game.Shot) once, from the member's square to the foe's, in the
+// picture of AnimateMissile's art for the weapon's kind (the Gun Bolt: FlightGunBolt, COMSPR's icons 22..24 in some
+// direction and pose), at the original's pace.
+func br1AssertShot(t *testing.T, e *Engine, f game.Fighting, me, foe game.Unit) {
+	t.Helper()
+	h := e.fact(e.unitID(me.ID), rules.WeaponFact{}).(rules.Handles)
+	kind := e.fact(rules.NoChar, rules.FlightFact{Item: e.invItem(e.unitID(me.ID), h[0]).Kind}).(rules.Flight).Kind
+	if kind != rules.FlightGunBolt {
+		t.Errorf("the Gun Bolt flies as kind %d, want FlightGunBolt", kind)
+	}
+	art, _ := e.missile(false, kind)
+	var shots []game.Shot
+	for _, ev := range e.events {
+		if s, ok := ev.(game.Shot); ok {
+			shots = append(shots, s)
+		}
+	}
+	if len(shots) == 0 {
+		t.Fatal("the shot published no game.Shot")
+	}
+	s := shots[0]
+	if s.To != foe.At || s.StepMs != art.Pace || art.Pace != brMissilePaceWant {
+		t.Errorf("shot to %v at %d ms, want %v at %d", s.To, s.StepMs, foe.At, brMissilePaceWant)
+	}
+	var want [][]byte
+	for k := range 3 { // the three icons the directions use: Animate(22)'s 22, 23, 24
+		for pose := range 2 {
+			for _, flip := range []bool{false, true} {
+				if im := e.icons[art.Slot+k][pose]; im != nil {
+					want = append(want, e.picPix(im, 0, flip, nil).Pix)
+				}
+			}
+		}
+	}
+	if s.Art.W != 24 || s.Art.H != 24 || !slices.ContainsFunc(want, func(p []byte) bool { return slices.Equal(p, s.Art.Pixels) }) {
+		t.Errorf("shot art %dx%d is none of COMSPR's icons %d..%d", s.Art.W, s.Art.H, art.Slot, art.Slot+2)
+	}
+}
+
+// brMissilePaceWant is AnimateMissile's pace (cbtacts.pas local.pace := 10).
+const brMissilePaceWant = 10

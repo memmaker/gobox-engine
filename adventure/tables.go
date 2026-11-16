@@ -136,15 +136,48 @@ type WallTexture struct {
 // (POR's SQRPACI tile set is cotab's TILES; sotsb and pod have none). An
 // empty name or list: the game has no such picture.
 type ArtNames struct {
-	TileSheets    []TileLoad // whole sheets Init takes as the tile set, tile First/0x80's half (POR: SQRPACI 1 and 2); none: a blank set
-	Tiles         []TileLoad // laid over the tile set at Init (cotab: TILES 1 and 2, copyprot's Load24x24Set)
-	DungeonTiles  []TileLoad // what combat setup lays over the tiles in a dungeon (ovr11:1244, LoadCombatTileSet)
-	WildTiles     []TileLoad // and outdoors (sotsb: none, the set stays as it is)
-	AreaTiles     []TileLoad // the area map's (BACPAC), laid over the tiles off the 3D view
-	AreaIcon      string     // the area map's party icon sheet (ICON)
-	CombatSprites string     // the combat sprites (COMSPR)
-	Title         string     // the title pictures (TITLE)
-	BorderCells   []int      // DrawBorder style 0's corner, side and top symbols (POR: 0x114..0x116); none: no border pictures
+	TileSheets    []TileLoad   // whole sheets Init takes as the tile set, tile First/0x80's half (POR: SQRPACI 1 and 2); none: a blank set
+	Tiles         []TileLoad   // laid over the tile set at Init (cotab: TILES 1 and 2, copyprot's Load24x24Set)
+	DungeonTiles  []TileLoad   // what combat setup lays over the tiles in a dungeon (ovr11:1244, LoadCombatTileSet)
+	WildTiles     []TileLoad   // and outdoors (sotsb: none, the set stays as it is)
+	AreaTiles     []TileLoad   // the area map's (BACPAC), laid over the tiles off the 3D view
+	AreaIcon      string       // the area map's party icon sheet (ICON)
+	CombatSprites string       // the combat sprites (COMSPR)
+	Title         string       // the title pictures (TITLE)
+	BorderCells   []int        // DrawBorder style 0's corner, side and top symbols (POR: 0x114..0x116); none: no border pictures
+	SpriteSlots   []SpriteLoad // the combat sprites' blocks and the icon slots they fill at Init; none: PoolSpriteSlots
+	Missiles      []MissileArt // what flies for each FlightKind; none: PoolMissiles
+}
+
+// SpriteLoad is a run of Count blocks of the combat sprites from block Block into the icon slots from Slot (Init's
+// LoadIconPic of COMSPR: POR's blocks 0..0xB fill slots 0xD.., BR's gameinit.pas LoadIconAnim loop blocks 1..25 fill 13..37).
+type SpriteLoad struct{ Block, Slot, Count int }
+
+// PoolSpriteSlots are the Pool games' (ovr33 Init: blocks 0..0xB into slots 0xD.., block 0x19 into slot 0x19).
+var PoolSpriteSlots = []SpriteLoad{{Block: 0, Slot: 0xD, Count: 0xC}, {Block: 0x19, Slot: 0x19, Count: 1}}
+
+// MissileArt is the picture of what flies for one FlightKind (a Spell's when Spell): the combat sprite slot Slot
+// (the slot's first frame; Directed: the slot's eight directions as AnimateMissile chooses them, from Slot on) and the
+// flight's pace in ms per third of a square, the original's.
+type MissileArt struct {
+	Spell    bool
+	Kind     rules.FlightKind
+	Slot     int
+	Directed bool
+	Pace     int
+}
+
+// PoolMissiles are the Pool games' (ovr14:26B0 attackAnimation and its spells' callers; slot 0xD is the first sprite).
+var PoolMissiles = []MissileArt{
+	{Spell: true, Kind: rules.FlightDefault, Slot: 0x12, Pace: 0x1E},
+	{Spell: true, Kind: rules.FlightGaze, Slot: 0x12, Pace: 0x2D},
+	{Spell: true, Kind: rules.FlightSpit, Slot: 0x17, Pace: 0x1E},
+	{Spell: true, Kind: rules.FlightBolt, Slot: 0x13, Pace: 0x32},
+	{Kind: rules.FlightDefault, Slot: 0x14, Pace: 0x14},
+	{Kind: rules.FlightSlingStone, Slot: 0x15, Pace: 0x14},
+	{Kind: rules.FlightPointed, Slot: 0xD, Directed: true, Pace: 0xA},
+	{Kind: rules.FlightTumbling, Slot: 0x10, Pace: 0x32},
+	{Kind: rules.FlightFlask, Slot: 0x11, Pace: 0x32},
 }
 
 // TileLoad is a block of File laid into the tile set from tile First: its
