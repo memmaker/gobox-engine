@@ -509,7 +509,7 @@ func (p *Presenter) maneuvering() bool {
 	return p.pick == nil && p.fight && p.battle.Picking && p.battle.PickKind == combat.DecideManeuver
 }
 
-// drawPickList draws the spell list (pickList) as a menu with hotkeys, its
+// drawPickList draws the spell list (pickList) as a menu, its
 // box centred on cx with its top at top.
 func (p *Presenter) drawPickList(dst *gpu.Image, glyph func(byte) [8]byte, k float64, cx, top int) {
 	lines := make([]string, len(p.pickList()))
@@ -521,7 +521,7 @@ func (p *Presenter) drawPickList(dst *gpu.Image, glyph func(byte) [8]byte, k flo
 	if p.maneuvering() {
 		title = "Maneuver"
 	}
-	p.drawMenu(dst, glyph, title, lines, spellKeys(len(lines)), nil, p.pickSel, k, cx, top)
+	p.drawMenu(dst, glyph, title, lines, nil, nil, p.pickSel, k, cx, top) // no hotkeys shown: the digits still pick (pickKey)
 	switch {
 	case p.pickSel < 0 || len(p.menuRects) == 0:
 	case p.maneuvering():
