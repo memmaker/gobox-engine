@@ -18,6 +18,12 @@ func (r *Rules) Resolve(s rules.Situation, a rules.Action, rng *rules.RNG) (rule
 		// The Pool's menu runs affect group 0xF and disarms a maneuver first; XXVc has neither (its turn-start
 		// effects run in BeginTurn): nothing to do.
 		return rules.Outcome{}, nil
+	case rules.CombatSay: // a line of the fight's text (the bottom line, PrintBottomLine): the battle log's
+		text := a.Text
+		if c := r.chars[a.Who]; c != nil {
+			text = c.Name + " " + text
+		}
+		return rules.Outcome{Effects: []rules.Effect{rules.Narrated{Text: text}}}, nil
 	case rules.ClearCombat: // the turn record cleared: no more actions this round
 		if s := r.fight[a.Who]; s != nil {
 			endActions(s)

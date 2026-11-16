@@ -12,7 +12,7 @@ import (
 // message in the combat side panel, or in the box under the view.
 func (e *Engine) CharMessage(cID rules.CharID, msg string, wait bool) {
 	if e.phase == rules.PhaseFight {
-		e.do(rules.CombatSay{Who: cID, Text: msg}) // extra: under the view, not in the side pane; the status row's latest line, as bottomMessage's: no stale note over it
+		e.combatSay(rules.CombatSay{Who: cID, Text: msg}) // extra: under the view, not in the side pane; the status row's latest line, as bottomMessage's: no stale note over it
 	} else if wait { // extra: the original's flash of the text (MsgDelay, then cleared) is a toast
 		e.say(e.ruleset().Sheet(cID).Name + " " + msg)
 		return

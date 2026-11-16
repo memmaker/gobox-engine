@@ -22,6 +22,10 @@ func (e *Engine) bottomMessage(s string, colour game.Ink) {
 	s = rules.Cut(s, textCols)
 	e.say(s)
 	if e.phase == rules.PhaseFight && e.ruleset().Check(rules.BoardUp{}, nil).Yes {
-		e.do(rules.CombatSay{Text: s})
+		e.combatSay(rules.CombatSay{Text: s})
 	}
 }
+
+// combatSay has the rules put a line in the fight's text and shows what they answer with: a ruleset that
+// answers in its Outcome (XXVc) queues nothing, so the effects are presented here.
+func (e *Engine) combatSay(a rules.CombatSay) { e.present(e.resolve(a).Effects...) }

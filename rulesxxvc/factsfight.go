@@ -63,6 +63,16 @@ func (r *Rules) factFight(id rules.CharID, f rules.Fact) (v rules.Value, ok bool
 	case rules.WeaponRulesFact:
 		// AD&D's weapon rule lines (speed, vs. size): XXVc's weapon is its ItemCard: none.
 		return rules.Lines(nil), true, nil
+	case rules.AimFact:
+		if c == nil {
+			return nil, true, errNoFightChar
+		}
+		return r.aimOffer(id, f), true, nil
+	case rules.AimCheckFact:
+		if c == nil {
+			return nil, true, errNoFightChar
+		}
+		return r.aimCheck(id, f), true, nil
 	case rules.TargetWhyFact:
 		// Why a target cannot be hit this turn, worded for the status row: XXVc gives no reason, only a line or none.
 		return rules.Text(""), true, nil

@@ -23,8 +23,12 @@ func (r *Rules) allowedFight(f rules.Fight) rules.Allowed {
 		return a
 	}
 	offer := func(x rules.Action) { a.Offers = append(a.Offers, rules.Offer{Action: x}) }
+	aat, _ := unitAt(f, f.Actor)
 	for _, u := range f.Board.Units {
-		if d := r.chars[u.ID]; d != nil && d.Enabled && d.team() != c.team() {
+		if d := r.chars[u.ID]; d != nil && d.Enabled && d.team() != c.team() { // ManualAimCursor's acceptance: a line within the weapon's range, loaded
+			if _, ok := r.aimAccepts(f.Board, c, aat, u.At, r.readiedWeaponRange(c), false); !ok {
+				continue
+			}
 			a.Aimed = append(a.Aimed, rules.Aimed{Action: rules.Attack{Target: u.ID}, Squares: []rules.BoardPos{u.At}, Targets: 1})
 		}
 	}
