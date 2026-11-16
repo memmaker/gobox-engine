@@ -20,7 +20,9 @@ var savedState = map[string]string{
 	"morale": "a fight's (CheckMorale)", "hpPercent": "a fight's", "terms": "a fight's: BeginFight's", "moveBonus": "a fight's",
 	"duelist": "a fight's", "tactics": "a fight's", "round": "a fight's", "initiative": "a fight's", "fight": "a fight's",
 	"arena": "a fight's", "ground": "a fight's, as rules1e's is not saved", "space": "a ship fight's",
-	"cloning": "between a NewGroup and its Spawns, inside one script command",
+	"cloning":   "between a NewGroup and its Spawns, inside one script command",
+	"phase":     "the engine's (EnterPhase): entered again when a loaded game's loop starts",
+	"shopTerms": "a shop's (StockShop): set each time a script opens one; a loaded game opens it again",
 }
 
 // TestSaveCoversRules: every field of Rules is saved or has its reason in savedState, and the saved ones come back through
