@@ -179,3 +179,16 @@ func TestPurseWho(t *testing.T) {
 		t.Fatalf("Who at the purse's places: %q", got)
 	}
 }
+
+// TestHotMenuPhrase: the words after a hotkey word without one are part of
+// its reply; PressToContinue's lone "PRESS <RETURN> TO CONTINUE" read
+// "Press", a button that said nothing after an encounter's COMBAT.
+func TestHotMenuPhrase(t *testing.T) {
+	q, ids := hotMenu("", "~PRESS <ENTER>/<RETURN> TO CONTINUE")
+	if len(q.Replies) != 1 || q.Replies[0] != "Press <enter>/<return> to continue" || len(ids) != 1 {
+		t.Fatalf("replies %q", q.Replies)
+	}
+	if q, _ := hotMenu("", "~COMBAT ~WAIT ~FLEE"); !slices.Equal(q.Replies, []string{"Combat", "Wait", "Flee"}) {
+		t.Fatalf("replies %q", q.Replies)
+	}
+}

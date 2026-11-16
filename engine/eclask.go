@@ -96,6 +96,7 @@ const (
 	dRocketMove                     // the rocket's heading, or Done
 	dDevParlay                      // dev scene: the encounter menu's choice
 	dDevPassword                    // dev scene: the word said
+	dDevCloseup                     // dev scene: the encounter menu answered, the close-up's pause
 )
 
 // askDone is what the answer completes, with what it needs.
@@ -244,15 +245,20 @@ func listLines(list []*ListNode) []game.Line {
 }
 
 // hotMenu is MenuInput's bar for menu as a question: each word with a hotkey
-// is a reply (its hotkey lit and typed to pick it), and ids[N] the choice
-// of the hotkey's place in the menu.
+// is a reply (its hotkey lit and typed to pick it), the words after it
+// without one part of it ("PRESS <RETURN> TO CONTINUE" is one reply, not
+// "Press"), and ids[N] the choice of the hotkey's place in the menu.
 func hotMenu(prompt, menu string) (q *game.Question, ids []int) {
 	hot, shown := extractHotkeys(menu)
 	q = &game.Question{Text: strings.TrimSpace(prompt)}
-	for _, w := range strings.Split(shown, " ") {
-		if i := strings.IndexFunc(w, func(r rune) bool { return r < 0x80 && isHotkey(byte(r)) }); i >= 0 {
+	for _, w := range strings.Fields(shown) {
+		i := strings.IndexFunc(w, func(r rune) bool { return r < 0x80 && isHotkey(byte(r)) })
+		switch {
+		case i >= 0:
 			q.Replies, q.Keys = append(q.Replies, optionText(w)), append(q.Keys, rune(w[i]))
 			ids = append(ids, strings.IndexByte(hot, w[i]))
+		case len(q.Replies) > 0:
+			q.Replies[len(q.Replies)-1] += " " + w
 		}
 	}
 	return q, ids

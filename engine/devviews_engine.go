@@ -142,6 +142,24 @@ func (e *Engine) DevScene(name string) func() {
 			e.devParlayAnswered(-1)
 			e.openAsk()
 		}
+	case "closeup": // an encounter menu over its close-up; COMBAT gives the pause a script holds before Combat (POR area 2 HobgoblinFight: SetupMonster, PressToContinue)
+		return func() {
+			sprite, pic := 1, 1
+			for _, f := range []struct {
+				name string
+				id   *int
+			}{{"SPRIT", &sprite}, {"PIC", &pic}} {
+				if id, ok := e.artFolder().FirstID(asset.DOS, e.set.File(f.name)); ok {
+					*f.id = id
+				}
+			}
+			e.run.sprite, e.run.closeup = sprite, pic
+			e.ShowEncounter(sprite, pic, 0, &e.es.encounterShown)
+			e.paneText(game.InkLightGreen, true, "YOU ENCOUNTER HOBGOBLINS!")
+			e.push(cont{kind: kDrawMain})
+			e.askChoice("", "~COMBAT ~WAIT ~FLEE ~PARLAY", false, false, askDone{kind: dDevCloseup})
+			e.openAsk()
+		}
 	case "password": // a script's InputString: the question in the text window, then the line typed (the remaster's pop-up)
 		return func() {
 			e.scriptText(true, "WHAT DO YOU SAY? (TYPE A SINGLE WORD)")
@@ -368,6 +386,11 @@ func (e *Engine) devAnswered(d askDone, v ansv) {
 	case dDevPassword:
 		e.scriptText(true, "YOU SAY '"+v.s+"'.")
 		e.askContinue(askDone{})
+	case dDevCloseup: // as encounterAnswered, then area 2's HobgoblinFight: SetupMonster at distance 0, PressToContinue
+		e.clearPrompt()
+		e.ShowEncounter(e.run.sprite, e.run.closeup, 0, &e.es.encounterShown)
+		anim := e.es.picShown != 0 && e.es.picAnimating != 0
+		e.askChoice("", "~PRESS <ENTER>/<RETURN> TO CONTINUE", true, anim, askDone{})
 	}
 }
 
