@@ -146,6 +146,7 @@ func (p *Presenter) pageImage(note Note) *gpu.Image {
 	var sh sfShown
 	sf := p.sfOf()
 	if sf != nil && !p.modal() {
+		p.asksDrawn = true // the fight's bar is on its page (fightBottom): the game's question is shown
 		sh = p.sfState(sf)
 		own += fmt.Sprintf("%v%+v%+v", *sf, sh, p.gameScreen().ShipSheet)
 	}
