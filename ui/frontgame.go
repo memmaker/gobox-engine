@@ -113,7 +113,7 @@ func (p *Presenter) WinRects() []image.Rectangle { return p.winRects }
 // way to the next level under each, and the tip of the one pointed at.
 func (p *Presenter) DrawCards(dst *gpu.Image, exp bool) []image.Rectangle {
 	p.expShown = exp
-	p.drawParty(dst, p.shownParty(), p.cardSelected(), cardAt(dst), nil)
+	p.drawParty(dst, p.shownParty(), p.cardMarked, cardAt(dst), nil)
 	p.expShown = false
 	p.layCards(dst)
 	p.drawCardTip(dst)

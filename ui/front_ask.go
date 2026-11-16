@@ -117,9 +117,11 @@ type Spell struct {
 
 // Question is a question a screen asks: Answer takes each decision while
 // it is up, true when it is answered (it goes); Cand is a member pick's
-// candidate.
+// candidate; Can, set, the members a member pick may take (their cards
+// marked, the others greyed; nil: all).
 type Question struct {
 	Ask    FrontAsk
 	Answer func(a Action) bool
 	Cand   int
+	Can    func(n int) bool
 }

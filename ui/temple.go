@@ -7,16 +7,14 @@ import (
 	"gobox/game"
 )
 
-// The temple (game.Trading): the presenter asks; Cure comes agreed.
+// The temple (game.Trading): the services for the whole party, each
+// offered (green) when it would help anyone; picked, the members it would
+// help are asked for one after the other (AskForMembers), each paid and
+// cured on the pick.
 func (p *Presenter) templeItems() (string, []MenuRow) {
 	c, s := &p.camp, p.state()
 	services, offers := templeOf(s)
-	party, sel, purse := partyOf(s), p.selected(), game.CommonOf(s).Purse
-	name := memberName(party, sel)
-	var cure game.Service
-	if c.pick >= 0 && c.pick < len(services) {
-		cure = services[c.pick]
-	}
+	purse := game.CommonOf(s).Purse
 	switch c.screen {
 	case templeHeal:
 		var it []MenuRow
@@ -26,23 +24,12 @@ func (p *Presenter) templeItems() (string, []MenuRow) {
 				cost = price(Money{Gold: cu.Price})
 			}
 			row := MenuRow{Text: fmt.Sprintf("%-20s %6s", cu.Name, cost), NoKey: true} // no digit: the prices stay in one column, the greyed rows' too
-			if serviceNeeded(cu, party, sel) {                                         // else greyed out (Felix's ruling: only what would help the member): no key, click or button picks it
-				row.Do = func() {
-					c.pick = i
-					c.to(templePay, 1)()
-				}
+			if len(cu.Needs) > 0 {                                                     // else greyed out: it would help no one, no key, click or button picks it
+				row.Do = func() { p.templeAsk(i, cu.Name) }
 			}
 			it = append(it, row)
 		}
-		return withGold(name+", how can we help you?", purse[Coin]), append(it, MenuRow{Text: "Exit", Key: 'E', Do: c.back(campMain)})
-	case templePay:
-		return withGold(fmt.Sprintf("%s will only cost %s. Pay for cure?", cure.Name, gold(cure.Price)), purse[Coin]), []MenuRow{
-			{Text: "Yes", Key: 'Y', Do: func() {
-				pick := c.pick
-				p.call(func(e *classicGame) { e.do(game.Heal{Member: sel, Service: pick}) }) // the member by index, as Allowed lists it
-				c.back(templeHeal)()
-			}},
-			{Text: "No", Key: 'N', Do: c.back(templeHeal)}}
+		return withGold("How can we help you?", purse[Coin]), append(it, MenuRow{Text: "Exit", Key: 'E', Do: c.back(campMain)})
 	case appraise:
 		return p.appraiseItems(purse, offers, c.back(campMain))
 	}
@@ -54,17 +41,27 @@ func (p *Presenter) templeItems() (string, []MenuRow) {
 	return "Temple", append(it, MenuRow{Text: "Exit", Key: 'E', Do: func() { p.send(ActClose, 0) }})
 }
 
-// serviceNeeded: the service would help the selected member (sel).
-func serviceNeeded(sv game.Service, party []game.Member, sel int) bool {
-	return sel >= 0 && sel < len(party) && slices.Contains(sv.Needs, sel)
+// templeAsk asks whom service i (name) is for: the members it would help
+// as the state has them now, each picked paid and cured.
+func (p *Presenter) templeAsk(i int, name string) {
+	AskForMembers(p, name+" for whom?", func(n int) bool {
+		services, _ := templeOf(p.state())
+		return i < len(services) && slices.Contains(services[i].Needs, n)
+	}, func(n int) {
+		p.call(func(e *classicGame) { e.do(game.Heal{Member: n, Service: i}) }) // the member by index, as Needs lists it
+	})
 }
 
-// memberName is party[sel]'s name ("": none selected).
-func memberName(party []game.Member, sel int) string {
-	if sel < 0 || sel >= len(party) {
-		return ""
+// templeFor is the temple service highlighted on its list (false: none is).
+func (p *Presenter) templeFor() (game.Service, bool) {
+	if p.q != nil || !p.templeUp() || p.camp.screen != templeHeal {
+		return game.Service{}, false
 	}
-	return party[sel].Name
+	services, _ := templeOf(p.state())
+	if i := p.camp.sel; i >= 0 && i < len(services) {
+		return services[i], true
+	}
+	return game.Service{}, false
 }
 
 // appraisable: the party has gems or jewelry to appraise (or one is being

@@ -444,7 +444,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 			return r
 		}
 	}
-	p.drawParty(dst, p.shownParty(), p.cardSelected(), at, nil)
+	p.drawParty(dst, p.shownParty(), p.cardMarked, at, nil)
 	p.drawOptions(dst) // over the map and cards
 	p.layCards(dst)
 	if p.ctx == 0 && !p.campHome() && tipShown() { // the tooltip (camp shows the members' menus); a context menu goes over everything (below)
@@ -518,10 +518,11 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 	if p.choosing() && p.askMenu() != nil { // a member pick: the question alone in the middle, the cards round it take the pick (a click, F1-F8, the arrows and Enter; Esc or a right click give up)
 		p.menu = false
 		var names []string // the members by name too: a line, a card or F1-F8 picks
-		for _, m := range p.party() {
-			names = append(names, m.Name)
+		var off []bool     // ... grey: those the pick may not take (Question.Can)
+		for i, m := range p.party() {
+			names, off = append(names, m.Name), append(off, p.q != nil && p.q.Can != nil && !p.q.Can(i))
 		}
-		p.drawMenu(dst, note.Glyph, strings.TrimSpace(p.askMenu().Prompt), names, nil, nil, p.selectedIndex(), mk, cx, b.Dy()/2-int(mk*float64(len(names)+4)*4))
+		p.drawMenu(dst, note.Glyph, strings.TrimSpace(p.askMenu().Prompt), names, nil, off, p.selectedIndex(), mk, cx, b.Dy()/2-int(mk*float64(len(names)+4)*4))
 	} else if p.typingAsk() != nil { // the question over the line being typed, its cursor blinking; a line whose question is the text box's own (a script's password): the line alone under it, never typed unseen
 		p.drawTyping(dst, note, mk, cx, picBottom+int(pk*4))
 	} else if p.askList() != nil && p.askMenu() != nil { // a list and its question (list.go)

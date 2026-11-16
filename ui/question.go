@@ -60,6 +60,48 @@ func AskForMember(h RuleHost, prompt string, who int, then func(n int)) {
 	h.Ask(q)
 }
 
+// AskForMembers asks for the members can takes, one after the other
+// (AskMember: Exit): then gets each one picked and the question stays up,
+// until Esc, a right click, Exit, or none is left to take (Actions).
+func AskForMembers(h RuleHost, prompt string, can func(n int) bool, then func(n int)) {
+	q := &Question{Ask: FrontAsk{Kind: AskMember, Menu: Menu{Prompt: prompt, Commands: []Command{{Text: "Exit", Key: 'E'}}}}, Can: can}
+	for i := range h.Shown().Party { // the first it may take
+		if can(i) {
+			q.Cand = i
+			break
+		}
+	}
+	q.Answer = func(a Action) bool {
+		switch a.Kind {
+		case ActLead:
+			if can(a.N) {
+				q.Cand = a.N
+			}
+		case ActMember, ActOK:
+			if a.Kind == ActOK {
+				a.N = q.Cand
+			}
+			if can(a.N) {
+				then(a.N)
+			}
+		case ActChoose, ActClose, ActNo: // Exit
+			return true
+		}
+		return false
+	}
+	h.Ask(q)
+}
+
+// canPick is the first member q may take (-1: none).
+func (p *Presenter) canPick(q *Question) int {
+	for i := range p.party() {
+		if q.Can == nil || q.Can(i) {
+			return i
+		}
+	}
+	return -1
+}
+
 // spellEntries is spells as AskSpell's entries: the name, the ID as Spell.
 func spellEntries(spells []Spell) []FrontEntry {
 	out := make([]FrontEntry, len(spells))

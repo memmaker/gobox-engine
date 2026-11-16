@@ -58,13 +58,18 @@ func (p *Presenter) arrow(a input.Act) {
 	on := a == input.Down || a == input.InputRight || a == input.PgDn || a == input.End
 	if n := len(p.party()); n > 0 && p.choosing() && (back || on) {
 		i := p.selectedIndex()
-		switch {
-		case on:
-			i = (i + 1) % n // none: the first
-		case i <= 0:
-			i = n - 1
-		default:
-			i--
+		for range n { // the next one the pick may take (Question.Can)
+			switch {
+			case on:
+				i = (i + 1) % n // none: the first
+			case i <= 0:
+				i = n - 1
+			default:
+				i--
+			}
+			if q := p.q; q == nil || q.Can == nil || q.Can(i) {
+				break
+			}
 		}
 		p.send(ActLead, i)
 		return

@@ -223,6 +223,9 @@ func (p *Presenter) Actions() []Action {
 		as = append(as, a)
 	}
 	p.inv.acts = nil
+	if q := p.q; q != nil && q.Can != nil && p.canPick(q) < 0 { // a member pick with none left to take goes (the temple's, once all are cured)
+		p.q = nil
+	}
 	return as
 }
 

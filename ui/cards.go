@@ -131,7 +131,7 @@ func (p *Presenter) setup(note Note) {
 // drawParty draws the members' cards where at puts them; stand, when not
 // nil, is drawn as the first member's own PNG (the fight's portrait card
 // shows a member without a face by its combat icon).
-func (p *Presenter) drawParty(dst *gpu.Image, ms []game.Member, sel int, at func(i, n int) image.Rectangle, stand image.Image) {
+func (p *Presenter) drawParty(dst *gpu.Image, ms []game.Member, marked func(i int) bool, at func(i, n int) image.Rectangle, stand image.Image) {
 	if p.border.val.tiles[0] == nil {
 		return
 	}
@@ -148,7 +148,7 @@ func (p *Presenter) drawParty(dst *gpu.Image, ms []game.Member, sel int, at func
 		if i == 0 && stand != nil {
 			own = stand
 		}
-		key := cardKey{i == sel, m.HP, m.MaxHP, m.Status, p.portrait(m, own), own != nil, 0, 0, p.border.val.tiles[0], p.glyphs(), m.Memo}
+		key := cardKey{marked(i), m.HP, m.MaxHP, m.Status, p.portrait(m, own), own != nil, 0, 0, p.border.val.tiles[0], p.glyphs(), m.Memo}
 		if m.NextExp > 0 && (p.expShown || gpu.IsKeyPressed(gpu.KeyControl)) {
 			key.exp, key.nextExp = expOf(m)-m.LevelExp, m.NextExp-m.LevelExp
 		}
@@ -553,6 +553,19 @@ func (p *Presenter) cardSelected() int {
 		return -1
 	}
 	return p.eng.r.selectedOf(p.state())
+}
+
+// cardMarked: card i is drawn marked: the members a member pick may take
+// (Question.Can), the temple's service highlighted would help (templeFor),
+// else the one card of cardSelected.
+func (p *Presenter) cardMarked(i int) bool {
+	if q := p.q; q != nil && q.Ask.Kind == AskMember && q.Can != nil {
+		return q.Can(i)
+	}
+	if sv, ok := p.templeFor(); ok {
+		return slices.Contains(sv.Needs, i)
+	}
+	return i == p.cardSelected()
 }
 
 // selectedIndex is the member marked on the cards (-1: none).
