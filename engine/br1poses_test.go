@@ -126,3 +126,32 @@ func TestBR1OverlandMark(t *testing.T) {
 		}
 	}
 }
+
+// TestBR1SkyInk: the layout names the sky cells Sky, SkyInside (types.pas skyIndexLo, skyIndexHi); the view's sky ink is
+// skyColors[index] (gdconsts.pas: 0 black, 1 white, 2 red, 3 cyan, ... the EGA colours 0, 15, 4, 11, 13, 2, 9, 14 twice), the Lo
+// index on a square whose event byte is at most $7F, the Hi index above it.
+func TestBR1SkyInk(t *testing.T) {
+	e := br1Begun(t)
+	br1OwnBlock(t, e, 201, "    Sky = 3\n    SkyInside = 4")
+	if e.world.Sky != 3 || e.world.SkyInside != 4 {
+		t.Fatalf("Sky %d SkyInside %d, the script wrote 3 and 4", e.world.Sky, e.world.SkyInside)
+	}
+	for _, c := range []struct {
+		inside bool
+		want   int32
+	}{{false, 11}, {true, 13}} { // skyColors[3] cyan; skyColors[4] light magenta
+		a := e.ruleset().Check(rules.SkyInk{Inside: c.inside, In3D: true, Sky: e.world.Sky, SkyInside: e.world.SkyInside}, nil)
+		if !a.Yes || a.Value != c.want {
+			t.Errorf("inside %v: sky colour %d (%v), want %d", c.inside, a.Value, a.Yes, c.want)
+		}
+	}
+	e.viewMode = 1 // the 3D view: the ink follows the party's square
+	w := e.mapWalls()
+	want := game.EGAInk(11)
+	if e.MapCell(e.posX, e.posY) > insideCell {
+		want = game.EGAInk(13)
+	}
+	if w.CeilInk != want {
+		t.Errorf("view sky ink %v, want %v", w.CeilInk, want)
+	}
+}

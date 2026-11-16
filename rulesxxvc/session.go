@@ -261,6 +261,12 @@ func (r *Rules) sessionCheck(q rules.Check, rng *rules.RNG) rules.Answer {
 			sky = q.SkyInside
 		}
 		return rules.Answer{Yes: skyColours[sky&15] == daySkyColour}
+	case rules.SkyInk: // mapview.pas DisplayMapView: skyColors[skyIndexLo] outside, [skyIndexHi] on a square whose event byte is above $7F
+		sky := q.Sky
+		if q.Inside {
+			sky = q.SkyInside
+		}
+		return rules.Answer{Yes: q.In3D, Value: int32(skyColours[sky&15])}
 	case rules.PoolCap, rules.PoolCount:
 		// No shared inventory: each member carries its own (Options.PartyInventory is a 1e rule).
 		return rules.Answer{}

@@ -35,8 +35,8 @@
 4BF2 1 byte game ScriptBlock # Area[242]: current ECL block number (adv.go:124,363); scripts: byte r38/w6
 4BFB 1 byte game Word4BFB # scripts: byte r0/w17
 4BFC 1 byte game MsgDelay # Area[252]: game speed, pauses = value*100 ms (rest.go:172, eclops.go:63); POD global.txt calls it MsgDelay; engine only (not in BR1 scripts)
-4BFD 1 byte game Word4BFD # scripts: byte r0/w12
-4BFE 1 byte game Word4BFE # scripts: byte r0/w36
+4BFD 1 byte game Sky # types.pas skyIndexLo: the sky colour index outside (mapview.pas skyColors); scripts: byte r0/w12
+4BFE 1 byte game SkyInside # types.pas skyIndexHi: the same on a square whose event byte is above $7F; scripts: byte r0/w36
 4BFF 1 byte game SaveFlags # Area[255]: b3BEC*2+b3BEE (savegame.go:41,125); engine only (not in BR1 scripts)
 4C00 32 bytes local EntryBytes  # zone 0 entryBytes (4C00..4C1F): cleared by EclInit at each script load unless a saved game has just loaded
 4C26 1 byte game Word4C26 # scripts: byte r1/w2

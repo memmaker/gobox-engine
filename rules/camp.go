@@ -33,6 +33,14 @@ type SkyDay struct {
 	Sky, SkyInside uint16
 }
 
+// SkyInk asks the colour of the 3D view's sky, as an EGA colour number in Answer.Value (Yes: the ruleset has one; the Pool's
+// sky is a picture or a flat). Inside, In3D, Sky and SkyInside are SkyDay's.
+type SkyInk struct {
+	Inside         bool
+	In3D           bool
+	Sky, SkyInside uint16
+}
+
 // RestDone asks whether the rest is over before its next step (Yes): its
 // time is up, a stop was asked or, UntilHealed, nobody is wounded.
 type RestDone struct{ UntilHealed bool }
@@ -85,6 +93,8 @@ func (SpellsAllowed) check() {}
 func (RestUnit) check() {}
 
 func (SkyDay) check() {}
+
+func (SkyInk) check() {}
 
 func (RestDone) check() {}
 

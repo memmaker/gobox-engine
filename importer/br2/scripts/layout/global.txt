@@ -61,8 +61,8 @@
 4BF2 1 byte game ScriptBlock # Area[242]: current ECL block number (adv.go:124,363) [BR2: buckrogers2-go rules/adv.go:146,423; types.pas TZone0.stateValue]; scripts: byte r50/w36
 4BFB 1 byte game Word4BFB # scripts: byte r0/w26
 4BFC 1 byte game MsgDelay # Area[252]: game speed, pauses = value*100 ms (rest.go:172, eclops.go:63); POD global.txt calls it MsgDelay [BR2: buckrogers2-go rules/rest.go:172; types.pas TZone0.messageSpeed]; scripts: byte r0/w2
-4BFD 1 byte game Word4BFD # scripts: byte r0/w2
-4BFE 1 byte game Word4BFE # scripts: byte r0/w1
+4BFD 1 byte game Sky # buckrogers2-re types.pas skyIndexLo (as BR1); scripts: byte r0/w2
+4BFE 1 byte game SkyInside # buckrogers2-re types.pas skyIndexHi (as BR1); scripts: byte r0/w1
 4BFF 1 byte game SaveFlags # Area[255]: b3BEC*2+b3BEE (savegame.go:41,125) [BR2: buckrogers2-go rules/savegame.go:41,126; types.pas TZone0.displayOptions]; engine only (not in BR2 scripts)
 4C00 32 bytes local EntryBytes # zone 0 entryBytes 4C00..4C1F, cleared by EclInit at each script load (types.pas TZone0.entryBytes); scripts: 31 addresses, r1132/w851, as bytes, words, longs and text over each other
 4C20 1 byte game Word4C20 # scripts: byte r18/w8

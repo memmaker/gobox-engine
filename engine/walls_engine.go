@@ -107,6 +107,9 @@ func (e *Engine) mapWalls() game.MapWalls {
 	}
 	w := game.MapWalls{Side: make([][][4]int, rules.AreaSize), Pool: pool, Floor: wt.Floor, Sky: wt.Sky}
 	e.backLook(&w, wt) // the area's own look is over the picture's
+	if sky := e.ruleset().Check(rules.SkyInk{Inside: e.MapCell(e.posX, e.posY) > insideCell, In3D: e.in3D(), Sky: e.world.Sky, SkyInside: e.world.SkyInside}, nil); sky.Yes {
+		w.CeilInk = game.EGAInk(int(sky.Value)) // the sky's own colour, under the BACK picture
+	}
 	if a := wt.Area(e.set, int(e.world.Geo)); a != nil {
 		if a.Floor != "" {
 			w.Floor = a.Floor
@@ -127,6 +130,10 @@ func (e *Engine) mapWalls() game.MapWalls {
 	return w
 }
 
+// insideCell is the party's map cell value above which the party is inside (view3d.pas DrawBackdrop and mapview.pas: the event
+// byte's bit 7).
+const insideCell = 0x7F
+
 // backBlockHigh is the BACK picture block offset of the roofless view: BACK<set>.DAX holds each picture in
 // a pair, block N shown where the party's map cell has bit 7 (inside) and block N+128 otherwise
 // (view3d.pas DrawBackdrop, LoadBackdrop).
@@ -140,7 +147,7 @@ func (e *Engine) backLook(w *game.MapWalls, wt *adventure.WallTextures) {
 		return
 	}
 	block := e.gs.backBlock
-	if e.MapCell(e.posX, e.posY) <= 0x7F {
+	if e.MapCell(e.posX, e.posY) <= insideCell {
 		block += backBlockHigh
 	}
 	look := wt.Back(e.set, adventure.BackNone)

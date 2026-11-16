@@ -107,6 +107,7 @@ var notAnswered = map[string]bool{
 	"ChooseRace":    true,
 	"ChooseSex":     true,
 	"Dodge":         true,
+	"SkyInk":        true,
 	"DropDraft":     true,
 	"Fix":           true,
 	"Forget":        true,
