@@ -38,3 +38,13 @@ func TestBoardOverlaySlots(t *testing.T) {
 		t.Errorf("overlay slots %d and %d, want two different ones", a, z)
 	}
 }
+
+// TestBoardBigIcon: a unit's picture larger than a cell reaches the board at its own size (the original blits the block as loaded).
+func TestBoardBigIcon(t *testing.T) {
+	art := game.Picture{W: 24, H: 48, Pixels: make([]uint8, 24*48), Clear: -1}
+	c := &game.Combat{Units: []game.Unit{{ID: 1, Foe: true, Art: art, Size: 2}}}
+	b := (&Presenter{}).boardOf(c, nil, nil)
+	if got := b.Units[0].IconSize; got.X != 24 || got.Y != 48 {
+		t.Errorf("icon size %v, want 24x48", got)
+	}
+}

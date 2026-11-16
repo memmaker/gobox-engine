@@ -3,6 +3,7 @@ package engine
 import (
 	"testing"
 
+	"gobox/game"
 	"gobox/rules"
 )
 
@@ -72,5 +73,33 @@ func TestBR1MarkPictures(t *testing.T) {
 	}
 	if e.markPicture(0).Pixels != nil || e.markPicture(9).Pixels != nil {
 		t.Error("a marker the data does not name has a picture")
+	}
+}
+
+// TestBR1BigMonsterPicture: a monster whose block is larger than a cell (CPIC4 block 4 is 24x48, block 5 is 48x24: the original
+// loads the block as it is and blits it from the unit's first cell, maptiles.pas DrawIconAnimSprite) publishes the block's own size.
+func TestBR1BigMonsterPicture(t *testing.T) {
+	e, f := br1AtTurn(t, br1FarFight, br1FarFacing)
+	var foe game.Unit
+	for _, u := range f.Field.Units {
+		if u.Foe {
+			foe = u
+		}
+	}
+	slot := int(e.fact(e.unitID(foe.ID), rules.IconFact{}).(rules.Number))
+	for _, c := range []struct{ block, w, h int }{{4, 24, 48}, {5, 48, 24}} {
+		e.icons[slot][0] = e.LoadPicMasked("CPIC4", c.block, brMaskColour)
+		if e.icons[slot][0] == nil {
+			t.Fatalf("no CPIC4 block %d", c.block)
+		}
+		var got game.Unit
+		for _, u := range e.build().(game.Fighting).Field.Units {
+			if u.ID == foe.ID {
+				got = u
+			}
+		}
+		if got.Art.W != c.w || got.Art.H != c.h || len(got.Art.Pixels) != c.w*c.h {
+			t.Errorf("CPIC4 block %d: published %dx%d (%d pixels), want %dx%d", c.block, got.Art.W, got.Art.H, len(got.Art.Pixels), c.w, c.h)
+		}
 	}
 }
