@@ -875,6 +875,8 @@ func (g *Game) act(a Action) func() error {
 		return own("setField", func() game.Result { return g.r.setField(a.N, a.X) })
 	case ActStat:
 		return send(game.SetStat{Stat: a.N, Text: a.Text})
+	case ActSpend:
+		return send(game.Spend{Allotment: a.N, Row: a.X, By: a.Y})
 	case ActKeep:
 		if g.Subject(); Drafting(g.mode(), creationOf(g.r.g.State())) { // the creation sheet's Keep
 			return send(game.KeepCharacter{})

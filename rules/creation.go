@@ -34,6 +34,10 @@ type CreationRules interface {
 	// limitStat). gobox parses "18/50" into Strength 18 and StrengthPercent 50.
 	// The error says v is outside the race and class range.
 	SetScore(d Draft, a Ability, v int32) (Draft, error)
+	// Spend moves by points (+1 spends one, -1 takes one back) onto option o of the FieldSkills field f and
+	// returns the draft after it, the ruleset's rules applied (the limits, the prerequisites, what a change
+	// resets). A refusal is a *SpendRefusal and leaves d as it was.
+	Spend(d Draft, f FieldID, o int, by int32) (Draft, error)
 	// Make keeps d (POR SaveCharacter): a new character when d.Of is NoChar
 	// goes to the roster (its RosterID; CharID NoChar), else it updates d.Of
 	// (RosterID NoRoster), keeping what the sheet does not show (items,
@@ -63,10 +67,55 @@ type FieldDef struct {
 	Kind    FieldKind
 	Label   string
 	Options []string
-	Budget  int32 // FieldSkills: the points to spend
+	Budget  int32      // FieldSkills: the points to spend
+	Max     int32      // FieldSkills: the most points one option may take
+	Rows    []FieldRow // FieldSkills: what each option stands at in the draft, one per option
 	// Alignment: the field picks the alignment (the sheet places it on a row of its own; a sheet without one lists its fields one per row).
 	Alignment bool
 }
+
+// PointsLeft is what the FieldSkills field f still has to spend in d: Left, or its whole Budget before any is spent.
+func (d Draft) PointsLeft(f FieldDef) int32 {
+	if v, ok := d.Left[f.ID]; ok {
+		return v
+	}
+	return f.Budget
+}
+
+// FieldRow is what option of a FieldSkills field stands at in the draft: its group heading, its value (Value, and
+// Bonus on it, Total as the sheet counts it), whether its prerequisites are met and what it still wants.
+type FieldRow struct {
+	Group        string
+	Value, Bonus int32
+	Total        int32
+	Open         bool // the prerequisites are met
+	Wants        []Want
+}
+
+// Want is a prerequisite not met: Level points in the option named Name.
+type Want struct {
+	Name  string
+	Level int32
+}
+
+// SpendReason is why Spend refuses a point.
+type SpendReason int
+
+const (
+	SpendNoPoints  SpendReason = iota // the field has none left
+	SpendWants                        // a prerequisite is not met
+	SpendAtMost                       // the option is at the most it may take
+	SpendNoNewItem                    // no more options may be started
+	SpendNoOption                     // no such option or step
+)
+
+// SpendRefusal is Spend refusing: Reason for a front or a test, Text in the ruleset's own words.
+type SpendRefusal struct {
+	Reason SpendReason
+	Text   string
+}
+
+func (e *SpendRefusal) Error() string { return e.Text }
 
 // RollKind is how Roll rolls.
 type RollKind int

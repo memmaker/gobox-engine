@@ -201,7 +201,7 @@ func creationOf(ps game.State) *game.Creation {
 	}
 	d := a.Draft
 	cr := &game.Creation{Draft: d.Member, Fields: d.Fields, Roster: a.Roster,
-		MinHP: d.MinHP, MaxHP: d.MaxHP, Minimums: d.Minimums, Step: d.Step, Stats: d.Stats, Rolls: d.Rolls, Derived: d.Derived}
+		MinHP: d.MinHP, MaxHP: d.MaxHP, Minimums: d.Minimums, Step: d.Step, Stats: d.Stats, Rolls: d.Rolls, Allotments: d.Allotments, Derived: d.Derived}
 	if d.Ask != nil {
 		cr.Choices = d.Ask.Replies
 	}

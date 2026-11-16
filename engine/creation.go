@@ -125,20 +125,15 @@ func (d *Draft) PointBuy(bases map[rules.Ability]int32) error {
 	return err
 }
 
-// ErrBudget: a skill spend past the field's budget or below zero.
-var ErrBudget = errors.New("no points left")
-
-// Spend moves n points (negative: refunds) onto option o of skills field f.
-func (d *Draft) Spend(f rules.FieldDef, o int, n int32) error {
-	p := d.D.Points[f.ID]
-	var spent int32
-	for _, v := range p {
-		spent += v
+// Spend moves one point (by 1: onto, -1: back) on option o of the points field f: the ruleset's rules decide
+// (rules.CreationRules.Spend); its refusal comes back, the draft unchanged.
+func (d *Draft) Spend(f rules.FieldID, o int, by int32) error {
+	nd, err := d.R.Spend(d.D, f, o, by)
+	if err != nil {
+		return err
 	}
-	if p[o]+n < 0 || spent+n > f.Budget {
-		return ErrBudget
-	}
-	p[o] += n
+	d.D = nd
+	d.Fields = d.R.Fields(d.D)
 	return nil
 }
 

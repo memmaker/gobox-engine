@@ -30,6 +30,8 @@ func CreateAct(h RuleHost, creating *bool, a Action) bool {
 		h.Edit(func(e *classicGame) { refused(e, e.do(game.Rename{Name: a.Text})) })
 	case ActStat:
 		h.Edit(func(e *classicGame) { refused(e, e.do(game.SetStat{Stat: a.N, Text: a.Text})) })
+	case ActSpend:
+		h.Edit(func(e *classicGame) { refused(e, e.do(game.Spend{Allotment: a.N, Row: a.X, By: a.Y})) })
 	case ActSetField:
 		h.Edit(func(e *classicGame) { refused(e, e.SetField(a.N, a.X)) })
 	case ActKeep, ActClose: // a refused Keep leaves the sheet up, so Esc still discards

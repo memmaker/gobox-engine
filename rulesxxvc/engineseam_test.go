@@ -94,7 +94,7 @@ func TestBuilder(t *testing.T) {
 		t.Fatal("no creation")
 	}
 	// The creation is ported (creation.go); what is not (modifying) answers an error.
-	if d, err := cr.Draft(rules.NoChar); err != nil || len(cr.Fields(d)) != 3 || cr.QuickParty() != nil {
+	if d, err := cr.Draft(rules.NoChar); err != nil || len(cr.Fields(d)) != 5 || cr.QuickParty() != nil {
 		t.Errorf("creation: %v %v", d, err)
 	}
 	if _, err := cr.Draft(1); !errors.Is(err, ErrNoModify) {

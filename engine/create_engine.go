@@ -189,6 +189,23 @@ func (e *Engine) setStat(i int, typed string) error {
 	})
 }
 
+// spend puts one point (by 1) on row of the nth points field of the creation, or takes it back (-1): the ruleset's rules decide.
+func (e *Engine) spend(allot, row, by int) error {
+	return e.creationEdit(func(cr *creation) error {
+		n := 0
+		for _, f := range cr.d.Fields {
+			if f.Kind != rules.FieldSkills {
+				continue
+			}
+			if n == allot {
+				return cr.d.Spend(f.ID, row, int32(by))
+			}
+			n++
+		}
+		return &game.Refusal{Text: "no such points"}
+	})
+}
+
 // SetField gives creation field f (FieldSex ..) its option x.
 func (e *Engine) SetField(f, x int) error {
 	return e.creationEdit(func(cr *creation) error {

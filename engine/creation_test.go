@@ -2,6 +2,7 @@ package engine
 
 import (
 	"errors"
+	"slices"
 	"strconv"
 	"testing"
 
@@ -50,6 +51,21 @@ func (f *fake) Roll(d *rules.Draft, k rules.RollKind, r *rules.RNG) error {
 func (f *fake) Minimums(d rules.Draft) map[rules.Ability]int32 { return nil }
 func (f *fake) Rolls() []rules.RollKind {
 	return []rules.RollKind{rules.RollFull, rules.RollMinimal, rules.RollPointBuy}
+}
+
+// Spend is the test double's pool: a point onto an option while the budget lasts, one back while the option has any.
+func (f *fake) Spend(d rules.Draft, id rules.FieldID, o int, by int32) (rules.Draft, error) {
+	p := slices.Clone(d.Points[id])
+	var spent int32
+	for _, v := range p {
+		spent += v
+	}
+	if p[o]+by < 0 || spent+by > 3 {
+		return d, &rules.SpendRefusal{Reason: rules.SpendNoPoints, Text: "no points left"}
+	}
+	p[o] += by
+	d.Points = map[rules.FieldID][]int32{id: p}
+	return d, nil
 }
 func (f *fake) QuickRerolls() int { return 2000 }
 
@@ -106,8 +122,7 @@ func TestDraft(t *testing.T) {
 			t.Errorf("%q parsed", s)
 		}
 	}
-	sk := d.Fields[1]
-	if d.Spend(sk, 0, 2) != nil || d.Spend(sk, 1, 2) == nil || d.Spend(sk, 1, -1) == nil {
+	if d.Spend(fSkills, 0, 1) != nil || d.Spend(fSkills, 0, 1) != nil || d.Spend(fSkills, 1, 1) != nil || d.Spend(fSkills, 1, 1) == nil || d.Spend(fSkills, 1, -1) != nil {
 		t.Error("budget")
 	}
 	if d.SetField(fKind, 1); len(d.D.Points[fSkills]) != 3 || d.D.Of != rules.NoChar {

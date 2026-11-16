@@ -743,6 +743,8 @@ type Creation struct {
 	Derived []Derived `json:",omitempty"`
 	// Rolls are the ways the rules roll abilities: the ones a front offers (nil: every way).
 	Rolls []rules.RollKind `json:",omitempty"`
+	// Pools are the points the sheet has to spend, in the game's order.
+	Allotments []Allotment `json:",omitempty"`
 }
 
 // StatDef is one ability on the sheet or the creation sheet.
@@ -761,6 +763,30 @@ type StatDef struct {
 type Derived struct {
 	Label string // as the sheet shows it ("Age", "AC", ...)
 	Value string // "21", "10", "3d4", ...
+}
+
+// Allotment is points to spend over rows on the creation sheet (BR's skill points): what is left, the most one row may
+// take, and the rows with what each stands at.
+type Allotment struct {
+	Name      string
+	Left, Max int
+	Rows      []AllotRow
+}
+
+// AllotRow is one row of an Allotment: its name, group heading, value, the bonus on it and its total, whether its
+// prerequisites are met and what it still wants.
+type AllotRow struct {
+	Name, Group  string
+	Value, Bonus int
+	Total        int
+	Open         bool
+	Wants        []Want
+}
+
+// Want is a prerequisite a row has not met: Level points in the row named Name.
+type Want struct {
+	Name  string
+	Level int
 }
 
 // Field is one creation choice: its options, which fit the draft so far,

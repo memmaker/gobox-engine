@@ -103,6 +103,7 @@ const (
 	ActSetField // creation field N (FieldSex ..) takes its option X (Creation.Fields[N].Options)
 	ActName     // the character's name is Text
 	ActStat     // ability N is Text (STR as 18/xx)
+	ActSpend    // allotment N (Creation.Allotments): row X takes a point (Y 1) or gives one back (-1)
 	ActPage     // a pager (help, the journal) goes N (+1 or -1) on: a picture page scrolls first
 
 	ActManeuver // combat: maneuver N (one of Turn.Maneuvers; the rule set's, combatrules.go)

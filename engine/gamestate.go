@@ -400,6 +400,10 @@ func (e *Engine) creationState(cr *creation) *game.Draft {
 	}
 	g := &game.Draft{Member: d, Minimums: mins, Stats: e.statDefs(id, nil), Rolls: cl.Rolls()}
 	for _, f := range cl.Fields(cr.d.D) { // the four, then the power picks (setPower)
+		if f.Kind == rules.FieldSkills { // points to spend, not a choice
+			g.Allotments = append(g.Allotments, allotmentState(cr.d.D, f))
+			continue
+		}
 		fl := game.Field{Name: f.Label, Options: slices.Clone(f.Options), Pick: cr.d.D.Picks[f.ID], Alignment: f.Alignment}
 		for i := range f.Options {
 			fl.Fits = append(fl.Fits, cl.Fits(cr.d.D, f.ID, i))
@@ -548,4 +552,18 @@ func (e *Engine) iconState(id rules.CharID, m *game.Member) {
 // PosX, PosY stay the 3D view's.
 func (e *Engine) overlandSquare() image.Point {
 	return image.Pt(int(ViewModeShift[e.viewMode])+int(e.world.MapX), int(e.world.MapY))
+}
+
+// allotmentState is the points field f as draft d stands: what is left and each option's row.
+func allotmentState(d rules.Draft, f rules.FieldDef) game.Allotment {
+	p := game.Allotment{Name: f.Label, Left: int(d.PointsLeft(f)), Max: int(f.Max)}
+	for i, name := range f.Options {
+		r := f.Rows[i]
+		row := game.AllotRow{Name: name, Group: r.Group, Value: int(r.Value), Bonus: int(r.Bonus), Total: int(r.Total), Open: r.Open}
+		for _, w := range r.Wants {
+			row.Wants = append(row.Wants, game.Want{Name: w.Name, Level: int(w.Level)})
+		}
+		p.Rows = append(p.Rows, row)
+	}
+	return p
 }

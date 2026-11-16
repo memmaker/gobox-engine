@@ -156,9 +156,11 @@ type Draft struct {
 	Lows         map[Ability]int32 // the class's minimums (play.Draft.Minimums)
 	MinHP, MaxHP int32
 	// Picks is the option picked per FieldChoice field; Points the points
-	// spent per option of a FieldSkills field (CreationRules).
+	// spent per option of a FieldSkills field and Left the points that field
+	// still has to spend (CreationRules).
 	Picks      map[FieldID]int
 	Points     map[FieldID][]int32
+	Left       map[FieldID]int32
 	Name       string
 	Head, Body PicID // portrait pool pictures
 	Portrait   PNG   // a dropped PNG portrait, encoded (nil: the pool head and body)

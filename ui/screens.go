@@ -29,36 +29,39 @@ const (
 	scrPowers // the creation's power picks (Creation.Powers)
 	scrHow    // a new character: Roll or Point Buy (every game takes bought abilities)
 	scrBuy    // the point buy (pointbuy.go)
+	scrAllot  // the points to spend (allot.go)
 )
 
 const scrRows = 14 // the lines a page screen's menu shows at a time
 
 type screenUI struct {
-	ptr     image.Point // the pointer's cell, as last seen: only a moved one takes the picker's cursor
-	up      string      // the screen up (screenName): another one starts on its main menu
-	sub     int
-	sel     int
-	top     int
-	field   int
-	prompt  string       // scrType: the question ...
-	text    string       // ... the line typed ...
-	caret   int          // ... its cursor ...
-	max     int          // ... how long it may get ...
-	act     ActKind      // ... and what it sends
-	then    func(string) // ... or what takes the line instead (Minimal's next ability)
-	n       int
-	ask     string // scrAsk: the question; yes on Yes, back to sub on No
-	yes     func()
-	back    int
-	backSel int       // the row the question was asked from
-	mainSel int       // the main menu's row that opened the submenu up: back restores it
-	cur     int       // the picker's cursor
-	at      Rect      // where the page went on the window ...
-	pw, ph  int       // ... and its size in pixels
-	anchor  *CellRect // the drop-down's field: the menu opens on it
-	newChar bool      // ActCreate sent: the creation sheet coming up asks Roll or Point Buy
-	buy     []int     // scrBuy: the scores bought ...
-	buyStat int       // ... and the one Raise and Lower change
+	ptr      image.Point // the pointer's cell, as last seen: only a moved one takes the picker's cursor
+	up       string      // the screen up (screenName): another one starts on its main menu
+	sub      int
+	sel      int
+	top      int
+	field    int
+	prompt   string       // scrType: the question ...
+	text     string       // ... the line typed ...
+	caret    int          // ... its cursor ...
+	max      int          // ... how long it may get ...
+	act      ActKind      // ... and what it sends
+	then     func(string) // ... or what takes the line instead (Minimal's next ability)
+	n        int
+	ask      string // scrAsk: the question; yes on Yes, back to sub on No
+	yes      func()
+	back     int
+	backSel  int       // the row the question was asked from
+	mainSel  int       // the main menu's row that opened the submenu up: back restores it
+	cur      int       // the picker's cursor
+	at       Rect      // where the page went on the window ...
+	pw, ph   int       // ... and its size in pixels
+	anchor   *CellRect // the drop-down's field: the menu opens on it
+	newChar  bool      // ActCreate sent: the creation sheet coming up asks Roll or Point Buy
+	buy      []int     // scrBuy: the scores bought ...
+	buyStat  int       // ... and the one Raise and Lower change
+	allot    int       // scrAllot: the allotment shown ...
+	allotRow int       // ... and the row Subtract takes a point back from
 }
 
 func (p *Presenter) screenName() string {
@@ -126,6 +129,8 @@ func (p *Presenter) screenItems() (string, []MenuRow) {
 			return "Abilities", []MenuRow{{Text: "Roll", Key: 'R', Do: func() { s.open(scrMain) }}, {Text: "Point Buy", Key: 'P', Do: func() { p.openBuy(cr) }}}
 		case scrBuy:
 			return p.buyItems(cr)
+		case scrAllot:
+			return p.allotItems(cr)
 		}
 	case "slots":
 		sl := p.slotsView()
@@ -527,7 +532,7 @@ func (p *Presenter) screenKey(k uint16) bool {
 			return true
 		}
 	}
-	if s.sub == scrBuy && p.buyKey(k) {
+	if s.sub == scrBuy && p.buyKey(k) || s.sub == scrAllot && p.allotKey(k) {
 		return true
 	}
 	_, items := p.screenItems()
@@ -755,6 +760,8 @@ func (p *Presenter) barWords() []footWord {
 		}
 		if cr != nil && len(cr.Powers) > 0 {
 			ws = append(ws, "Powers")
+		} else if cr != nil && len(cr.Allotments) > 0 {
+			ws = append(ws, "Points") // the same key: a sheet with powers and points has both under Powers first
 		}
 		ws = append(ws, "Keep", "Exit")
 	}
@@ -772,8 +779,10 @@ func (p *Presenter) barDo(h byte) func() {
 	return func() {
 		cr := p.creation()
 		switch {
-		case h == 'K' && cr != nil && slices.ContainsFunc(cr.Powers, func(f Field) bool { return f.Cur < 0 }), h == 'P' && cr != nil:
+		case h == 'K' && cr != nil && slices.ContainsFunc(cr.Powers, func(f Field) bool { return f.Cur < 0 }), h == 'P' && cr != nil && len(cr.Powers) > 0:
 			p.scr.open(scrPowers) // a power still to pick: the picks first
+		case h == 'P' && cr != nil:
+			p.openAllot()
 		case h == 'K':
 			p.send(ActKeep, 0)
 		case h == 'E' && (p.iconEditor(p.ink()) != nil || cr == nil):

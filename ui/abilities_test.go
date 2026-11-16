@@ -71,3 +71,33 @@ func TestOnlyOfferedRolls(t *testing.T) {
 		t.Errorf("a state listing no rolls offers every way: %v", words)
 	}
 }
+
+// A state with points to spend gets the Points screen: the title says what is left, a row that wants more says what,
+// and Enter and Subtract send Spend for the row.
+func TestAllotmentScreen(t *testing.T) {
+	d := &game.Draft{Allotments: []game.Allotment{{Name: "Career skill points", Left: 80, Max: 30, Rows: []game.AllotRow{
+		{Name: "Treat Light", Value: 12, Bonus: 15, Total: 27, Open: true},
+		{Name: "Treat Serious", Wants: []game.Want{{Name: "Treat Light", Level: 30}}},
+	}}}}
+	p, _ := draftOn(d)
+	if ws := p.barWords(); !slices.ContainsFunc(ws, func(w footWord) bool { return w.label == "Points" }) {
+		t.Fatalf("bar %v", ws)
+	}
+	p.barDo('P')()
+	if p.scr.sub != scrAllot {
+		t.Fatalf("sub %d", p.scr.sub)
+	}
+	title, items := p.screenItems()
+	if !strings.Contains(title, "Career skill points: 80") || !strings.Contains(title, "at most 30") ||
+		!strings.Contains(items[1].Text, "needs 30 Treat Light") || strings.Contains(items[0].Text, "needs") {
+		t.Fatalf("%q %+v", title, items)
+	}
+	items[1].Do()
+	p.scr.sel = 0
+	_, items = p.screenItems() // the row last highlighted is the one Subtract takes from
+	items[len(items)-2].Do()
+	want := []Action{{Kind: ActSpend, N: 0, X: 1, Y: 1}, {Kind: ActSpend, N: 0, X: 0, Y: -1}}
+	if !slices.Equal(p.inv.acts, want) {
+		t.Errorf("sent %v, want %v", p.inv.acts, want)
+	}
+}

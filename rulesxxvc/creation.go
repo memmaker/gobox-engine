@@ -55,7 +55,7 @@ type creation struct {
 
 var _ rules.CreationRules = creation{}
 
-func (creation) Fields(rules.Draft) []rules.FieldDef {
+func (creation) Fields(d rules.Draft) []rules.FieldDef {
 	races := make([]string, len(pickRaces))
 	for i, r := range pickRaces {
 		races[i] = xxvc.RaceNames[r]
@@ -68,11 +68,11 @@ func (creation) Fields(rules.Draft) []rules.FieldDef {
 	for i, c := range pickCareers {
 		careers[i] = xxvc.CareerNames[c]
 	}
-	return []rules.FieldDef{
+	return append([]rules.FieldDef{
 		{ID: fieldRace, Label: "Race", Options: races},
 		{ID: fieldGender, Label: "Gender", Options: genders},
 		{ID: fieldCareer, Label: "Class", Options: careers},
-	}
+	}, skillFields(d)...)
 }
 
 // Fits: a career is legal when the race may take it (raceCareers); the other fields have no restriction.
@@ -84,6 +84,9 @@ func (creation) Fits(d rules.Draft, f rules.FieldID, o int) bool {
 		return o >= 0 && o < len(pickGenders)
 	case fieldCareer:
 		return o >= 0 && o < len(pickCareers) && slices.Contains(raceCareers[pickRaces[d.Picks[fieldRace]]], pickCareers[o])
+	case fieldCareerSkills, fieldGeneralSkills: // a point may be spent on the option
+		_, err := creation{}.Spend(d, f, o, 1)
+		return err == nil
 	}
 	return false
 }
@@ -107,6 +110,9 @@ func (c creation) Enforce(d rules.Draft, f rules.FieldID, o int, rng *rules.RNG)
 	if f != fieldGender || d.Sheet.Scores == nil {
 		d.Sheet.Age = int32(rules.RNGDice(rng, 1, ageDie) + ageBase) // age := RollDice(1, 6) + 18, before the abilities are rolled
 		rollAbilities(&d, rng)
+		l := startingSkills(career)
+		d.Sheet.Skills = l.skillMap() // the skill screen begins afresh: InitializeAllSkills
+		d.Points, d.Left = nil, nil
 	}
 	return d
 }
@@ -318,8 +324,9 @@ func (r *Rules) draftCharacter(d rules.Draft, kit bool) (Character, error) {
 	if career == xxvc.Warrior {
 		c.BaseScale = 4
 	}
-	for n := SkillNo(1); n <= SkillCount; n++ { // InitializeAllSkills: in order, a later skill's prerequisite sees the earlier
-		c.Skills.Set(n, startingSkillLevel(&c.Skills, career, n))
+	c.Skills = startingSkills(career) // InitializeAllSkills
+	if d.Sheet.Skills != nil {        // then what EditSkills left
+		c.Skills = levelsOfDraft(d)
 	}
 	if kit {
 		for _, a := range freeAmmo { // each at the head of the list

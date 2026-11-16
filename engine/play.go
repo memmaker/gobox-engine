@@ -730,7 +730,7 @@ func allows(al game.Allowed, a game.Action) bool {
 		return true
 	case game.Speak: // the page gobox shows: speak knows the recordings
 		return true
-	case game.UsePower, game.SetStat, game.Adjust, game.PointBuy, game.Order, game.AddNote, game.RemoveNote, game.Give,
+	case game.UsePower, game.SetStat, game.Adjust, game.PointBuy, game.Spend, game.Order, game.AddNote, game.RemoveNote, game.Give,
 		game.Memorize, game.Plan, game.Forget, game.Scribe, game.LayOnHands, game.SetDifficulty: // Halve, Join, PoolCoins, LootShare: only offered without the shared inventory and purse (never today), so by Allowed
 		return true
 	}
@@ -1210,6 +1210,8 @@ func (e *Engine) partyDo(a game.Action, st game.State, native func(func() error)
 		return true, native(func() error { return e.pointBuy(a.Scores) })
 	case game.SetStat:
 		return true, native(func() error { return e.setStat(a.Stat, a.Text) })
+	case game.Spend:
+		return true, native(func() error { return e.spend(a.Allotment, a.Row, a.By) })
 	case game.Rename: // the creation sheet's name
 		return true, native(func() error { return e.rename(a.Name) })
 	case game.KeepCharacter:

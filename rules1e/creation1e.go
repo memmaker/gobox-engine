@@ -184,6 +184,11 @@ func (p Creation) Minimums(rules.Draft) map[rules.Ability]int32 {
 	return m
 }
 
+// Spend: the 1e sheet has no points to spend.
+func (p Creation) Spend(d rules.Draft, f rules.FieldID, o int, by int32) (rules.Draft, error) {
+	return d, &rules.SpendRefusal{Reason: rules.SpendNoOption, Text: "No points to spend"}
+}
+
 // Rolls: the three ways of the 1e sheet (Roll, Minimal, point buy).
 func (p Creation) Rolls() []rules.RollKind {
 	return []rules.RollKind{rules.RollFull, rules.RollMinimal, rules.RollPointBuy}

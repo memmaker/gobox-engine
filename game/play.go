@@ -193,6 +193,7 @@ type Draft struct {
 	Step         string           // the creation step the rules are on ("race", "skills", ...), "" any
 	Ask          *Question        // that step's question (its options, a typed name, a number, a yes/no), answered by SetChoice{Field: Step, N or Text}; nil: the sheet's fields
 	Stats        []StatDef        // the sheet's abilities in the game's order and count (nil: STR .. CHA from Member.Stats)
+	Allotments   []Allotment      // the points the sheet has to spend (Spend), in the game's order
 	Rolls        []rules.RollKind // the ways the rules roll abilities, the ones to offer (nil: the front offers every way)
 	Derived      []Derived        // the sheet's figures besides the abilities, in the game's order (nil: from Member)
 }
@@ -544,6 +545,7 @@ type (
 		Text string
 	}
 	Adjust           struct{ Stat, By int }
+	Spend            struct{ Allotment, Row, By int } // one point (By 1) put on row Row of allotment Allotment, or taken back (-1)
 	PointBuy         struct{ Scores []int }
 	Reroll           struct{ Minimal bool } // Minimal: the lowest roll the class allows
 	KeepCharacter    struct{}
@@ -731,6 +733,7 @@ func (SetChoice) action()        {}
 func (SetStat) action()          {}
 func (Adjust) action()           {}
 func (PointBuy) action()         {}
+func (Spend) action()            {}
 func (Reroll) action()           {}
 func (KeepCharacter) action()    {}
 func (DiscardCharacter) action() {}
