@@ -51,6 +51,9 @@ func (r *Rules) fighters(f rules.Fight) []rules.CharID {
 	return slices.DeleteFunc(ids, func(id rules.CharID) bool { return r.chars[id] == nil })
 }
 
+// idleRounds is C_Combat.IDLE_ROUNDS (includes/c_combat.pas, BR1 and BR2): the rounds a fight lasts past its last attack.
+const idleRounds = 15
+
 func (r *Rules) BeginFight(f rules.Fight, _ *rules.RNG) rules.Outcome {
 	var o rules.Outcome
 	r.arena = arena{}
@@ -58,7 +61,7 @@ func (r *Rules) BeginFight(f rules.Fight, _ *rules.RNG) rules.Outcome {
 	f.Board = r.board(f.Board)
 	r.layCorpses(&f.Board, r.fighters(f), func(id rules.CharID) (rules.BoardPos, bool) { return unitAt(f, id) }, &o) // PlaceAllCreatures
 	r.fight = map[rules.CharID]*combatState{}
-	r.round = 0
+	r.round, r.combatRound, r.combatEndRound = 0, 0, idleRounds // CombatStart
 	r.tactics = [2]bool{}
 	r.moveBonus = int(f.Terms.PartyMove)
 	r.terms = f.Terms
@@ -265,6 +268,7 @@ func (r *Rules) EndRound(f rules.Fight, _ *rules.RNG) rules.Outcome {
 		}
 	}
 	r.advanceClock(1, clockMinute)
+	r.combatRound++                     // EndOfRound
 	r.hpPercent = r.hostileHpPercent(f) // combat.pas EndRound
 	r.countDownClouds(&f.Board, &o)
 	return o
@@ -272,7 +276,8 @@ func (r *Rules) EndRound(f rules.Fight, _ *rules.RNG) rules.Outcome {
 
 // Verdict is CombatMain's end test over CountTeams (enabled per side): no
 // team left is lost (fled when one ran), no hostile left is won.
-// ponytail: combatEndRound is the engine's round limit, not tested here.
+// Both sides up past combatEndRound is the idle end (combat.pas CombatMain tests combatRound >= combatEndRound after each
+// creature acts; both are Bytes, as the original's).
 func (r *Rules) Verdict(f rules.Fight) rules.Verdict {
 	var team, hostile int
 	fled := false
@@ -297,6 +302,8 @@ func (r *Rules) Verdict(f rules.Fight) rules.Verdict {
 		return rules.PartyLost
 	case hostile == 0:
 		return rules.PartyWon
+	case r.combatRound >= r.combatEndRound:
+		return rules.FightIdle
 	}
 	return rules.FightOn
 }
@@ -328,6 +335,14 @@ func (r *Rules) EndFight(f rules.Fight, _ *rules.RNG) rules.FightResult {
 	r.pool = 0
 	res.Items = r.lootGoods() // what TreasureOf put on availableItems before the fight stays on it (DetermineLootExp pushes onto it)
 	verdict := r.Verdict(f)
+	if verdict == rules.FightIdle { // postcbt.pas DetermineCombatResults: combat is won when a member is okay, whoever else stands
+		verdict = rules.FightOn
+		for _, id := range ids {
+			if c := r.chars[id]; c.team() && c.Status == StOkay {
+				verdict = rules.PartyWon
+			}
+		}
+	}
 	res.Verdict = verdict
 	for _, id := range ids { // PostCombatCreatureCleanup: a hostile in the fight is an outcome to report (hasOutcomeToReport; the zone's preservesHostiles is not modelled)
 		if c := r.chars[id]; c != nil && !c.team() {

@@ -352,7 +352,8 @@ const (
 func (r *Rules) groundAttack(f rules.Fight, id rules.CharID, c *Character, s *combatState, to rules.BoardPos, rng *rules.RNG) (rules.Outcome, error) {
 	var o rules.Outcome
 	b := &f.Board
-	s.target = rules.NoChar // MakeAttack: target := defender
+	r.combatEndRound = r.combatRound + idleRounds // MakeAttack
+	s.target = rules.NoChar                       // MakeAttack: target := defender
 	wi := r.readiedIndex(c, xxvc.SlotWeapon)
 	if wi < 0 {
 		return o, errNoAreaWeapon(id)

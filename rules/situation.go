@@ -227,6 +227,9 @@ const (
 	PartyWon
 	PartyLost
 	PartyFled
+	// FightIdle: nobody attacked for the idle rounds with both sides still up (BR: combat.pas CombatMain); the fight is
+	// over, and the ruleset's EndFight says what it came to.
+	FightIdle
 )
 
 // FightResult is what the rules made of a finished fight (por AfterCombat

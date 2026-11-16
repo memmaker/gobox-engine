@@ -51,6 +51,7 @@ func InflictDamage(c *Character, damage int) bool {
 // COND_HIT_PHASE_2 poisons, the stun through AddEffectWithMessage.
 // ponytail: distance is the king's-move count (CalcDistance's line distance not used).
 func (r *Rules) attack(f rules.Fight, aid, did rules.CharID, rng *rules.RNG) (rules.Outcome, error) {
+	r.combatEndRound = r.combatRound + idleRounds // MakeAttack
 	a, d, s := r.chars[aid], r.chars[did], r.fight[aid]
 	if a == nil || d == nil || s == nil {
 		return rules.Outcome{}, fmt.Errorf("Attack %d on %d: not in the fight", aid, did)

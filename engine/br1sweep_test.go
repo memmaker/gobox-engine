@@ -29,7 +29,6 @@ import (
 // br1SweepKnown are the findings still open: Pattern is matched against "message @ top frame".
 // The test fails on a finding no pattern matches and on a pattern no finding matches.
 var br1SweepKnown = []struct{ Pattern, Why string }{
-	{`^sweep: a fight did not end in # answers`, "open, owner rulesxxvc combat + the engine's fight flow: BR's ground combat ends 15 rounds after the last attack (combat.pas CombatMain: combatRound >= combatEndRound; cbtacts.pas MakeAttack: combatEndRound := combatRound + C_Combat.IDLE_ROUNDS; combatst.pas CombatStart; both Bytes). rulesxxvc.Verdict never tests it (its own ponytail note) so a fight in which nobody can reach anybody (block 67: Gennie gun defences that do not move, a party member kiting on Quick) goes on for ever. Needs a fourth Verdict (the idle end: no Continue Battle question, the result by DetermineCombatResults: won when a member is okay) and the two counters in Rules. Replay: the finding's line"},
 	{`^LOG: script: area \d+: T_\w+\[\d+\] is past the field's \d+ entries`, "none: the entry skips the story, so the index variable (Word4C61 ...) holds 0 and the table is read past its end as the original does (engine log, TableFaults)"},
 }
 
