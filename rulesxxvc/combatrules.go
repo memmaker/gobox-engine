@@ -165,6 +165,7 @@ func (r *Rules) BeginTurn(f rules.Fight, id rules.CharID, rng *rules.RNG) rules.
 		return rules.Turn{Skipped: true}
 	}
 	s.guarding, s.aiBegun, s.aiPrepare, s.aiSteps = false, false, true, 0
+	s.attacksDrawn = 0 // combat.pas CreatureAction: attacksDrawn and directionTotal are cleared as the creature's turn begins, before its initiative is read
 	if c.Status == StDodging || c.Status == StFailedZeroG {
 		c.Status = StOkay
 	}

@@ -2,6 +2,7 @@ package rulesxxvc
 
 import (
 	"fmt"
+	"slices"
 
 	"gobox/rules"
 	"gobox/rules/xxvc"
@@ -30,11 +31,18 @@ func (r *Rules) Spawn(id rules.MonsterID, _ *rules.RNG) (rules.CharID, error) {
 		AttackBonus: int(m.AttackBonus), ArmorClass: [2]int{int(m.ArmorClass[0]), int(m.ArmorClass[1])},
 		Damage: m.Damage, BaseScale: int(m.BaseScale), Scale: int(m.Scale), Movement: int(m.Movement),
 		Unarmed: m.Damage, BaseArmorClass: int(m.ArmorClass[0]), BaseMovement: int(m.Movement)}
-	for i, ref := range m.Items {
+	c.Companion, c.NonPlayer, c.Morale = m.Companion, m.NonPlayer, int(m.Morale)
+	items := slices.Clone(m.Items)
+	if r.cloning {
+		slices.Reverse(items) // eclvm.pas EclLoadMonster copies the template's item list into each clone by prepending: reversed
+	}
+	r.cloning = true
+	for i, item := range items {
+		ref := item.ItemRef
 		if ref.Count == 0 { // a stat block's item comes with the template's quantity
 			ref.Count = r.tables.Items[ref.ID].Quantity
 		}
-		c.Items = append(c.Items, Carried{Slot: rules.ItemSlot(i + 1), Ref: ref})
+		c.Items = append(c.Items, Carried{Slot: rules.ItemSlot(i + 1), Ref: ref, Readied: item.Readied})
 	}
 	for a, v := range m.Scores {
 		c.Scores[a] = int(v)

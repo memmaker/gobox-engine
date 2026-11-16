@@ -110,6 +110,7 @@ type Rules struct {
 
 	// The session the engine keeps through typed kinds (session.go).
 	party       []rules.CharID // the party in marching order (JoinParty); the others in chars are the roster's or a fight's
+	cloning     bool           // a Spawn since NewGroup: the next one is a clone of the group's template (EclLoadMonster)
 	memberCount int32          // the party's count as the game record has it (Party[830]), not the list's length
 	acting      int            // the member the rules act for (ActFor), an index into party
 	clock       [clockUnits]int

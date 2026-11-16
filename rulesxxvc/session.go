@@ -182,7 +182,9 @@ func (r *Rules) resolveSession(a rules.Action) (o rules.Outcome, ok bool, err er
 		}
 		c.Order = int(a.Order)
 	case rules.NewGroup:
-		// No XXVc counterpart: BR rolls nothing per monster, each Spawn reads its record (EclLoadMonster).
+		// BR rolls nothing per monster, each Spawn reads its record (EclLoadMonster); the first of a group is the
+		// template, the later ones its copies (Spawn).
+		r.cloning = false
 	case rules.Toughen:
 		// No XXVc counterpart: BR has no Toughness rule; hit points stay as they are.
 	default:

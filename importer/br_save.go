@@ -218,7 +218,8 @@ func monster(t xxvc.Tables, record, items []byte) (xxvc.Monster, error) {
 		HP: int32(c.HP), BaseCombat: int32(c.BaseCombat), IconDimensions: int32(c.IconDimensions), AttackBonus: int32(c.AttackBonus),
 		ArmorClass: [2]int32{int32(c.BaseArmorClass), int32(c.ArmorClass[1])}, Damage: c.Unarmed,
 		BaseScale: int32(c.BaseScale), Scale: int32(c.Scale), Movement: int32(c.BaseMovement), Skills: map[rules.Skill]int32{},
-		Hostile: c.Side == rules.SideMonsters, XPAward: c.XPAward, Credits: c.Coins}
+		Hostile: c.Side == rules.SideMonsters, XPAward: c.XPAward, Credits: c.Coins,
+		Companion: c.Companion, NonPlayer: c.NonPlayer, Morale: int32(c.Morale)}
 	for a, v := range c.Scores {
 		m.Scores[a] = int32(v)
 	}
@@ -231,7 +232,7 @@ func monster(t xxvc.Tables, record, items []byte) (xxvc.Monster, error) {
 		m.Saves[i] = int32(v)
 	}
 	for _, it := range c.Items {
-		m.Items = append(m.Items, it.Ref)
+		m.Items = append(m.Items, xxvc.MonsterItem{ItemRef: it.Ref, Readied: it.Readied})
 	}
 	return m, nil
 }

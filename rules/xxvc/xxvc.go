@@ -137,7 +137,19 @@ type Monster struct {
 	Hostile        bool // C_Side.HOSTILE; else on the team's side
 	XPAward        int64
 	Credits        rules.Copper // creditTotal
-	Items          []rules.ItemRef
+	// Companion, NonPlayer and Morale are the record's isCompanion and npc byte (NON_PLAYER_FLAG, the low seven bits):
+	// CheckMorale tests a creature's morale only while isCompanion is set (combatai.pas CheckMorale).
+	Companion, NonPlayer bool
+	Morale               int32
+	Items                []MonsterItem
+}
+
+// MonsterItem is an item a monster record holds: EclLoadMonster copies the record's items with their flags, so what
+// the record has READIED is readied when the monster joins the fight (RecalcStats counts it before the AI's first
+// EquipWeaponAndArmor).
+type MonsterItem struct {
+	rules.ItemRef
+	Readied bool
 }
 
 func (Tables) RuleTables() {}

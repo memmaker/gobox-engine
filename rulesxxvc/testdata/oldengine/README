@@ -1,0 +1,36 @@
+Goldens of the OLD Buck Rogers 1 Go engine (buckrogers-go) for rulesxxvc and the shared engine's BR1 fight.
+
+Made from: repository buckrogers-go, branch golden/one-rng, head cf71f78 (on main bb085c9). The branch is NOT part
+of the landing: it patches the old engine so that every random draw comes from gobox's one generator
+(gobox/rules.RNG: Turbo Pascal's LCG, result = high word mod n). Draw sites patched (all of them; grep 'e.rng.\|e.rnd(\|tpRand' in buckrogers-go/rules): rules/onerng.go (oneRNG: IntN(n) =
+RNG.N(n), Float64 = state advance / 2^32; Engine.rng is *oneRNG, rules/rules.go), rules/cmap.go (tpRand is
+grules.RNG{State: block}, the dungeon arena's stream, :98 and clutter :272-352; the wilderness ground :460; the angle
+draw :514), combat.go:195/205 (d, rnd: initiative, skill rolls, to-hit, damage), combat.go:769, ai.go:622,
+effects.go:128/138/181, create.go:73, throw.go:242/244/306 (the other Float64 draw), spacefight.go:110.
+Instrumentation only (no rule change): rules/goldentrace.go (fight trace hooks), rules/monster.go loadMonsters (the
+body of opLoadMonster, for the dump), rules/combat.go sideBonus (toHit's bonus, factored out), rules/ai.go (a "turn"
+trace event), leadership's goldenAuto (the computer plays every member, as Quick does).
+
+Regenerate (from buckrogers-go on branch golden/one-rng; needs the originals under data/):
+  cd buckrogers-go && git switch golden/one-rng
+  mkdir -p /tmp/golden && BR_GOLDEN_DIR=/tmp/golden GOBOX_NOSOUND=1 go test ./rules -run 'TestGoldenArenas|TestGoldenPlacement|TestGoldenFights' -count=1
+  cp /tmp/golden/*.json <gobox-engine>/rulesxxvc/testdata/oldengine/   (groups.json is written by hand)
+  BR_GOLDEN_UNREADY=1 makes the monsters' items unreadied (the experiment that located the importer's gap).
+
+Files (each holds its inputs):
+  arenas.json     11 places (block, area kind byte, wilderness terrain, GEO map, party square and facing): the 25x50
+                  fight map (a tile byte a cell, hex) and the 16x16 map sides the old engine read.
+                  b16 (spaceport, kind 132) twice, 3D blocks 32/48/50/65/81, Mars (64, kind 168, terrain 8),
+                  Venus (80, kind 162, terrains 4, 1, 7). Seed 20240601.
+  placement.json  party of 1 or 2 (CHRDATA1, CHRDATA2) x groups (groups.json) x approach 0/15 x SetupMonster distance
+                  0/2 on 5 of those places: every unit's square, size and facing (Gone: no room).
+  fights.json     4 fights, everyone played by the computer: per round the dice's state, side bonuses, every
+                  unit's numbers (armour, to-hit, bonus, movement, attacks, dice), the order, each d20 against its
+                  number, each blow, each computer turn's end; then each monster's worth (exp, credits, items),
+                  what the end paid (experience each, credits, loot).
+Tests: engine/br1golden_test.go (arenas, map, placement), engine/br1goldenfight_test.go (fights, end).
+
+Known deviations of the old engine (the Pascal is right, rulesxxvc kept):
+  placement: Combat.Who returns the LAST unit on a square and the unit being placed is last, so a placement probe cannot
+    see a unit already there; a team's grid laid again for a second approach pass puts two units on one square. The
+    Pascal (cbtmap.pas BuildArenaArrays/ProbeDirection) sees them. 80 units of placement.json are placed so.

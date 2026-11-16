@@ -1,0 +1,7469 @@
+[
+ {
+  "name": "two-vs-41x2+32",
+  "place": "b16-5-6-n",
+  "members": 2,
+  "group": "41x2+32",
+  "seed": 20240601,
+  "approach": 0,
+  "dist": 0,
+  "rounds": 4,
+  "startState": 20240601,
+  "trace": [
+   {
+    "kind": "round",
+    "state": 20240601,
+    "tactics": [
+     1,
+     1
+    ],
+    "units": [
+     {
+      "id": 1,
+      "name": "FLAVIUS",
+      "side": 0,
+      "hp": 26,
+      "ac": 58,
+      "acRear": 52,
+      "hit": 44,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 27,
+      "y": 13,
+      "facing": 7,
+      "size": 1,
+      "init": 8,
+      "tie": 24
+     },
+     {
+      "id": 2,
+      "name": "Rook",
+      "side": 0,
+      "hp": 23,
+      "ac": 55,
+      "acRear": 52,
+      "hit": 41,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 28,
+      "y": 14,
+      "facing": 7,
+      "size": 1,
+      "init": 7,
+      "tie": 57
+     },
+     {
+      "id": 3,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 16,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 41,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 27,
+      "y": 12,
+      "facing": 3,
+      "size": 1,
+      "init": 9,
+      "tie": 30
+     },
+     {
+      "id": 4,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 16,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 41,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 26,
+      "y": 12,
+      "facing": 3,
+      "size": 1,
+      "init": 3,
+      "tie": 12
+     },
+     {
+      "id": 5,
+      "name": "TERRINE LEADER",
+      "side": 1,
+      "hp": 24,
+      "ac": 58,
+      "acRear": 54,
+      "hit": 43,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 26,
+      "y": 11,
+      "facing": 3,
+      "size": 1,
+      "init": 8,
+      "tie": 95
+     }
+    ],
+    "order": [
+     3,
+     5,
+     1,
+     2,
+     4
+    ]
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 1,
+    "roll": 5,
+    "need": 16
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 1,
+    "roll": 15,
+    "need": 16
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 1,
+    "hp": 26
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 1,
+    "x": 27,
+    "y": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 2,
+    "roll": 2,
+    "need": 11
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 2,
+    "roll": 15,
+    "need": 11,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 2,
+    "hit": true,
+    "dmg": 7,
+    "hp": 16
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 2,
+    "x": 26,
+    "y": 11
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 5,
+    "roll": 11,
+    "need": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 5,
+    "roll": 3,
+    "need": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 5,
+    "roll": 13,
+    "need": 13,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 5,
+    "hit": true,
+    "dmg": 3,
+    "hp": 21
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 5,
+    "roll": 4,
+    "need": 13
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 5,
+    "x": 27,
+    "y": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 4,
+    "roll": 20,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 4,
+    "hit": true,
+    "dmg": 4,
+    "hp": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 4,
+    "roll": 7,
+    "need": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 4,
+    "roll": 5,
+    "need": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 4,
+    "roll": 16,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 4,
+    "hit": true,
+    "dmg": 1,
+    "hp": 11
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 4,
+    "x": 28,
+    "y": 14
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 1,
+    "roll": 8,
+    "need": 16
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 1,
+    "roll": 3,
+    "need": 16
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 1,
+    "roll": 18,
+    "need": 16,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 1,
+    "hit": true,
+    "dmg": 2,
+    "hp": 24
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 1,
+    "x": 26,
+    "y": 12
+   },
+   {
+    "kind": "round",
+    "round": 1,
+    "state": 1932096586,
+    "tactics": [
+     1,
+     1
+    ],
+    "units": [
+     {
+      "id": 1,
+      "name": "FLAVIUS",
+      "side": 0,
+      "hp": 24,
+      "ac": 58,
+      "acRear": 52,
+      "hit": 45,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 27,
+      "y": 13,
+      "facing": 7,
+      "size": 1,
+      "init": 6,
+      "tie": 127
+     },
+     {
+      "id": 2,
+      "name": "Rook",
+      "side": 0,
+      "hp": 16,
+      "ac": 55,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 28,
+      "y": 14,
+      "facing": 7,
+      "size": 1,
+      "init": 3,
+      "tie": 124
+     },
+     {
+      "id": 3,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 16,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 27,
+      "y": 12,
+      "facing": 4,
+      "size": 1,
+      "init": 5,
+      "tie": 123
+     },
+     {
+      "id": 4,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 11,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 26,
+      "y": 12,
+      "facing": 3,
+      "size": 1,
+      "init": 9,
+      "tie": 32
+     },
+     {
+      "id": 5,
+      "name": "TERRINE LEADER",
+      "side": 1,
+      "hp": 21,
+      "ac": 58,
+      "acRear": 54,
+      "hit": 44,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 26,
+      "y": 11,
+      "facing": 3,
+      "size": 1,
+      "init": 8,
+      "tie": 104
+     }
+    ],
+    "order": [
+     4,
+     5,
+     1,
+     3,
+     2
+    ]
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 1,
+    "x": 16,
+    "y": 3,
+    "fled": true
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 2,
+    "x": 17,
+    "y": 1,
+    "fled": true
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "roll": 2,
+    "need": 9
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "roll": 19,
+    "need": 9,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "hit": true,
+    "dmg": 3,
+    "hp": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "roll": 2,
+    "need": 9
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "roll": 10,
+    "need": 9,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "hit": true,
+    "dmg": 3,
+    "hp": 10
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "x": 27,
+    "y": 13
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 1,
+    "x": 18,
+    "y": 2,
+    "fled": true
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "roll": 15,
+    "need": 18
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "roll": 3,
+    "need": 18
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "hp": 16
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 2,
+    "roll": 20,
+    "need": 18,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 2,
+    "hit": true,
+    "dmg": 5,
+    "hp": 11
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 2,
+    "roll": 17,
+    "need": 18
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 4,
+    "roll": 15,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 4,
+    "hit": true,
+    "dmg": 1,
+    "hp": 10
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 4,
+    "roll": 7,
+    "need": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 4,
+    "roll": 6,
+    "need": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 4,
+    "roll": 2,
+    "need": 12
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 4,
+    "x": 16,
+    "y": 10
+   },
+   {
+    "kind": "round",
+    "round": 2,
+    "state": 2976714108,
+    "tactics": [
+     1,
+     1
+    ],
+    "units": [
+     {
+      "id": 1,
+      "name": "FLAVIUS",
+      "side": 0,
+      "hp": 24,
+      "ac": 58,
+      "acRear": 52,
+      "hit": 45,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 27,
+      "y": 13,
+      "facing": 0,
+      "size": 1,
+      "init": 13,
+      "tie": 26
+     },
+     {
+      "id": 2,
+      "name": "Rook",
+      "side": 0,
+      "hp": 11,
+      "ac": 55,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 16,
+      "y": 10,
+      "facing": 0,
+      "size": 1,
+      "init": 5,
+      "tie": 34
+     },
+     {
+      "id": 3,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 10,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 18,
+      "y": 2,
+      "facing": 3,
+      "size": 1,
+      "init": 7,
+      "tie": 125
+     },
+     {
+      "id": 4,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 10,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 16,
+      "y": 3,
+      "facing": 4,
+      "size": 1,
+      "init": 2,
+      "tie": 37
+     },
+     {
+      "id": 5,
+      "name": "TERRINE LEADER",
+      "side": 1,
+      "hp": 21,
+      "ac": 58,
+      "acRear": 54,
+      "hit": 44,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 1,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       3,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 17,
+      "y": 1,
+      "facing": 0,
+      "size": 1,
+      "init": 11,
+      "tie": 91
+     }
+    ],
+    "order": [
+     1,
+     5,
+     3,
+     2,
+     4
+    ]
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "roll": 16,
+    "need": 9,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "hit": true,
+    "dmg": 3,
+    "hp": 7
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "roll": 8,
+    "need": 9
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "roll": 5,
+    "need": 9
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "roll": 6,
+    "need": 9
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "x": 21,
+    "y": 7
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 2,
+    "x": 16
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "x": 15
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 4,
+    "roll": 3,
+    "need": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 4,
+    "roll": 13,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 4,
+    "hit": true,
+    "dmg": 4,
+    "hp": 6
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 4,
+    "roll": 12,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 4,
+    "hit": true,
+    "dmg": 4,
+    "hp": 2
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 4,
+    "roll": 17,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 4,
+    "hit": true,
+    "dmg": 3,
+    "down": true
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 4,
+    "x": 16,
+    "y": 10
+   },
+   {
+    "kind": "round",
+    "round": 3,
+    "state": 3068287858,
+    "tactics": [
+     0,
+     0
+    ],
+    "units": [
+     {
+      "id": 1,
+      "name": "FLAVIUS",
+      "side": 0,
+      "hp": 24,
+      "ac": 58,
+      "acRear": 52,
+      "hit": 45,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 21,
+      "y": 7,
+      "facing": 7,
+      "size": 1,
+      "init": 7,
+      "tie": 113
+     },
+     {
+      "id": 2,
+      "name": "Rook",
+      "side": 0,
+      "hp": 11,
+      "ac": 55,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 16,
+      "y": 10,
+      "facing": 0,
+      "size": 1,
+      "init": 3,
+      "tie": 13
+     },
+     {
+      "id": 3,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 7,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 15,
+      "y": 0,
+      "facing": 7,
+      "size": 1,
+      "init": 7,
+      "tie": 36
+     },
+     {
+      "id": 4,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 0,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 16,
+      "y": 3,
+      "facing": 4,
+      "size": 0,
+      "init": 0,
+      "tie": 37
+     },
+     {
+      "id": 5,
+      "name": "TERRINE LEADER",
+      "side": 1,
+      "hp": 21,
+      "ac": 58,
+      "acRear": 54,
+      "hit": 44,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 16,
+      "y": 0,
+      "facing": 7,
+      "size": 1,
+      "init": 0,
+      "tie": 91
+     }
+    ],
+    "order": [
+     1,
+     3,
+     2,
+     5,
+     4
+    ]
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "roll": 20,
+    "need": 10,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "hit": true,
+    "dmg": 4,
+    "hp": 3
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "roll": 13,
+    "need": 10,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "hit": true,
+    "dmg": 2,
+    "hp": 1
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "roll": 13,
+    "need": 10,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "hit": true,
+    "dmg": 2,
+    "down": true
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 5,
+    "roll": 16,
+    "need": 14,
+    "hit": true
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 5,
+    "x": 17,
+    "y": 1
+   }
+  ],
+  "members_end": [
+   {
+    "name": "FLAVIUS",
+    "expGained": 75,
+    "money": 0,
+    "hp": 24,
+    "status": 1
+   },
+   {
+    "name": "Rook",
+    "expGained": 75,
+    "money": 0,
+    "hp": 11,
+    "status": 1
+   }
+  ],
+  "credits": 80,
+  "expEach": 75,
+  "loot": [
+   {
+    "type": 9,
+    "name": "Laser Pistol (244)",
+    "count": 244
+   },
+   {
+    "type": 20,
+    "name": "Spacesuit ",
+    "count": 0
+   },
+   {
+    "type": 20,
+    "name": "Spacesuit ",
+    "count": 0
+   },
+   {
+    "type": 9,
+    "name": "Laser Pistol (244)",
+    "count": 244
+   }
+  ],
+  "monsters": [
+   {
+    "name": "TERRINE WARRIOR",
+    "expGained": 0,
+    "money": 0,
+    "hp": 0,
+    "status": 4
+   },
+   {
+    "name": "TERRINE WARRIOR",
+    "expGained": 0,
+    "money": 0,
+    "hp": 0,
+    "status": 4
+   },
+   {
+    "name": "TERRINE LEADER",
+    "expGained": 0,
+    "money": 0,
+    "hp": 21,
+    "status": 6
+   }
+  ],
+  "rewards": [
+   {
+    "unit": 3,
+    "name": "TERRINE WARRIOR",
+    "exp": 75,
+    "credits": 40,
+    "items": [
+     {
+      "type": 9,
+      "name": "Laser Pistol (250)",
+      "count": 250
+     },
+     {
+      "type": 20,
+      "name": "Spacesuit ",
+      "count": 0
+     }
+    ]
+   },
+   {
+    "unit": 4,
+    "name": "TERRINE WARRIOR",
+    "exp": 75,
+    "credits": 40,
+    "items": [
+     {
+      "type": 20,
+      "name": "Spacesuit ",
+      "count": 0
+     },
+     {
+      "type": 9,
+      "name": "Laser Pistol (250)",
+      "count": 250
+     }
+    ]
+   },
+   {
+    "unit": 5,
+    "name": "TERRINE LEADER",
+    "exp": 75,
+    "credits": 57,
+    "items": [
+     {
+      "type": 9,
+      "name": "Laser Pistol (250)",
+      "count": 250
+     },
+     {
+      "type": 36,
+      "name": "2 Dazzle Grenades",
+      "count": 2
+     },
+     {
+      "type": 21,
+      "name": "Smartsuit ",
+      "count": 0
+     }
+    ]
+   }
+  ],
+  "over": "party won",
+  "inputs": {
+   "dice": "gobox rules.RNG, state 20240601",
+   "difficulty": "2",
+   "place": "b16-5-6-n"
+  }
+ },
+ {
+  "name": "two-vs-41x2+32-seed7",
+  "place": "b16-5-6-n",
+  "members": 2,
+  "group": "41x2+32",
+  "seed": 7,
+  "approach": 0,
+  "dist": 0,
+  "rounds": 5,
+  "startState": 7,
+  "trace": [
+   {
+    "kind": "round",
+    "state": 7,
+    "tactics": [
+     0,
+     1
+    ],
+    "units": [
+     {
+      "id": 1,
+      "name": "FLAVIUS",
+      "side": 0,
+      "hp": 26,
+      "ac": 58,
+      "acRear": 52,
+      "hit": 44,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 27,
+      "y": 13,
+      "facing": 7,
+      "size": 1,
+      "init": 10,
+      "tie": 7
+     },
+     {
+      "id": 2,
+      "name": "Rook",
+      "side": 0,
+      "hp": 23,
+      "ac": 55,
+      "acRear": 52,
+      "hit": 41,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 28,
+      "y": 14,
+      "facing": 7,
+      "size": 1,
+      "init": 8,
+      "tie": 95
+     },
+     {
+      "id": 3,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 16,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 41,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 27,
+      "y": 12,
+      "facing": 3,
+      "size": 1,
+      "init": 10,
+      "tie": 14
+     },
+     {
+      "id": 4,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 16,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 41,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 26,
+      "y": 12,
+      "facing": 3,
+      "size": 1,
+      "init": 5,
+      "tie": 10
+     },
+     {
+      "id": 5,
+      "name": "TERRINE LEADER",
+      "side": 1,
+      "hp": 24,
+      "ac": 58,
+      "acRear": 54,
+      "hit": 43,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 26,
+      "y": 11,
+      "facing": 3,
+      "size": 1,
+      "init": 8,
+      "tie": 89
+     }
+    ],
+    "order": [
+     3,
+     1,
+     2,
+     5,
+     4
+    ]
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "roll": 15,
+    "need": 13,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "hit": true,
+    "dmg": 1,
+    "hp": 22
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "roll": 14,
+    "need": 13,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "hit": true,
+    "dmg": 3,
+    "hp": 19
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "roll": 13,
+    "need": 13,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "hit": true,
+    "dmg": 3,
+    "hp": 16
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "x": 27,
+    "y": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 5,
+    "roll": 9,
+    "need": 14
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 5,
+    "roll": 19,
+    "need": 14,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 5,
+    "hit": true,
+    "dmg": 1,
+    "hp": 23
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 5,
+    "roll": 17,
+    "need": 14,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 5,
+    "hit": true,
+    "dmg": 1,
+    "hp": 22
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 5,
+    "x": 27,
+    "y": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "roll": 2,
+    "need": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "roll": 17,
+    "need": 13,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "hit": true,
+    "dmg": 1,
+    "hp": 15
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "roll": 5,
+    "need": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "roll": 13,
+    "need": 13,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "hit": true,
+    "dmg": 1,
+    "hp": 14
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "x": 28,
+    "y": 14
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "x": 26,
+    "y": 11
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 2,
+    "roll": 6,
+    "need": 9
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 2,
+    "roll": 3,
+    "need": 9
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 2,
+    "roll": 12,
+    "need": 9,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 2,
+    "hit": true,
+    "dmg": 7,
+    "hp": 6
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 2,
+    "x": 26,
+    "y": 12
+   },
+   {
+    "kind": "round",
+    "round": 1,
+    "state": 1957623037,
+    "tactics": [
+     0,
+     1
+    ],
+    "units": [
+     {
+      "id": 1,
+      "name": "FLAVIUS",
+      "side": 0,
+      "hp": 23,
+      "ac": 58,
+      "acRear": 52,
+      "hit": 44,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 27,
+      "y": 13,
+      "facing": 0,
+      "size": 1,
+      "init": 10,
+      "tie": 74
+     },
+     {
+      "id": 2,
+      "name": "Rook",
+      "side": 0,
+      "hp": 6,
+      "ac": 51,
+      "acRear": 48,
+      "hit": 41,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 28,
+      "y": 14,
+      "facing": 7,
+      "size": 1,
+      "init": 6,
+      "tie": 43
+     },
+     {
+      "id": 3,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 14,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 27,
+      "y": 12,
+      "facing": 3,
+      "size": 1,
+      "init": 5,
+      "tie": 120
+     },
+     {
+      "id": 4,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 16,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 26,
+      "y": 12,
+      "facing": 3,
+      "size": 1,
+      "init": 9,
+      "tie": 46
+     },
+     {
+      "id": 5,
+      "name": "TERRINE LEADER",
+      "side": 1,
+      "hp": 22,
+      "ac": 58,
+      "acRear": 54,
+      "hit": 44,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 1,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       3,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 26,
+      "y": 11,
+      "facing": 3,
+      "size": 1,
+      "init": 12,
+      "tie": 84
+     }
+    ],
+    "order": [
+     5,
+     1,
+     4,
+     2,
+     3
+    ]
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 1,
+    "x": 17,
+    "y": 1,
+    "fled": true
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "roll": 2,
+    "need": 10
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "roll": 18,
+    "need": 10,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "hit": true,
+    "dmg": 1,
+    "hp": 15
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "roll": 9,
+    "need": 10
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "roll": 10,
+    "need": 10,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "hit": true,
+    "dmg": 1,
+    "hp": 14
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "x": 27,
+    "y": 13
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 2,
+    "x": 17,
+    "y": 2,
+    "fled": true
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "roll": 4,
+    "need": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "roll": 14,
+    "need": 13,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "hit": true,
+    "dmg": 2,
+    "hp": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "roll": 7,
+    "need": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "roll": 9,
+    "need": 13
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "x": 28,
+    "y": 14
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "x": 18,
+    "y": 2,
+    "fled": true
+   },
+   {
+    "kind": "round",
+    "round": 2,
+    "state": 933588253,
+    "tactics": [
+     1,
+     0
+    ],
+    "units": [
+     {
+      "id": 1,
+      "name": "FLAVIUS",
+      "side": 0,
+      "hp": 23,
+      "ac": 58,
+      "acRear": 52,
+      "hit": 44,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 27,
+      "y": 13,
+      "facing": 7,
+      "size": 1,
+      "init": 10,
+      "tie": 95
+     },
+     {
+      "id": 2,
+      "name": "Rook",
+      "side": 0,
+      "hp": 6,
+      "ac": 55,
+      "acRear": 52,
+      "hit": 41,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 28,
+      "y": 14,
+      "facing": 0,
+      "size": 1,
+      "init": 5,
+      "tie": 102
+     },
+     {
+      "id": 3,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 12,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 18,
+      "y": 2,
+      "facing": 0,
+      "size": 1,
+      "init": 4,
+      "tie": 8
+     },
+     {
+      "id": 4,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 14,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 17,
+      "y": 2,
+      "facing": 0,
+      "size": 1,
+      "init": 7,
+      "tie": 36
+     },
+     {
+      "id": 5,
+      "name": "TERRINE LEADER",
+      "side": 1,
+      "hp": 22,
+      "ac": 58,
+      "acRear": 54,
+      "hit": 44,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 17,
+      "y": 1,
+      "facing": 0,
+      "size": 1,
+      "init": 8,
+      "tie": 48
+     }
+    ],
+    "order": [
+     1,
+     5,
+     4,
+     2,
+     3
+    ]
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 1,
+    "roll": 17,
+    "need": 17,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 1,
+    "hit": true,
+    "dmg": 4,
+    "hp": 19
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 1,
+    "roll": 5,
+    "need": 17
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 1,
+    "roll": 4,
+    "need": 17
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 1,
+    "roll": 5,
+    "need": 17
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 1,
+    "roll": 19,
+    "need": 17,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 1,
+    "hit": true,
+    "dmg": 4,
+    "hp": 15
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 1,
+    "roll": 7,
+    "need": 17
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 1,
+    "roll": 16,
+    "need": 15,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 1,
+    "hit": true,
+    "dmg": 8,
+    "hp": 7
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 1,
+    "roll": 16,
+    "need": 15,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 1,
+    "hit": true,
+    "dmg": 2,
+    "hp": 5
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "roll": 13,
+    "need": 9,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "hit": true,
+    "dmg": 4,
+    "hp": 10
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "roll": 8,
+    "need": 9
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "roll": 11,
+    "need": 9,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "hit": true,
+    "dmg": 2,
+    "hp": 8
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "roll": 7,
+    "need": 9
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "x": 21,
+    "y": 7
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "roll": 5,
+    "need": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "roll": 18,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "hit": true,
+    "dmg": 2,
+    "hp": 10
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "roll": 19,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "hit": true,
+    "dmg": 3,
+    "hp": 7
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "roll": 10,
+    "need": 12
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "x": 22,
+    "y": 7
+   },
+   {
+    "kind": "round",
+    "round": 3,
+    "state": 269336097,
+    "tactics": [
+     1,
+     1
+    ],
+    "units": [
+     {
+      "id": 1,
+      "name": "FLAVIUS",
+      "side": 0,
+      "hp": 5,
+      "ac": 58,
+      "acRear": 52,
+      "hit": 45,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 21,
+      "y": 7,
+      "facing": 7,
+      "size": 1,
+      "init": 10,
+      "tie": 122
+     },
+     {
+      "id": 2,
+      "name": "Rook",
+      "side": 0,
+      "hp": 6,
+      "ac": 55,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 22,
+      "y": 7,
+      "facing": 7,
+      "size": 1,
+      "init": 8,
+      "tie": 31
+     },
+     {
+      "id": 3,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 7,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 41,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 18,
+      "y": 2,
+      "facing": 3,
+      "size": 1,
+      "init": 7,
+      "tie": 33
+     },
+     {
+      "id": 4,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 8,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 41,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 17,
+      "y": 2,
+      "facing": 3,
+      "size": 1,
+      "init": 3,
+      "tie": 38
+     },
+     {
+      "id": 5,
+      "name": "TERRINE LEADER",
+      "side": 1,
+      "hp": 22,
+      "ac": 58,
+      "acRear": 54,
+      "hit": 43,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 17,
+      "y": 1,
+      "facing": 3,
+      "size": 1,
+      "init": 4,
+      "tie": 89
+     }
+    ],
+    "order": [
+     1,
+     2,
+     3,
+     5,
+     4
+    ]
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "roll": 18,
+    "need": 9,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "hit": true,
+    "dmg": 4,
+    "hp": 4
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "roll": 17,
+    "need": 9,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "hit": true,
+    "dmg": 3,
+    "hp": 1
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "roll": 19,
+    "need": 9,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "hit": true,
+    "dmg": 1,
+    "down": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "hp": 7
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "x": 21,
+    "y": 7
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "roll": 8,
+    "need": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "roll": 16,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "hit": true,
+    "dmg": 3,
+    "hp": 4
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "roll": 4,
+    "need": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "roll": 13,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "hit": true,
+    "dmg": 4,
+    "down": true
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 3,
+    "x": 22,
+    "y": 7
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 1,
+    "x": 16
+   },
+   {
+    "kind": "round",
+    "round": 4,
+    "state": 542469261,
+    "tactics": [
+     1,
+     0
+    ],
+    "units": [
+     {
+      "id": 1,
+      "name": "FLAVIUS",
+      "side": 0,
+      "hp": 5,
+      "ac": 58,
+      "acRear": 52,
+      "hit": 45,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 21,
+      "y": 7,
+      "facing": 7,
+      "size": 1,
+      "init": 7,
+      "tie": 115
+     },
+     {
+      "id": 2,
+      "name": "Rook",
+      "side": 0,
+      "hp": 6,
+      "ac": 55,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 22,
+      "y": 7,
+      "facing": 7,
+      "size": 1,
+      "init": 7,
+      "tie": 23
+     },
+     {
+      "id": 3,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 0,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 18,
+      "y": 2,
+      "facing": 3,
+      "size": 0,
+      "init": 0,
+      "tie": 33
+     },
+     {
+      "id": 4,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 0,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 17,
+      "y": 2,
+      "facing": 3,
+      "size": 0,
+      "init": 0,
+      "tie": 38
+     },
+     {
+      "id": 5,
+      "name": "TERRINE LEADER",
+      "side": 1,
+      "hp": 22,
+      "ac": 58,
+      "acRear": 54,
+      "hit": 44,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 16,
+      "y": 0,
+      "facing": 7,
+      "size": 1,
+      "init": 7,
+      "tie": 26
+     }
+    ],
+    "order": [
+     1,
+     5,
+     2,
+     4,
+     3
+    ]
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 5,
+    "roll": 3,
+    "need": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 5,
+    "roll": 5,
+    "need": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 5,
+    "roll": 6,
+    "need": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 5,
+    "roll": 6,
+    "need": 13
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 5,
+    "hp": 22
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 5,
+    "x": 19,
+    "y": 5
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 1,
+    "x": 16
+   }
+  ],
+  "members_end": [
+   {
+    "name": "FLAVIUS",
+    "expGained": 75,
+    "money": 0,
+    "hp": 5,
+    "status": 1
+   },
+   {
+    "name": "Rook",
+    "expGained": 75,
+    "money": 0,
+    "hp": 6,
+    "status": 1
+   }
+  ],
+  "credits": 80,
+  "expEach": 75,
+  "loot": [
+   {
+    "type": 9,
+    "name": "Laser Pistol (244)",
+    "count": 244
+   },
+   {
+    "type": 20,
+    "name": "Spacesuit ",
+    "count": 0
+   },
+   {
+    "type": 20,
+    "name": "Spacesuit ",
+    "count": 0
+   },
+   {
+    "type": 9,
+    "name": "Laser Pistol (244)",
+    "count": 244
+   }
+  ],
+  "monsters": [
+   {
+    "name": "TERRINE WARRIOR",
+    "expGained": 0,
+    "money": 0,
+    "hp": 0,
+    "status": 5
+   },
+   {
+    "name": "TERRINE WARRIOR",
+    "expGained": 0,
+    "money": 0,
+    "hp": 0,
+    "status": 5
+   },
+   {
+    "name": "TERRINE LEADER",
+    "expGained": 0,
+    "money": 0,
+    "hp": 22,
+    "status": 6
+   }
+  ],
+  "rewards": [
+   {
+    "unit": 3,
+    "name": "TERRINE WARRIOR",
+    "exp": 75,
+    "credits": 40,
+    "items": [
+     {
+      "type": 9,
+      "name": "Laser Pistol (250)",
+      "count": 250
+     },
+     {
+      "type": 20,
+      "name": "Spacesuit ",
+      "count": 0
+     }
+    ]
+   },
+   {
+    "unit": 4,
+    "name": "TERRINE WARRIOR",
+    "exp": 75,
+    "credits": 40,
+    "items": [
+     {
+      "type": 20,
+      "name": "Spacesuit ",
+      "count": 0
+     },
+     {
+      "type": 9,
+      "name": "Laser Pistol (250)",
+      "count": 250
+     }
+    ]
+   },
+   {
+    "unit": 5,
+    "name": "TERRINE LEADER",
+    "exp": 75,
+    "credits": 57,
+    "items": [
+     {
+      "type": 9,
+      "name": "Laser Pistol (250)",
+      "count": 250
+     },
+     {
+      "type": 36,
+      "name": "2 Dazzle Grenades",
+      "count": 2
+     },
+     {
+      "type": 21,
+      "name": "Smartsuit ",
+      "count": 0
+     }
+    ]
+   }
+  ],
+  "over": "party won",
+  "inputs": {
+   "dice": "gobox rules.RNG, state 7",
+   "difficulty": "2",
+   "place": "b16-5-6-n"
+  }
+ },
+ {
+  "name": "one-vs-41x1",
+  "place": "b16-8-8-e",
+  "members": 1,
+  "group": "41x1",
+  "seed": 20240601,
+  "approach": 0,
+  "dist": 2,
+  "rounds": 2,
+  "startState": 20240601,
+  "trace": [
+   {
+    "kind": "round",
+    "state": 20240601,
+    "tactics": [
+     1,
+     0
+    ],
+    "units": [
+     {
+      "id": 1,
+      "name": "FLAVIUS",
+      "side": 0,
+      "hp": 26,
+      "ac": 58,
+      "acRear": 52,
+      "hit": 44,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 26,
+      "y": 12,
+      "facing": 2,
+      "size": 1,
+      "init": 8,
+      "tie": 78
+     },
+     {
+      "id": 2,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 16,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 41,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 40,
+      "y": 13,
+      "facing": 6,
+      "size": 1,
+      "init": 5,
+      "tie": 24
+     }
+    ],
+    "order": [
+     1,
+     2
+    ]
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 2,
+    "roll": 5,
+    "need": 9
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 2,
+    "roll": 12,
+    "need": 9,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 2,
+    "hit": true,
+    "dmg": 3,
+    "hp": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 2,
+    "roll": 16,
+    "need": 9,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 2,
+    "hit": true,
+    "dmg": 3,
+    "hp": 10
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 2,
+    "roll": 15,
+    "need": 9,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 2,
+    "hit": true,
+    "dmg": 3,
+    "hp": 7
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 2,
+    "x": 33,
+    "y": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 1,
+    "roll": 15,
+    "need": 17
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 1,
+    "roll": 19,
+    "need": 17,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 1,
+    "hit": true,
+    "dmg": 1,
+    "hp": 25
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 1,
+    "roll": 6,
+    "need": 17
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 1,
+    "x": 40,
+    "y": 13
+   },
+   {
+    "kind": "round",
+    "round": 1,
+    "state": 2067342176,
+    "tactics": [
+     1,
+     0
+    ],
+    "units": [
+     {
+      "id": 1,
+      "name": "FLAVIUS",
+      "side": 0,
+      "hp": 25,
+      "ac": 58,
+      "acRear": 52,
+      "hit": 45,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 33,
+      "y": 12,
+      "facing": 2,
+      "size": 1,
+      "init": 5,
+      "tie": 48
+     },
+     {
+      "id": 2,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 7,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 41,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 40,
+      "y": 13,
+      "facing": 6,
+      "size": 1,
+      "init": 6,
+      "tie": 6
+     }
+    ],
+    "order": [
+     2,
+     1
+    ]
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 1,
+    "x": 49,
+    "y": 15
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 2,
+    "roll": 14,
+    "need": 11,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 2,
+    "hit": true,
+    "dmg": 4,
+    "hp": 3
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 2,
+    "roll": 9,
+    "need": 11
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 2,
+    "roll": 2,
+    "need": 11
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 2,
+    "roll": 16,
+    "need": 11,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 2,
+    "hit": true,
+    "dmg": 4,
+    "down": true
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 2,
+    "x": 43,
+    "y": 11
+   }
+  ],
+  "members_end": [
+   {
+    "name": "FLAVIUS",
+    "expGained": 75,
+    "money": 0,
+    "hp": 25,
+    "status": 1
+   }
+  ],
+  "credits": 40,
+  "expEach": 75,
+  "loot": [
+   {
+    "type": 20,
+    "name": "Spacesuit ",
+    "count": 0
+   },
+   {
+    "type": 9,
+    "name": "Laser Pistol (247)",
+    "count": 247
+   }
+  ],
+  "monsters": [
+   {
+    "name": "TERRINE WARRIOR",
+    "expGained": 0,
+    "money": 0,
+    "hp": 0,
+    "status": 4
+   }
+  ],
+  "rewards": [
+   {
+    "unit": 2,
+    "name": "TERRINE WARRIOR",
+    "exp": 75,
+    "credits": 40,
+    "items": [
+     {
+      "type": 9,
+      "name": "Laser Pistol (250)",
+      "count": 250
+     },
+     {
+      "type": 20,
+      "name": "Spacesuit ",
+      "count": 0
+     }
+    ]
+   }
+  ],
+  "over": "party won",
+  "inputs": {
+   "dice": "gobox rules.RNG, state 20240601",
+   "difficulty": "2",
+   "place": "b16-8-8-e"
+  }
+ },
+ {
+  "name": "two-vs-41x4+32+39x3",
+  "place": "b16-5-6-n",
+  "members": 2,
+  "group": "41x4+32+39x3",
+  "seed": 99,
+  "approach": 0,
+  "dist": 0,
+  "rounds": 4,
+  "startState": 2889506934,
+  "trace": [
+   {
+    "kind": "round",
+    "state": 2889506934,
+    "tactics": [
+     1,
+     1
+    ],
+    "units": [
+     {
+      "id": 1,
+      "name": "FLAVIUS",
+      "side": 0,
+      "hp": 26,
+      "ac": 58,
+      "acRear": 52,
+      "hit": 44,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 27,
+      "y": 13,
+      "facing": 7,
+      "size": 1,
+      "init": 7,
+      "tie": 28
+     },
+     {
+      "id": 2,
+      "name": "Rook",
+      "side": 0,
+      "hp": 23,
+      "ac": 55,
+      "acRear": 52,
+      "hit": 41,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 28,
+      "y": 13,
+      "facing": 7,
+      "size": 1,
+      "init": 2,
+      "tie": 85
+     },
+     {
+      "id": 3,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 16,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 41,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 27,
+      "y": 12,
+      "facing": 3,
+      "size": 1,
+      "init": 7,
+      "tie": 81
+     },
+     {
+      "id": 4,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 16,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 41,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 26,
+      "y": 12,
+      "facing": 3,
+      "size": 1,
+      "init": 6,
+      "tie": 115
+     },
+     {
+      "id": 5,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 16,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 41,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 28,
+      "y": 12,
+      "facing": 3,
+      "size": 1,
+      "init": 7,
+      "tie": 65
+     },
+     {
+      "id": 6,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 16,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 41,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 26,
+      "y": 11,
+      "facing": 3,
+      "size": 1,
+      "init": 4,
+      "tie": 78
+     },
+     {
+      "id": 7,
+      "name": "TERRINE LEADER",
+      "side": 1,
+      "hp": 24,
+      "ac": 58,
+      "acRear": 54,
+      "hit": 43,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 25,
+      "y": 11,
+      "facing": 3,
+      "size": 1,
+      "init": 12,
+      "tie": 69
+     },
+     {
+      "id": 8,
+      "name": "NEO WARRIOR",
+      "side": 0,
+      "hp": 14,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 41,
+      "bonus": 0,
+      "move": 24,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 26,
+      "y": 13,
+      "facing": 7,
+      "size": 1,
+      "init": 10,
+      "tie": 45
+     },
+     {
+      "id": 9,
+      "name": "NEO WARRIOR",
+      "side": 0,
+      "hp": 14,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 41,
+      "bonus": 0,
+      "move": 24,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 28,
+      "y": 14,
+      "facing": 7,
+      "size": 1,
+      "init": 4,
+      "tie": 46
+     },
+     {
+      "id": 10,
+      "name": "NEO WARRIOR",
+      "side": 0,
+      "hp": 14,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 41,
+      "bonus": 0,
+      "move": 24,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 29,
+      "y": 14,
+      "facing": 7,
+      "size": 1,
+      "init": 11,
+      "tie": 21
+     }
+    ],
+    "order": [
+     7,
+     10,
+     8,
+     3,
+     5,
+     1,
+     4,
+     6,
+     9,
+     2
+    ]
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 7,
+    "tgt": 1,
+    "roll": 10,
+    "need": 14
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 7,
+    "tgt": 1,
+    "roll": 5,
+    "need": 14
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 7,
+    "tgt": 1,
+    "roll": 5,
+    "need": 14
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 7,
+    "tgt": 1,
+    "hp": 26
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 7,
+    "tgt": 1,
+    "x": 25,
+    "y": 11
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 10,
+    "tgt": 5,
+    "roll": 9,
+    "need": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 10,
+    "tgt": 5,
+    "roll": 8,
+    "need": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 10,
+    "tgt": 5,
+    "roll": 13,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 10,
+    "tgt": 5,
+    "hit": true,
+    "dmg": 3,
+    "hp": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 10,
+    "tgt": 5,
+    "roll": 8,
+    "need": 12
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 10,
+    "tgt": 5,
+    "x": 29,
+    "y": 14
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 8,
+    "tgt": 7,
+    "roll": 15,
+    "need": 16
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 8,
+    "tgt": 7,
+    "roll": 10,
+    "need": 16
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 8,
+    "tgt": 7,
+    "roll": 8,
+    "need": 16
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 8,
+    "tgt": 7,
+    "hp": 24
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 8,
+    "tgt": 7,
+    "x": 26,
+    "y": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "roll": 10,
+    "need": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "roll": 12,
+    "need": 13
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "hp": 23
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "x": 27,
+    "y": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 10,
+    "roll": 12,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 10,
+    "hit": true,
+    "dmg": 3,
+    "hp": 11
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 10,
+    "roll": 16,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 10,
+    "hit": true,
+    "dmg": 8,
+    "hp": 3
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 10,
+    "roll": 6,
+    "need": 12
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 10,
+    "x": 28,
+    "y": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 7,
+    "roll": 5,
+    "need": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 7,
+    "roll": 17,
+    "need": 13,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 7,
+    "hit": true,
+    "dmg": 2,
+    "hp": 22
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 7,
+    "roll": 14,
+    "need": 13,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 7,
+    "hit": true,
+    "dmg": 1,
+    "hp": 21
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 7,
+    "roll": 10,
+    "need": 13
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 7,
+    "x": 27,
+    "y": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 8,
+    "roll": 18,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 8,
+    "hit": true,
+    "dmg": 8,
+    "hp": 6
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 8,
+    "roll": 19,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 8,
+    "hit": true,
+    "dmg": 7,
+    "down": true
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 2,
+    "roll": 17,
+    "need": 13,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 2,
+    "hit": true,
+    "dmg": 6,
+    "hp": 17
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 2,
+    "x": 26,
+    "y": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 6,
+    "tgt": 10,
+    "roll": 15,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 6,
+    "tgt": 10,
+    "hit": true,
+    "dmg": 7,
+    "down": true
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 6,
+    "tgt": 2,
+    "roll": 12,
+    "need": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 6,
+    "tgt": 2,
+    "roll": 10,
+    "need": 13
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 6,
+    "tgt": 2,
+    "hp": 17
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 6,
+    "tgt": 2,
+    "x": 26,
+    "y": 11
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 7,
+    "roll": 6,
+    "need": 16
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 7,
+    "roll": 9,
+    "need": 16
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 7,
+    "roll": 16,
+    "need": 16,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 7,
+    "hit": true,
+    "dmg": 3,
+    "hp": 18
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 7,
+    "roll": 3,
+    "need": 16
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 7,
+    "x": 28,
+    "y": 14
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 5,
+    "roll": 13,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 5,
+    "hit": true,
+    "dmg": 1,
+    "hp": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 5,
+    "roll": 9,
+    "need": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 5,
+    "roll": 11,
+    "need": 12
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 5,
+    "x": 28,
+    "y": 13
+   },
+   {
+    "kind": "round",
+    "round": 1,
+    "state": 833020167,
+    "tactics": [
+     1,
+     1
+    ],
+    "units": [
+     {
+      "id": 1,
+      "name": "FLAVIUS",
+      "side": 0,
+      "hp": 26,
+      "ac": 58,
+      "acRear": 52,
+      "hit": 45,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 27,
+      "y": 13,
+      "facing": 7,
+      "size": 1,
+      "init": 11,
+      "tie": 42
+     },
+     {
+      "id": 2,
+      "name": "Rook",
+      "side": 0,
+      "hp": 17,
+      "ac": 55,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 28,
+      "y": 13,
+      "facing": 0,
+      "size": 1,
+      "init": 2,
+      "tie": 119
+     },
+     {
+      "id": 3,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 16,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 27,
+      "y": 12,
+      "facing": 3,
+      "size": 1,
+      "init": 6,
+      "tie": 68
+     },
+     {
+      "id": 4,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 16,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 26,
+      "y": 12,
+      "facing": 3,
+      "size": 1,
+      "init": 2,
+      "tie": 52
+     },
+     {
+      "id": 5,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 12,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 28,
+      "y": 12,
+      "facing": 4,
+      "size": 1,
+      "init": 6,
+      "tie": 109
+     },
+     {
+      "id": 6,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 16,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 26,
+      "y": 11,
+      "facing": 3,
+      "size": 1,
+      "init": 4,
+      "tie": 118
+     },
+     {
+      "id": 7,
+      "name": "TERRINE LEADER",
+      "side": 1,
+      "hp": 18,
+      "ac": 58,
+      "acRear": 54,
+      "hit": 44,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 25,
+      "y": 11,
+      "facing": 3,
+      "size": 1,
+      "init": 6,
+      "tie": 118
+     },
+     {
+      "id": 8,
+      "name": "NEO WARRIOR",
+      "side": 0,
+      "hp": 0,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 24,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 26,
+      "y": 13,
+      "facing": 0,
+      "size": 0,
+      "init": 0,
+      "tie": 45
+     },
+     {
+      "id": 9,
+      "name": "NEO WARRIOR",
+      "side": 0,
+      "hp": 14,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 24,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 28,
+      "y": 14,
+      "facing": 7,
+      "size": 1,
+      "init": 8,
+      "tie": 99
+     },
+     {
+      "id": 10,
+      "name": "NEO WARRIOR",
+      "side": 0,
+      "hp": 0,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 24,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 29,
+      "y": 14,
+      "facing": 0,
+      "size": 0,
+      "init": 0,
+      "tie": 21
+     }
+    ],
+    "order": [
+     1,
+     9,
+     7,
+     5,
+     3,
+     6,
+     2,
+     4,
+     8,
+     10
+    ]
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 7,
+    "roll": 4,
+    "need": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 7,
+    "roll": 2,
+    "need": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 7,
+    "roll": 18,
+    "need": 13,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 7,
+    "hit": true,
+    "dmg": 1,
+    "hp": 17
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 7,
+    "roll": 14,
+    "need": 13,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 7,
+    "hit": true,
+    "dmg": 2,
+    "hp": 15
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 7,
+    "x": 27,
+    "y": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 7,
+    "roll": 15,
+    "need": 16
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 7,
+    "roll": 10,
+    "need": 16
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 7,
+    "roll": 13,
+    "need": 16
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 7,
+    "roll": 16,
+    "need": 16,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 7,
+    "hit": true,
+    "dmg": 3,
+    "hp": 12
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 7,
+    "x": 28,
+    "y": 14
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 7,
+    "tgt": 1,
+    "x": 16,
+    "y": 1,
+    "fled": true
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 9,
+    "x": 18,
+    "y": 3,
+    "fled": true
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "x": 18,
+    "y": 2,
+    "fled": true
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 6,
+    "tgt": 2,
+    "x": 17,
+    "y": 3,
+    "fled": true
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 2,
+    "roll": 8,
+    "need": 18
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 2,
+    "roll": 14,
+    "need": 18
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 2,
+    "roll": 16,
+    "need": 18
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 5,
+    "tgt": 2,
+    "hp": 17
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "roll": 19,
+    "need": 18,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "hit": true,
+    "dmg": 4,
+    "hp": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "roll": 6,
+    "need": 18
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "roll": 2,
+    "need": 18
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 6,
+    "tgt": 2,
+    "roll": 4,
+    "need": 18
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 6,
+    "tgt": 2,
+    "roll": 6,
+    "need": 18
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 6,
+    "tgt": 2,
+    "roll": 12,
+    "need": 18
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 6,
+    "tgt": 2,
+    "hp": 13
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 7,
+    "tgt": 2,
+    "roll": 7,
+    "need": 16
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 7,
+    "tgt": 2,
+    "roll": 13,
+    "need": 16
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 7,
+    "tgt": 2,
+    "roll": 16,
+    "need": 16,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 7,
+    "tgt": 2,
+    "hit": true,
+    "dmg": 8,
+    "hp": 5
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 5,
+    "roll": 10,
+    "need": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 5,
+    "roll": 8,
+    "need": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 5,
+    "roll": 17,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 5,
+    "hit": true,
+    "dmg": 3,
+    "hp": 9
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 5,
+    "roll": 17,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 5,
+    "hit": true,
+    "dmg": 3,
+    "hp": 6
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 5,
+    "x": 25,
+    "y": 4
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 2,
+    "x": 19,
+    "y": 2,
+    "fled": true
+   },
+   {
+    "kind": "round",
+    "round": 2,
+    "state": 3561513057,
+    "tactics": [
+     1,
+     1
+    ],
+    "units": [
+     {
+      "id": 1,
+      "name": "FLAVIUS",
+      "side": 0,
+      "hp": 26,
+      "ac": 58,
+      "acRear": 52,
+      "hit": 45,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 27,
+      "y": 13,
+      "facing": 7,
+      "size": 1,
+      "init": 6,
+      "tie": 13
+     },
+     {
+      "id": 2,
+      "name": "Rook",
+      "side": 0,
+      "hp": 5,
+      "ac": 55,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 25,
+      "y": 4,
+      "facing": 6,
+      "size": 1,
+      "init": 11,
+      "tie": 69
+     },
+     {
+      "id": 3,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 16,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 18,
+      "y": 2,
+      "facing": 3,
+      "size": 1,
+      "init": 8,
+      "tie": 82
+     },
+     {
+      "id": 4,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 16,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 19,
+      "y": 2,
+      "facing": 0,
+      "size": 1,
+      "init": 9,
+      "tie": 57
+     },
+     {
+      "id": 5,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 6,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 18,
+      "y": 3,
+      "facing": 2,
+      "size": 1,
+      "init": 5,
+      "tie": 60
+     },
+     {
+      "id": 6,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 16,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 17,
+      "y": 3,
+      "facing": 3,
+      "size": 1,
+      "init": 3,
+      "tie": 45
+     },
+     {
+      "id": 7,
+      "name": "TERRINE LEADER",
+      "side": 1,
+      "hp": 12,
+      "ac": 58,
+      "acRear": 54,
+      "hit": 44,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 16,
+      "y": 1,
+      "facing": 3,
+      "size": 1,
+      "init": 9,
+      "tie": 59
+     },
+     {
+      "id": 8,
+      "name": "NEO WARRIOR",
+      "side": 0,
+      "hp": 0,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 24,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 26,
+      "y": 13,
+      "facing": 0,
+      "size": 0,
+      "init": 0,
+      "tie": 45
+     },
+     {
+      "id": 9,
+      "name": "NEO WARRIOR",
+      "side": 0,
+      "hp": 14,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 24,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 28,
+      "y": 14,
+      "facing": 7,
+      "size": 1,
+      "init": 9,
+      "tie": 65
+     },
+     {
+      "id": 10,
+      "name": "NEO WARRIOR",
+      "side": 0,
+      "hp": 0,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 24,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 29,
+      "y": 14,
+      "facing": 0,
+      "size": 0,
+      "init": 0,
+      "tie": 21
+     }
+    ],
+    "order": [
+     2,
+     9,
+     7,
+     4,
+     3,
+     1,
+     5,
+     6,
+     8,
+     10
+    ]
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 5,
+    "roll": 16,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 5,
+    "hit": true,
+    "dmg": 4,
+    "hp": 2
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 5,
+    "roll": 15,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 5,
+    "hit": true,
+    "dmg": 2,
+    "down": true
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 2,
+    "roll": 11,
+    "need": 18
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 2,
+    "roll": 18,
+    "need": 18,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 4,
+    "tgt": 2,
+    "hit": true,
+    "dmg": 3,
+    "hp": 2
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 6,
+    "roll": 7,
+    "need": 12
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 6,
+    "hp": 16
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 6,
+    "x": 24,
+    "y": 3
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 4,
+    "roll": 14,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 4,
+    "hit": true,
+    "dmg": 4,
+    "hp": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 4,
+    "roll": 13,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 4,
+    "hit": true,
+    "dmg": 3,
+    "hp": 9
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 4,
+    "roll": 17,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 4,
+    "hit": true,
+    "dmg": 3,
+    "hp": 6
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 4,
+    "roll": 19,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 4,
+    "hit": true,
+    "dmg": 2,
+    "hp": 4
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 4,
+    "x": 21,
+    "y": 8
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 7,
+    "tgt": 2,
+    "x": 15
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "x": 16
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "roll": 19,
+    "need": 9,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "hit": true,
+    "dmg": 2,
+    "hp": 2
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "roll": 8,
+    "need": 9
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "roll": 19,
+    "need": 9,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "hit": true,
+    "dmg": 2,
+    "down": true
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 4,
+    "x": 22,
+    "y": 8
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 6,
+    "tgt": 2,
+    "x": 14
+   },
+   {
+    "kind": "round",
+    "round": 3,
+    "state": 4031230363,
+    "tactics": [
+     1,
+     1
+    ],
+    "units": [
+     {
+      "id": 1,
+      "name": "FLAVIUS",
+      "side": 0,
+      "hp": 26,
+      "ac": 58,
+      "acRear": 52,
+      "hit": 45,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 22,
+      "y": 8,
+      "facing": 7,
+      "size": 1,
+      "init": 10,
+      "tie": 5
+     },
+     {
+      "id": 2,
+      "name": "Rook",
+      "side": 0,
+      "hp": 2,
+      "ac": 55,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 24,
+      "y": 3,
+      "facing": 6,
+      "size": 1,
+      "init": 11,
+      "tie": 25
+     },
+     {
+      "id": 3,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 16,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 16,
+      "y": 0,
+      "facing": 7,
+      "size": 1,
+      "init": 10,
+      "tie": 38
+     },
+     {
+      "id": 4,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 0,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 19,
+      "y": 2,
+      "facing": 3,
+      "size": 0,
+      "init": 0,
+      "tie": 57
+     },
+     {
+      "id": 5,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 0,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 18,
+      "y": 3,
+      "facing": 2,
+      "size": 0,
+      "init": 0,
+      "tie": 60
+     },
+     {
+      "id": 6,
+      "name": "TERRINE WARRIOR",
+      "side": 1,
+      "hp": 16,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 14,
+      "y": 0,
+      "facing": 7,
+      "size": 1,
+      "init": 4,
+      "tie": 94
+     },
+     {
+      "id": 7,
+      "name": "TERRINE LEADER",
+      "side": 1,
+      "hp": 12,
+      "ac": 58,
+      "acRear": 54,
+      "hit": 44,
+      "bonus": 0,
+      "move": 30,
+      "attacks": 3,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       8,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 15,
+      "y": 0,
+      "facing": 7,
+      "size": 1,
+      "init": 0,
+      "tie": 59
+     },
+     {
+      "id": 8,
+      "name": "NEO WARRIOR",
+      "side": 0,
+      "hp": 0,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 24,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 26,
+      "y": 13,
+      "facing": 0,
+      "size": 0,
+      "init": 0,
+      "tie": 45
+     },
+     {
+      "id": 9,
+      "name": "NEO WARRIOR",
+      "side": 0,
+      "hp": 14,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 24,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 21,
+      "y": 8,
+      "facing": 0,
+      "size": 1,
+      "init": 7,
+      "tie": 127
+     },
+     {
+      "id": 10,
+      "name": "NEO WARRIOR",
+      "side": 0,
+      "hp": 0,
+      "ac": 54,
+      "acRear": 52,
+      "hit": 42,
+      "bonus": 0,
+      "move": 24,
+      "attacks": 4,
+      "attacks2": 0,
+      "diceCount": [
+       1,
+       0
+      ],
+      "diceSides": [
+       4,
+       0
+      ],
+      "diceBonus": [
+       0,
+       0
+      ],
+      "x": 29,
+      "y": 14,
+      "facing": 0,
+      "size": 0,
+      "init": 0,
+      "tie": 21
+     }
+    ],
+    "order": [
+     2,
+     3,
+     1,
+     9,
+     6,
+     5,
+     7,
+     4,
+     8,
+     10
+    ]
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 6,
+    "roll": 13,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 6,
+    "hit": true,
+    "dmg": 2,
+    "hp": 14
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 6,
+    "roll": 17,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 6,
+    "hit": true,
+    "dmg": 3,
+    "hp": 11
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 6,
+    "roll": 8,
+    "need": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 6,
+    "roll": 11,
+    "need": 12
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 2,
+    "tgt": 6,
+    "x": 19,
+    "y": 4
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 3,
+    "tgt": 2,
+    "x": 16
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "roll": 18,
+    "need": 9,
+    "hit": true
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "roll": 3,
+    "need": 9
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 3,
+    "roll": 20,
+    "need": 9,
+    "hit": true
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 6,
+    "roll": 9,
+    "need": 9,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 6,
+    "hit": true,
+    "dmg": 4,
+    "hp": 7
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 1,
+    "tgt": 6,
+    "x": 16,
+    "y": 1
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 6,
+    "roll": 2,
+    "need": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 6,
+    "roll": 4,
+    "need": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 6,
+    "roll": 8,
+    "need": 12
+   },
+   {
+    "kind": "roll",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 6,
+    "roll": 14,
+    "need": 12,
+    "hit": true
+   },
+   {
+    "kind": "blow",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 6,
+    "hit": true,
+    "dmg": 2,
+    "hp": 5
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 9,
+    "tgt": 6,
+    "x": 18,
+    "y": 5
+   },
+   {
+    "kind": "turn",
+    "tactics": [
+     0,
+     0
+    ],
+    "att": 6,
+    "tgt": 2,
+    "x": 14
+   }
+  ],
+  "members_end": [
+   {
+    "name": "FLAVIUS",
+    "expGained": 75,
+    "money": 0,
+    "hp": 26,
+    "status": 1
+   },
+   {
+    "name": "Rook",
+    "expGained": 75,
+    "money": 0,
+    "hp": 2,
+    "status": 1
+   }
+  ],
+  "credits": 80,
+  "expEach": 75,
+  "loot": [
+   {
+    "type": 9,
+    "name": "Laser Pistol (244)",
+    "count": 244
+   },
+   {
+    "type": 20,
+    "name": "Spacesuit ",
+    "count": 0
+   },
+   {
+    "type": 9,
+    "name": "Laser Pistol (244)",
+    "count": 244
+   },
+   {
+    "type": 20,
+    "name": "Spacesuit ",
+    "count": 0
+   }
+  ],
+  "monsters": [
+   {
+    "name": "TERRINE WARRIOR",
+    "expGained": 0,
+    "money": 0,
+    "hp": 16,
+    "status": 6
+   },
+   {
+    "name": "TERRINE WARRIOR",
+    "expGained": 0,
+    "money": 0,
+    "hp": 0,
+    "status": 5
+   },
+   {
+    "name": "TERRINE WARRIOR",
+    "expGained": 0,
+    "money": 0,
+    "hp": 0,
+    "status": 5
+   },
+   {
+    "name": "TERRINE WARRIOR",
+    "expGained": 0,
+    "money": 0,
+    "hp": 5,
+    "status": 6
+   },
+   {
+    "name": "TERRINE LEADER",
+    "expGained": 0,
+    "money": 0,
+    "hp": 12,
+    "status": 6
+   },
+   {
+    "name": "NEO WARRIOR",
+    "expGained": 0,
+    "money": 0,
+    "hp": 0,
+    "status": 4
+   },
+   {
+    "name": "NEO WARRIOR",
+    "expGained": 0,
+    "money": 0,
+    "hp": 14,
+    "status": 1
+   },
+   {
+    "name": "NEO WARRIOR",
+    "expGained": 0,
+    "money": 0,
+    "hp": 0,
+    "status": 4
+   }
+  ],
+  "rewards": [
+   {
+    "unit": 3,
+    "name": "TERRINE WARRIOR",
+    "exp": 75,
+    "credits": 40,
+    "items": [
+     {
+      "type": 9,
+      "name": "Laser Pistol (250)",
+      "count": 250
+     },
+     {
+      "type": 20,
+      "name": "Spacesuit ",
+      "count": 0
+     }
+    ]
+   },
+   {
+    "unit": 4,
+    "name": "TERRINE WARRIOR",
+    "exp": 75,
+    "credits": 40,
+    "items": [
+     {
+      "type": 20,
+      "name": "Spacesuit ",
+      "count": 0
+     },
+     {
+      "type": 9,
+      "name": "Laser Pistol (250)",
+      "count": 250
+     }
+    ]
+   },
+   {
+    "unit": 5,
+    "name": "TERRINE WARRIOR",
+    "exp": 75,
+    "credits": 40,
+    "items": [
+     {
+      "type": 20,
+      "name": "Spacesuit ",
+      "count": 0
+     },
+     {
+      "type": 9,
+      "name": "Laser Pistol (250)",
+      "count": 250
+     }
+    ]
+   },
+   {
+    "unit": 6,
+    "name": "TERRINE WARRIOR",
+    "exp": 75,
+    "credits": 40,
+    "items": [
+     {
+      "type": 20,
+      "name": "Spacesuit ",
+      "count": 0
+     },
+     {
+      "type": 9,
+      "name": "Laser Pistol (250)",
+      "count": 250
+     }
+    ]
+   },
+   {
+    "unit": 7,
+    "name": "TERRINE LEADER",
+    "exp": 75,
+    "credits": 57,
+    "items": [
+     {
+      "type": 9,
+      "name": "Laser Pistol (250)",
+      "count": 250
+     },
+     {
+      "type": 36,
+      "name": "2 Dazzle Grenades",
+      "count": 2
+     },
+     {
+      "type": 21,
+      "name": "Smartsuit ",
+      "count": 0
+     }
+    ]
+   },
+   {
+    "unit": 8,
+    "name": "NEO WARRIOR",
+    "exp": 40,
+    "credits": 33,
+    "items": [
+     {
+      "type": 7,
+      "name": "Bolt Gun (250)",
+      "count": 250
+     },
+     {
+      "type": 1,
+      "name": "Knife ",
+      "count": 0
+     },
+     {
+      "type": 20,
+      "name": "Spacesuit ",
+      "count": 0
+     }
+    ]
+   },
+   {
+    "unit": 9,
+    "name": "NEO WARRIOR",
+    "exp": 40,
+    "credits": 33,
+    "items": [
+     {
+      "type": 20,
+      "name": "Spacesuit ",
+      "count": 0
+     },
+     {
+      "type": 1,
+      "name": "Knife ",
+      "count": 0
+     },
+     {
+      "type": 7,
+      "name": "Bolt Gun (250)",
+      "count": 250
+     }
+    ]
+   },
+   {
+    "unit": 10,
+    "name": "NEO WARRIOR",
+    "exp": 40,
+    "credits": 33,
+    "items": [
+     {
+      "type": 20,
+      "name": "Spacesuit ",
+      "count": 0
+     },
+     {
+      "type": 1,
+      "name": "Knife ",
+      "count": 0
+     },
+     {
+      "type": 7,
+      "name": "Bolt Gun (250)",
+      "count": 250
+     }
+    ]
+   }
+  ],
+  "over": "party won",
+  "inputs": {
+   "dice": "gobox rules.RNG, state 99",
+   "difficulty": "2",
+   "place": "b16-5-6-n"
+  }
+ }
+]
