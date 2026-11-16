@@ -460,8 +460,19 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
          journal source), text addresses used as numbers (7A00, 7B04, 7C00 in areas 19, 20, 36),
          text put into the byte buffers (`EntryBytes`, `NewGameBytes`), a SaveTable past
          `Word4B00` (area 1), 221 placeholder names; only `engine.New` is tested, no play
-      6. [ ] v1: the overland, the rocket's view (view kind 2), Program 9 (rest), block changes
-         across disks, save and load during BR play
+      6. [~] vw1: the view's floor, sky and BACK picture by the last wall set
+         (`WallTextures.Backs`, `importer/walls/br1_backs.txt`); place music (`GameTables.Places`,
+         `Where.Music`, town mode); script sounds 0..127 as cues (`sound.json` still silent);
+         Delay 100 ms a speed unit (`Behaviour.MessageDelayMs`); the view kept across blocks
+         (`Behaviour.ViewKept`); the overland by the script's view kind with `MapX`/`MapY` and
+         `GameTables.OverlandSteps` (BR import version 7); Program 9 is `ProgramRest` (a Rest/Exit
+         menu, a day and +1 HP per rest); save and load in BR play (`RecordView`,
+         `TakeSavedWalls`, item handles after a load; `TestSaveCoversRules`). Open: the sky and
+         floor inks (`Word4BFD`/`Word4BFE` unbound); no party mark on the overland's picture in
+         the front; BR's overland "Move Save" menu; `LastX`/`LastY` written by nothing; POR's
+         overland blocks 0x19..0x1B still in the engine; rest is not the shared camp screen and
+         offers no Save/Change, and no BR1 script calls Program 9 (its real entry unclear);
+         the rocket's view (view kind 2) still panics; BR2 has no overland size, places or backs
       7. [ ] e1 (B1e): the space fight, ships, jetpack, throw on the shared engine
       8. [ ] every BR1 block's entries run headless without a panic (a sweep test over the
          scripts' reachable commands, like the Pool games' sweeps); then BR2 the same
