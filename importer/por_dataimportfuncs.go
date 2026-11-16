@@ -47,7 +47,7 @@ var porGameTables = adventure.GameTables{GameSet: 3, // DS:5376 = 3
 }
 
 // dataFormat changes when the files PorImportDataTo writes change.
-const dataFormat = "24" // 24: GameTables.Walls (walls/por.txt, por_areas.txt); 23: GameTables.GameSet; 22: no View or Aim on the combat bar (Felix 2026-11-13); 21: data/look.json (writePorLook, as PorImport); 20: GameTables.Music.Files, AmigaSongs (P1); 19: Sheet.Race is the typed race (a name), MonsterRace the record byte of a monster; 12: MON<n>.json records as the rules' Sheet (char.SheetOfRecord); 13: GameTables.Art (Pg); 14: no Restoration tip (Rz); 15: GameTables.MapLabels, Music (Ph); 16: script fixes gold only (Gc); 17: area 0 wager text in gold (Df)
+const dataFormat = "25" // 25: New Phlan's Training Hall label on 8,0 too; 24: GameTables.Walls (walls/por.txt, por_areas.txt); 23: GameTables.GameSet; 22: no View or Aim on the combat bar (Felix 2026-11-13); 21: data/look.json (writePorLook, as PorImport); 20: GameTables.Music.Files, AmigaSongs (P1); 19: Sheet.Race is the typed race (a name), MonsterRace the record byte of a monster; 12: MON<n>.json records as the rules' Sheet (char.SheetOfRecord); 13: GameTables.Art (Pg); 14: no Restoration tip (Rz); 15: GameTables.MapLabels, Music (Ph); 16: script fixes gold only (Gc); 17: area 0 wager text in gold (Df)
 
 // ImportDataTo is ImportData from the DOS files in dos into dst; it clears
 // nothing (the adventure import writes beside it, pictures.PicturesFile).

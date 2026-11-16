@@ -55,8 +55,8 @@ var porMapLabels = func() []adventure.MapLabel {
 	add("Temple of Sune", adventure.PoiTemple, adventure.SongTemple, [2]int{1, 1}, [2]int{3, 1}, [2]int{1, 3})  // 7
 	add("Inn", adventure.PoiInn, adventure.SongInn, [2]int{4, 12}, [2]int{6, 12}, [2]int{4, 13}, [2]int{6, 13}, // 9
 		[2]int{0, 14}, [2]int{1, 14}, [2]int{2, 14})
-	add("Training Hall", adventure.PoiCivic, songTrainingHall, [2]int{5, 0}, [2]int{7, 0}, [2]int{9, 0})            // 10, 17
-	add("Shop", adventure.PoiShop, adventure.SongShop, [2]int{15, 8}, [2]int{9, 10}, [2]int{12, 10}, [2]int{9, 11}, // 19
+	add("Training Hall", adventure.PoiCivic, songTrainingHall, [2]int{5, 0}, [2]int{7, 0}, [2]int{8, 0}, [2]int{9, 0}) // 10, 17; 8,0 the fighters' hall (extra: Felix 2026-11-16)
+	add("Shop", adventure.PoiShop, adventure.SongShop, [2]int{15, 8}, [2]int{9, 10}, [2]int{12, 10}, [2]int{9, 11},    // 19
 		[2]int{11, 11})
 	add("Tavern", adventure.PoiInn, songTavern, [2]int{10, 8}, [2]int{8, 9}, [2]int{14, 10}, [2]int{15, 10}, // 20
 		[2]int{15, 12}, [2]int{15, 13}, [2]int{15, 14})
