@@ -170,16 +170,12 @@ func (r *Rules) hitFact(aid, did rules.CharID) (rules.Value, bool, error) {
 	if a == nil || d == nil || s == nil {
 		return nil, true, errNoFightChar
 	}
-	// A Fact carries no FightTerms: the script's PartyHit/MonsterHit bonuses are left out of the chance (an attack
-	// itself has them).
-	f := rules.Fight{Board: r.board(rules.Board{})}
-	aat, _ := unitAt(f, aid)
-	dat, _ := unitAt(f, did)
-	weaponRange := r.readiedWeaponRange(a)
-	saved := d.ArmorClass
-	armor := r.defenderArmor(f, a, d, s, false, weaponRange, aat, dat)
-	d.ArmorClass = saved // a fact changes nothing
-	mod := Thac0Modifier(a.team(), difficulty(r.options.Difficulty), int(f.Terms.PartyHit), int(f.Terms.MonsterHit))
+	b := r.board(rules.Board{})
+	aat, _ := unitAt(rules.Fight{Board: b}, aid)
+	dat, _ := unitAt(rules.Fight{Board: b}, did)
+	rc := *d // recalculated on a copy: a fact changes nothing
+	r.RecalcStats(&rc)
+	armor, mod := r.hitNeed(b, a, &rc, s, false, r.readiedWeaponRange(a), aat, dat)
 	hits := 0
 	for die := 2; die <= 20; die++ {
 		roll := die

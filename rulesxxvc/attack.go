@@ -90,7 +90,8 @@ func (r *Rules) attack(f rules.Fight, aid, did rules.CharID, rng *rules.RNG) (ru
 			backstab = g2 >= rules.Made
 		}
 	}
-	armor := r.defenderArmor(f, a, d, s, rear, weaponRange, aat, dat)
+	r.RecalcStats(d) // RollAttacks: the defender's numbers fresh, before DEFENDER_ARMOR_CLASS
+	armor, mod := r.hitNeed(f.Board, a, d, s, rear, weaponRange, aat, dat)
 	// CalcWeaponDamage's line from the defender back, and the attacker's cell
 	_, _, _, back := walkLine(f.Board, dat, aat, 255, true, false)
 	switch terrainAt(f.Board, aat) {
@@ -99,7 +100,6 @@ func (r *Rules) attack(f rules.Fight, aid, did rules.CharID, rng *rules.RNG) (ru
 	case aerosolMistTerrain:
 		back.mist = true
 	}
-	mod := Thac0Modifier(a.team(), difficulty(r.options.Difficulty), int(f.Terms.PartyHit), int(f.Terms.MonsterHit))
 	stunner := armed && wt.Type == sonicStunnerType
 	hit := false
 	s.hasAttacked = true // RollAttacks
@@ -200,15 +200,18 @@ func helpless(c *Character) bool { return hasEffect(c, EffHelpless) }
 // round's odd bit, halved.
 func attacksLeft(rate int, round int32) int { return (rate + int(round&1)) >> 1 }
 
-// defenderArmor is the armor value an attack on d is rolled against: its armor class (a blind defender 4 easier,
-// DEFENDER_ARMOR_CLASS) by the side struck, with ApplyRangePenalty's line penalty.
-func (r *Rules) defenderArmor(f rules.Fight, a, d *Character, s *combatState, rear bool, weaponRange int, aat, dat rules.BoardPos) int {
-	r.RecalcStats(d)
+// hitNeed is what an attack of a on d is rolled against: the armor value (the armor class of the side struck, a
+// blind defender 4 easier (DEFENDER_ARMOR_CLASS), with ApplyRangePenalty's line penalty) and AttackRoll's side
+// modifier (the fight's hit bonuses, kept by BeginFight). The attack and HitFact both ask it; it changes nothing: the
+// blindness is applied to a copy of d's recalculated armor classes (d must be recalculated by the caller).
+func (r *Rules) hitNeed(b rules.Board, a, d *Character, s *combatState, rear bool, weaponRange int, aat, dat rules.BoardPos) (armor, mod int) {
+	ac := d.ArmorClass
 	if hasEffect(d, EffBlind) {
-		d.ArmorClass[0] -= blindPenalty
-		d.ArmorClass[1] -= blindPenalty
+		ac[0] -= blindPenalty
+		ac[1] -= blindPenalty
 	}
-	armor := ArmorValue(d.ArmorClass[0], d.ArmorClass[1], rear, false, a.Career == xxvc.Rogue)
-	_, _, _, forth := walkLine(f.Board, aat, dat, 255, true, false) // ApplyRangePenalty's line
-	return armor + RangePenalty(weaponRange > 1 && s.guarding, forth.blocked, distance(aat, dat), weaponRange)
+	armor = ArmorValue(ac[0], ac[1], rear, false, a.Career == xxvc.Rogue)
+	_, _, _, forth := walkLine(b, aat, dat, 255, true, false) // ApplyRangePenalty's line
+	armor += RangePenalty(weaponRange > 1 && s.guarding, forth.blocked, distance(aat, dat), weaponRange)
+	return armor, Thac0Modifier(a.team(), difficulty(r.options.Difficulty), int(r.terms.PartyHit), int(r.terms.MonsterHit))
 }

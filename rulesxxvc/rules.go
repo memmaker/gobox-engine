@@ -91,11 +91,12 @@ type Rules struct {
 	campaign  rules.Campaign
 	options   rules.Options
 	tables    xxvc.Tables
-	purse     rules.Copper // the party's one purse under SharedPurse
-	morale    int          // GDVars.morale: the last CheckMorale worked out
-	hpPercent int          // GDVars.hostileHpPercent: set at BeginFight and EndRound
-	moveBonus int          // zone1 movementBonus (FightTerms.PartyMove) for this fight
-	tactics   [2]bool      // GDVars.tacticsSides by side (TEAM, HOSTILE): RollTactics each round
+	purse     rules.Copper     // the party's one purse under SharedPurse
+	morale    int              // GDVars.morale: the last CheckMorale worked out
+	hpPercent int              // GDVars.hostileHpPercent: set at BeginFight and EndRound
+	terms     rules.FightTerms // BeginFight's: the hit bonuses HitFact and the attack read
+	moveBonus int              // zone1 movementBonus (FightTerms.PartyMove) for this fight
+	tactics   [2]bool          // GDVars.tacticsSides by side (TEAM, HOSTILE): RollTactics each round
 
 	round      int            // combatRound: the rounds begun this fight (BeginRound)
 	initiative []rules.CharID // this round's order still to act

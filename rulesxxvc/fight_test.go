@@ -308,3 +308,60 @@ func TestFleeHalfStep(t *testing.T) {
 		t.Fatalf("%#v", act)
 	}
 }
+
+// HitFact is what an attack uses: for each seed the attack's roll hits exactly when HitFact counts it, with and
+// without the fight's PartyHit bonus (BeginFight keeps it), and the fact changes nothing (a blind defender's armour).
+func TestHitFactIsTheAttacks(t *testing.T) {
+	var facts []int
+	for _, bonus := range []int32{0, 3, -4} {
+		hitsBy := map[int]bool{} // attack roll -> the attack hit
+		var fact int
+		for seed := uint32(1); seed <= 300; seed++ {
+			r := New()
+			a := member("a", 10, 0, 0, 0)
+			a.AttackBonus, a.Scale, a.Damage[1] = 3, 2, rules.Dice{N: 1, Sides: 4}
+			aid := r.Add(a)
+			m := r.Add(Character{Side: rules.SideMonsters, Status: StOkay, Enabled: true, HP: 500, BaseMovement: 6, BaseArmorClass: 17})
+			r.chars[m].Effects = []Effect{{ID: EffBlind}}
+			f := rules.Fight{Party: rules.Party{aid}, Actor: aid, Terms: rules.FightTerms{PartyHit: bonus},
+				Board: rules.Board{Units: []rules.BoardUnit{{ID: aid, At: rules.BoardPos{X: 5, Y: 5}, Size: 1}, {ID: m, At: rules.BoardPos{X: 6, Y: 5}, Size: 1}}}}
+			rng := rules.RNG{State: seed}
+			r.BeginFight(f, &rng)
+			r.BeginRound(f, &rng)
+			r.chars[aid].AttackBonus = 3
+			before := r.chars[m].ArmorClass
+			v, err := r.Fact(aid, rules.HitFact{Target: m})
+			if err != nil || r.chars[m].ArmorClass != before {
+				t.Fatalf("fact %v: %v, armor %v then %v", v, err, before, r.chars[m].ArmorClass)
+			}
+			fact = int(v.(rules.Number))
+			die := rng
+			roll, missed := AttackDie(&die)
+			o, err := r.Resolve(f, rules.Attack{Target: m}, &rng)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if missed {
+				continue
+			}
+			for _, e := range o.Effects {
+				if at, ok := e.(rules.Attacked); ok {
+					hitsBy[roll] = at.Hit
+				}
+			}
+		}
+		want := 0
+		for roll := 2; roll <= naturalAttackMax; roll++ {
+			if hit, seen := hitsBy[roll]; seen && hit {
+				want += 5
+			}
+		}
+		if len(hitsBy) < 19 || fact != want {
+			t.Errorf("PartyHit %d: HitFact %d, the attack hits on %d%% (%d rolls seen)", bonus, fact, want, len(hitsBy))
+		}
+		facts = append(facts, fact)
+	}
+	if facts[1] <= facts[0] || facts[0] <= facts[2] { // the bonus counts
+		t.Errorf("HitFact for PartyHit 0, 3, -4: %v", facts)
+	}
+}

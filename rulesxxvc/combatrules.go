@@ -60,6 +60,7 @@ func (r *Rules) BeginFight(f rules.Fight, _ *rules.RNG) rules.Outcome {
 	r.round = 0
 	r.tactics = [2]bool{}
 	r.moveBonus = int(f.Terms.PartyMove)
+	r.terms = f.Terms
 	r.hpPercent = r.hostileHpPercent(f) // combatst.pas setup
 	return o
 }
