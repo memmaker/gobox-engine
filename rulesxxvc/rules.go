@@ -91,7 +91,8 @@ type Rules struct {
 	shopTerms rules.ShopTerms                    // the open shop's pricing (StockShop)
 	nextItem  rules.ItemHandle                   // the last carried item's handle (handOut)
 	chars     map[rules.CharID]*Character
-	order     []rules.CharID // join order: the first member takes the purse
+	held      map[rules.CharID]Character // HoldCopy's copies of the members a sheet modifies (not saved)
+	order     []rules.CharID             // join order: the first member takes the purse
 	next      rules.CharID
 	campaign  rules.Campaign
 	options   rules.Options

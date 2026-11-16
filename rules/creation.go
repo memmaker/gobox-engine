@@ -22,8 +22,8 @@ type CreationRules interface {
 	Roll(d *Draft, k RollKind, r *RNG) error
 	// Minimums are the lowest abilities d's picks allow (POR meetsMinStats).
 	Minimums(d Draft) map[Ability]int32
-	// Rolls are the ways the ruleset rolls abilities, the ones a front may offer; the others return an error from Roll.
-	Rolls() []RollKind
+	// Rolls are the ways the ruleset rolls abilities for d, the ones a front may offer; the others return an error from Roll.
+	Rolls(d Draft) []RollKind
 	// QuickParty is the ready-made party the empty party menu offers.
 	QuickParty() []Template
 	// QuickRerolls is how often Quick Start rerolls a member after its first

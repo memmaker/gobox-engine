@@ -45,15 +45,15 @@ func TestCreationRules(t *testing.T) {
 				}
 			}
 			con := int(d.Sheet.Scores[rules.Constitution])
-			if d.Sheet.MaxHP < hpMinimum(career, con) || d.Sheet.MaxHP > hpMaximum(career, con) {
-				t.Fatalf("seed %d %s %s: hit points %d outside %d..%d", seed, pickRaces[race], career, d.Sheet.MaxHP, hpMinimum(career, con), hpMaximum(career, con))
+			if d.Sheet.MaxHP < hpMinimum(career, startLevel, con) || d.Sheet.MaxHP > hpMaximum(career, startLevel, con) {
+				t.Fatalf("seed %d %s %s: hit points %d outside %d..%d", seed, pickRaces[race], career, d.Sheet.MaxHP, hpMinimum(career, startLevel, con), hpMaximum(career, startLevel, con))
 			}
 		}
 	}
 	if err := c.Roll(&tinker, rules.RollMinimal, nil); !errors.Is(err, ErrNoRollKind) {
 		t.Errorf("a minimal roll: %v", err)
 	}
-	if _, err := c.SetScore(tinker, rules.Strength, 17); !errors.Is(err, ErrScoreRange) { // Tinker STR -2: 1..16
+	if d, err := c.SetScore(tinker, rules.Strength, 17); err != nil || d.Sheet.Scores[rules.Strength] != 16 { // Tinker STR -2: at most 16 (Modify's Add stops there)
 		t.Errorf("STR 17: %v", err)
 	}
 	if d, err := c.SetScore(tinker, rules.Strength, 16); err != nil || d.Sheet.Scores[rules.Strength] != 16 {
@@ -89,7 +89,7 @@ func TestDraftCharacter(t *testing.T) {
 func TestRollsOffered(t *testing.T) {
 	c := creation{r: New()}
 	d := newDraft(t, c, 0, 0, 0, 7)
-	offered := c.Rolls()
+	offered := c.Rolls(d)
 	for _, k := range []rules.RollKind{rules.RollFull, rules.RollMinimal, rules.RollPointBuy} {
 		err := c.Roll(&d, k, &rules.RNG{State: 3})
 		if slices.Contains(offered, k) != (err == nil) {

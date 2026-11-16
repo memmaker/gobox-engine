@@ -12,12 +12,13 @@ import (
 	"gobox/asset/orig"
 	"gobox/game"
 	"gobox/gpu"
+	"gobox/rules"
 	"gobox/ui/input"
 )
 
 // buyDraft is a draft whose sheet has the abilities names (nil: STR .. CHA).
 func buyDraft(names []string) *game.Draft {
-	d := &game.Draft{}
+	d := &game.Draft{Rolls: []rules.RollKind{rules.RollFull, rules.RollMinimal, rules.RollPointBuy}}
 	for _, n := range names {
 		d.Stats = append(d.Stats, game.StatDef{Label: n})
 	}

@@ -49,7 +49,7 @@ func (f *fake) Roll(d *rules.Draft, k rules.RollKind, r *rules.RNG) error {
 	return nil
 }
 func (f *fake) Minimums(d rules.Draft) map[rules.Ability]int32 { return nil }
-func (f *fake) Rolls() []rules.RollKind {
+func (f *fake) Rolls(rules.Draft) []rules.RollKind {
 	return []rules.RollKind{rules.RollFull, rules.RollMinimal, rules.RollPointBuy}
 }
 

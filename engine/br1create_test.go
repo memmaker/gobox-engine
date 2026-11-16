@@ -215,3 +215,88 @@ func TestBR1CreateWarrior(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+// TestBR1Modify: ModifyCharacterMenu through the engine: a member with the starting experience is offered Modify;
+// its abilities clamp to the race and career range, the name changes, the items stay; no roll, no change of race,
+// gender or career; Exit puts the member back as it was.
+func TestBR1Modify(t *testing.T) {
+	e := br1Engine(t)
+	e.Open("")
+	e.titleDone()
+	e.Advance()
+	state := func() *game.Draft { a, _ := e.build().(game.Assembling); return a.Draft }
+	if err := e.createCharacter(); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.SetField(0, slices.Index(state().Fields[0].Options, "Tinker")); err != nil { // a Medic
+		t.Fatal(err)
+	}
+	if err := e.rename("Zed"); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.EndCreation(true); err != nil {
+		t.Fatal(err)
+	}
+	list := e.BuildCharList()
+	if _, err := e.doNow(game.AddCharacter{Roster: len(list) - 1}); err != nil {
+		t.Fatal(err)
+	}
+	e.menu.on = true
+	if !slices.Contains(e.partyFunctions(), partyModify) {
+		t.Fatalf("a new character is not offered Modify: %v", e.partyFunctions())
+	}
+	id := e.partyIDs()[0]
+	was := e.ruleset().Sheet(id)
+	if err := e.modifyCharacter(-1); err != nil {
+		t.Fatal(err)
+	}
+	d := state()
+	if len(d.Fields) != 3 || len(d.Allotments) != 0 || len(d.Rolls) != 0 {
+		t.Fatalf("a member's draft: %d fields, %d allotments, rolls %v", len(d.Fields), len(d.Allotments), d.Rolls)
+	}
+	for _, f := range d.Fields {
+		for o, fits := range f.Fits {
+			if fits != (o == f.Pick) {
+				t.Errorf("%s option %d fits %v", f.Name, o, fits)
+			}
+		}
+	}
+	if err := e.setStat(0, "25"); err != nil { // STR: a Tinker's -2 + 18
+		t.Fatal(err)
+	}
+	if err := e.setStat(3, "1"); err != nil { // INT: the medic's minimum 12
+		t.Fatal(err)
+	}
+	if err := e.rename("Zeta"); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.EndCreation(false); err != nil { // Exit
+		t.Fatal(err)
+	}
+	if now := e.ruleset().Sheet(id); now.Name != "Zed" || now.Scores[rules.Strength] != was.Scores[rules.Strength] {
+		t.Fatalf("after Exit: %+v, was %+v", now, was)
+	}
+	if err := e.modifyCharacter(-1); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.setStat(0, "25"); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.setStat(3, "1"); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.rename("Zeta"); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.EndCreation(true); err != nil { // Keep
+		t.Fatal(err)
+	}
+	id = e.partyIDs()[0]
+	now := e.ruleset().Sheet(id)
+	if now.Name != "Zeta" || now.Scores[rules.Strength] != 16 || now.Scores[rules.Intelligence] != 12 || now.HP != now.MaxHP {
+		t.Fatalf("after Keep: %+v", now)
+	}
+	if its := e.itemsState(id); len(its) != 2 {
+		t.Errorf("the items after Modify: %+v", its)
+	}
+}

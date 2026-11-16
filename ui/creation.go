@@ -8,10 +8,8 @@ import (
 	"strings"
 )
 
-// offers says whether the state offers roll kind k: any way when it lists none.
-func (cr *FrontCreation) offers(k rules.RollKind) bool {
-	return len(cr.Rolls) == 0 || slices.Contains(cr.Rolls, k)
-}
+// offers says whether the state offers roll kind k.
+func (cr *FrontCreation) offers(k rules.RollKind) bool { return slices.Contains(cr.Rolls, k) }
 
 // statLongCol is the column the creation sheet's ability values start at, after the names written out.
 const statLongCol = 14

@@ -62,13 +62,21 @@ func TestOnlyOfferedRolls(t *testing.T) {
 	if !slices.Equal(words, []string{"Roll", "Keep", "Exit"}) {
 		t.Errorf("bar %v", words)
 	}
-	p, _ = draftOn(&game.Draft{Stats: br1Stats})
+	p, _ = draftOn(&game.Draft{Stats: br1Stats, Rolls: []rules.RollKind{rules.RollFull, rules.RollMinimal}})
 	words = nil
 	for _, w := range p.barWords() {
 		words = append(words, w.label)
 	}
 	if !slices.Equal(words, []string{"Roll", "Minimal", "Keep", "Exit"}) {
-		t.Errorf("a state listing no rolls offers every way: %v", words)
+		t.Errorf("a state offering both: %v", words)
+	}
+	p, _ = draftOn(&game.Draft{Stats: br1Stats}) // a member modified: no roll at all
+	words = nil
+	for _, w := range p.barWords() {
+		words = append(words, w.label)
+	}
+	if !slices.Equal(words, []string{"Keep", "Exit"}) {
+		t.Errorf("a state listing no rolls: %v", words)
 	}
 }
 

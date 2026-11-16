@@ -753,8 +753,11 @@ func (p *Presenter) spots() []spot {
 func (p *Presenter) barWords() []footWord {
 	ws := []string{"Keep", "Exit"}
 	if p.iconEditor(p.ink()) == nil {
-		ws = []string{"Roll"}
+		ws = nil
 		cr := p.creation()
+		if cr == nil || cr.offers(rules.RollFull) {
+			ws = append(ws, "Roll")
+		}
 		if cr == nil || cr.offers(rules.RollMinimal) {
 			ws = append(ws, "Minimal")
 		}

@@ -194,7 +194,7 @@ type Draft struct {
 	Ask          *Question        // that step's question (its options, a typed name, a number, a yes/no), answered by SetChoice{Field: Step, N or Text}; nil: the sheet's fields
 	Stats        []StatDef        // the sheet's abilities in the game's order and count (nil: STR .. CHA from Member.Stats)
 	Allotments   []Allotment      // the points the sheet has to spend (Spend), in the game's order
-	Rolls        []rules.RollKind // the ways the rules roll abilities, the ones to offer (nil: the front offers every way)
+	Rolls        []rules.RollKind // the ways the rules roll abilities, the ones to offer (nil: none)
 	Derived      []Derived        // the sheet's figures besides the abilities, in the game's order (nil: from Member)
 }
 

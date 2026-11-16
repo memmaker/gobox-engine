@@ -43,8 +43,7 @@ var pickCareers = func() []rules.Class {
 // Errors of the creation.
 var (
 	ErrNoRollKind    = errors.New("rulesxxvc: the original rolls its abilities one way only")
-	ErrScoreRange    = errors.New("rulesxxvc: an ability is kept between its race's adjustment + 3 and + 18")
-	ErrNoModify      = errors.New("rulesxxvc: ModifyCharacterMenu is not ported")
+	ErrNoMember      = errors.New("rulesxxvc: no such member to modify")
 	ErrNoSuchAbility = errors.New("rulesxxvc: not one of the seven abilities")
 )
 
@@ -74,6 +73,9 @@ func (c creation) Fields(d rules.Draft) []rules.FieldDef {
 		{ID: fieldGender, Label: "Gender", Options: genders},
 		{ID: fieldCareer, Label: "Class", Options: careers},
 	}
+	if d.Of != rules.NoChar { // race, gender and career are not changed on a member
+		return out
+	}
 	if opts := c.specializable(); careerOfDraft(d) == xxvc.Warrior && len(opts) > 0 { // CreateCharacterMenu: if career = CareerWarrior
 		names := make([]string, len(opts))
 		for i, id := range opts {
@@ -98,6 +100,9 @@ func (c creation) specializable() []rules.ItemID {
 
 // Fits: a career is legal when the race may take it (raceCareers); the other fields have no restriction.
 func (c creation) Fits(d rules.Draft, f rules.FieldID, o int) bool {
+	if d.Of != rules.NoChar { // a member keeps its race, gender and career
+		return o == d.Picks[f]
+	}
 	switch f {
 	case fieldRace:
 		return o >= 0 && o < len(pickRaces)
@@ -118,6 +123,9 @@ func (c creation) Fits(d rules.Draft, f rules.FieldID, o int) bool {
 // menu offers only the race's). A new race or career rolls afresh (the original rolls after the career), a gender
 // keeps the scores.
 func (c creation) Enforce(d rules.Draft, f rules.FieldID, o int, rng *rules.RNG) rules.Draft {
+	if d.Of != rules.NoChar {
+		return d
+	}
 	d.Picks = maps.Clone(d.Picks)
 	if d.Picks == nil {
 		d.Picks = map[rules.FieldID]int{}
@@ -166,7 +174,7 @@ func rollAbilities(d *rules.Draft, rng *rules.RNG) {
 		gain := int32(levelHitPoints(career, level, int(d.Sheet.Scores[rules.Constitution]), rng))
 		d.Sheet.HP, d.Sheet.MaxHP = d.Sheet.HP+gain, d.Sheet.MaxHP+gain
 	}
-	d.MinHP, d.MaxHP = hpMinimum(career, int(d.Sheet.Scores[rules.Constitution])), hpMaximum(career, int(d.Sheet.Scores[rules.Constitution]))
+	d.MinHP, d.MaxHP = hpMinimum(career, startLevel, int(d.Sheet.Scores[rules.Constitution])), hpMaximum(career, startLevel, int(d.Sheet.Scores[rules.Constitution]))
 }
 
 // levelHitPoints is chargen.pas AddLevelHitPoints for a character reaching level: below level 9 the better of two
@@ -198,16 +206,16 @@ func conBonus(career rules.Class, con int) int {
 	return b
 }
 
-// hpMinimum and hpMaximum are chargen.pas HpMinimum and HpMaximum at the starting level: what Modify allows.
-func hpMinimum(career rules.Class, con int) int32 {
+// hpMinimum and hpMaximum are chargen.pas HpMinimum and HpMaximum at level: what Modify allows.
+func hpMinimum(career rules.Class, level, con int) int32 {
 	v := max(constitutionLevelBonus[con-1]+1, 1)
 	if v > 3 && career != xxvc.Warrior {
 		v = 3
 	}
-	return int32(v * startLevel)
+	return int32(v * level)
 }
 
-func hpMaximum(career rules.Class, con int) int32 {
+func hpMaximum(career rules.Class, level, con int) int32 {
 	v := conBonus(career, con)
 	switch career {
 	case xxvc.Warrior:
@@ -217,15 +225,21 @@ func hpMaximum(career rules.Class, con int) int32 {
 	default:
 		v += 6
 	}
-	return int32(v * startLevel)
+	return int32(v * level)
 }
 
-// Rolls: the original rolls one way (chargen.pas CreateCharacterMenu has no minimums and no bought abilities).
-func (creation) Rolls() []rules.RollKind { return []rules.RollKind{rules.RollFull} }
+// Rolls: the original rolls one way (chargen.pas CreateCharacterMenu has no minimums and no bought abilities), and
+// not when it modifies a member.
+func (creation) Rolls(d rules.Draft) []rules.RollKind {
+	if d.Of != rules.NoChar {
+		return nil
+	}
+	return []rules.RollKind{rules.RollFull}
+}
 
 // Roll rolls afresh; the original has no other way (no minimums, no point buy).
 func (c creation) Roll(d *rules.Draft, k rules.RollKind, rng *rules.RNG) error {
-	if k != rules.RollFull {
+	if k != rules.RollFull || d.Of != rules.NoChar { // a member modified is not rolled again
 		return ErrNoRollKind
 	}
 	rollAbilities(d, c.r.stream(rng))
@@ -244,7 +258,8 @@ func (creation) Minimums(d rules.Draft) map[rules.Ability]int32 {
 func (creation) QuickParty() []rules.Template { return nil }
 func (creation) QuickRerolls() int            { return 0 }
 
-// SetScore keeps ability a at v: between its race's adjustment + 3 and + 18 (ModifyCharacterMenu's range).
+// SetScore keeps ability a at v as ModifyCharacterMenu's Add and Subtract do: at most its race's adjustment + 18, at
+// least + 3 and at least the career's minimum. Constitution brings the hit points into the range it allows.
 func (creation) SetScore(d rules.Draft, a rules.Ability, v int32) (rules.Draft, error) {
 	if a == rules.StrengthPercent && v == 0 { // the engine sets the exceptional strength beside a typed STR: none here
 		return d, nil
@@ -254,18 +269,20 @@ func (creation) SetScore(d rules.Draft, a rules.Ability, v int32) (rules.Draft, 
 		return d, fmt.Errorf("%s: %w", a, ErrNoSuchAbility)
 	}
 	adj := int32(raceStatAdjust[d.Sheet.Race][i])
-	if v < adj+minStartScore || v > adj+maxStartScore {
-		return d, ErrScoreRange
-	}
+	v = min(v, adj+maxStartScore)
+	v = max(v, adj+minStartScore, int32(careerStatMinimum[d.Sheet.Classes[0]][i]))
 	d.Sheet.Scores = maps.Clone(d.Sheet.Scores)
 	d.Sheet.Scores[a] = v
+	if a == rules.Constitution {
+		d = limitHitPoints(d)
+	}
 	return d, nil
 }
 
 // Make keeps a new character (chargen.pas: Shop.BuildAmmoItems, then SaveChar) on the roster; it is not in the party.
 func (c creation) Make(d rules.Draft) (rules.CharID, rules.RosterID, error) {
-	if d.Of != rules.NoChar {
-		return rules.NoChar, rules.NoRoster, ErrNoModify
+	if d.Of != rules.NoChar { // Keep of ModifyCharacterMenu
+		return d.Of, rules.NoRoster, c.r.modifyMember(d)
 	}
 	id, err := c.r.insertDraft(d, true)
 	if err != nil {
@@ -280,10 +297,11 @@ func (c creation) Make(d rules.Draft) (rules.CharID, rules.RosterID, error) {
 
 func (c creation) Join(id rules.RosterID) (rules.CharID, error) { return c.host.Join(id) }
 
-// Draft is the start of a new character: the first race, gender and career the menus offer. Modifying is not ported.
-func (creation) Draft(of rules.CharID) (rules.Draft, error) {
+// Draft is the start of a new character: the first race, gender and career the menus offer; of a member, the member
+// as it stands (ModifyCharacterMenu).
+func (c creation) Draft(of rules.CharID) (rules.Draft, error) {
 	if of != rules.NoChar {
-		return rules.Draft{}, ErrNoModify
+		return c.r.draftOf(of)
 	}
 	return rules.Draft{Picks: map[rules.FieldID]int{fieldRace: 0, fieldGender: 0, fieldCareer: 0}}, nil
 }
@@ -373,12 +391,37 @@ func (r *Rules) draftCharacter(d rules.Draft, kit bool) (Character, error) {
 }
 
 // resolveSheet answers the creation sheet's Actions that a new character needs: the draft as a character outside the
-// party, seated after it while the sheet is up. Modifying one (HoldCopy, ReplaceMember ...) is not ported.
+// party, seated after it while the sheet is up. A member modified is drawn in place: HoldCopy keeps it as it was,
+// RestoreCopy puts it back.
 func (r *Rules) resolveSheet(a rules.Action) (rules.Outcome, bool, error) {
 	switch a := a.(type) {
 	case rules.SheetDraft:
+		if a.Draft.Of != rules.NoChar { // the member modified, drawn with the draft's name, abilities and hit points
+			return rules.Outcome{Created: a.Draft.Of}, true, r.modifyMember(a.Draft)
+		}
 		id, err := r.insertDraft(a.Draft, false)
 		return rules.Outcome{Created: id}, true, err
+	case rules.HoldCopy:
+		c := r.chars[a.Who]
+		if c == nil {
+			return rules.Outcome{}, true, errNoMember
+		}
+		if r.held == nil {
+			r.held = map[rules.CharID]Character{}
+		}
+		r.held[a.Who] = c.clone()
+	case rules.RestoreCopy:
+		c, was := r.chars[a.Who], r.held[a.Who]
+		if c == nil {
+			return rules.Outcome{}, true, errNoMember
+		}
+		*c = was
+		delete(r.held, a.Who)
+	case rules.ReplaceMember:
+		if r.chars[a.Who] == nil || a.At < 0 || int(a.At) >= len(r.party) {
+			return rules.Outcome{}, true, errNoMember
+		}
+		r.party[a.At] = a.Who
 	case rules.ApplyItems: // the sheet draws a character's figures fresh (00BA:0BB8): RecalcStats
 		c := r.chars[a.Who]
 		if c == nil {

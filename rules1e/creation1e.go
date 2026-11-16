@@ -190,7 +190,7 @@ func (p Creation) Spend(d rules.Draft, f rules.FieldID, o int, by int32) (rules.
 }
 
 // Rolls: the three ways of the 1e sheet (Roll, Minimal, point buy).
-func (p Creation) Rolls() []rules.RollKind {
+func (p Creation) Rolls(rules.Draft) []rules.RollKind {
 	return []rules.RollKind{rules.RollFull, rules.RollMinimal, rules.RollPointBuy}
 }
 

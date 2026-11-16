@@ -398,7 +398,7 @@ func (e *Engine) creationState(cr *creation) *game.Draft {
 			mins[e.abilityKey(a)] = int(v)
 		}
 	}
-	g := &game.Draft{Member: d, Minimums: mins, Stats: e.statDefs(id, nil), Rolls: cl.Rolls()}
+	g := &game.Draft{Member: d, Minimums: mins, Stats: e.statDefs(id, nil), Rolls: cl.Rolls(cr.d.D)}
 	for _, f := range cl.Fields(cr.d.D) { // the four, then the power picks (setPower)
 		if f.Kind == rules.FieldSkills { // points to spend, not a choice
 			g.Allotments = append(g.Allotments, allotmentState(cr.d.D, f))

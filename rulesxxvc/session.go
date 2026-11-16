@@ -266,9 +266,9 @@ func (r *Rules) sessionCheck(q rules.Check, rng *rules.RNG) rules.Answer {
 	case rules.Fit:
 		c := r.chars[q.Who]
 		return rules.Answer{Yes: c != nil && c.Status == StOkay && c.Enabled}
-	case rules.Modifiable:
-		// Not yet: modifying a character is creation (not ported).
-		return rules.Answer{}
+	case rules.Modifiable: // ModifyCharacterMenu: only a member with the starting experience
+		c := r.chars[q.Who]
+		return rules.Answer{Yes: c != nil && modifiable(c)}
 	case rules.PaladinCan:
 		// No paladins.
 		return rules.Answer{}

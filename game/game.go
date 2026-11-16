@@ -741,7 +741,7 @@ type Creation struct {
 	// source: a figure not given is not shown. nil: the figures come from
 	// Draft.
 	Derived []Derived `json:",omitempty"`
-	// Rolls are the ways the rules roll abilities: the ones a front offers (nil: every way).
+	// Rolls are the ways the rules roll abilities: the ones a front offers (nil: none).
 	Rolls []rules.RollKind `json:",omitempty"`
 	// Pools are the points the sheet has to spend, in the game's order.
 	Allotments []Allotment `json:",omitempty"`
