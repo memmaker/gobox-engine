@@ -28,6 +28,12 @@ func br1Engine(t *testing.T) *Engine {
 	if err := importer.ImportBREngine("br1", importer.BR1EXE, dos, adv); err != nil {
 		t.Fatal(err)
 	}
+	return br1EngineIn(t, adv)
+}
+
+// br1EngineIn is a new engine on an imported BR1 folder (the import is read, never written, by an engine).
+func br1EngineIn(t testing.TB, adv string) *Engine {
+	t.Helper()
 	tables, err := adventure.ReadGameTables(adv)
 	if err != nil {
 		t.Fatal(err)
@@ -114,7 +120,12 @@ func TestBR1Opening(t *testing.T) {
 // br1Begun is BR1 begun with one roster character, the intro's pages answered: the party stands on the tarmac.
 func br1Begun(t *testing.T) *Engine {
 	t.Helper()
-	e := br1Engine(t)
+	return br1BeginOn(t, br1Engine(t))
+}
+
+// br1BeginOn takes a new engine through the title and the party menu to the first area.
+func br1BeginOn(t testing.TB, e *Engine) *Engine {
+	t.Helper()
 	e.Open("")
 	e.titleDone()
 	e.Advance()
@@ -274,7 +285,7 @@ func readFile(t *testing.T, name string) string {
 }
 
 // br1Pages answers the pages and pauses up until the game waits for a move.
-func br1Pages(t *testing.T, e *Engine) {
+func br1Pages(t testing.TB, e *Engine) {
 	t.Helper()
 	for n := 0; commonOf(e.build()).Ask != nil; n++ {
 		if n > 80 {
@@ -285,10 +296,10 @@ func br1Pages(t *testing.T, e *Engine) {
 }
 
 // br1Answer answers what is up the one way it has: a handout put away, a Delay's pause over, a page's key.
-func br1Answer(t *testing.T, e *Engine) { t.Helper(); br1AnswerOut(t, e) }
+func br1Answer(t testing.TB, e *Engine) { t.Helper(); br1AnswerOut(t, e) }
 
 // br1AnswerOut is br1Answer with what the engine did.
-func br1AnswerOut(t *testing.T, e *Engine) game.Outcome {
+func br1AnswerOut(t testing.TB, e *Engine) game.Outcome {
 	t.Helper()
 	var a game.Action = game.Reply{}
 	if sc, ok := e.build().(game.Scene); ok && sc.Kind == game.SceneHandout {
