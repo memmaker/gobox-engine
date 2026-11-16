@@ -101,3 +101,24 @@ func TestBR1DelayMs(t *testing.T) {
 		}
 	}
 }
+
+// TestBR1ViewKeptAcrossBlocks: a block whose start does not set the view kind keeps the overland (BR's EclInit leaves the
+// interface state alone; the Pool's InitAreaScript sets the 3D view, which a Pool game still gets).
+func TestBR1ViewKeptAcrossBlocks(t *testing.T) {
+	e := br1Begun(t)
+	if e.world.In3D != 1 {
+		t.Fatalf("a new game's view: In3D %d, want the 3D view", e.world.In3D)
+	}
+	e.world.In3D = 0 // the overland
+	e.InitAreaScript()
+	if e.world.In3D != 0 {
+		t.Errorf("a block's start set In3D %d over the overland", e.world.In3D)
+	}
+	v := *e.eclVersion // a copy: the dialect is shared
+	v.Behaviour.ViewKept = false // as the Pool's
+	e.eclVersion = &v
+	e.InitAreaScript()
+	if e.world.In3D != 1 {
+		t.Errorf("without ViewKept the start leaves In3D %d", e.world.In3D)
+	}
+}

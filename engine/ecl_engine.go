@@ -23,7 +23,9 @@ func (e *Engine) InitAreaScript() {
 	e.world.RestChance = 0
 	e.world.NoMagic = 0
 	s.events = e.vm.Script.Events
-	e.world.In3D = 1
+	if !e.eclVersion.Behaviour.ViewKept {
+		e.world.In3D = 1
+	}
 	if !e.loadedGame {
 		e.locals = fieldCells{} // area words 0x4A00..0x4A1F and game words 0x6E79..0x6E82
 	} else if e.loadedLocals != nil { // nil: a load that kept the running game's state (slots.go)

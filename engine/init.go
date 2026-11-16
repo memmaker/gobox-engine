@@ -51,6 +51,7 @@ func (e *Engine) Init() {
 func (e *Engine) resetAdventure() {
 	e.do(rules.NewAdventure{})                    // game and area records DS:49D6, 49D2, an empty purse
 	e.world = rules.World{}                       // the words of those records that are the engine's
+	e.world.In3D = 1                              // the 3D view (a dialect that keeps the view across blocks starts in it; the others' InitAreaScript sets it)
 	e.posX, e.posY, e.facing = 0xF, 1, 6          // the start square DS:6AAD/6AAE/6AAF (the Engine's)
 	e.vars, e.locals = fieldCells{}, fieldCells{} // DS:49DA
 	e.gs.areaKind = 0
