@@ -122,7 +122,7 @@ func TestBRSavedGameConstructed(t *testing.T) {
 			brSetCell(t, l, b, "TravelKind", areaOrbit)
 			brSetCell(t, l, b, "ShipHull", 300)            // damaged: 600 whole
 			brSetCell(t, l, b, "FoeHull", 7)               // the last foe
-			brSetCell(t, l, b, "ShipOutcome", 1)          // zone 0 shipCombatOutcome
+			brSetCell(t, l, b, "ShipOutcome", 1)           // zone 0 shipCombatOutcome
 			b[brFileOffset(0x4BB6)] = 4                    // difficulty: Ace
 			for i, v := range []int{3, 4, 5, 6, 7, 8, 9} { // the clock, smallest unit first (the day, month and year within their scales)
 				b[brFileOffset(0x4BC6+i)] = byte(v)
