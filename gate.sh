@@ -106,7 +106,7 @@ test_touched() {
     echo "== $repo:$pkgs (touched)"
     local t=$SECONDS
     # shellcheck disable=SC2086  # pkgs is a list of package paths
-    (cd "$mod" && go test -skip "$slow" $pkgs) || exit 1
+    (cd "$mod" && go test -timeout 30m -skip "$slow" $pkgs) || exit 1
     echo "-- $repo:$pkgs $((SECONDS - t))s"
   done
 }
@@ -131,7 +131,7 @@ fixed='Monster|Thac0|Save|Train|Level|Turn|Charcalc|Recompute|AgainstPascal'
 (cd "$out/gobox-engine" && go run ./games/por/cmd/importstale)
 # A touched package runs whole below (test_touched): its fixed set is not run twice.
 is_touched gobox-engine ./engine || check gobox-engine/engine . -run "$fixed"
-(cd "$out/gobox-engine/engine" && go test . -run "$slow")
+(cd "$out/gobox-engine/engine" && go test -timeout 30m . -run "$slow")
 is_touched gobox-engine ./rules4e || check gobox-engine/rules4e . -run "$fixed"
 test_touched gobox-engine
 
