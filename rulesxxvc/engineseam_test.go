@@ -225,7 +225,7 @@ func TestEngineQuestions(t *testing.T) {
 		{"MemberCard", rules.MemberCardFact{}, id, rules.MemberCard{Party: true, Class: "Warrior"}},
 		{"PoolPics", rules.PoolPicsFact{}, id, rules.PoolPics{}},
 		{"Portrait", rules.PortraitFact{}, id, rules.Portrait{}},
-		{"IconPics", rules.IconPicsFact{}, id, rules.IconPics{}},
+		{"IconPics", rules.IconPicsFact{}, id, rules.IconPics{Size: 1}}, // the small combat icon, body 0
 		{"Book", rules.BookFact{}, id, rules.Book{Levels: []int32{3}}},
 		{"SpellMenu", rules.SpellMenuFact{}, id, rules.SpellMenu(nil)},
 		{"Owed", rules.OwedFact{}, id, rules.PowerOwed{}},

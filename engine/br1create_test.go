@@ -78,6 +78,9 @@ func TestBR1Create(t *testing.T) {
 	if sh.Name != "Zed" || sh.Levels[sh.Classes[0]] != 2 || sh.Age != int32(d.Member.Age) {
 		t.Fatalf("created: %+v", sh)
 	}
+	if ic := e.fact(id, rules.IconPicsFact{}).(rules.IconPics); ic.Body != 17 { // SetDefaultIcon: a Tinker's
+		t.Fatalf("the created tinker's combat icon: %+v", ic)
+	}
 	if its := e.itemsState(id); len(its) != 2 || its[0].Name != "Spacesuit" || its[1].Name != "Gun Bolt" || !its[0].Readied || !its[1].Readied || its[1].Count != 100 {
 		t.Fatalf("the free items: %+v", its)
 	}

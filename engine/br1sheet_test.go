@@ -34,6 +34,9 @@ func TestBR1SheetFacts(t *testing.T) {
 	if pg.Age < 18 {
 		t.Errorf("the shipped character keeps the record's age: %d", pg.Age)
 	}
+	if ic := e.fact(e.partyIDs()[0], rules.IconPicsFact{}).(rules.IconPics); ic.Body < 1 || ic.Body > 35 {
+		t.Errorf("the shipped character keeps the record's combat icon: %+v", ic)
+	}
 	var names []string
 	for _, a := range pg.Abilities {
 		names = append(names, a.Label)

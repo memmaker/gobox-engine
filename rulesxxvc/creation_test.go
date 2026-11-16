@@ -175,3 +175,34 @@ func TestWarriorSpecialization(t *testing.T) {
 		t.Error("a medic is trained in a weapon")
 	}
 }
+
+// TestDefaultIcon: chargen.pas SetDefaultIcon: 17 for a Tinker, one of 16, 23, 24, 31 for a Desert Runner, else
+// characterIcons[gender, career]; a character kept has it (not the draft drawn on the sheet: no dice for it).
+func TestDefaultIcon(t *testing.T) {
+	rng := &rules.RNG{State: 5}
+	for sex, row := range map[rules.Sex]map[rules.Class]int{
+		rules.Male: {xxvc.RocketJock: 32, xxvc.Medic: 0, xxvc.Warrior: 3, xxvc.Engineer: 7, xxvc.Rogue: 21}, rules.Female: {xxvc.RocketJock: 33, xxvc.Medic: 1, xxvc.Warrior: 6, xxvc.Engineer: 15, xxvc.Rogue: 25}} {
+		for career, want := range row {
+			if got := defaultIcon(xxvc.Terran, sex, career, rng); got != want {
+				t.Errorf("%s %s: icon %d, want %d", sex, career, got, want)
+			}
+		}
+	}
+	if defaultIcon(xxvc.Tinker, rules.Male, xxvc.Medic, rng) != 17 {
+		t.Error("a tinker's icon")
+	}
+	seen := map[int]bool{}
+	for range 200 {
+		seen[defaultIcon(xxvc.DesertRunner, rules.Female, xxvc.Warrior, rng)] = true
+	}
+	if len(seen) != 4 || !seen[16] || !seen[23] || !seen[24] || !seen[31] {
+		t.Errorf("a desert runner's icons %v", seen)
+	}
+	c := creation{r: New()}
+	d := newDraft(t, c, 0, 0, slices.Index(pickCareers, xxvc.Warrior), 2)
+	sheet, _ := c.r.draftCharacter(d, false)
+	kept, _ := c.r.draftCharacter(d, true)
+	if sheet.Icon != 0 || kept.Icon != 3 {
+		t.Errorf("icons: sheet %d, kept %d", sheet.Icon, kept.Icon)
+	}
+}

@@ -320,7 +320,7 @@ func (r *Rules) factSession(id rules.CharID, f rules.Fact) (v rules.Value, ok bo
 	case rules.PortraitFact:
 		return rules.Portrait{}, true, nil // no portrait numbers held
 	case rules.IconPicsFact:
-		return rules.IconPics{}, true, nil // no combat icon held
+		return rules.IconPics{Body: c.Icon, Size: 1}, true, nil // the body in CHARS.DAX; no heads or colours
 	case rules.BookFact:
 		// No spells: the empty book. Its one level column is the career's level.
 		return rules.Book{Levels: []int32{int32(c.Level)}}, true, nil

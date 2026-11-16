@@ -102,6 +102,28 @@ var raceMovement = map[rules.Race]int{
 	xxvc.Terran: 12, xxvc.Martian: 12, xxvc.Venusian: 12, xxvc.Mercurian: 12, xxvc.Tinker: 9, xxvc.DesertRunner: 15,
 }
 
+// The starting icons (chargen.pas SetDefaultIcon, gdconsts.pas characterIcons): a Tinker's, one of four at random for
+// a Desert Runner, else by gender and career (no Scout column: no race takes Scout).
+const tinkerIcon = 17
+
+var desertRunnerIcons = [4]int{16, 23, 24, 31} // RollDice(1, 4) picks one
+
+var characterIcons = map[rules.Sex]map[rules.Class]int{
+	rules.Male:   {xxvc.RocketJock: 32, xxvc.Medic: 0, xxvc.Warrior: 3, xxvc.Engineer: 7, xxvc.Rogue: 21},
+	rules.Female: {xxvc.RocketJock: 33, xxvc.Medic: 1, xxvc.Warrior: 6, xxvc.Engineer: 15, xxvc.Rogue: 25},
+}
+
+// defaultIcon is SetDefaultIcon's icon for a new character.
+func defaultIcon(race rules.Race, sex rules.Sex, career rules.Class, rng *rules.RNG) int {
+	switch race {
+	case xxvc.Tinker:
+		return tinkerIcon
+	case xxvc.DesertRunner:
+		return desertRunnerIcons[rules.RNGDice(rng, 1, len(desertRunnerIcons))-1]
+	}
+	return characterIcons[sex][career]
+}
+
 // freeAmmo is Shop.BuildAmmoItems: freeAmmoTemplates with freeAmmoQuantities, each put at the head of the item list, readied.
 var freeAmmo = []struct {
 	Item     rules.ItemID

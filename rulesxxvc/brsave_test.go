@@ -9,7 +9,7 @@ import (
 )
 
 func TestConvertBRCharacter(t *testing.T) {
-	b := BRSave{Name: "Buck", Abilities: [7]int{17, 16, 15, 14, 13, 12, 11}, Race: 1, Career: 3, Level: 2, Age: 27,
+	b := BRSave{Name: "Buck", Abilities: [7]int{17, 16, 15, 14, 13, 12, 11}, Race: 1, Career: 3, Level: 2, Age: 27, Icon: 23,
 		CreditTotal: 500, HitPoints: 9, HitPointMaximum: 12, Status: StOkay, IsEnabled: true,
 		ArmorFlags: armorBodyBit | armorECMBit,
 		Items:      []BRSavedItem{{ItemType: 5, NameIDs: [3]int32{1, 2, 0}, Plus: 1, Quantity: 1, Readied: true}},
@@ -20,7 +20,7 @@ func TestConvertBRCharacter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if c.Name != "Buck" || c.Age != 27 || c.Race != xxvc.Terran || c.Career != xxvc.Warrior || c.Scores[xxvc.Tech] != 11 ||
+	if c.Name != "Buck" || c.Age != 27 || c.Icon != 23 || c.Race != xxvc.Terran || c.Career != xxvc.Warrior || c.Scores[xxvc.Tech] != 11 ||
 		c.Coins != 500 || c.HP != 9 || c.MaxHP != 12 || !c.Enabled || c.Skills.Level(1) != 40 || !c.Armor.Body || !c.Armor.ECM || c.Armor.Fields {
 		t.Fatalf("character %+v", c)
 	}

@@ -18,6 +18,7 @@ type Character struct {
 	Race       rules.Race
 	Career     rules.Class
 	Level      int
+	Icon       int // the combat icon's body: an id in CHARS.DAX's 36 (types.pas icon; CharGen's SetDefaultIcon and CustomizeIcon)
 	Age        int // the years (types.pas age, a Byte); a year's carry of the clock adds one to each party member
 	Scores     map[rules.Ability]int
 	HP, MaxHP  int

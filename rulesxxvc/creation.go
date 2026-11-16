@@ -378,7 +378,8 @@ func (r *Rules) draftCharacter(d rules.Draft, kit bool) (Character, error) {
 	if d.Sheet.Skills != nil {        // then what EditSkills left
 		c.Skills = levelsOfDraft(d)
 	}
-	if kit {
+	if kit { // the character kept: SetDefaultIcon after the skills, then BuildAmmoItems
+		c.Icon = defaultIcon(race, d.Sheet.Sex, career, r.stream(nil))
 		for _, a := range freeAmmo { // each at the head of the list
 			c.Items = slices.Insert(c.Items, 0, Carried{Ref: rules.ItemRef{ID: a.Item, Count: a.Quantity}, Readied: true})
 		}

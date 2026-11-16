@@ -23,6 +23,7 @@ type BRSave struct {
 	Career                int // TCareer: CareerNone, then xxvc.Careers
 	Level                 int
 	Age                   int // types.pas age
+	Icon                  int // types.pas icon: the combat icon's body in CHARS.DAX
 	CreditTotal           int64
 	Experience            int64
 	BaseCombat            int
@@ -93,7 +94,7 @@ var abilityNames = map[rules.Ability]rules.AbilityName{
 // the original bytes.
 func ConvertBRCharacter(t xxvc.Tables, b BRSave) (Character, error) {
 	c := Character{
-		Name: b.Name, Level: b.Level, Age: b.Age, Scores: map[rules.Ability]int{},
+		Name: b.Name, Level: b.Level, Age: b.Age, Icon: b.Icon, Scores: map[rules.Ability]int{},
 		HP: b.HitPoints, MaxHP: b.HitPointMaximum, BaseCombat: b.BaseCombat, IconDimensions: b.IconDimensions,
 		Coins: rules.Copper(b.CreditTotal), Enabled: b.IsEnabled, Status: b.Status,
 		Exp: b.Experience, XPAward: b.XPAward, AttackBonus: b.AttackBonus, ArmorClass: b.ArmorClass,
