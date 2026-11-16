@@ -1243,21 +1243,39 @@ func (r *Rules) Dealt(e *rules1e.RuleState, a, b *rules1e.Character, h rules1e.H
 }
 
 // weaponDamage is p's damage with h: its [W]s, the weapon's own bonus and
-// magic, and its abilities' modifiers in place of the original's strength.
+// magic, and its abilities' modifiers in place of the original's strength (powerBlow).
 func weaponDamage(e *rules1e.RuleState, a *rules1e.Character, p *power, h rules1e.Hit) int {
-	dmg := h.Roll + h.Bonus - h.Ability
+	dmg := h.Roll + powerBlow(e, a, p, h).Bonus
 	for range max(p.w, 1) - 1 {
 		dmg += e.Dice(h.Dice, h.Sides)
 	}
+	return dmg
+}
+
+// powerBlow is h as power p deals it: its [W]s' dice, the original's
+// strength (Ability) replaced by p's abilities' modifiers.
+func powerBlow(e *rules1e.RuleState, a *rules1e.Character, p *power, h rules1e.Hit) rules1e.Hit {
+	h.Dice *= max(p.w, 1)
+	h.Bonus -= h.Ability
+	h.Ability = 0
 	abl := p.abl
 	if abl == nil {
 		abl = []ab{p.atk}
 	}
 	_, _, missile := e.WeaponAbility(a, e.WieldOf(a))
 	for _, x := range abl {
-		dmg += e.Mod(a, x.of(missile))
+		h.Bonus += e.Mod(a, x.of(missile))
 	}
-	return dmg
+	return h
+}
+
+// Blow is a's next weapon hit as its readied power deals it (powerBlow); a
+// foe's is the original's.
+func (r *Rules) Blow(e *rules1e.RuleState, a *rules1e.Character, h rules1e.Hit) rules1e.Hit {
+	if p := r.weapon(e, a); p != nil {
+		return powerBlow(e, a, p, h)
+	}
+	return h
 }
 
 func (r *Rules) AfterAttack(e *rules1e.RuleState, a, b *rules1e.Character, hit bool) {

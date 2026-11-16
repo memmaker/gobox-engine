@@ -29,6 +29,7 @@ type CombatRules interface {
 	Use(s *RuleState, c *Character, id int, t *Character) (endsTurn bool) // AimSelf (t nil), AimFoe, AimAlly, AimArea; AimWeapon before its attack
 	HitNeed(s *RuleState, a, b *Character, need int) int                  // what a's d20 + THAC0 must reach to hit b
 	Dealt(s *RuleState, a, b *Character, h Hit) int                       // the damage of a's hit on b, before a backstab's multiple and the damage affects
+	Blow(s *RuleState, a *Character, h Hit) Hit                           // the dice and bonus a's weapon hit h deals by this rule set, before a target (the shown damage, DamageText)
 	Attacking(s *RuleState, a, b *Character)                              // a's attack on b begins (an interrupt may strike a first)
 	Hits(s *RuleState, a, b *Character, over int) bool                    // a's roll hits b by over (0: just); false turns it into a miss (an interrupt), never on a 20
 	AfterAttack(s *RuleState, a, b *Character, hit bool)                  // a's attack on b is over
@@ -69,6 +70,7 @@ func (ClassicRules) Maneuvers(*RuleState, *Character) []Maneuver            { re
 func (ClassicRules) Use(*RuleState, *Character, int, *Character) bool       { return false }
 func (ClassicRules) HitNeed(_ *RuleState, _, _ *Character, need int) int    { return need }
 func (ClassicRules) Dealt(_ *RuleState, _, _ *Character, h Hit) int         { return h.Roll + h.Bonus }
+func (ClassicRules) Blow(_ *RuleState, _ *Character, h Hit) Hit             { return h }
 func (ClassicRules) AfterAttack(*RuleState, *Character, *Character, bool)   {}
 func (ClassicRules) Provokes(*RuleState, *Character, *Character) bool       { return true }
 func (ClassicRules) Picks(*RuleState, *Character) []PowerOwed               { return nil }

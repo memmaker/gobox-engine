@@ -258,6 +258,12 @@ func TestWeaponDamage(t *testing.T) {
 	if d := weaponDamage(e, a, powerOf(3), h); d != 1+1 { // Sure Strike
 		t.Errorf("Sure Strike: %d, want 1[W] + 1", d)
 	}
+	if b := r.Blow(e, a, h); b.Dice != 1 || b.Bonus != 1+4 { // the shown damage: what Dealt deals
+		t.Errorf("basic shown as %dd%d%+d, want 1d1+5", b.Dice, b.Sides, b.Bonus)
+	}
+	if b := powerBlow(e, a, powerOf(4), h); b.Dice != 2 || b.Bonus != 1+4 {
+		t.Errorf("Steel Serpent Strike shown as %dd%d%+d, want 2d1+5", b.Dice, b.Sides, b.Bonus)
+	}
 	if o := defence(e, foe("ORC"), ref); o != -4 {
 		t.Errorf("orc drudge Reflex %d against AC, want -4", o)
 	}

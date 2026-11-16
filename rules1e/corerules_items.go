@@ -331,18 +331,24 @@ func (r *Rules) itemCard(c *Character, it *Item) rules.ItemCard {
 	return g
 }
 
-// DamageText is c's weapon damage as the sheet words it (por combat_engine damageText).
+// DamageText is c's weapon damage as the sheet words it (por combat_engine damageText),
+// every modifier the rule set adds before a target is known (Blow): the strength's, a 4e power's.
 // A hand without dice gives way to the other: a monster's bite is its second hand's record (the giant snake: 3d6+2 in hand 1).
-func DamageText(c *Character) string {
+func DamageText(s *RuleState, c *Character) string {
 	h := 0
 	if c.Dice[0] == 0 && c.Dice[1] != 0 {
 		h = 1
 	}
-	d := strconv.Itoa(int(c.Dice[h])) + "d" + strconv.Itoa(int(c.Sides[h]))
-	if b := int8(c.Bonus[h]); b > 0 {
-		d += "+" + strconv.Itoa(int(b))
-	} else if b < 0 {
-		d += "-" + strconv.Itoa(-int(b)) // abs in 16 bits: -128 shows 128
+	hit := Hit{Dice: int(c.Dice[h]), Sides: int(c.Sides[h]), Bonus: int(int8(c.Bonus[h]))}
+	if h == 0 { // DamageRoll's slot 1: the strength rides the weapon's hand
+		_, hit.Ability, _ = s.WeaponAbility(c, s.Hand(c))
+	}
+	hit = s.Rules().Blow(s, c, hit)
+	d := strconv.Itoa(hit.Dice) + "d" + strconv.Itoa(hit.Sides)
+	if hit.Bonus > 0 {
+		d += "+" + strconv.Itoa(hit.Bonus)
+	} else if hit.Bonus < 0 {
+		d += "-" + strconv.Itoa(-hit.Bonus)
 	}
 	return d
 }
@@ -440,7 +446,7 @@ func (r *Rules) factItems(id rules.CharID, f rules.Fact) (rules.Value, bool, err
 		if c == nil {
 			return nil, true, errNoChar
 		}
-		return rules.Text(DamageText(c)), true, nil
+		return rules.Text(DamageText(s, c)), true, nil
 	case rules.InventoryFact:
 		if c == nil {
 			return nil, true, errNoChar

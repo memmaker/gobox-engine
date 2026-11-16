@@ -387,7 +387,7 @@ func (r *Rules) units() rules.Units {
 		}
 		u := rules.Unit{ID: r.ID(c), Number: i, At: rules.BoardPos{X: int(p.X), Y: int(p.Y)}, Size: int(p.Size), Facing: int(c.Combat.Facing),
 			Party: IsParty(c), Helpless: s.IsHelpless(c), Active: c.Okay != 0, Icon: int(c.Order),
-			Name: c.Name(), HP: int(c.HP), MaxHP: int(c.MaxHP), AC: 60 - int(c.AC[0]), Damage: DamageText(c)}
+			Name: c.Name(), HP: int(c.HP), MaxHP: int(c.MaxHP), AC: 60 - int(c.AC[0]), Damage: DamageText(s, c)}
 		for part := 0; part <= 3; part++ {
 			if dx, dy, ok := s.Footprint(u.Size, part); ok {
 				u.Squares = append(u.Squares, rules.BoardPos{X: u.At.X + dx, Y: u.At.Y + dy})
