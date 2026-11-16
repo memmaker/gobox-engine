@@ -295,6 +295,7 @@ func (r *Rules) EndFight(f rules.Fight, _ *rules.RNG) rules.FightResult {
 	}
 	if verdict != rules.PartyLost {
 		fled := verdict == rules.PartyFled // hasPartyFled: only the fled come back (RESULT_TEAM_FLED)
+		var left []rules.CharID
 		for _, id := range r.fightParty(f) {
 			c := r.chars[id]
 			if c == nil {
@@ -303,13 +304,17 @@ func (r *Rules) EndFight(f rules.Fight, _ *rules.RNG) rules.FightResult {
 			switch {
 			case c.Status == StFleeing, !fled && c.Status == StUnconscious && c.HP > 0:
 				c.Status, c.Enabled = StOkay, true
-			case fled:
+			case fled: // postcbt.pas TEAM_FLED: any member that did not flee is removed (CharGen.RemoveCreature)
+				if c.team() {
+					left = append(left, id)
+				}
 			case f.Terms.RevivesParty && (c.Status == StDying || c.Status == StUnconscious):
 				c.Status, c.Enabled, c.HP = StOkay, true, 1
 			case c.Status == StDying:
 				c.Status = StUnconscious
 			}
 		}
+		r.removeMembers(left)
 	}
 	r.pool = rules.Copper(res.Money.Copper) // DetermineLootExp's poolCredits
 	if verdict != rules.PartyLost {         // the monsters leave the party list and the ruleset's characters (CharGen.RemoveCreature, old engine 1F6B leaveField)
@@ -324,6 +329,34 @@ func (r *Rules) EndFight(f rules.Fight, _ *rules.RNG) rules.FightResult {
 	}
 	r.fight = nil
 	return res
+}
+
+// removeMembers is CharGen.RemoveCreature(False, True) for each of ids: the member leaves the party list with its
+// items and credits (FreeCreature), the party count goes down, and the acting member becomes the one before it (the
+// first of the party when none is).
+func (r *Rules) removeMembers(ids []rules.CharID) {
+	if len(ids) == 0 {
+		return
+	}
+	acting := min(r.acting, len(r.party)-1)
+	kept := 0 // the survivors before the acting member
+	for i, id := range r.party[:max(acting+1, 0)] {
+		if !slices.Contains(ids, id) && i != acting {
+			kept++
+		}
+	}
+	actingStays := acting >= 0 && !slices.Contains(ids, r.party[acting])
+	for _, id := range ids {
+		delete(r.chars, id)
+		r.memberCount--
+	}
+	r.party = slices.DeleteFunc(r.party, func(id rules.CharID) bool { return slices.Contains(ids, id) })
+	switch {
+	case actingStays:
+		r.acting = kept
+	default:
+		r.acting = max(kept-1, 0)
+	}
 }
 
 // lootHandle names a loot item by handle (FightResult.Items); r.loot keeps
