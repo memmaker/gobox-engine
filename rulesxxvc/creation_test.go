@@ -2,6 +2,7 @@ package rulesxxvc
 
 import (
 	"errors"
+	"maps"
 	"slices"
 	"testing"
 
@@ -121,5 +122,56 @@ func TestCreationAge(t *testing.T) {
 	}
 	if len(seen) != 6 {
 		t.Errorf("ages seen %v, want all of 19..24", seen)
+	}
+}
+
+// specTables is a Rules with three item templates: two within itemTemplates 1..15, one past it.
+func specTables() *Rules {
+	r := New()
+	r.tables.ItemTypes = make([]xxvc.ItemType, 12)
+	r.tables.ItemWords = []string{"", "Dagger", "Sword", "Laser"}
+	r.tables.Items = map[rules.ItemID]xxvc.ItemTemplate{
+		1: {Type: 5, Words: [3]int32{1}}, 4: {Type: 7, Words: [3]int32{2}}, 16: {Type: 8, Words: [3]int32{3}},
+	}
+	return r
+}
+
+// TestWarriorSpecialization: viewchar.pas SpecializationMenu(True) in CreateCharacterMenu: a warrior (only) picks one
+// of the weapons itemTemplates 1..15 hold and the character is trained once in it.
+func TestWarriorSpecialization(t *testing.T) {
+	c := creation{r: specTables()}
+	warrior := newDraft(t, c, 0, 0, slices.Index(pickCareers, xxvc.Warrior), 3)
+	var spec rules.FieldDef
+	for _, f := range c.Fields(warrior) {
+		if f.ID == fieldSpecialization {
+			spec = f
+		}
+	}
+	if !slices.Equal(spec.Options, []string{"Dagger", "Sword"}) {
+		t.Fatalf("options %v: itemTemplates 1..15 only", spec.Options)
+	}
+	medic := newDraft(t, c, 0, 0, slices.Index(pickCareers, xxvc.Medic), 3)
+	for _, f := range c.Fields(medic) {
+		if f.ID == fieldSpecialization {
+			t.Fatal("a medic is asked a weapon")
+		}
+	}
+	scores := warrior.Sheet.Scores
+	w := c.Enforce(warrior, fieldSpecialization, 1, &rules.RNG{State: 11})
+	if !maps.Equal(w.Sheet.Scores, scores) || w.Sheet.Age != warrior.Sheet.Age || w.Picks[fieldSpecialization] != 1 {
+		t.Errorf("the weapon changed more than itself: %v", w.Sheet.Scores)
+	}
+	ch, err := c.r.draftCharacter(w, false)
+	if err != nil || ch.Specialized(7) != 1 || ch.Specialized(5) != 0 {
+		t.Fatalf("specializations %v (%v)", ch.Specializations, err)
+	}
+	if g := c.Enforce(w, fieldGender, 1, &rules.RNG{State: 12}); g.Picks[fieldSpecialization] != 1 {
+		t.Error("a gender change lost the weapon")
+	}
+	if r := c.Enforce(w, fieldCareer, slices.Index(pickCareers, xxvc.Engineer), &rules.RNG{State: 12}); len(r.Picks) != 3 {
+		t.Errorf("a new career kept the weapon: %v", r.Picks)
+	}
+	if ch, _ := c.r.draftCharacter(medic, false); ch.Specialized(5)+ch.Specialized(7) != 0 {
+		t.Error("a medic is trained in a weapon")
 	}
 }

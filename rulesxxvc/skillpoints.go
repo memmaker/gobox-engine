@@ -23,7 +23,7 @@ const (
 
 // The two skill fields, after the three choices.
 const (
-	fieldCareerSkills rules.FieldID = iota + fieldCareer + 1
+	fieldCareerSkills rules.FieldID = iota + fieldSpecialization + 1
 	fieldGeneralSkills
 )
 

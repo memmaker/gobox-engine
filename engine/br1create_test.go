@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"maps"
 	"slices"
 	"testing"
 
@@ -166,6 +167,49 @@ func TestBR1CreateSkillPoints(t *testing.T) {
 	sh := e.ruleset().Sheet(e.partyIDs()[0])
 	if sh.Name != "Doc" || sh.Skills["treat-light-wounds"] != 30 || sh.Skills["treat-serious-wounds"] != 4 || sh.Skills["mathematics"] != 1 || sh.Skills["diagnose"] != 0 {
 		t.Fatalf("the kept character's skills: %v", sh.Skills)
+	}
+	if _, err := e.doNow(game.Begin{}); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestBR1CreateWarrior: a warrior (only) is asked its weapon (ViewChar.SpecializationMenu(True)) among itemTemplates
+// 1..15; picking one keeps the rolled abilities; the character is kept, added and the game begun.
+func TestBR1CreateWarrior(t *testing.T) {
+	e := br1Engine(t)
+	e.Open("")
+	e.titleDone()
+	e.Advance()
+	state := func() *game.Draft { a, _ := e.build().(game.Assembling); return a.Draft }
+	if err := e.createCharacter(); err != nil {
+		t.Fatal(err)
+	}
+	if d := state(); len(d.Fields) != 3 {
+		t.Fatalf("a rocket jock's fields: %d", len(d.Fields))
+	}
+	if err := e.SetField(2, slices.Index(state().Fields[2].Options, "Warrior")); err != nil {
+		t.Fatal(err)
+	}
+	d := state()
+	if len(d.Fields) != 4 || d.Fields[3].Name != "Weapon Specialization" || len(d.Fields[3].Options) == 0 || len(d.Fields[3].Options) > 15 {
+		t.Fatalf("fields %+v", d.Fields)
+	}
+	stats := maps.Clone(d.Member.Stats)
+	if err := e.SetField(3, len(d.Fields[3].Options)-1); err != nil {
+		t.Fatal(err)
+	}
+	if d = state(); d.Fields[3].Pick != len(d.Fields[3].Options)-1 || !maps.Equal(stats, d.Member.Stats) {
+		t.Fatalf("the weapon pick %d rerolled: %v then %v", d.Fields[3].Pick, stats, d.Member.Stats)
+	}
+	if err := e.rename("Rex"); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.EndCreation(true); err != nil {
+		t.Fatal(err)
+	}
+	list := e.BuildCharList()
+	if _, err := e.doNow(game.AddCharacter{Roster: len(list) - 1}); err != nil || list[len(list)-1] != "Rex" {
+		t.Fatalf("add: %v %v", err, list)
 	}
 	if _, err := e.doNow(game.Begin{}); err != nil {
 		t.Fatal(err)

@@ -84,16 +84,17 @@ var constitutionLevelBonus = [22]int{-3, -2, -2, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0
 
 // The new character's fixed fields (chargen.pas CreateCharacterMenu).
 const (
-	startBaseArmorClass = 50   // baseArmorClass := 50
-	startCredits        = 1000 // creditTotal := 1000
-	startIconDimensions = 1    // iconDimensions := 1
-	startLevel          = 2    // free training stops at the level the starting experience (experienceNeeded[career, 2]) buys
-	ageBase             = 18   // age := RollDice(1, 6) + 18
-	ageDie              = 6
-	maxAge              = 255 // age is a Byte
-	fixedGainLevel      = 9   // chargen.pas FIXED_GAIN_LEVEL: from it a level's hit points are fixed, not rolled
-	maxStartScore       = 18  // Modify keeps each ability between raceStatAdjust + 3 and + 18
-	minStartScore       = 3
+	startBaseArmorClass       = 50   // baseArmorClass := 50
+	startCredits              = 1000 // creditTotal := 1000
+	startIconDimensions       = 1    // iconDimensions := 1
+	startLevel                = 2    // free training stops at the level the starting experience (experienceNeeded[career, 2]) buys
+	lastSpecializableTemplate = 15   // viewchar.pas LAST_SPECIALIZABLE_TEMPLATE: the menu offers itemTemplates 1..15
+	ageBase                   = 18   // age := RollDice(1, 6) + 18
+	ageDie                    = 6
+	maxAge                    = 255 // age is a Byte
+	fixedGainLevel            = 9   // chargen.pas FIXED_GAIN_LEVEL: from it a level's hit points are fixed, not rolled
+	maxStartScore             = 18  // Modify keeps each ability between raceStatAdjust + 3 and + 18
+	minStartScore             = 3
 )
 
 // raceMovement is baseMovement by race (CreateCharacterMenu's case; the races it offers).

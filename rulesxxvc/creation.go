@@ -20,6 +20,7 @@ const (
 	fieldRace rules.FieldID = iota
 	fieldGender
 	fieldCareer
+	fieldSpecialization // a warrior's weapon (viewchar.pas SpecializationMenu(True)); the choice fields keep their ID as their place
 )
 
 // pickGenders are TGender's order (GenderMale, GenderFemale).
@@ -55,7 +56,7 @@ type creation struct {
 
 var _ rules.CreationRules = creation{}
 
-func (creation) Fields(d rules.Draft) []rules.FieldDef {
+func (c creation) Fields(d rules.Draft) []rules.FieldDef {
 	races := make([]string, len(pickRaces))
 	for i, r := range pickRaces {
 		races[i] = xxvc.RaceNames[r]
@@ -68,15 +69,35 @@ func (creation) Fields(d rules.Draft) []rules.FieldDef {
 	for i, c := range pickCareers {
 		careers[i] = xxvc.CareerNames[c]
 	}
-	return append([]rules.FieldDef{
+	out := []rules.FieldDef{
 		{ID: fieldRace, Label: "Race", Options: races},
 		{ID: fieldGender, Label: "Gender", Options: genders},
 		{ID: fieldCareer, Label: "Class", Options: careers},
-	}, skillFields(d)...)
+	}
+	if opts := c.specializable(); careerOfDraft(d) == xxvc.Warrior && len(opts) > 0 { // CreateCharacterMenu: if career = CareerWarrior
+		names := make([]string, len(opts))
+		for i, id := range opts {
+			names[i] = c.r.itemName(rules.ItemRef{ID: id})
+		}
+		out = append(out, rules.FieldDef{ID: fieldSpecialization, Label: "Weapon Specialization", Options: names})
+	}
+	return append(out, skillFields(d)...)
+}
+
+// specializable are the weapons the specialization menu offers: itemTemplates 1..15 that are not empty (the tables
+// list no empty template).
+func (c creation) specializable() []rules.ItemID {
+	var out []rules.ItemID
+	for id := rules.ItemID(1); id <= lastSpecializableTemplate; id++ {
+		if _, ok := c.r.tables.Items[id]; ok {
+			out = append(out, id)
+		}
+	}
+	return out
 }
 
 // Fits: a career is legal when the race may take it (raceCareers); the other fields have no restriction.
-func (creation) Fits(d rules.Draft, f rules.FieldID, o int) bool {
+func (c creation) Fits(d rules.Draft, f rules.FieldID, o int) bool {
 	switch f {
 	case fieldRace:
 		return o >= 0 && o < len(pickRaces)
@@ -84,6 +105,8 @@ func (creation) Fits(d rules.Draft, f rules.FieldID, o int) bool {
 		return o >= 0 && o < len(pickGenders)
 	case fieldCareer:
 		return o >= 0 && o < len(pickCareers) && slices.Contains(raceCareers[pickRaces[d.Picks[fieldRace]]], pickCareers[o])
+	case fieldSpecialization:
+		return o >= 0 && o < len(c.specializable())
 	case fieldCareerSkills, fieldGeneralSkills: // a point may be spent on the option
 		_, err := creation{}.Spend(d, f, o, 1)
 		return err == nil
@@ -100,6 +123,12 @@ func (c creation) Enforce(d rules.Draft, f rules.FieldID, o int, rng *rules.RNG)
 		d.Picks = map[rules.FieldID]int{}
 	}
 	d.Picks[f] = o
+	if f == fieldSpecialization { // the weapon changes nothing else
+		return d
+	}
+	if f != fieldGender {
+		delete(d.Picks, fieldSpecialization) // a new race or career asks the weapon afresh
+	}
 	if !c.Fits(d, fieldCareer, d.Picks[fieldCareer]) {
 		d.Picks[fieldCareer] = slices.Index(pickCareers, raceCareers[pickRaces[d.Picks[fieldRace]]][0])
 	}
@@ -311,6 +340,9 @@ func (r *Rules) draftCharacter(d rules.Draft, kit bool) (Character, error) {
 	}
 	for a, v := range d.Sheet.Scores {
 		c.Scores[a] = int(v)
+	}
+	if opts := (creation{r: r}).specializable(); career == xxvc.Warrior && len(opts) > 0 { // SpecializationMenu(True): one training in the picked weapon
+		c.Specializations[0] = r.tables.Items[opts[min(max(d.Picks[fieldSpecialization], 0), len(opts)-1)]].Type
 	}
 	for i := range c.Saves {
 		c.Saves[i] = baseSavingThrows[i] - raceSaveAdjust[race][i] // levels 1 and 2 take none off (every third level does)
