@@ -281,19 +281,72 @@ func (p *Presenter) pan(dt float64, focus vec) bool {
 	return true
 }
 
-// chase is how much of the easing toward focus this frame takes (0..1):
-// all of it when the focus is out of sight, none while
-// it sits inside the view's comfort box (the eye does not follow what is
-// in plain sight: less motion the player did not ask for), and rising
-// smoothly as it leaves the box for the edge.
-func (p *Presenter) chase(focus vec) float64 {
-	const side, top, bottom = 0.6, 0.65, -0.3 // the box in -1..1 (the bar covers the bottom)
-	nx, ny, ok := p.cam.ndc(focus)
-	if !ok {
-		return 1
+// The frame box: the part of the view (in -1..1, y up) the focus is kept
+// inside; outside it the camera glides just far enough to bring it back in.
+// The bar covers the bottom.
+const (
+	frameSide, frameTop, frameBottom = 0.7, 0.7, -0.35
+	glideMin, glideMax               = 0.25, 0.7 // seconds a glide takes, short hops to long ones
+	glidePerSquare                   = 0.04      // seconds a glide takes per square it travels
+)
+
+// glide is an eased camera move from one look-at point to another.
+type glide struct {
+	from, to vec
+	t, dur   float64 // seconds since it started, seconds it takes (0: none)
+}
+
+// camAt is the camera looking at at with the current heading and distance.
+func (p *Presenter) camAt(at vec, aspect float64) camera {
+	h := p.dist * math.Cos(pitch)
+	return camera{
+		eye:  vec{at[0] + h*math.Sin(p.yaw), p.dist * math.Sin(pitch), at[2] + h*math.Cos(p.yaw)},
+		at:   at,
+		fovy: 0.8, aspect: aspect,
 	}
-	out := max(0, math.Abs(nx)-side, ny-top, bottom-ny)
-	return min(1, out/0.3)
+}
+
+// frame moves the camera so focus is in view: not at all while it sits in
+// the frame box (the player already sees it), else by the shortest shift
+// that puts it on the box's edge, eased in and out (frameShift, glide).
+func (p *Presenter) frame(dt float64, focus vec, aspect float64) {
+	g := &p.glide
+	if g.dur > 0 { // a glide under way: it keeps going while it still frames the focus
+		g.t += dt
+		s := min(1, g.t/g.dur)
+		p.at = g.from.add(g.to.sub(g.from).mul(s * s * (3 - 2*s)))
+		to := g.to
+		if s >= 1 {
+			*g = glide{}
+		}
+		if _, ok := frameShift(p.camAt(to, aspect), focus); !ok {
+			return
+		}
+	}
+	d, ok := frameShift(p.camAt(p.at, aspect), focus)
+	if !ok {
+		return
+	}
+	n := math.Hypot(d[0], d[2])
+	*g = glide{from: p.at, to: p.at.add(d), dur: min(glideMax, glideMin+n*glidePerSquare)}
+}
+
+// frameShift is the shortest ground shift of c that brings w into the frame
+// box (ok false: w is in it already). A point behind the eye centres.
+func frameShift(c camera, w vec) (vec, bool) {
+	nx, ny, ok := c.ndc(w)
+	if !ok {
+		return vec{w[0] - c.at[0], 0, w[2] - c.at[2]}, true
+	}
+	cx, cy := max(-frameSide, min(frameSide, nx)), max(frameBottom, min(frameTop, ny))
+	if cx == nx && cy == ny {
+		return vec{}, false
+	}
+	g, hit := c.ground(cx, cy)
+	if !hit {
+		return vec{w[0] - c.at[0], 0, w[2] - c.at[2]}, true
+	}
+	return vec{w[0] - g[0], 0, w[2] - g[2]}, true // the view moves with its look-at point, so w lands where g was
 }
 
 func (p *Presenter) initCamera() {

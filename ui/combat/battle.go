@@ -66,10 +66,10 @@ type Presenter struct {
 	mouseAt       image.Point  // the pointer as Point last saw it: a moved mouse takes over from free
 	Stick         [2]float64   // the pad's right stick (x right, y down, -1..1): pans the camera
 	cursor        image.Point  // the aim cursor's square in the last frame
-	tabFrom       *image.Point // Tab was pressed with the aim here: the camera jumps to where it goes
+	tabFrom       *image.Point // Tab was pressed with the aim here: the camera eases to where it goes
 	tabTo         *vec         // the target Tab went to: watched while aiming
 	focus, offset vec          // what the camera watches; W A S D's and the right stick's pan from it
-	centring      bool         // a new focus: the eye eases all the way onto it, not only into the comfort box
+	glide         glide        // the camera's eased move that brings the focus into frame
 	yaw, yawTo    float64      // camera heading: 0 looks north, as the original's screen
 	dist, distTo  float64      // camera distance in squares
 	at            vec          // what the camera looks at (eased)
@@ -165,7 +165,7 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 	}
 	if f := p.tabFrom; f != nil && b.Cursor != *f { // Tab moved the aim: look there at once
 		t := vec{float64(b.Cursor.X) + .5, 0, float64(b.Cursor.Y) + .5}
-		p.tabFrom, p.tabTo, p.at = nil, &t, t
+		p.tabFrom, p.tabTo = nil, &t
 	}
 	p.cursor = b.Cursor
 	if b.Turn == nil || b.Turn.Aim { // the free cursor lives for one turn's choice
@@ -189,7 +189,7 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 		focus = vec{f.X + .5, 0, f.Y + .5}
 	}
 	if focus != p.focus { // a new thing to watch: let go of the pan
-		p.focus, p.offset, p.centring = focus, vec{}, true
+		p.focus, p.offset = focus, vec{}
 	}
 	panned := p.pan(dt, focus)
 	focus = focus.add(p.offset)
@@ -197,26 +197,13 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 	p.yaw += (p.yawTo - p.yaw) * k
 	p.dist += (p.distTo - p.dist) * k
 	if panned { // the camera is in the player's hand: it goes where the keys say, at once
-		p.at = focus
+		p.at, p.glide = focus, glide{}
 	} else {
-		c := p.chase(focus)
-		if p.centring {
-			c = 1
-		}
-		d := focus.sub(p.at)
-		p.at = p.at.add(d.mul(k * c))
-		if d = focus.sub(p.at); d[0]*d[0]+d[2]*d[2] < .01 {
-			p.centring = false
-		}
+		p.frame(dt, focus, float64(dst.Bounds().Dx())/float64(dst.Bounds().Dy()))
 	}
 
 	r := dst.Bounds()
-	h := p.dist * math.Cos(pitch)
-	p.cam = camera{
-		eye:  vec{p.at[0] + h*math.Sin(p.yaw), p.dist * math.Sin(pitch), p.at[2] + h*math.Cos(p.yaw)},
-		at:   p.at,
-		fovy: 0.8, aspect: float64(r.Dx()) / float64(r.Dy()),
-	}
+	p.cam = p.camAt(p.at, float64(r.Dx())/float64(r.Dy()))
 	p.screen = r
 	vp := p.cam.viewProj()
 	eye := [3]float32{float32(p.cam.eye[0]), float32(p.cam.eye[1]), float32(p.cam.eye[2])}

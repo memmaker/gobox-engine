@@ -394,12 +394,18 @@ func (c camera) ndc(w vec) (nx, ny float64, ok bool) {
 // plane is the square of the ground's plane at (nx, ny), on the board or
 // past it (hit false: the ray misses the plane).
 func (c camera) plane(nx, ny float64) (x, z int, hit bool) {
+	p, hit := c.ground(nx, ny)
+	return int(math.Floor(p[0])), int(math.Floor(p[2])), hit
+}
+
+// ground is the point of the ground's plane at (nx, ny) (hit false: the ray
+// misses the plane).
+func (c camera) ground(nx, ny float64) (vec, bool) {
 	r, u, f := c.basis()
 	t := math.Tan(c.fovy / 2)
 	d := f.add(r.mul(nx * t * c.aspect)).add(u.mul(ny * t))
 	if d[1] >= 0 {
-		return 0, 0, false
+		return vec{}, false
 	}
-	p := c.eye.add(d.mul(-c.eye[1] / d[1]))
-	return int(math.Floor(p[0])), int(math.Floor(p[2])), true
+	return c.eye.add(d.mul(-c.eye[1] / d[1])), true
 }
