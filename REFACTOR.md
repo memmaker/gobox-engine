@@ -495,7 +495,32 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
          Pool handler with other operands), block 17 -> 32 loops without asking, table reads
          past the end where the entry skipped the story. Coverage is capped by those, by story
          state left at its defaults, and by short random walks.
-      7. [ ] e1 (B1e): the space fight, ships, jetpack, throw on the shared engine
+      7. [~] B1e: the ship's script cells (`engine/scriptvars_ship.go`, `rules.ShipCellFact`); the
+         rocket's view, script view kind 2 (`engine/rocket_engine.go`: world words `Flying`,
+         `RocketX/Y`, `RocketHeading`, `OrbitTick`, `OrbitStep`; the system map as adventure data
+         `GameTables.Space` from START.EXE; bodies derived from the orbit step; a move is 3 ticks
+         and 3 days, the sun blocks, no fuel is spent (the Pascal only shows it); save and load
+         while flying); the ship fight (`engine/spacefight_engine.go` on `rules.ShipRules`, the
+         crew menu from the ruleset's offers, `FightState` written, the ui's space fight and
+         ship sheet fed from typed state; `ShipSheetState`). `br1OpsNotPorted` is empty. Open:
+         the rocket menu offers only Move (Rocket = the ship sheet, Change, Save missing); the
+         ship fight shows no blink, blast, foe picture or status text, its menu is flat (Target
+         entries collide on hotkeys), no character view, `TreatInjuries` not ported for it; no
+         golden against the old engine; jetpack and throw only as the ground fight has them
+      7b. [x] fl1: a ground fight's pictures: `FlightFact` by item type and the missile art and
+         COMSPR slots as adventure data (the Pool's tables the default); members' CHARS icons and
+         monsters' CPIC icons masked on 8; the arena's tile sheet by place traits and the
+         terrain-to-tile table. Open: only the ready pose (no action pose, no hit/miss frames);
+         the cloud and corpse markers; a big monster's picture size; wild kinds A3..A7
+      7c. [x] tr1: BR's TreasureOf (`Behaviour.CreditsTreasure`: credits paid at once, templates
+         onto the pile the next fight's end offers); the experience text from the ruleset;
+         `PrevX`/`PrevY` (BR import version 12); a start entry that loads another script hands
+         over at once (`areaStart`: the 17 -> 32 loop); the party menu refused every second
+         roster character (`CanJoin`, `InParty`, `ControlledBefore` unanswered); the sweep enters
+         blocks in states derived from their load entries, prefers replies not yet taken, and
+         plays four members. Coverage did NOT rise (about 20% of 17830 instructions): walks are
+         short and random. Open: a loop without asking in blocks 50, 80, 94.
+
       8. [ ] every BR1 block's entries run headless without a panic (a sweep test over the
          scripts' reachable commands, like the Pool games' sweeps); then BR2 the same
       9. [ ] B1g: `cmd/gobox` plays BR1 and BR2 from data folders only; the BR engines and repos
