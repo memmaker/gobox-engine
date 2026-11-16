@@ -80,6 +80,7 @@ type Behaviour struct {
 	HitPadded       bool // a script's damage message pads the number to three columns (the Pool's Str(dmg:3)); BR's EclInflictDamage does not
 	LostDuelResult  bool // a lost solo fight leaves the combat result at 0x80, the team beaten (BR postcbt.pas DetermineCombatResults); the Pool's leaves it 0
 	FarSight        bool // the squares ahead counted before a wall run to 5 (BR eclmenu.pas MaxMonsterDist); otherwise to 2 (the Pool's ovr08:0482)
+	BeginClearsHall bool // the party menu's Begin zeroes the training mask (cotab chargen.pas:262, sotsb :304, pod :229, BR MainMenu); POR's never assigns it
 	ClearExitText   bool // ClearExit empties the text pane too (BR pO035_2DCC case 66, 2837); otherwise only the view comes back (pod O040:24AE)
 	// ViewKept: a block's start keeps the view kind (3D view or overland) until the script's AreaKind command says otherwise (BR eclmenu.pas EclInit leaves the interface state alone); otherwise the start sets the 3D view (the Pool's ovr08:01B6)
 	ViewKept bool
@@ -198,7 +199,7 @@ var V1 = func() *Version {
 		Calls: map[uint16]CallFn{0x2C90: CallRedrawView, 0x8000: CallDuelWin, 0x8001: CallDuelLose, 0xBA03: CallDuelSound,
 			0xC01E: CallStepForward, 0xC018: CallWallAhead},
 		Programs:  map[byte]ProgramFn{0: ProgramPartyMenu, 8: ProgramEnding, 9: ProgramCamp},
-		Behaviour: Behaviour{HitPadded: true, NPCSideBit: true, SelectMemberDrop: true, NoMonsterCombat: []CombatScreen{CombatShop, CombatTemple}}}
+		Behaviour: Behaviour{BeginClearsHall: true, HitPadded: true, NPCSideBit: true, SelectMemberDrop: true, NoMonsterCombat: []CombatScreen{CombatShop, CombatTemple}}}
 }()
 
 // set makes byte-code command b the canonical command op with these operands.
@@ -231,7 +232,7 @@ var V2 = func() *Version {
 		45568: CallDuelSound, 45571: CallDuelSound, 49182: CallStepForward, 49176: CallWallAhead, 26627: CallPause}
 	// PROGRAM: cotab's 0, 3 party defeated, 8 ending, 9 camp; sotsb uses 0 and 9
 	programs := map[byte]ProgramFn{0: ProgramPartyMenu, 3: ProgramPartyDefeated, 8: ProgramEnding, 9: ProgramCamp}
-	return &Version{ID: 2, Base: 32768, Cmds: t, Skip: skip, Calls: calls, Programs: programs, Behaviour: func() Behaviour { b := V1.Behaviour; b.PictureAnimates = true; return b }()}
+	return &Version{ID: 2, Base: 32768, Cmds: t, Skip: skip, Calls: calls, Programs: programs, Behaviour: func() Behaviour { b := V1.Behaviour; b.PictureAnimates = true; b.BeginClearsHall = true; return b }()}
 }()
 
 // podDebugProgramMax is the largest number the developer test menu's "WHAT PROGRAM # DO YOU WISH?" can pass
@@ -321,7 +322,7 @@ var V4 = func() *Version {
 		// goes on after it: not the Pool games' camp, which ends it)
 		// 2 quits (BR2's PROGRAM_QUIT; BR1's Pascal ignores 2 and its scripts pass 0 and 3 only), 3 is ignored by both
 		Programs:  map[byte]ProgramFn{0: ProgramPartyMenu, 2: ProgramQuit, 3: ProgramNone, 9: ProgramRest},
-		Behaviour: Behaviour{SetupMonsterSides: true, ReturnEndsScript: true, StoreByOperand: true, ClearExitText: true, WhoEndsNoMember: true, FarSight: true, LostDuelResult: true, ViewKept: true, CreditsTreasure: true, MessageDelayMs: BRMessageDelayMs}}
+		Behaviour: Behaviour{BeginClearsHall: true, SetupMonsterSides: true, ReturnEndsScript: true, StoreByOperand: true, ClearExitText: true, WhoEndsNoMember: true, FarSight: true, LostDuelResult: true, ViewKept: true, CreditsTreasure: true, MessageDelayMs: BRMessageDelayMs}}
 }()
 
 // Versions are the dialects by ID.
