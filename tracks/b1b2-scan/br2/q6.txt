@@ -1,0 +1,115 @@
+== br2 GetTable 121 SaveTable 2
+distinct bases 105 by region Counter({'code': 104, 'area': 1})
+GetTable by element width (dest type): Counter({1: 121})
+GetTable index operand kinds: Counter({'byte var': 121})
+T_4B00 area ops=['SaveTable'] widths=[1] len=n/a () idx: word var V_7F7B
+T_83AE code ops=['GetTable'] widths=[1] len=38 (48:780) idx: byte var V_4BC3
+T_83D4 code ops=['GetTable'] widths=[1] len=38 (48:781) idx: byte var V_4BC3
+T_83FA code ops=['GetTable'] widths=[1] len=38 (48:782) idx: byte var V_4BC3
+T_8420 code ops=['GetTable'] widths=[1] len=38 (48:783) idx: byte var V_4BC3
+T_8446 code ops=['GetTable'] widths=[1] len=38 (48:784) idx: byte var V_4BC3
+T_846C code ops=['GetTable'] widths=[1] len=38 (48:785) idx: byte var V_4BC3
+T_8492 code ops=['GetTable'] widths=[1] len=38 (48:786) idx: byte var V_4BC3
+T_84B8 code ops=['GetTable'] widths=[1] len=38 (48:787) idx: byte var V_4BC3
+T_84DE code ops=['GetTable'] widths=[1] len=38 (48:788) idx: byte var V_4BC3
+T_8504 code ops=['GetTable'] widths=[1] len=38 (48:789) idx: byte var V_4BC3
+T_852A code ops=['GetTable'] widths=[1] len=38 (48:790) idx: byte var V_4BC3
+T_8550 code ops=['GetTable'] widths=[1] len=38 (48:791) idx: byte var V_4BC3
+T_8576 code ops=['GetTable'] widths=[1] len=38 (48:792) idx: byte var V_4BC3
+T_859C code ops=['GetTable'] widths=[1] len=38 (48:793) idx: byte var V_4BC3
+T_85C2 code ops=['GetTable'] widths=[1] len=38 (48:794) idx: byte var V_4BC3
+T_8F65 code ops=['GetTable'] widths=[1] len=26 (21:522) idx: byte var V_7F7B
+T_8F7F code ops=['GetTable'] widths=[1] len=26 (21:523) idx: byte var V_7F7B
+T_8F99 code ops=['GetTable'] widths=[1] len=26 (21:524) idx: byte var V_7F7B
+T_8FB3 code ops=['GetTable'] widths=[1] len=26 (21:525) idx: byte var V_7F7B
+T_8FCD code ops=['GetTable'] widths=[1] len=26 (21:526) idx: byte var V_7F7B
+T_8FE7 code ops=['GetTable'] widths=[1] len=15 (21:527) idx: byte var V_4C0F
+T_8FF6 code ops=['GetTable'] widths=[1] len=15 (21:528) idx: byte var V_4C0F
+T_9005 code ops=['GetTable'] widths=[1] len=15 (21:529) idx: byte var V_4C0F
+T_9014 code ops=['GetTable'] widths=[1] len=15 (21:530) idx: byte var V_4C0F
+T_9023 code ops=['GetTable'] widths=[1] len=11 (21:531) idx: byte var V_4C10
+T_902E code ops=['GetTable'] widths=[1] len=11 (21:532) idx: byte var V_4C10
+T_9039 code ops=['GetTable'] widths=[1] len=32 (21:533) idx: byte var V_7F79
+T_9059 code ops=['GetTable'] widths=[1] len=32 (21:534) idx: byte var V_7F79
+T_9079 code ops=['GetTable'] widths=[1] len=4 (21:535) idx: byte var V_4C06
+T_907D code ops=['GetTable'] widths=[1] len=4 (21:536) idx: byte var V_4C06
+T_9081 code ops=['GetTable'] widths=[1] len=5 (21:537) idx: byte var V_4C06
+T_9086 code ops=['GetTable'] widths=[1] len=5 (21:538) idx: byte var V_4C06
+T_908B code ops=['GetTable'] widths=[1] len=6 (21:539) idx: byte var V_4C06
+T_9091 code ops=['GetTable'] widths=[1] len=7 (21:540) idx: byte var V_4C06
+T_9098 code ops=['GetTable'] widths=[1] len=8 (21:541) idx: byte var V_4C06
+T_90A0 code ops=['GetTable'] widths=[1] len=10 (21:542) idx: byte var V_4C06
+T_90AA code ops=['GetTable'] widths=[1] len=8 (21:543) idx: byte var V_4C06
+T_90B2 code ops=['GetTable'] widths=[1] len=5 (21:544) idx: byte var V_4C06
+T_90B7 code ops=['GetTable'] widths=[1] len=6 (21:545) idx: byte var V_4C06
+T_90BD code ops=['GetTable'] widths=[1] len=8 (21:546) idx: byte var V_4C06
+T_90C5 code ops=['GetTable'] widths=[1] len=5 (21:547) idx: byte var V_4C06
+T_90CA code ops=['GetTable'] widths=[1] len=5 (21:548) idx: byte var V_4C06
+T_90CF code ops=['GetTable'] widths=[1] len=15 (21:549) idx: byte var V_4C06
+T_977B code ops=['GetTable'] widths=[1] len=14 (65:588) idx: byte var V_7F79,byte var V_7F7B
+T_9CB9 code ops=['GetTable'] widths=[1] len=5 (97:727) idx: byte var V_4C01
+T_9E34 code ops=['GetTable'] widths=[1] len=18 (36:914) idx: byte var V_4C09
+T_9E46 code ops=['GetTable'] widths=[1] len=4 (36:915) idx: byte var V_4C0F
+T_9E4A code ops=['GetTable'] widths=[1] len=4 (36:916) idx: byte var V_4C0F
+T_9E4E code ops=['GetTable'] widths=[1] len=4 (36:917) idx: byte var V_4C0F
+T_9E52 code ops=['GetTable'] widths=[1] len=4 (36:918) idx: byte var V_4C0F
+T_9E56 code ops=['GetTable'] widths=[1] len=4 (36:919) idx: byte var V_4C0F
+T_9E5A code ops=['GetTable'] widths=[1] len=5 (36:920) idx: byte var V_4C0F
+T_9E9A code ops=['GetTable'] widths=[1] len=38 (32:760) idx: byte var V_7F7A
+T_9EC0 code ops=['GetTable'] widths=[1] len=38 (32:761) idx: byte var V_7F7A
+T_9EE6 code ops=['GetTable'] widths=[1] len=38 (32:762) idx: byte var V_7F7A
+T_9F0C code ops=['GetTable'] widths=[1] len=38 (32:763) idx: byte var V_7F7A
+T_9F32 code ops=['GetTable'] widths=[1] len=38 (32:764) idx: byte var V_7F7A
+T_9F58 code ops=['GetTable'] widths=[1] len=38 (32:765) idx: byte var V_7F7A
+T_9F7E code ops=['GetTable'] widths=[1] len=38 (32:766) idx: byte var V_7F7A
+T_9FA4 code ops=['GetTable'] widths=[1] len=38 (32:767) idx: byte var V_7F7A
+T_9FCA code ops=['GetTable'] widths=[1] len=38 (32:768) idx: byte var V_7F7A
+T_9FF0 code ops=['GetTable'] widths=[1] len=38 (32:769) idx: byte var V_7F7A
+T_A016 code ops=['GetTable'] widths=[1] len=38 (32:770) idx: byte var V_7F7A
+T_A03C code ops=['GetTable'] widths=[1] len=38 (32:771) idx: byte var V_7F7A
+T_A062 code ops=['GetTable'] widths=[1] len=38 (32:772) idx: byte var V_7F7A
+T_A088 code ops=['GetTable'] widths=[1] len=38 (32:773) idx: byte var V_7F7A
+T_A0AE code ops=['GetTable'] widths=[1] len=39 (32:774) idx: byte var V_7F7A
+T_A23D code ops=['GetTable'] widths=[1] len=20 (113:948) idx: byte var V_4CF6
+T_A2E7 code ops=['GetTable'] widths=[1] len=4 (33:877) idx: byte var V_7F79
+T_A2EB code ops=['GetTable'] widths=[1] len=4 (33:878) idx: byte var V_7F79
+T_A2EC code ops=['GetTable'] widths=[1] len=4 (34:958) idx: byte var V_4C0E
+T_A2EF code ops=['GetTable'] widths=[1] len=4 (33:879) idx: byte var V_7F79
+T_A2F0 code ops=['GetTable'] widths=[1] len=4 (34:959) idx: byte var V_4C0E
+T_A2F3 code ops=['GetTable'] widths=[1] len=5 (33:880) idx: byte var V_7F79
+T_A2F4 code ops=['GetTable'] widths=[1] len=4 (34:960) idx: byte var V_4C0E
+T_A2F8 code ops=['GetTable'] widths=[1] len=4 (34:961) idx: byte var V_4C0E
+T_A2FC code ops=['GetTable'] widths=[1] len=4 (34:962) idx: byte var V_4C0E
+T_A2FD code ops=['GetTable'] widths=[1] len=6 (38:1004) idx: byte var V_4C4A
+T_A300 code ops=['GetTable'] widths=[1] len=5 (34:963) idx: byte var V_4C0E
+T_A303 code ops=['GetTable'] widths=[1] len=6 (38:1005) idx: byte var V_4C4A
+T_A309 code ops=['GetTable'] widths=[1] len=7 (38:1006) idx: byte var V_4C4A
+T_A358 code ops=['GetTable'] widths=[1] len=24 (49:926) idx: byte var V_4CF6
+T_A370 code ops=['GetTable'] widths=[1] len=8 (49:927) idx: byte var V_7F7A
+T_A378 code ops=['GetTable'] widths=[1] len=8 (49:928) idx: byte var V_7F7A
+T_A3BD code ops=['GetTable'] widths=[1] len=4 (80:1105) idx: byte var V_4C0D
+T_A3C1 code ops=['GetTable'] widths=[1] len=4 (80:1106) idx: byte var V_C04D
+T_A3C5 code ops=['GetTable'] widths=[1] len=4 (80:1107) idx: byte var V_C04D
+T_A3C9 code ops=['GetTable'] widths=[1] len=4 (80:1108) idx: byte var V_C04D
+T_A3CB code ops=['GetTable'] widths=[1] len=8 (114:1113) idx: byte var V_4C0E
+T_A3CD code ops=['GetTable'] widths=[1] len=4 (80:1109) idx: byte var V_4C0D
+T_A3D1 code ops=['GetTable'] widths=[1] len=7 (80:1110) idx: byte var V_4C10
+T_A3D3 code ops=['GetTable', 'SaveTable'] widths=[1] len=17 (114:1114) idx: byte var V_C04B
+T_A3D8 code ops=['GetTable'] widths=[1] len=7 (80:1111) idx: byte var V_4C10
+T_A3DF code ops=['GetTable'] widths=[1] len=8 (80:1112) idx: byte var V_4C10
+T_A3E1 code ops=['GetTable'] widths=[1] len=8 (35:897) idx: byte var V_4C04
+T_A3E2 code ops=['GetTable'] widths=[1] len=4 (37:921) idx: byte var V_7F79
+T_A3E6 code ops=['GetTable'] widths=[1] len=4 (37:922) idx: byte var V_7F79
+T_A3E9 code ops=['GetTable'] widths=[1] len=8 (35:898) idx: byte var V_4C04
+T_A3EA code ops=['GetTable'] widths=[1] len=4 (37:923) idx: byte var V_7F79
+T_A3ED code ops=['GetTable'] widths=[1] len=5 (19:1371) idx: byte var V_7F79,byte var V_7F7A
+T_A3EE code ops=['GetTable'] widths=[1] len=5 (37:924) idx: byte var V_7F79
+T_A3F1 code ops=['GetTable'] widths=[1] len=9 (35:899) idx: byte var V_4C04
+T_A3F2 code ops=['GetTable'] widths=[1] len=6 (19:1372) idx: byte var V_7F79,byte var V_7F7A
+T_A3F5 code ops=['GetTable'] widths=[1] len=5 (96:1065) idx: byte var V_4C01
+const tables with text length known 104 ; adjacent pairs (end == next base): 73 [('83AE', '83D4'), ('83D4', '83FA'), ('83FA', '8420'), ('8420', '8446'), ('8446', '846C'), ('846C', '8492'), ('8492', '84B8'), ('84B8', '84DE'), ('84DE', '8504'), ('8504', '852A'), ('852A', '8550'), ('8550', '8576'), ('8576', '859C'), ('859C', '85C2'), ('8F65', '8F7F'), ('8F7F', '8F99'), ('8F99', '8FB3'), ('8FB3', '8FCD'), ('8FCD', '8FE7'), ('8FE7', '8FF6')]
+NON-CODE TABLE BASE {'g': 'br2', 'area': 1, 'pc': 33612, 'op': 'SaveTable', 'base': 19200, 'region': 'area', 'idxtype': 'word var', 'idxval': 32635, 'width': 1, 'dsttype': 'byte var', 'dst': 32637}
+code-region plain variable addrs: 0
+immediate-index uses past table length: []
+idx var types Counter({'byte var': 122, 'word var': 1})
+code-region GetTable with word/long dest: []

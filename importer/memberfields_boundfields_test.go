@@ -20,6 +20,7 @@ var unusedMemberFields = map[string][]string{
 	"sotsb": {},
 	"pod":   {},
 	"br1":   {},
+	"br2":   {},
 }
 
 // TestMemberFieldsBound (bug class: a member field named in a layout but bound to nothing is a plain stored
@@ -27,7 +28,7 @@ var unusedMemberFields = map[string][]string{
 // engine, or listed above as one no script uses.
 func TestMemberFieldsBound(t *testing.T) {
 	data := map[string]fs.FS{"por": importer.ScriptData(), "cotab": importer.EmbeddedScripts("cotab"), "sotsb": importer.EmbeddedScripts("sotsb"),
-		"pod": importer.PodScriptData(), "br1": importer.EmbeddedScripts("br1")}
+		"pod": importer.PodScriptData(), "br1": importer.EmbeddedScripts("br1"), "br2": importer.EmbeddedScripts("br2")}
 	bound := engine.BoundFields()
 	for game, fsys := range data {
 		l, err := ecl.ReadLayout(fsys, 0)

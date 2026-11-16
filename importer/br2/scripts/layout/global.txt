@@ -1,0 +1,289 @@
+# Buck Rogers 2 (Matrix Cubed) script layout (gobox ecl/script Layout): from len width owner name [readonly] [enc=].
+# Made from the scan of the originals' byte code (tracks/b1b2-scan/br2/) and buckrogers2-re types.pas: Area 4B00..4EFF (TZone0),
+# Aux 7A00..7BFF (TZone2), Party 7C00..7FFF (TZone1), the view cells C04B.. . BR2 shares BR1's engine core: buckrogers2-go rules/ecl.go charVar/setChar/getVar
+# are BR1's line for line, so a name BR1's layout has (importer/br1/scripts/layout/global.txt) is used where the BR2 engine or the Pascal shows the same thing
+# at the same address; every other address keeps its Word<ADDR> placeholder with its scan counts (r = reads, w = writes of the scripts).
+# The two scratch zones EclInit clears as a script loads are raw byte buffers (width bytes), as in BR1; BR2's scripts also put text into them (4C15, 7F79 InputString).
+# A text field's length is the gap to the next used address (BR1's rule): the originals' strings overlap neighbouring words.
+# Code-region tables (T_XXXX) are the scripts' own const data: ecl.ConstLayout makes them, none are listed.
+# Engine ranges not listed (they overlay script-used addresses): ship record Area[512..619]=4D00..4D6B, foe summary Area[620..642]=4D6C..4D82 (BR1's note; BR2's 4D16..4D20, 4D6C.. words below are scripts' own use of them).
+4B00 1 byte game Word4B00 # SaveTable base of area1's debug poke V_4B00[&V_7F7B] = V_7F7D (index runs past the field: any Area byte); table base writes 1
+4B80 1 byte game ShipStageFlag # Area[128]: 0 picks the StHeal stage after combat, else StShip (loot.go:81, spacefight.go:1272) [BR2: buckrogers2-go rules/loot.go:81, spacefight.go:1272; types.pas TZone0.medicalDone]; engine only (not in BR2 scripts)
+4B85 1 byte game Word4B85 # scripts: byte r1/w0
+4B86 1 byte game Word4B86 # scripts: byte r1/w0
+4B87 1 byte game Word4B87 # scripts: byte r1/w0
+4B88 1 byte game Word4B88 # scripts: byte r1/w0
+4B89 1 byte game Word4B89 # scripts: byte r1/w0
+4B8A 1 byte game Word4B8A # scripts: byte r1/w0
+4B8B 1 byte game Word4B8B # scripts: byte r1/w0
+4B8C 1 byte game Word4B8C # scripts: byte r1/w0
+4B8D 1 byte game Word4B8D # scripts: byte r1/w0
+4B8E 1 byte game Word4B8E # scripts: byte r1/w0
+4B8F 1 byte game Word4B8F # scripts: byte r1/w0
+4B90 1 byte game Word4B90 # scripts: byte r1/w0
+4B91 1 byte game Word4B91 # scripts: byte r1/w0
+4B92 1 byte game Word4B92 # scripts: byte r1/w0
+4B93 1 byte game Word4B93 # scripts: byte r1/w0
+4B94 1 byte game Word4B94 # scripts: byte r1/w0
+4B95 1 byte game Word4B95 # scripts: byte r1/w0
+4B96 1 byte game Word4B96 # scripts: byte r1/w0
+4B97 1 byte game Word4B97 # scripts: byte r1/w0
+4B98 1 byte game Word4B98 # scripts: byte r1/w0
+4B99 1 byte game Word4B99 # scripts: byte r1/w0
+4B9A 1 byte game Word4B9A # scripts: byte r1/w0
+4B9B 1 byte game Word4B9B # scripts: byte r1/w0
+4B9C 1 byte game Word4B9C # scripts: byte r1/w0
+4B9D 1 byte game Word4B9D # scripts: byte r1/w0
+4B9E 1 byte game Word4B9E # scripts: byte r1/w0
+4BA5 1 byte game Word4BA5 # scripts: byte r7/w7
+4BA6 1 byte game AreaViewKind # Area[166]: view kind the AreaKind command writes (eclops.go:535: 0 3D, 2 rocket, 3 ?, 4 overland) [BR2: buckrogers2-go rules/eclops.go:554; types.pas TZone0.extendedPictureMode]; engine only (not in BR2 scripts)
+4BAB 1 byte game Word4BAB # scripts: byte r0/w7
+4BB6 1 byte game Difficulty # Area[182]: difficulty 0..4 (monster.go:49, combat.go:699, rest.go:185) [BR2: buckrogers2-go rules/monster.go:49, combat.go:725; types.pas TZone0.difficulty]; engine only (not in BR2 scripts)
+4BB7 1 byte game WildTerrain # Area[183] zone0 wildernessTerrain (types.pas: BuildWildernessArena's terrain, +10 when the area kind's low nibble is 8; old engine cmap.go wild(): Area[183]); written with Area[230] on the overland [BR2: buckrogers2-go rules/cmap.go:306 (+10 when the area kind low nibble is 8); types.pas TZone0.terrain]; scripts: byte r30/w36
+4BB8 1 byte game ItemsStashed # Area[184]: opStash flag (eclops.go:817) [BR2: buckrogers2-go rules/eclops.go:836; types.pas TZone0.listTransferState]; engine only (not in BR2 scripts)
+4BBA 1 byte game SpaceOwnShip # Area[186]: space fight 1 own ship (spacefight.go:383,388) [BR2: buckrogers2-go rules/spacefight.go:383,388; types.pas TZone0.shipCombatOutcome (0 enemy destroyed or boarded, 1 party ship lost or enemy gone)]; scripts: byte r4/w6
+4BBE 1 byte game Word4BBE # scripts: byte r7/w4
+4BBF 1 byte game Word4BBF # scripts: byte r7/w4
+4BC3 1 byte game Word4BC3 # scripts: byte r27/w9
+4BC4 1 byte game Word4BC4 # scripts: byte r12/w9
+4BC5 1 byte game GeoBlock # Area[197]: current GEO map block, 127 none (eclops.go:430, savegame.go:172) [BR2: buckrogers2-go rules/eclops.go:448, adv.go:632; types.pas TZone0.mapId]; scripts: byte r2/w0
+4BC7 1 byte game Word4BC7 # scripts: byte r1/w1
+4BC8 1 byte game Word4BC8 # scripts: byte r1/w1
+4BC9 1 byte game Word4BC9 # scripts: byte r2/w1
+4BCC 1 byte game Word4BCC # scripts: byte r0/w2
+4BCD 1 byte game Word4BCD # scripts: byte r2/w2
+4BE6 1 byte game TravelKind enc=BrTravelKind # Area[230]: area kind / travel mode ($A2, $A8 wilderness big picture, $70 orbit map, bit $10 zero gravity: types.pas areaKind). NOT engine AreaKind (the area block id) [BR2: buckrogers2-go rules/ecl.go:141-147 setVar (162,168 -> mode 3, 112 -> 9, else 4), adv.go:156,430; types.pas TZone0.areaType]; scripts: byte r1/w45
+4BE7 1 byte game Word4BE7 # scripts: byte r0/w28
+4BE8 1 byte game Word4BE8 # scripts: byte r0/w28
+4BE9 1 byte game Word4BE9 # scripts: byte r0/w28
+4BF0 1 byte game LastX # Area[240]: party x saved on a step (adv.go:417) [BR2: buckrogers2-go rules/adv.go:464; types.pas TZone0.prevX]; scripts: byte r24/w5
+4BF1 1 byte game LastY # Area[241]: party y saved on a step (adv.go:417) [BR2: buckrogers2-go rules/adv.go:464; types.pas TZone0.prevY]; scripts: byte r25/w5
+4BF2 1 byte game ScriptBlock # Area[242]: current ECL block number (adv.go:124,363) [BR2: buckrogers2-go rules/adv.go:146,423; types.pas TZone0.stateValue]; scripts: byte r50/w36
+4BFB 1 byte game Word4BFB # scripts: byte r0/w26
+4BFC 1 byte game MsgDelay # Area[252]: game speed, pauses = value*100 ms (rest.go:172, eclops.go:63); POD global.txt calls it MsgDelay [BR2: buckrogers2-go rules/rest.go:172; types.pas TZone0.messageSpeed]; scripts: byte r0/w2
+4BFD 1 byte game Word4BFD # scripts: byte r0/w2
+4BFE 1 byte game Word4BFE # scripts: byte r0/w1
+4BFF 1 byte game SaveFlags # Area[255]: b3BEC*2+b3BEE (savegame.go:41,125) [BR2: buckrogers2-go rules/savegame.go:41,126; types.pas TZone0.displayOptions]; engine only (not in BR2 scripts)
+4C00 32 bytes local EntryBytes # zone 0 entryBytes 4C00..4C1F, cleared by EclInit at each script load (types.pas TZone0.entryBytes); scripts: 31 addresses, r1132/w851, as bytes, words, longs and text over each other
+4C20 1 byte game Word4C20 # scripts: byte r18/w8
+4C21 1 byte game Word4C21 # scripts: byte r20/w9
+4C22 1 byte game Word4C22 # scripts: byte r21/w6
+4C23 1 byte game Word4C23 # scripts: byte r10/w4
+4C24 1 byte game Word4C24 # scripts: byte r12/w6
+4C25 1 byte game Word4C25 # scripts: byte r15/w7
+4C26 1 byte game Word4C26 # scripts: byte r9/w4
+4C28 1 byte game Word4C28 # scripts: byte r10/w3
+4C29 1 byte game Word4C29 # scripts: byte r4/w22
+4C2A 1 byte game Word4C2A # scripts: byte r4/w1
+4C2B 1 byte game Word4C2B # scripts: byte r3/w1
+4C2C 1 byte game Word4C2C # scripts: byte r9/w8
+4C2D 1 byte game Word4C2D # scripts: byte r21/w12
+4C2E 1 byte game Word4C2E # scripts: byte r22/w13
+4C2F 1 byte game Word4C2F # scripts: byte r22/w7
+4C30 1 byte game Word4C30 # scripts: byte r1/w1
+4C31 1 byte game Word4C31 # scripts: byte r12/w9
+4C32 1 byte game Word4C32 # scripts: byte r10/w5
+4C33 1 byte game Word4C33 # scripts: byte r4/w2
+4C34 1 byte game Word4C34 # scripts: byte r1/w3
+4C35 1 byte game Word4C35 # scripts: byte r16/w10
+4C36 1 byte game Word4C36 # scripts: byte r4/w2
+4C37 1 byte game Word4C37 # scripts: byte r14/w3
+4C38 1 byte game Word4C38 # scripts: byte r11/w5
+4C3B 1 byte game Word4C3B # scripts: byte r2/w1
+4C40 1 byte game Word4C40 # scripts: byte r10/w5
+4C41 1 byte game Word4C41 # scripts: byte r12/w6
+4C42 1 byte game Word4C42 # scripts: byte r6/w2
+4C43 1 byte game Word4C43 # scripts: byte r4/w2
+4C44 1 byte game Word4C44 # scripts: byte r19/w7
+4C45 1 byte game Word4C45 # scripts: byte r33/w21
+4C47 1 byte game Word4C47 # scripts: byte r70/w13
+4C48 1 byte game Word4C48 # scripts: byte r10/w5
+4C49 1 byte game Word4C49 # scripts: byte r4/w1
+4C4A 1 byte game Word4C4A # scripts: byte r6/w6
+4C4B 1 byte game Word4C4B # scripts: byte r17/w8
+4C4C 1 byte game Word4C4C # scripts: byte r17/w7
+4C4D 1 byte game Word4C4D # scripts: byte r12/w5
+4C4E 1 byte game Word4C4E # scripts: byte r3/w1
+4C54 1 byte game Word4C54 # scripts: byte r14/w6
+4C55 1 byte game Word4C55 # scripts: byte r22/w10
+4C56 1 byte game Word4C56 # scripts: byte r4/w4
+4C57 1 byte game Word4C57 # scripts: byte r11/w12
+4C58 1 byte game Word4C58 # scripts: byte r26/w9
+4C59 1 byte game Word4C59 # scripts: byte r25/w10
+4C5A 1 byte game Word4C5A # scripts: byte r12/w6
+4C5B 1 byte game Word4C5B # scripts: byte r21/w9
+4C5C 1 byte game Word4C5C # scripts: byte r22/w9
+4C5D 1 byte game Word4C5D # scripts: byte r16/w8
+4C5E 1 byte game Word4C5E # scripts: byte r4/w3
+4C5F 1 byte game Word4C5F # scripts: byte r21/w8
+4C60 1 byte game Word4C60 # scripts: byte r17/w7
+4C61 1 byte game Word4C61 # scripts: byte r20/w7
+4C62 1 byte game Word4C62 # scripts: byte r23/w11
+4C63 1 byte game MedSupplies # Area[355]: own ship medical supplies (spacefight.go:1031) [BR2: buckrogers2-go rules/spacefight.go:1031; types.pas TZone0.medicalSupplies]; scripts: byte r5/w5
+4C64 1 byte game Word4C64 # scripts: byte r26/w13
+4C65 1 byte game Word4C65 # scripts: byte r30/w10
+4C66 1 byte game Word4C66 # scripts: byte r12/w6
+4C67 1 byte game Word4C67 # scripts: byte r9/w3
+4C68 1 byte game Word4C68 # scripts: byte r2/w1
+4C69 1 byte game Word4C69 # scripts: byte r17/w8
+4C6A 1 byte game Word4C6A # scripts: byte r1/w1
+4C6B 1 byte game Word4C6B # scripts: byte r1/w1
+4C6C 1 byte game Word4C6C # scripts: byte r2/w3
+4C6D 1 byte game Word4C6D # scripts: byte r2/w1
+4C6E 1 byte game Word4C6E # scripts: byte r2/w1
+4C6F 1 byte game Word4C6F # scripts: byte r2/w1
+4C71 1 byte game Word4C71 # scripts: byte r2/w1
+4C72 1 byte game Word4C72 # scripts: byte r14/w6
+4C73 1 byte game Word4C73 # scripts: byte r18/w7
+4C74 1 byte game Word4C74 # scripts: byte r7/w2
+4C75 1 byte game Word4C75 # scripts: byte r2/w1
+4C76 1 byte game Word4C76 # scripts: byte r3/w2
+4C77 1 byte game Word4C77 # scripts: byte r3/w1
+4C78 1 byte game Word4C78 # scripts: byte r2/w1
+4C79 1 byte game Word4C79 # scripts: byte r2/w2
+4C7A 1 byte game Word4C7A # scripts: byte r1/w0
+4C7C 1 byte game Word4C7C # scripts: byte r0/w1
+4C7D 1 byte game Word4C7D # scripts: byte r5/w4
+4C7E 1 byte game Word4C7E # scripts: byte r25/w1
+4C7F 1 byte game Word4C7F # scripts: byte r19/w8
+4C80 1 byte game Word4C80 # scripts: byte r5/w1
+4C81 1 byte game Word4C81 # scripts: byte r3/w2
+4C82 1 byte game Word4C82 # scripts: byte r2/w1
+4C83 1 byte game Word4C83 # scripts: byte r15/w8
+4C84 1 byte game Word4C84 # scripts: byte r9/w3
+4C86 1 byte game Word4C86 # scripts: byte r2/w1
+4C87 1 byte game Word4C87 # scripts: byte r18/w9
+4C88 1 byte game Word4C88 # scripts: byte r20/w11
+4C89 1 byte game Word4C89 # scripts: byte r6/w4
+4C8A 1 byte game Word4C8A # scripts: byte r15/w5
+4C8B 1 byte game Word4C8B # scripts: byte r6/w3
+4C8C 1 byte game Word4C8C # scripts: byte r6/w1
+4C8D 1 byte game Word4C8D # scripts: byte r1/w1
+4C8E 1 byte game Word4C8E # scripts: byte r19/w9
+4C8F 1 byte game Word4C8F # scripts: byte r22/w1
+4C93 1 byte game Word4C93 # scripts: byte r17/w5
+4C95 1 byte game Word4C95 # scripts: byte r6/w3
+4CA4 1 byte game Word4CA4 # scripts: byte r14/w5
+4CA5 1 byte game Word4CA5 # scripts: byte r18/w7
+4CA6 1 byte game Word4CA6 # scripts: byte r19/w7
+4CA7 1 byte game Word4CA7 # scripts: byte r23/w10
+4CA8 1 byte game Word4CA8 # scripts: byte r7/w4
+4CA9 1 byte game Word4CA9 # scripts: byte r7/w1
+4CAA 1 byte game Word4CAA # scripts: byte r4/w1
+4CAB 1 byte game Word4CAB # scripts: byte r5/w2
+4CB8 1 byte game Word4CB8 # scripts: byte r21/w8
+4CB9 1 byte game Word4CB9 # scripts: byte r28/w3
+4CBA 1 byte game Word4CBA # scripts: byte r2/w1
+4CBB 1 byte game Word4CBB # scripts: byte r18/w9
+4CC2 1 byte game Word4CC2 # scripts: byte r25/w8
+4CC3 1 byte game Word4CC3 # scripts: byte r27/w9
+4CC5 1 byte game Word4CC5 # scripts: byte r4/w2
+4CC6 1 byte game Word4CC6 # scripts: byte r2/w1
+4CCC 1 byte game Word4CCC # scripts: byte r9/w3
+4CCD 1 byte game Word4CCD # scripts: byte r5/w1
+4CD6 1 byte game Word4CD6 # scripts: byte r15/w7
+4CD7 1 byte game Word4CD7 # scripts: byte r9/w5
+4CD8 1 byte game Word4CD8 # scripts: byte r31/w9
+4CD9 1 byte game Word4CD9 # scripts: byte r2/w2
+4CDA 1 byte game Word4CDA # scripts: byte r2/w1
+4CDB 1 byte game Word4CDB # scripts: byte r11/w5
+4CE0 1 byte game Word4CE0 # scripts: byte r11/w2
+4CE2 1 dword game Word4CE2 # scripts: long r14/w6
+4CE6 1 dword game Word4CE6 # scripts: long r36/w17
+4CEE 1 byte game Word4CEE # scripts: byte r19/w9
+4CEF 1 byte game Word4CEF # scripts: byte r14/w12
+4CF0 1 byte game Word4CF0 # scripts: byte r14/w12
+4CF1 1 byte game Word4CF1 # scripts: byte r19/w8
+4CF2 1 byte game Word4CF2 # scripts: byte r19/w5
+4CF3 1 byte game Word4CF3 # scripts: byte r27/w11
+4CF6 1 byte game LoopCounter # Area[502]: FOR/NEXT counter (eclops.go:90-96) [BR2: buckrogers2-go rules/eclops.go:85-91; types.pas TZone0.loopCurrent]; scripts: byte r31/w0
+4CF7 1 byte game LoopLimit # Area[503]: FOR/NEXT limit [BR2: buckrogers2-go rules/eclops.go:85,91; types.pas TZone0.loopLimit]; engine only (not in BR2 scripts)
+4CFD 1 byte game Word4CFD # scripts: byte r2/w30
+4CFE 1 byte game Word4CFE # scripts: byte r2/w15
+4D16 1 word game Word4D16 # scripts: word r13/w12
+4D18 1 word game Word4D18 # scripts: word r9/w6
+4D1A 1 word game Word4D1A # scripts: word r10/w8
+4D1C 1 word game Word4D1C # scripts: word r6/w6
+4D1E 1 word game Word4D1E # scripts: word r12/w7
+4D20 1 word game Word4D20 # scripts: word r8/w6
+4D3E 1 byte game Word4D3E # scripts: byte r1/w2
+4D40 1 byte game Word4D40 # scripts: byte r0/w1
+4D41 1 byte game Word4D41 # scripts: byte r3/w2
+4D44 1 byte game Word4D44 # scripts: byte r1/w2
+4D46 1 byte game Word4D46 # scripts: byte r0/w1
+4D47 1 byte game Word4D47 # scripts: byte r3/w2
+4D4A 1 byte game Word4D4A # scripts: byte r1/w2
+4D6C 1 word game Word4D6C # scripts: word r1/w0
+4D6E 1 word game Word4D6E # scripts: word r1/w0
+4D70 1 word game Word4D70 # scripts: word r1/w0
+4D72 1 word game Word4D72 # scripts: word r1/w0
+4D76 1 word game Word4D76 # scripts: word r1/w0
+4D7C 1 byte game FightState # Area[636]: combat/space-fight outcome state (loot.go:79,111,119) [BR2: buckrogers2-go rules/loot.go:79,111,119]; scripts: byte r4/w8
+4D81 1 byte game Word4D81 # scripts: byte r1/w0
+7A00 1 text game Word7A00 # scripts: text/byte r11/w23
+7A01 1 byte game Word7A01 # scripts: byte r9/w9
+7A02 1 byte game Word7A02 # scripts: byte r13/w11
+7A03 1 byte game Word7A03 # scripts: byte r8/w8
+7A04 1 byte game Word7A04 # scripts: byte r8/w9
+7A05 1 byte game Word7A05 # scripts: byte r4/w5
+7A06 1 byte game Word7A06 # scripts: byte r5/w5
+7A07 1 byte game Word7A07 # scripts: byte r5/w10
+7A08 1 byte game Word7A08 # scripts: byte r6/w6
+7B04 1 text game Word7B04 # scripts: text/byte r19/w36
+7B05 1 byte game Word7B05 # scripts: byte r3/w3
+7B06 1 byte game Word7B06 # scripts: byte r2/w5
+7B07 1 byte game Word7B07 # scripts: byte r1/w1
+7B08 1 byte game Word7B08 # scripts: byte r1/w2
+7B09 1 byte game Word7B09 # scripts: byte r13/w13
+7B0A 1 byte game Word7B0A # scripts: byte r1/w2
+7B0B 1 byte game Word7B0B # scripts: byte r2/w4
+7B16 1 text game Word7B16 # scripts: text r2/w2
+7B2C 12 text game Word7B2C # scripts: text r3/w17
+7B38 1 text game Word7B38 # scripts: text r14/w2
+7B49 12 text game Word7B49 # scripts: text r2/w1
+7B56 12 text game Word7B56 # scripts: text r3/w1
+7C00 1 text member SelName # Party[0] the name (ecl.go charVar o<=15) [BR2: buckrogers2-go rules/ecl.go:94 charVar o<=15; types.pas TCharRecord.name]; scripts: text/byte r102/w0
+7C13 1 byte game Word7C13 # NOT A GAME CELL: record offset 19 of the selected member (TCharRecord.intelligence); the engine binds no member field for it yet, owner game keeps the proof until it does; scripts: byte r0/w1
+7C26 1 byte member SelGender # Party[38] gender (charVar r[38]): 0 male, 1 female (types.pas TGender) [BR2: buckrogers2-go rules/ecl.go:98 charVar r[38]; types.pas TCharRecord.gender]; engine only (not in BR2 scripts)
+7C27 1 byte game Word7C27 # NOT A GAME CELL: record offset 39 of the selected member (TCharRecord.race); the engine binds no member field for it yet, owner game keeps the proof until it does; scripts: byte r1/w0
+7C28 1 byte member SelCharClass enc=BrSelCharClass # Party[40] career (charVar r[40]): TCareer, 0 none [BR2: buckrogers2-go rules/ecl.go:98 charVar r[40]; types.pas TCharRecord.career]; engine only (not in BR2 scripts)
+7C2B 1 dword member PartyCredits # Party[43] OffMoney (ecl.go charVar: the party's purse while a character is selected, else 0; setChar: a lower value is paid across the members, a higher one added to the selected) [BR2: buckrogers2-go rules/ecl.go:96,181 charVar/setChar OffMoney; types.pas TCharRecord.credits]; scripts: long r26/w14
+7C45 1 word member SelHpMax # Party[69] hitPointMaximum (charVar r[69], setChar raw) [BR2: buckrogers2-go rules/ecl.go:98 charVar r[69]; types.pas TCharRecord.hpMax]; scripts: byte/word r21/w0
+7C4C 1 byte member SelCompanion enc=BrSelCompanion # Party[76] isCompanion (charVar r[76], any value reads 128; setChar raw) [BR2: buckrogers2-go rules/ecl.go:98-102 charVar r[76], any value reads 128]; scripts: byte r4/w0
+7C7F 1 byte game Word7C7F # NOT A GAME CELL: record offset 127 of the selected member (TCharRecord.skillLevels[51] (76+51)); the engine binds no member field for it yet, owner game keeps the proof until it does; scripts: byte r3/w0
+7CA1 1 byte member SelFlag1 # Party[161] a script's flag byte on the character (skillLevelsTail, charVar/setChar raw) [BR2: buckrogers2-go rules/ecl.go:98,187 charVar/setChar r[161]; types.pas TCharRecord.skillLevelsTail]; engine only (not in BR2 scripts)
+7CA2 1 byte member SelFlag2 # Party[162], as SelFlag1 [BR2: buckrogers2-go rules/ecl.go:98,187 charVar/setChar r[162]]; engine only (not in BR2 scripts)
+7CA3 1 byte member SelFlag3 # Party[163], as SelFlag1 [BR2: buckrogers2-go rules/ecl.go:98,187 charVar/setChar r[163]]; engine only (not in BR2 scripts)
+7D00 1 byte member SelStatus enc=BrSelStatus # Party[256] r[212] the status, TStatus (charVar: 0 with no character; setChar r[212] = v&127, r[213] = v==1) [BR2: buckrogers2-go rules/ecl.go:106,189 charVar/setChar r[212]]; scripts: byte r60/w17
+7D0C 1 byte member SelSideFlags # Party[268] side r[214] bit 0, isCompanion r[76] bit 6, isQuickfight r[215] bit 7 (charVar/setChar) [BR2: buckrogers2-go rules/ecl.go:111,195 charVar/setChar r[214] r[76] r[215]; types.pas TCharRecord.sideLead/side]; scripts: byte r6/w0
+7D19 1 word member SelHpCur # Party[281] hitPoints (charVar r[227], setChar) [BR2: buckrogers2-go rules/ecl.go:124,199 charVar/setChar r[227]; types.pas TCharRecord.hitPoints]; scripts: byte/word r12/w13
+7EA8 1 byte game TrainingHall # Party[680]: training hall flag (rules.go:206,404) [BR2: types.pas TZone1.trainingMask (Train Character offered while non-zero)]; scripts: byte r0/w5
+7EB1 1 byte member SelPartyIndex # Party[689]: the selected member's index (ecl.go charVar o==689) [BR2: buckrogers2-go rules/ecl.go:128 charVar o==689]; scripts: byte r4/w0
+7EC0 1 byte game MonsterLimit # Party[704]: SetupMonster arg2 (eclops.go:209) [BR2: buckrogers2-go rules/eclops.go:204; types.pas TZone1.monsterMaxDistance]; engine only (not in BR2 scripts)
+7EC1 1 byte game MonsterDistance # Party[705]: distance to wall/monster ahead (eclops.go:212-231) [BR2: buckrogers2-go rules/eclops.go:208-211, monster.go:121; types.pas TZone1.monsterDistance]; engine only (not in BR2 scripts)
+7EC6 1 byte game FightMorale # Party[710]: combat threshold/control default (ai.go:334, cmap.go:567) [BR2: buckrogers2-go rules/ai.go:334, cmap.go:499; types.pas TZone1.moraleBase]; scripts: byte r0/w27
+7EC7 1 byte game PostCombat # Party[711]: post-combat stage (loot.go:57-341) [BR2: buckrogers2-go rules/loot.go:57-229; types.pas TZone1.combatResult]; scripts: byte r111/w0
+7EC8 1 byte game LootPicked # Party[712]: loot counter (loot.go:332-338) [BR2: buckrogers2-go rules/loot.go:332-338 (types.pas TZone1.monstersDefeated)]; engine only (not in BR2 scripts)
+7EC9 1 byte game ForwardHeld # Party[713]: 255 forward key held (adv.go:418) [BR2: buckrogers2-go rules/adv.go:224,465; types.pas TZone1.moveBlocked]; scripts: byte r0/w56
+7ECA 1 byte game Search # Party[714]: bit0 searching, bit1 looking (adv.go:341-378); POD name Search [BR2: buckrogers2-go rules/adv.go:407-410; types.pas TZone1.searchFlags]; scripts: byte r2/w0
+7ECB 1 byte game InitiativeSide # Party[715]: initiative side bits (combat.go:105,145) [BR2: buckrogers2-go rules/combat.go:112,155; types.pas TZone1.sideMask]; scripts: byte r0/w22
+7ED5 1 byte game OffMap # Party[725]: off-the-map flag (adv.go:162,357) [BR2: buckrogers2-go rules/adv.go:205,393-398; types.pas TZone1.hasLeftMap]; scripts: byte r9/w0
+7EE3 1 byte game SkipsCombatItems # Party[739]: name from layout/partial.txt (loot.go:138,292) [BR2: buckrogers2-go rules/loot.go:138,292; types.pas TZone1.skipsCombatItems]; engine only (not in BR2 scripts)
+7EE6 1 byte game RevivesParty # Party[742]: name from layout/partial.txt (loot.go:138,241) [BR2: buckrogers2-go rules/loot.go:138,241; types.pas TZone1.revivesParty]; scripts: byte r0/w1
+7F12 1 byte game Disk # Party[786]: disk number (savegame.go:42,167) [BR2: buckrogers2-go rules/ecl.go:130,203, savegame.go:42; types.pas TZone1.savedDataSet]; scripts: byte r1/w51
+7F33 1 byte game FightActive # Party[819]: combat in progress (cmap.go:831, combatturn.go:436) [BR2: buckrogers2-go rules/combatturn.go:518, cmap.go:730]; engine only (not in BR2 scripts)
+7F3E 1 byte game PartyCount # Party[830]: party size (adv.go:142); POD name PartyCount [BR2: buckrogers2-go rules/adv.go:157, eclops.go:751; types.pas TZone1.partyCount]; scripts: byte r3/w0
+7F3F 1 dword game DivideRemainder # Party[831..834]: the remainder of the last DIVIDE, a longint (types.pas divisionRemainder); the engine writes it; scripts read the low byte [BR2: types.pas TZone1.divisionRemainder (a longint the engine writes; scripts read its low byte)]; scripts: byte r2/w0
+7F6D 1 byte game PriceMultiplier # Party[877]: shop price in sixteenths; name from layout/partial.txt [BR2: buckrogers2-go rules/shop.go:41; types.pas TZone1.priceMultiplier]; scripts: byte r2/w19
+7F70 1 byte game ToHitMonster # Party[880]: combat to-hit modifier, monster side, signed (combat.go:710) [BR2: buckrogers2-go rules/combat.go:736; types.pas TZone1.monsterThac0Modifier]; scripts: byte r0/w1
+7F71 1 byte game ToHitParty # Party[881]: combat to-hit modifier, party side, signed (combat.go:698) [BR2: buckrogers2-go rules/combat.go:724; types.pas TZone1.partyThac0Modifier]; engine only (not in BR2 scripts)
+7F72 1 byte game ExpBonus # Party[882]: experience value added for the party (items.go:259) [BR2: buckrogers2-go rules/items.go:245; types.pas TZone1.movementBonus is the Pascal name]; engine only (not in BR2 scripts)
+7F79 10 bytes local NewGameBytes # zone 1 newGameBytes 7F79..7F82, cleared by EclInit like EntryBytes (types.pas TZone1.newGameBytes); scripts: 10 addresses, r1112/w1738, as bytes, words, longs and text over each other
+7FF6 1 byte game Word7FF6 # scripts: byte r0/w18
+C04B 1 byte fact PartyX # view cell 49227: party x, read as int8, written byte(v) (ecl.go:62,166) [BR2: buckrogers2-go rules/ecl.go:62,164 getVar/setVar]; scripts: byte r112/w124
+C04C 1 byte fact PartyY # view cell 49228: party y, read as int8 (ecl.go:64,167) [BR2: buckrogers2-go rules/ecl.go:64,166]; scripts: byte r105/w140
+C04D 1 byte fact FacingOrRaw # view cell 49229: facing, 0..3 north first; read raw (0..7) while areaKind is 0, halved otherwise; written (v%4)*2 (eclmenu.pas GBVM_FACING). the engine's FacingOrRaw [BR2: buckrogers2-go rules/ecl.go:66-69,168-169 (raw 0..7 while Area[230] is 0, else halved; written (v%4)*2); eclmenu.pas GBVM_FACING]; scripts: byte r247/w81
+C04E 1 byte fact WallAhead readonly # view cell 49230: the wall ahead (ecl.go:72) [BR2: buckrogers2-go rules/ecl.go:71]; scripts: byte r80/w0
+C04F 1 byte fact Cell readonly # view cell 49231: the map cell (ecl.go:74) [BR2: buckrogers2-go rules/ecl.go:73]; scripts: byte r33/w0
+2DCB 1 byte call CallRedraw # CALL 11723 (V4.Calls CallRedrawView): redraw the view; BR2 scripts 151 calls; buckrogers2-go rules/eclops.go:574
+C01E 1 byte call CallStepForward # CALL 49182 (V4.Calls CallStepForward): the party steps one square ahead; 11 calls; buckrogers2-go rules/eclops.go:578

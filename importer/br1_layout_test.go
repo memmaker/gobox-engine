@@ -24,22 +24,27 @@ const (
 	newGameBytesFrom, newGameLen  = 0x7F79, 10
 )
 
-func readBR1Layout(t *testing.T) *ecl.Layout {
+func readBR1Layout(t *testing.T) *ecl.Layout { return readBRLayout(t, "br1") }
+
+// readBRLayout is game's full layout (never the partial one).
+func readBRLayout(t *testing.T, game string) *ecl.Layout {
 	t.Helper()
-	l, err := ecl.ReadLayout(embeddedScripts("br1"), 0)
+	l, err := ecl.ReadLayout(embeddedScripts(game), 0)
 	if err != nil || l == nil {
-		t.Fatal("br1 layout:", l, err)
+		t.Fatal(game, "layout:", l, err)
 	}
 	if l.Partial {
-		t.Fatal("br1 layout is partial")
+		t.Fatal(game, "layout is partial")
 	}
 	return l
 }
 
-// br1Blocks are the ECL blocks of the originals by block number (the first disk that has one, as ecl.Import).
-func br1Blocks(t *testing.T) (*orig.Loader, string, map[int][]byte) {
+func br1Blocks(t *testing.T) (*orig.Loader, string, map[int][]byte) { return brBlocks(t, "br1") }
+
+// brBlocks are the ECL blocks of game's originals by block number (the first disk that has one, as ecl.Import).
+func brBlocks(t *testing.T, game string) (*orig.Loader, string, map[int][]byte) {
 	t.Helper()
-	dos := filepath.Join("..", "data", "br1", "sources", "dos")
+	dos := filepath.Join("..", "data", game, "sources", "dos")
 	l, err := orig.NewLoader(dos)
 	if err != nil || !l.Exists("ITEMS") {
 		t.Skip("no originals:", err)
@@ -104,9 +109,24 @@ func TestBR1LayoutShape(t *testing.T) {
 // TestBR1LayoutResolvesEveryOperand decodes every block of the originals and resolves every variable operand
 // in the full layout (with the block's own const tables), and checks each operand against its field.
 func TestBR1LayoutResolvesEveryOperand(t *testing.T) {
-	lay := readBR1Layout(t)
-	_, _, blocks := br1Blocks(t)
-	data := embeddedScripts("br1")
+	checkEveryOperand(t, "br1", operandLeniency{wideFields: map[string]bool{"DivideRemainder": true}})
+}
+
+// operandLeniency is what a game's scripts do that the one-width-per-address rule must let through, each entry with its evidence.
+type operandLeniency struct {
+	// wideFields: fields wider than the operands that read them (the engine writes DivideRemainder as a dword and scripts read its
+	// low byte; BR2's scripts read the low byte of the hit point words).
+	wideFields map[string]bool
+	// textBytes: addresses the scripts use as text and also write through a byte operand (a string literal saved into a byte
+	// variable, `V_7A00 = ""`: the original's SAVE writes the string at the address whatever the operand type).
+	textBytes map[int]bool
+}
+
+func checkEveryOperand(t *testing.T, game string, lenient operandLeniency) {
+	lay := readBRLayout(t, game)
+	_, _, blocks := brBlocks(t, game)
+	data := embeddedScripts(game)
+	tolerated := map[int]bool{} // addresses a lenient mismatch was seen at
 	var unresolved, bad []string
 	widths := map[int]map[ecl.Width]bool{} // per typed address, the widths the scripts use
 	operands := 0
@@ -151,7 +171,12 @@ func TestBR1LayoutResolvesEveryOperand(t *testing.T) {
 						widths[a.N] = map[ecl.Width]bool{}
 					}
 					widths[a.N][w] = true
-					if f.Width != w && f.Name != "DivideRemainder" { // the engine writes DivideRemainder as a dword; scripts read its low byte
+					wide := f.Width != w && lenient.wideFields[f.Name]
+					text := f.Width == ecl.WidthText && w == ecl.WidthByte && lenient.textBytes[a.N]
+					if wide || text {
+						tolerated[a.N] = true
+					}
+					if f.Width != w && !wide && !text {
 						bad = append(bad, where+fmt.Sprintf(" is a %d-wide operand of %s (width %d)", n, f.Name, f.Width))
 					}
 					for c := a.N + 1; c < a.N+n; c++ { // the cells the operand covers belong to no other field
@@ -164,7 +189,7 @@ func TestBR1LayoutResolvesEveryOperand(t *testing.T) {
 		}
 	}
 	for a, ws := range widths {
-		if len(ws) > 1 {
+		if len(ws) > 1 && !tolerated[a] {
 			bad = append(bad, fmt.Sprintf("%04X is used at %d widths", a, len(ws)))
 		}
 	}
@@ -181,10 +206,12 @@ func TestBR1LayoutResolvesEveryOperand(t *testing.T) {
 
 // TestBR1LayoutImportRoundTrip imports the originals' scripts with the full layout in place of the partial
 // one: the importer can switch to it later. Every block's text then loads again (parse and resolve).
-func TestBR1LayoutImportRoundTrip(t *testing.T) {
-	l, _, blocks := br1Blocks(t)
+func TestBR1LayoutImportRoundTrip(t *testing.T) { checkImportRoundTrip(t, "br1") }
+
+func checkImportRoundTrip(t *testing.T, game string) {
+	l, _, blocks := brBlocks(t, game)
 	dir := t.TempDir()
-	b, err := fs.ReadFile(embeddedScripts("br1"), ecl.GlobalLayout)
+	b, err := fs.ReadFile(embeddedScripts(game), ecl.GlobalLayout)
 	if err != nil {
 		t.Fatal(err)
 	}
