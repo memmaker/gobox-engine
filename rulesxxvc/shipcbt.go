@@ -55,14 +55,14 @@ const (
 )
 
 // The ship combat's end (zone0 shipCombatOutcome and postCombatMode).
-type shipEnd int8
+type shipEnd = rules.ShipEnd
 
 const (
-	shipOn       shipEnd = iota
-	foeDestroyed         // shipCombatOutcome 0
-	boarded              // C_PostCb.BOARDED, outcome 0
-	hullLost             // shipCombatOutcome 1
-	receded              // outcome 1, no experience
+	shipOn       = rules.ShipNotOver
+	foeDestroyed = rules.ShipFoeDestroyed // shipCombatOutcome 0
+	boarded      = rules.ShipBoarded      // C_PostCb.BOARDED, outcome 0
+	hullLost     = rules.ShipHullLost     // shipCombatOutcome 1
+	receded      = rules.ShipReceded      // outcome 1, no experience
 )
 
 // foeStage is where the enemy's turn stands: the dodge question pauses it.
@@ -333,6 +333,7 @@ func (s shipRules) EndShips(_ rules.ShipFight, rng *rules.RNG) rules.FightResult
 	ship := f.ships[partySide]
 	r.ship = &ship
 	res.Effects = f.out
+	res.ShipEnd = f.end
 	r.space = nil
 	return res
 }

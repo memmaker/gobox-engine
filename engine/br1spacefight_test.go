@@ -11,7 +11,7 @@ import (
 
 // spaceFightScript is BR1's own line (area34's L_8A4D) between a cell that marks the script as having begun and a
 // cell that marks it as having gone on.
-const spaceFightScript = "    Word4C61 = 1\n    Word4CE0 = 5\n    SpaceFight(Word4C61, 1, 50, 18)\n    Word4CE2 = 77\n    NewGameBytes = FightState"
+const spaceFightScript = "    Word4C61 = 1\n    Word4CE0 = 5\n    SpaceFight(Word4C61, 1, 50, 18)\n    Word4CE2 = 77\n    NewGameBytes = ShipOutcome"
 
 const fightSteps = 400 // a fight that does not end in this many answers is stuck
 
@@ -61,13 +61,13 @@ func indexOf(q *game.Question, name string) int {
 }
 
 // TestBR1SpaceFightPlayed: SpaceFight holds the script, the state is the ship fight with both ships, and a front's
-// answers play it to its end; the script goes on and reads FightState.
+// answers play it to its end; the script goes on and reads ShipOutcome.
 func TestBR1SpaceFightPlayed(t *testing.T) {
 	brSpaceFightPlayed(t, gameBR1, spaceFightScript, "Word4CE2", "NewGameBytes")
 }
 
 // brSpaceFightPlayed is TestBR1SpaceFightPlayed on game g with the block's script, the cell it sets once the fight is over
-// (to 77) and the cell it reads FightState into.
+// (to 77) and the cell it reads ShipOutcome into.
 func brSpaceFightPlayed(t *testing.T, g brGame, script, doneCell, stateCell string) {
 	e := brBegun(t, g)
 	br1OwnBlock(t, e, 201, script)
@@ -94,7 +94,7 @@ func brSpaceFightPlayed(t *testing.T, g brGame, script, doneCell, stateCell stri
 		t.Fatalf("the script did not go on: %d", got)
 	}
 	if got := br1Cell(t, e, stateCell); got != 0 && got != 1 {
-		t.Fatalf("FightState %d", got)
+		t.Fatalf("ShipOutcome %d", got)
 	}
 }
 
@@ -112,14 +112,14 @@ func TestBR1SpaceFightSeed(t *testing.T) {
 	}
 }
 
-// TestBR1SpaceFightLost: a party that only quits against a hull of 1 loses its ship (or the foe leaves): FightState
+// TestBR1SpaceFightLost: a party that only quits against a hull of 1 loses its ship (or the foe leaves): ShipOutcome
 // is 1 as the original's, and the script's winner branch is not taken.
 func TestBR1SpaceFightLost(t *testing.T) {
 	e := br1Begun(t)
 	br1OwnBlock(t, e, 201, "    ShipHull = 1\n"+spaceFightScript)
 	answerShip(t, e, func(q *game.Question) int { return max(indexOf(q, "Quit"), 0) })
 	if got := br1Cell(t, e, "NewGameBytes"); got != 1 {
-		t.Fatalf("FightState %d after a lost fight", got)
+		t.Fatalf("ShipOutcome %d after a lost fight", got)
 	}
 	if got := br1Cell(t, e, "Word4CE2"); got != 77 {
 		t.Fatalf("the script did not go on: %d", got)

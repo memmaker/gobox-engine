@@ -17,7 +17,7 @@
 4BB6 1 byte game Difficulty # Area[182]: difficulty 0..4 (monster.go:49, combat.go:699, rest.go:185); scripts: byte r4/w0
 4BB7 1 byte game WildTerrain # Area[183] zone0 wildernessTerrain (types.pas: BuildWildernessArena's terrain, +10 when the area kind's low nibble is 8; old engine cmap.go wild(): Area[183]); written with Area[230] on the overland (BR1 only); scripts: byte r13/w32
 4BB8 1 byte game ItemsStashed # Area[184]: opStash flag (eclops.go:817); engine only (not in BR1 scripts)
-4BBA 1 byte game SpaceOwnShip # Area[186]: space fight 1 own ship (spacefight.go:383,388); engine only (not in BR1 scripts)
+4BBA 1 byte game ShipOutcome enc=BrShipEnd # Area[186] zone0 shipCombatOutcome (types.pas; shipcbt.pas 392/396/1106/1272): 0 the foe destroyed or boarded, 1 the team's hull lost or the foe out of range; the engine writes the typed ship end; engine only (not in BR1 scripts)
 4BBE 1 byte game RocketX # Area[190] zone0 orbit.rocketX: the rocket's column on the system map 0..21 (the engine's, rules.World); scripts: byte r7/w6
 4BBF 1 byte game RocketY # Area[191] zone0 orbit.rocketY: the rocket's row (the engine's, rules.World); scripts: byte r7/w6
 4BC3 1 byte game MapX # Area[195]: the overland's square x (buckrogers-go rules/adv.go overland(): 0..37), the Pool's MapX; scripts: byte r47/w14
@@ -214,7 +214,7 @@
 4D79 1 byte game FoeCrew # space-fight foe byte (foe[48]); scripts: byte r8/w3
 4D7A 1 byte game Word4D7A # space-fight foe byte (foe[49]); engine only (not in BR1 scripts)
 4D7B 1 byte game Word4D7B # space-fight foe byte (foe[53]); engine only (not in BR1 scripts)
-4D7C 1 byte game FightState # Area[636]: combat/space-fight outcome state (loot.go:79,111,119); scripts: byte r3/w2
+4D7C 1 byte game PostCombatMode enc=BrPostCombat # Area[636] zone0 postCombatMode (types.pas; c_postcb.pas: 0 NORMAL, 1 BOARDED; postcbt.pas 74: 2 REPAIR_SHIP, scripts add bit 7): ShipCombat sets NORMAL as it begins and BOARDED on boarding; the engine writes the typed ship end; scripts: byte r3/w2
 4D81 1 byte game FoeWeaponCount # space-fight foe weapons sum (spacefight.go:1285-1287); scripts: byte r1/w0
 4D82 1 byte game Word4D82 # space-fight foe, cleared (spacefight.go:1289); engine only (not in BR1 scripts)
 7B04 7 text game Word7B04 # scripts: text r2/w9

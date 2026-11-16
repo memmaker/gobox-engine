@@ -42,8 +42,8 @@ func TestBR2RocketStep(t *testing.T)  { brRocketStep(t, gameBR2) }
 
 // br2SpaceFightScript is area19's own line (L_83E5, data/br2/scripts/area19.txt:154) SpaceFight(3, 1, V_7F7D, V_7F7E), with the
 // two figures BR1's line holds (50, 18) in place of the reads of T_A3ED and T_A3F2, which are tables of block 19's own memory;
-// then FightState is read as BR1's script does and a cell the test's block owns marks the script as having gone on.
-const br2SpaceFightScript = "    SpaceFight(3, 1, 50, 18)\n    NewGameBytes = FightState\n    Word4BE7 = 77"
+// then ShipOutcome is read as BR1's script does and a cell the test's block owns marks the script as having gone on.
+const br2SpaceFightScript = "    SpaceFight(3, 1, 50, 18)\n    NewGameBytes = ShipOutcome\n    Word4BE7 = 77"
 
 // TestBR2SpaceFightPlayed: BR2's ship fight from its own script line is played to its end by a front's answers; the script goes on.
 func TestBR2SpaceFightPlayed(t *testing.T) {

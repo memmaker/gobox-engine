@@ -241,6 +241,7 @@ type FightResult struct {
 	Items   []ItemHandle // the loot's items (treasure), by handle
 	Money   Purse        // the loot's money (BR: credits in Copper)
 	Verdict Verdict      // how it ended: won, fled, lost; FightOn for neither (por: treasure found)
+	ShipEnd ShipEnd      // a ship fight's ending in full (the ground fight's is ShipNotOver)
 	Foes    bool         // there were foes to beat (por's "The party has won.")
 	Shared  bool         // hired NPCs took their shares of the money (por hiredShare's page)
 	Sharers []CharID     // who took one
