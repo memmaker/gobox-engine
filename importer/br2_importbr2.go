@@ -12,8 +12,11 @@ import (
 // init registers Buck Rogers: Matrix Cubed with gobox/importer (scripts, art,
 // maps, records, rule tables into adventures/br2/).
 func init() {
-	registerBR("br2", "Buck Rogers: Matrix Cubed", BREXE{DS: 0xE87, ItemWords: 0x1EEC, NumWords: 45, AmmoPrices: 0xD86, ShipWeapons: 0x242A, WeaponShort: 0x1177, ShipTypes: 0x124E, Explosion: xxvc.ExplosionFixed}, br2Start)
+	registerBR("br2", "Buck Rogers: Matrix Cubed", BR2EXE, br2Start)
 }
+
+// BR2EXE is where BR2's START.EXE keeps what the import reads.
+var BR2EXE = BREXE{DS: 0xE87, ItemWords: 0x1EEC, NumWords: 45, AmmoPrices: 0xD86, ShipWeapons: 0x242A, WeaponShort: 0x1177, ShipTypes: 0x124E, Explosion: xxvc.ExplosionFixed}
 
 // creditAt is pO025_04F1's credits page (English v1.0 O030): each
 // displayString's cell, colour and its string's GAME.OVR offset.

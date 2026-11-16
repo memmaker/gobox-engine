@@ -13,20 +13,31 @@ import (
 	"gobox/rules"
 )
 
-// br1EngineFolder imports BR1's originals with ImportBREngine into a temp folder.
-func br1EngineFolder(t *testing.T) string {
+func br1EngineFolder(t *testing.T) string { return brEngineFolder(t, "br1", BR1EXE) }
+
+// brEngineFolder imports game's originals with ImportBREngine into a temp folder.
+func brEngineFolder(t *testing.T, game string, exe BREXE) string {
 	t.Helper()
-	_, dos, _ := br1Blocks(t) // skips without the originals
+	_, dos, _ := brBlocks(t, game) // skips without the originals
 	dst := t.TempDir()
-	if err := ImportBREngine("br1", BR1EXE, dos, dst); err != nil {
+	if err := ImportBREngine(game, exe, dos, dst); err != nil {
 		t.Fatal(err)
 	}
 	return dst
 }
 
 func TestImportBREngineFolder(t *testing.T) {
-	_, _, blocks := br1Blocks(t)
-	dst := br1EngineFolder(t)
+	checkEngineFolder(t, "br1", BR1EXE)
+	d, err := adventure.ReadGameTables(br1EngineFolder(t))
+	if err != nil || d.Logbook == nil {
+		t.Error("br1's logbook:", d.Logbook, err)
+	}
+}
+
+// checkEngineFolder is the folder test of both games: no partial layout, every area loads with the full one, the start tables.
+func checkEngineFolder(t *testing.T, game string, exe BREXE) {
+	_, _, blocks := brBlocks(t, game)
+	dst := brEngineFolder(t, game, exe)
 	scripts := filepath.Join(dst, "scripts")
 	if _, err := os.Stat(filepath.Join(scripts, ecl.GlobalLayout)); err != nil {
 		t.Error(err)
@@ -50,7 +61,7 @@ func TestImportBREngineFolder(t *testing.T) {
 		t.Errorf("game tables: %+v", tb)
 	}
 	d, err := adventure.ReadGameData(dst)
-	if err != nil || d.ID != "br1" {
+	if err != nil || d.ID != game {
 		t.Errorf("game data: %q, %v", d.ID, err)
 	}
 }
@@ -82,8 +93,8 @@ func TestImportBRUnchanged(t *testing.T) {
 	}
 }
 
-func TestImportBREngineBR2(t *testing.T) {
-	if err := ImportBREngine("br2", BREXE{}, t.TempDir(), t.TempDir()); err == nil {
-		t.Error("br2 has no full layout: want an error")
+func TestImportBREngineUnknownGame(t *testing.T) {
+	if err := ImportBREngine("br3", BREXE{}, t.TempDir(), t.TempDir()); err == nil {
+		t.Error("a game without a full layout: want an error")
 	}
 }
