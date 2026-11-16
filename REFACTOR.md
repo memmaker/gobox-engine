@@ -414,7 +414,7 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
     - PLAN from here (2026-11-16; Felix is away: "decide for yourself; do not stop until all
       games of all series run as data folders"). Order, each a track of its own, landed through
       `foldwt.sh land`, this list kept current:
-      1. [ ] d1: the three diverging golden fights traced and fixed; `Unit.Damage`, `HitFact`
+      1. [x] d1: the four golden fights match the old engine to their end (experience, credits, loot); fixed in `rulesxxvc`: guarding kept over a round, the clock ticks a minute per round (blindness runs out), targets sorted before the side filter; two old-engine deviations patched on the golden branch (a fled unit leaves its square, a blind attacker rolls 4 lower); `Unit.Damage` and `HitFact` recalculated on copies and compared with the golden
       2. [ ] o1: BR1's script commands without a handler (`engine/br1ops_test.go`
          `br1OpsNotPorted`: Skill, SkillAll, HasItem, NPCJoin, Shop, WallDistance, Duel,
          Damage6, Op64, Op72; SpaceFight is B1e)
