@@ -69,6 +69,7 @@ type FieldDef struct {
 	Options []string
 	Budget  int32      // FieldSkills: the points to spend
 	Max     int32      // FieldSkills: the most points one option may take
+	Unspent string     // FieldSkills: the question asked on leaving the screen with points left, in the rules' words ("": none)
 	Rows    []FieldRow // FieldSkills: what each option stands at in the draft, one per option
 	// Alignment: the field picks the alignment (the sheet places it on a row of its own; a sheet without one lists its fields one per row).
 	Alignment bool

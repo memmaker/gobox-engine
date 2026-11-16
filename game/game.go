@@ -770,6 +770,7 @@ type Derived struct {
 // take, and the rows with what each stands at.
 type Allotment struct {
 	Name      string
+	Unspent   string // the question asked on leaving with points left ("": none)
 	Left, Max int
 	Rows      []AllotRow
 }

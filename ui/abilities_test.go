@@ -109,3 +109,36 @@ func TestAllotmentScreen(t *testing.T) {
 		t.Errorf("sent %v, want %v", p.inv.acts, want)
 	}
 }
+
+// A group's rows come under its heading (nothing to pick), the keys and Subtract still name the row, and Exit with points left asks the
+// allotment's own question (the career one, then the general one); No stays on the allotment asked about.
+func TestAllotmentHeadingsAndExit(t *testing.T) {
+	d := &game.Draft{Allotments: []game.Allotment{
+		{Name: "Career skill points", Unspent: "some career points unspent. Exit?", Left: 5, Max: 30, Rows: []game.AllotRow{
+			{Name: "Treat Light", Group: "Career Skills", Open: true}, {Name: "Treat Serious", Group: "Career Skills", Open: true}}},
+		{Name: "General skill points", Unspent: "some general points unspent. Exit?", Left: 1, Max: 30, Rows: []game.AllotRow{
+			{Name: "Running", Group: "Dexterity Skills", Open: true}, {Name: "Maths", Group: "Intelligence Skills", Open: true}}},
+	}}
+	p, _ := draftOn(d)
+	p.barDo('P')()
+	_, items := p.screenItems()
+	if len(items) != 1+2+3 || items[0].Text != "Career Skills" || items[0].Do != nil || items[1].Do == nil {
+		t.Fatalf("career items: %+v", items)
+	}
+	items[2].Do() // the second row, under the heading: row 1
+	if want := []Action{{Kind: ActSpend, N: 0, X: 1, Y: 1}}; !slices.Equal(p.inv.acts, want) {
+		t.Errorf("sent %v, want %v", p.inv.acts, want)
+	}
+	items[len(items)-1].Do() // Exit
+	if p.scr.sub != scrAsk || p.scr.ask != "some career points unspent. Exit?" {
+		t.Fatalf("exit asked %q (screen %d)", p.scr.ask, p.scr.sub)
+	}
+	p.scr.yes() // Yes: on to the general question
+	if p.scr.sub != scrAsk || p.scr.ask != "some general points unspent. Exit?" {
+		t.Fatalf("then asked %q (screen %d)", p.scr.ask, p.scr.sub)
+	}
+	p.scr.yes()
+	if p.scr.sub != scrMain {
+		t.Errorf("after both: screen %d, want the main one", p.scr.sub)
+	}
+}

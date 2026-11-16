@@ -562,7 +562,7 @@ func (e *Engine) overlandSquare() image.Point {
 
 // allotmentState is the points field f as draft d stands: what is left and each option's row.
 func allotmentState(d rules.Draft, f rules.FieldDef) game.Allotment {
-	p := game.Allotment{Name: f.Label, Left: int(d.PointsLeft(f)), Max: int(f.Max)}
+	p := game.Allotment{Name: f.Label, Unspent: f.Unspent, Left: int(d.PointsLeft(f)), Max: int(f.Max)}
 	for i, name := range f.Options {
 		r := f.Rows[i]
 		row := game.AllotRow{Name: name, Group: r.Group, Value: int(r.Value), Bonus: int(r.Bonus), Total: int(r.Total), Open: r.Open}

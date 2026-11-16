@@ -111,6 +111,11 @@ func TestBR1CreateSkillPoints(t *testing.T) {
 	if career.Left != 80 || career.Max != 30 || len(career.Rows) != 8 || general.Left != 40 || general.Max != 30 {
 		t.Fatalf("allotments %+v / %+v", career, general)
 	}
+	// skills.pas EditSkills: the career points come first, then the general ones; each row carries its group's heading
+	// (gdconsts.pas skillGroupNames) and leaving with points left asks the screen's own question
+	if career.Unspent != "some career points unspent. Exit?" || general.Unspent != "some general points unspent. Exit?" || career.Rows[0].Group != "Career Skills" || general.Rows[0].Group == "" {
+		t.Errorf("headings and questions: %q %q, groups %q %q", career.Unspent, general.Unspent, career.Rows[0].Group, general.Rows[0].Group)
+	}
 	row := func(a game.Allotment, key rules.Skill) int {
 		i := slices.IndexFunc(a.Rows, func(r game.AllotRow) bool { return r.Name == xxvc.SkillNames[key] })
 		if i < 0 {

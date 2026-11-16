@@ -94,6 +94,12 @@ func startingSkills(career rules.Class) SkillLevels {
 	return l
 }
 
+// The questions asked on leaving the skill screen with points left (skills.pas EditSkills: YesNoMenu, default No).
+const (
+	unspentCareerText  = "some career points unspent. Exit?"
+	unspentGeneralText = "some general points unspent. Exit?"
+)
+
 // skillFields are the two skill fields of draft d (EditSkills's career then general screens).
 func skillFields(d rules.Draft) []rules.FieldDef {
 	career := careerOfDraft(d)
@@ -102,8 +108,8 @@ func skillFields(d rules.Draft) []rules.FieldDef {
 		l = startingSkills(career)
 	}
 	careerList, general := skillLists(career)
-	field := func(id rules.FieldID, label string, list []SkillNo, budget int32) rules.FieldDef {
-		f := rules.FieldDef{ID: id, Kind: rules.FieldSkills, Label: label, Budget: budget, Max: maxPointsPerSkill}
+	field := func(id rules.FieldID, label, unspent string, list []SkillNo, budget int32) rules.FieldDef {
+		f := rules.FieldDef{ID: id, Kind: rules.FieldSkills, Label: label, Budget: budget, Max: maxPointsPerSkill, Unspent: unspent}
 		for _, n := range list {
 			group := GroupCareer
 			if id == fieldGeneralSkills {
@@ -115,8 +121,8 @@ func skillFields(d rules.Draft) []rules.FieldDef {
 		return f
 	}
 	return []rules.FieldDef{
-		field(fieldCareerSkills, "Career skill points", careerList, careerSkillPoints),
-		field(fieldGeneralSkills, "General skill points", general, generalSkillPoints),
+		field(fieldCareerSkills, "Career skill points", unspentCareerText, careerList, careerSkillPoints),
+		field(fieldGeneralSkills, "General skill points", unspentGeneralText, general, generalSkillPoints),
 	}
 }
 
