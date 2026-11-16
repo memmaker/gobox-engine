@@ -33,6 +33,27 @@ type GameTables struct {
 	Logbook                    *Logbook             // the Logbook command's book (BR); nil: the game has none
 	PictureSets                map[int]rules.Set    // a PIC block kept in another set's file than the one in play (BR1 pO124_02D0: 62 in PIC9); nil: none
 	BigPictures                BigPictures          // the Picture command's whole-screen BIGPIC pictures; zero: none (POR)
+	Places                     []Place              // the area blocks' own places (the front's music trigger); none: none
+}
+
+// Place is area block Block's own place: the music trigger the front plays its own music for
+// (game.Where.Music, a gobox data/music folder) and whether it is a town's peaceful streets
+// (Where.Mode "town"). A block's number is the game's AreaKind, one place a block (BR1's
+// blocks are unique over its disks).
+type Place struct {
+	Block int
+	Music string
+	Town  bool
+}
+
+// Place is the place of area block block; nil: none.
+func (t GameTables) Place(block int) *Place {
+	for i := range t.Places {
+		if t.Places[i].Block == block {
+			return &t.Places[i]
+		}
+	}
+	return nil
 }
 
 // Logbook is the printed book the Logbook command names entries of by number: entry n is the journal

@@ -41,6 +41,8 @@ type brStart struct {
 	Data func(id string) game.Data
 	// Logbook: the journal's titles (importer/br1/journal, from the printed Log Book); nil: none yet.
 	Logbook *adventure.Logbook
+	// Places: the blocks' music triggers (br_places.go); nil: none yet.
+	Places []adventure.Place
 }
 
 const (
@@ -61,7 +63,7 @@ var (
 var brStarts = map[string]brStart{
 	"br1": {FirstBlock: 16, GameSet: 1, FirstBigPicture: 112, CodeBase: 32768, CodeSize: 9217, Symbols: brSymbols, PictureSets: brPictureSets,
 		Art:     adventure.ArtNames{CombatSprites: "COMSPR", Title: "TITLE"}, // br1Start's TITLE
-		Logbook: &adventure.Logbook{Box: "Log Book", Title: "Log Entry "}, Data: br1GameData, Walls: true},
+		Logbook: &adventure.Logbook{Box: "Log Book", Title: "Log Entry "}, Data: br1GameData, Walls: true, Places: brPlaces},
 	// BR2: buckrogers2-go rules/adv.go:147,161 (block 16), :158 (disk 1), eclops.go:239 (112), buckrogers2-re eclvm.pas:42,48. The
 	// Logbook stays unset: buckrogers2-go has no rules/journal to take the titles from (open: BR2's journal).
 	"br2": {FirstBlock: 16, GameSet: 1, FirstBigPicture: 112, CodeBase: 32768, CodeSize: 9217, Symbols: brSymbols, PictureSets: brPictureSets,
@@ -134,6 +136,7 @@ func ImportBREngine(id string, e BREXE, dos, dst string) error {
 		OriginalSave: rules1e.SaveLayout{CodeBase: start.CodeBase, CodeSize: start.CodeSize}, // eclLayout reads only these two
 		Symbols:      start.Symbols,
 		Art:          &start.Art,
+		Places:       start.Places,
 	}
 	if start.Walls {
 		// the 3D view's textures: buckrogers-go rules/wallindex.txt as walls/<id>.txt (chunk (value-1)/5+1, wall (value-1)%5+1); the

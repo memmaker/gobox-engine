@@ -37,3 +37,16 @@ func TestBR1WallsBackdrop(t *testing.T) {
 		t.Errorf("set 4 indoors: floor %q backdrop %+v", w.Floor, w.Backdrop)
 	}
 }
+
+// TestBR1PlaceMusic: Where.Music is the block's place (the old front's musicPlace): Neo-Chicago on the tarmac
+// (block 16), Salvation in the base's menu (block 17), whose streets are a town.
+func TestBR1PlaceMusic(t *testing.T) {
+	e := br1Begun(t)
+	if w := commonOf(e.build()).Where; w.Music != "neo-chicago" || w.Mode == "town" {
+		t.Errorf("block 16: music %q mode %q", w.Music, w.Mode)
+	}
+	br1ToBaseMenu(t, e)
+	if w := commonOf(e.build()).Where; w.Music != "salvation" || w.Mode != "town" {
+		t.Errorf("block 17: music %q mode %q", w.Music, w.Mode)
+	}
+}

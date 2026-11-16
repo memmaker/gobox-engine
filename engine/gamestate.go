@@ -102,6 +102,12 @@ func (e *Engine) whereState() (game.Where, game.Automap) {
 		Inside: inside, Searching: e.exploring() && e.world.Search&1 != 0,
 		Mode: map[bool]string{true: "dungeon", false: "wilderness"}[e.world.In3D != 0],
 	}
+	if p := e.game().Place(int(e.gs.areaKind)); p != nil {
+		w.Music = p.Music
+		if p.Town && e.world.In3D != 0 {
+			w.Mode = "town"
+		}
+	}
 	m := e.mapState(&w)
 	w.Hour, w.Minute = e.clockPart(rules.ClockMinuteOfDay)/60, e.clockPart(rules.ClockMinuteOfDay)%60
 	w.Hall = e.ext.hall // the party menu is the training hall's
