@@ -35,6 +35,11 @@ func (r *Rules) Resolve(s rules.Situation, a rules.Action, rng *rules.RNG) (rule
 	case rules.ClearTreasure: // the treasure's items go, the pool's credits stay
 		clear(r.loot)
 		return rules.Outcome{}, nil
+	case rules.AddLoot:
+		return rules.Outcome{}, r.addLoot(a)
+	case rules.AddLibraryItems:
+		r.addLibraryItems(a)
+		return rules.Outcome{}, nil
 	case rules.BankLoot:
 		r.bankLoot()
 		return rules.Outcome{}, nil

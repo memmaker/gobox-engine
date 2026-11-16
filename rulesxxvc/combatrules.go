@@ -325,6 +325,7 @@ func (r *Rules) EndFight(f rules.Fight, _ *rules.RNG) rules.FightResult {
 	}
 	var res rules.FightResult
 	r.pool = 0
+	res.Items = r.lootGoods() // what TreasureOf put on availableItems before the fight stays on it (DetermineLootExp pushes onto it)
 	verdict := r.Verdict(f)
 	res.Verdict = verdict
 	for _, id := range ids { // PostCombatCreatureCleanup: a hostile in the fight is an outcome to report (hasOutcomeToReport; the zone's preservesHostiles is not modelled)

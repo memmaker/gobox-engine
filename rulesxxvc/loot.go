@@ -80,6 +80,31 @@ func (r *Rules) lootFact(id rules.CharID, f rules.Fact) (rules.Value, bool, erro
 func (r *Rules) bankLoot() {
 	pool := r.pool
 	r.pool = 0
+	r.pay(pool)
+}
+
+// addLoot is TreasureOf's coins and items (eclvm.pas EclTreasure): the credits are the party's at once (the
+// pool games' way, no Take step), the templates are pushed onto the pile; a template that is no item
+// (EMPTY_TEMPLATE, absent from the tables) is left out. The last of a call heads the pile, as stockShop's.
+// ponytail: the pile lists in handle order, so a later call's items list after an earlier call's, not before.
+func (r *Rules) addLoot(a rules.AddLoot) error {
+	if a.Loot.Gold != 0 || a.Loot.Gems != 0 || a.Loot.Jewelry != 0 {
+		return fmt.Errorf("AddLoot: %+v, the credits are the only coin", a.Loot)
+	}
+	r.pay(rules.Copper(a.Loot.Copper))
+	return nil
+}
+
+func (r *Rules) addLibraryItems(a rules.AddLibraryItems) {
+	for _, n := range slices.Backward(a.IDs) {
+		if id := rules.ItemID(n); r.hasTemplate(id) {
+			r.lootHandle(rules.ItemRef{ID: id})
+		}
+	}
+}
+
+// pay hands pool credits to the party: under SharedPurse the one purse; else divided over the enabled members.
+func (r *Rules) pay(pool rules.Copper) {
 	if r.options.SharedPurse {
 		r.purse += pool
 		return
@@ -122,4 +147,10 @@ func (r *Rules) takeLoot(a rules.TakeLoot) error {
 		delete(r.loot, h)
 	}
 	return nil
+}
+
+// hasTemplate is true for a template that is an item (not EMPTY_TEMPLATE).
+func (r *Rules) hasTemplate(id rules.ItemID) bool {
+	_, ok := r.tables.Items[id]
+	return ok
 }

@@ -84,6 +84,7 @@ type Behaviour struct {
 	ViewKept bool
 	// MessageDelayMs is the pause of one step of the game's message speed in ms (BR textrend.pas PauseOnly: Delay(messageSpeed * 100)); 0: the Pool's (the engine's messageDelayUnit)
 	MessageDelayMs  int
+	CreditsTreasure bool // TreasureOf's coins are one operand, the party's credits (BR eclvm.pas EclTreasure: poolCredits += var 1); otherwise platinum, gems and jewelry (pod O040:13E0)
 	PictureAnimates bool // Picture marks the view drawn, so a wait under it cycles the picture's frames (cotab's and sotsb's b8B7D, pod's alike); otherwise only a step or Picture(255) does (POR's picDrawn, eclvm.pas:371, 1874)
 }
 
@@ -302,7 +303,7 @@ var V4 = func() *Version {
 		// BR1 pO035_2DCC case 56 (buckrogers-go opMenuCall): 0 the team menu, 9 the rest menu (eclvm.pas PROGRAM_REST_MENU: holds the script, which
 		// goes on after it: not the Pool games' camp, which ends it)
 		Programs:  map[byte]ProgramFn{0: ProgramPartyMenu, 9: ProgramRest},
-		Behaviour: Behaviour{SetupMonsterSides: true, ReturnEndsScript: true, StoreByOperand: true, ClearExitText: true, WhoEndsNoMember: true, FarSight: true, LostDuelResult: true, ViewKept: true, MessageDelayMs: BRMessageDelayMs}}
+		Behaviour: Behaviour{SetupMonsterSides: true, ReturnEndsScript: true, StoreByOperand: true, ClearExitText: true, WhoEndsNoMember: true, FarSight: true, LostDuelResult: true, ViewKept: true, CreditsTreasure: true, MessageDelayMs: BRMessageDelayMs}}
 }()
 
 // Versions are the dialects by ID.

@@ -39,19 +39,33 @@ const (
 	firstOfCoins    = 4 // platinum's place among the seven
 )
 
-// opTreasureOf = pod O040:13E0 (platinum, gems, jewelry, count, items...): the coins add to the
-// loot, the ITEM0 library's items (255: a random scroll) go to the head of the treasure.
+// opTreasureOf = pod O040:13E0 (platinum, gems, jewelry, count, items...) and BR eclvm.pas EclTreasure
+// (credits, count, items...): the coins add to the loot, the library's items (a template number in BR; pod's
+// 255: a random scroll) go to the head of the treasure. The screen is not opened: the next fight's end shows it.
 func (e *Engine) opTreasureOf() {
-	e.vm.ReadArgs(treasureOfCoins + 1)
-	coins := make([]uint64, firstOfCoins+treasureOfCoins)
-	for k := range treasureOfCoins {
-		coins[firstOfCoins+k] = uint64(uint16(e.vm.Arg(k+1, e.host)))
+	var loot rules.Purse
+	var count int
+	if e.eclVersion.Behaviour.CreditsTreasure {
+		e.vm.ReadArgs(2)
+		credits := e.vm.Arg(1, e.host)
+		if credits < 0 {
+			panic(fmt.Sprintf("TreasureOf: %d credits", credits))
+		}
+		loot = rules.Purse{Copper: uint64(credits)} // the ruleset's own coin: no conversion
+		count = int(byte(e.vm.Arg(2, e.host)))
+	} else {
+		e.vm.ReadArgs(treasureOfCoins + 1)
+		coins := make([]uint64, firstOfCoins+treasureOfCoins)
+		for k := range treasureOfCoins {
+			coins[firstOfCoins+k] = uint64(uint16(e.vm.Arg(k+1, e.host)))
+		}
+		loot = rules.FromCoins(coins, rules.GoldBoxRates) // platinum by value
+		count = int(byte(e.vm.Arg(treasureOfCoins+1, e.host)))
 	}
-	e.do(rules.AddLoot{Loot: rules.FromCoins(coins, rules.GoldBoxRates)}) // platinum by value
-	n := int(byte(e.vm.Arg(treasureOfCoins+1, e.host)))
+	e.do(rules.AddLoot{Loot: loot})
 	e.vm.PC--
-	e.vm.ReadArgs(n)
-	ids := make([]int32, n)
+	e.vm.ReadArgs(count)
+	ids := make([]int32, count)
 	for k := range ids {
 		ids[k] = int32(byte(e.vm.Arg(k+1, e.host)))
 	}

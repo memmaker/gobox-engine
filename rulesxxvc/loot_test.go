@@ -34,3 +34,27 @@ func TestLoot(t *testing.T) {
 		t.Fatal("took more than the pile")
 	}
 }
+
+// TestTreasureOf (eclvm.pas EclTreasure): the credits are the party's at once, the templates join the pile
+// (an empty template left out, the call's last heading it), a coin that is not credits is an error.
+func TestTreasureOf(t *testing.T) {
+	r := New()
+	r.Begin(rules.Campaign{Tables: xxvc.Tables{Items: map[rules.ItemID]xxvc.ItemTemplate{1: {}, 2: {}}}}, rules.Options{SharedPurse: true})
+	r.Add(Character{Name: "w", Enabled: true})
+	if _, err := r.Resolve(nil, rules.AddLoot{Loot: rules.Purse{Copper: 250}}, nil); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := r.Resolve(nil, rules.AddLibraryItems{IDs: []int32{1, 9, 2}}, nil); err != nil {
+		t.Fatal(err)
+	}
+	if r.purse != 250 || r.pool != 0 {
+		t.Errorf("purse %d pool %d, want 250 and 0", r.purse, r.pool)
+	}
+	goods := r.lootGoods()
+	if len(goods) != 2 || r.loot[goods[0]].ID != 2 || r.loot[goods[1]].ID != 1 {
+		t.Errorf("pile %v", goods)
+	}
+	if _, err := r.Resolve(nil, rules.AddLoot{Loot: rules.Purse{Gems: 1}}, nil); err == nil {
+		t.Error("gems are no credits")
+	}
+}
