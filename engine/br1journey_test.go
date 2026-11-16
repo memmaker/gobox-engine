@@ -229,7 +229,7 @@ func TestBR1Journey(t *testing.T) {
 	b.setSelFact(rules.FactHP, int64(hp()-1))
 	was := hp()
 	br1OwnBlock(t, b, 202, "    Program(9)\n    Text(\"AFTER THE REST\")\n    PressKey()")
-	if m := commonOf(b.build()).Ask; m == nil || !slices.Equal(m.Replies, []string{"Rest", "Exit"}) {
+	if m := commonOf(b.build()).Ask; m == nil || !slices.Equal(m.Replies, []string{"Rest", "Save", "Change", "Exit"}) {
 		t.Fatalf("the rest menu: %+v", m)
 	}
 	if _, err := b.doNow(game.Reply{N: restMenuRest}); err != nil {
