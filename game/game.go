@@ -227,6 +227,12 @@ type Sheet struct {
 // Stat is one of a rule set's figures on the sheet, with its tooltip lines.
 type Stat = rules.Figure
 
+// Throw is one saving throw on the sheet: the ruleset's name for it and its target.
+type Throw struct {
+	Name  string
+	Value int
+}
+
 // SheetPage is what the character sheet's page shows.
 type SheetPage struct {
 	Name                        string
@@ -244,7 +250,7 @@ type SheetPage struct {
 	RearAC                      int // the rear one
 	Damage                      string
 	Move                        int
-	Saves                       []int // the saving throws in the ruleset's order (Catalog.Saves); nil: not shown
+	Saves                       []Throw // the saving throws the ruleset names, in its order (Catalog.Saves); nil: not shown
 	Mods                        [6]int
 	ShowMods                    bool // the ruleset has ability modifiers: Mods is shown beside the scores
 	Rules                       []Stat

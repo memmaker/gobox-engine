@@ -66,7 +66,7 @@ type SheetPage struct {
 	THAC0              int
 	Damage             string
 	Move               int
-	Saves              []int          // extra: the saving throw targets, paralysis, petrification, rod, breath, spell (0: not shown)
+	Saves              []game.Throw   // extra: the saving throw targets the ruleset lists, with its names, in Catalog.Saves order (0: not shown)
 	Mods               [6]int         // extra: the rule set's ability modifiers, STR .. CHA (shown with ShowMods)
 	ShowMods           bool           // the rule set has ability modifiers (FiguresFact answers)
 	Rules              []rules.Figure // extra: the rule set's own figures (CombatRules.Sheet; nil: none, and no Mods)

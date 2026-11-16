@@ -67,3 +67,22 @@ func (c *cellPage) lines() [][]PaneRun {
 	}
 	return ls
 }
+
+// The sheet lists the saving throws under the names the state gives, however many (no fixed five).
+func TestSheetSaveNames(t *testing.T) {
+	saves := []game.Throw{{"Nerve", 9}, {"Luck", 12}, {"Grit", 7}}
+	p := partyOn(game.Member{Name: "Mirelle", Okay: true, Page: &game.SheetPage{Name: "Mirelle", Saves: saves}})
+	p.eng.r.sheet = 0
+	c := p.screenPage()
+	seen := map[string]bool{}
+	for _, l := range c.lines() {
+		for _, r := range l {
+			seen[r.Text] = true
+		}
+	}
+	for _, s := range saves {
+		if !seen[s.Name] {
+			t.Errorf("save %q is not on the sheet", s.Name)
+		}
+	}
+}

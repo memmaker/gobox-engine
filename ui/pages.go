@@ -548,11 +548,10 @@ func (c *cellPage) sheet(s *game.SheetPage, d *game.Creation, nameColour int, po
 			c.str(x, y, inkGreen, fmt.Sprintf("%2d", r.Value)+r.Extra)
 		}
 	}
-	// ponytail: the labels are AD&D's five; another ruleset's saves (XXVc has more) need their names from its catalog (REFACTOR.md B1f, the sheet).
-	if labels := []string{"Paralyze", "Petrify", "Rod", "Breath", "Spell"}; len(s.Saves) == len(labels) && s.Saves[0] > 0 { // extra: the saving throws beside the abilities
-		for i, l := range labels {
-			c.str(13, 7+i, inkWhite, l)
-			c.str(22, 7+i, inkGreen, strconv.Itoa(s.Saves[i]))
+	if len(s.Saves) > 0 && s.Saves[0].Value > 0 { // extra: the saving throws beside the abilities, as the ruleset names them
+		for i, t := range s.Saves {
+			c.str(13, 7+i, inkWhite, t.Name)
+			c.str(22, 7+i, inkGreen, strconv.Itoa(t.Value))
 		}
 	}
 	if !s.Creating {
