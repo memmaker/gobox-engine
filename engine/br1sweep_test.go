@@ -29,6 +29,7 @@ import (
 // br1SweepKnown are the findings still open: Pattern is matched against "message @ top frame".
 // The test fails on a finding no pattern matches and on a pattern no finding matches.
 var br1SweepKnown = []struct{ Pattern, Why string }{
+	{`^sweep: a script ran # instructions on one action without asking \(block #\)`, "open, unexplained: block 50's step entry, instr 259..264 (area50.txt `goto [L_96B2, L_973A, L_978C, L_97CE][NewGameBytes]` with NewGameBytes = 63 & Cell past the table, so it falls through to `if 1 == Search`, `EntryBytes_20 -= 1`, `goto L_88C3` back to the table) loops for ever once the party stands on such a square after the first fight; no other exit is visible in the text. Replay: the finding's line"},
 	{`^LOG: script: area \d+: T_\w+\[\d+\] is past the field's \d+ entries`, "none: the entry skips the story, so the index variable (Word4C61 ...) holds 0 and the table is read past its end as the original does (engine log, TableFaults)"},
 }
 
