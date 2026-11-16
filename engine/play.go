@@ -79,6 +79,8 @@ func (e *Engine) stateOf(mode game.Mode, pending *game.Question, pg *textPage, d
 	switch {
 	case e.shipRun != nil:
 		return e.shipFightState(cm)
+	case e.ext.screen != nil: // a typed screen outside a fight (the rocket's ship record): its key leaves
+		return game.Scene{Common: cm, Kind: game.SceneScreen, Screen: e.ext.screen}
 	case e.ext.ending && e.title.end != nil: // the end's pictures, as the title's steps
 		return e.endScene(cm)
 	case e.ext.intro: // the title is up: State's Scene is the adventure's Start (SetStart)
@@ -253,6 +255,7 @@ func (e *Engine) common(mode game.Mode, pending *game.Question, pg *textPage, do
 		cm.Purse = e.purseMoney(e.purse(false))
 	}
 	cm.Picker, cm.IconEditor = e.pickState()
+	cm.Mark = e.overlandMark()
 	if note, _ := e.Note(); len(cm.Text) == 0 && note != "" {
 		cm.Text = []string{note}
 	}

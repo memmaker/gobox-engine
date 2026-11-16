@@ -1,14 +1,18 @@
 package engine
 
-import "gobox/rules"
+import (
+	"gobox/game"
+	"gobox/rules"
+)
 
-// restMenuText is BR's rest menu (explore.pas RestMenu: 'Rest Save Change Exit'), the hotkey text MenuInput takes. Save and
-// Change (SaveQuit, CampAlterMenu) are not ported: the menu offers only what runs.
-const restMenuText = "~Rest ~Exit"
+// restMenuText is BR's rest menu (explore.pas RestMenu: 'Rest Save Change Exit'), the hotkey text MenuInput takes. Change
+// (CampAlterMenu) is not ported: the menu offers only what runs.
+const restMenuText = "~Rest ~Save ~Exit"
 
 // The rest menu's places.
 const (
 	restMenuRest = iota
+	restMenuSave
 	restMenuExit
 )
 
@@ -23,12 +27,34 @@ func (e *Engine) askRest() {
 // restMenuAnswered takes the rest menu's answer: Rest is a day (gametime.pas RestAndHeal(1): the clock a day on, the
 // ruleset's rest of that day), then the menu again; Exit leaves.
 func (e *Engine) restMenuAnswered(n int) {
-	if n != restMenuRest {
-		return
+	switch n {
+	case restMenuRest:
+		e.say(restTeamText)
+		e.restDays(1)
+		e.askRest()
+	case restMenuSave:
+		e.saveQuit(dRestSaveQuit)
 	}
-	e.say(restTeamText)
-	e.restDays(1)
-	e.askRest()
+}
+
+// saveQuitText is SaveQuit's question (explore.pas SaveQuit: 'Quit TO DOS ', default No).
+const saveQuitText = "Quit TO DOS "
+
+// saveQuit is explore.pas SaveQuit: the save screen (the player picks the slot), then the question whether to quit; done is its kind.
+func (e *Engine) saveQuit(done doneKind) {
+	e.event(game.SaveOffered{})
+	q := yesNo(saveQuitText, false)
+	q.Default = 0
+	e.askYesNo(q, false, askDone{kind: done})
+}
+
+// saveQuitAnswered takes SaveQuit's answer: yes ends the run (the front ends it at game.Ended); false: the menu goes on.
+func (e *Engine) saveQuitAnswered(n int) bool {
+	if n != 1 {
+		return false
+	}
+	e.event(game.Ended{})
+	return true
 }
 
 // restDays is gametime.pas RestAndHeal(days): the clock days on, the ruleset's rest of those days.

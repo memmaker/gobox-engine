@@ -36,7 +36,7 @@ func rocketAsk(t *testing.T, e *Engine) *game.Question {
 func rocketMove(t *testing.T, e *Engine, dir int) {
 	t.Helper()
 	if q := rocketAsk(t, e); !q.Heading {
-		if len(q.Replies) != 1 || q.Replies[0] != "Move" {
+		if len(q.Replies) != 3 || q.Replies[0] != "Move" {
 			t.Fatalf("the menu %+v", q)
 		}
 		if _, err := e.doNow(game.Reply{N: 0}); err != nil {
@@ -85,7 +85,7 @@ func TestBR1RocketStart(t *testing.T) {
 	if am.Terrain[10*22+11] != 296 || sun < 1 || bodies != 14 {
 		t.Errorf("sun %d, %d tiles drawn (the sun and 13 bodies)", sun, bodies)
 	}
-	if q := rocketAsk(t, e); q.Heading || len(q.Replies) != 1 || q.Replies[0] != "Move" {
+	if q := rocketAsk(t, e); q.Heading || len(q.Replies) != 3 || q.Replies[0] != "Move" || q.Replies[1] != "Rocket" || q.Replies[2] != "Save" {
 		t.Errorf("menu %+v", q)
 	}
 }
@@ -128,7 +128,7 @@ func TestBR1RocketStep(t *testing.T) {
 	if _, err := e.doNow(game.Leave{}); err != nil { // Done: back to the menu
 		t.Fatal(err)
 	}
-	if q := rocketAsk(t, e); q.Heading || len(q.Replies) != 1 {
+	if q := rocketAsk(t, e); q.Heading || len(q.Replies) != 3 {
 		t.Errorf("Done leaves the move mode: %+v", q)
 	}
 }
@@ -179,7 +179,7 @@ func TestBR1RocketSaveLoad(t *testing.T) {
 	if !reflect.DeepEqual(ca.Automap, cb.Automap) || ca.Where.Mode != "space" || ca.Where.X != cb.Where.X || ca.Where.Facing != cb.Where.Facing {
 		t.Errorf("where %+v, loaded %+v", ca.Where, cb.Where)
 	}
-	if q := rocketAsk(t, b); q.Heading || len(q.Replies) != 1 {
+	if q := rocketAsk(t, b); q.Heading || len(q.Replies) != 3 {
 		t.Errorf("loaded into %+v, want the menu", q)
 	}
 }
@@ -201,5 +201,37 @@ func TestBR1RocketArt(t *testing.T) {
 		if p, ok := art["ship/"+itoa(int64(dir))]; !ok || len(p.Pixels) == 0 {
 			t.Errorf("no ship facing %d", dir)
 		}
+	}
+}
+
+// TestBR1RocketVerbs: Rocket shows the own ship's record (the same sheet the ship fight's View shows) until its key and the menu comes
+// back; Save is SaveQuit: the save screen is offered, then 'Quit TO DOS ' (default No); No returns to the menu, Yes ends the run.
+func TestBR1RocketVerbs(t *testing.T) {
+	e := br1Flying(t)
+	if _, err := e.doNow(game.Reply{N: rocketMenuRocket}); err != nil {
+		t.Fatal(err)
+	}
+	sc, ok := e.build().(game.Scene)
+	want, _ := e.ShipSheetState(true, true)
+	if !ok || sc.Kind != game.SceneScreen || sc.Screen == nil || sc.Screen.Kind != game.ScreenShipSheet || sc.Screen.ShipSheet == nil || !reflect.DeepEqual(*sc.Screen.ShipSheet, want) || want.Name == "" {
+		t.Fatalf("the ship's record: %T %+v", e.build(), sc.Screen)
+	}
+	if _, err := e.doNow(game.ContinueAction{}); err != nil {
+		t.Fatal(err)
+	}
+	if q := rocketAsk(t, e); len(q.Replies) != 3 || q.Replies[0] != "Move" {
+		t.Fatalf("after the record: %+v", q)
+	}
+	if _, err := e.doNow(game.Reply{N: rocketMenuSave}); err != nil {
+		t.Fatal(err)
+	}
+	if q := e.question(); q == nil || q.Text != saveQuitText || !q.YesNo || q.Default != 0 {
+		t.Fatalf("SaveQuit's question: %+v", q)
+	}
+	if _, err := e.doNow(game.Reply{N: 0}); err != nil { // No
+		t.Fatal(err)
+	}
+	if q := rocketAsk(t, e); len(q.Replies) != 3 || q.Replies[0] != "Move" {
+		t.Fatalf("after No: %+v", q)
 	}
 }

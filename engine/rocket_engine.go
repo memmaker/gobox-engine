@@ -16,7 +16,14 @@ import (
 
 // rocketMenuText is the orbit-map menu's Move (explore.pas MapMainMenu 'Move Rocket Change Save'); Rocket, Change and Save are
 // not ported: like the rest menu, it offers only what runs.
-const rocketMenuText = "~Move"
+const rocketMenuText = "~Move ~Rocket ~Save"
+
+// The orbit-map menu's places.
+const (
+	rocketMenuMove = iota
+	rocketMenuRocket
+	rocketMenuSave
+)
 
 // rocketPrompt is MoveRocket's prompt before the fuel (explore.pas: 'En route. Fuel = ').
 const rocketPrompt = "En route. Fuel = "
@@ -78,9 +85,14 @@ func (e *Engine) flyBegin() {
 	if e.run.rocketMoving {
 		e.askHeading()
 	} else {
-		e.askChoice("", rocketMenuText, false, false, askDone{kind: dRocketMenu})
+		e.askRocketMenu()
 	}
 	e.openAsk()
+}
+
+// askRocketMenu asks the orbit-map menu.
+func (e *Engine) askRocketMenu() {
+	e.askChoice("", rocketMenuText, false, false, askDone{kind: dRocketMenu})
 }
 
 // askHeading asks MoveRocket's heading, with Done: the fuel as the ship has it.
@@ -91,10 +103,22 @@ func (e *Engine) askHeading() {
 	e.eclWait = &eclWait{ask: q, shape: shHeading, done: askDone{kind: dRocketMove}}
 }
 
-// rocketMenuAnswered: Move starts the move mode.
-func (e *Engine) rocketMenuAnswered() {
-	e.run.rocketMoving = true
-	e.askHeading()
+// rocketMenuAnswered: Move starts the move mode, Rocket shows the own ship's record until its key, Save is SaveQuit.
+func (e *Engine) rocketMenuAnswered(n int) {
+	switch n {
+	case rocketMenuMove:
+		e.run.rocketMoving = true
+		e.askHeading()
+	case rocketMenuRocket:
+		sh, ok := e.ShipSheetState(true, true)
+		if !ok {
+			panic("rocket menu: the own ship has no record")
+		}
+		e.ext.screen = &game.Screen{Kind: game.ScreenShipSheet, ShipSheet: &sh}
+		e.eclWait = &eclWait{ask: &game.Question{Continue: true}, shape: shPause, done: askDone{kind: dRocketSheet}}
+	case rocketMenuSave:
+		e.saveQuit(dRocketSaveQuit)
+	}
 }
 
 // rocketMoved takes the heading asked (headingDone: none, the move mode ends), makes the move and runs the area's step entry

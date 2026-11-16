@@ -15,7 +15,7 @@ func TestBR1Rocket(t *testing.T) {
 	eng.DevAction = func() { eng.DevAt(34, 0, 0) }
 	br1Begin(t, g, eng)
 	flying := func() *game.Question { // the orbit-map menu
-		if sc, ok := eng.State().(game.Scene); ok && sc.Where.Mode == "space" && sc.Ask != nil && len(sc.Ask.Replies) == 1 && sc.Ask.Replies[0] == "Move" {
+		if sc, ok := eng.State().(game.Scene); ok && sc.Where.Mode == "space" && sc.Ask != nil && len(sc.Ask.Replies) == 3 && sc.Ask.Replies[0] == "Move" {
 			return sc.Ask
 		}
 		return nil
@@ -40,12 +40,19 @@ func TestBR1Rocket(t *testing.T) {
 	}
 	br1Check(t, g, eng, "orbit-map menu", game.Scene{})
 	c := game.CommonOf(eng.State())
-	if len(q.Replies) != 1 || q.Replies[0] != "Move" || c.Automap.Size.W != 22 || len(c.Automap.Terrain) != 22*22 {
+	if len(q.Replies) != 3 || q.Replies[0] != "Move" || c.Automap.Size.W != 22 || len(c.Automap.Terrain) != 22*22 {
 		t.Errorf("menu %+v map %v", q, c.Automap.Size)
 	}
 	if !g.P.areaMapUp() {
 		t.Error("the system map is not the screen")
 	}
+	flowKey(g, 'r') // Rocket: the own ship's record, drawn with no undrawn question, its key leaves
+	br1Check(t, g, eng, "ship record", game.Scene{})
+	if sc, ok := eng.State().(game.Scene); !ok || sc.Kind != game.SceneScreen || sc.Screen == nil || sc.Screen.ShipSheet == nil {
+		t.Fatalf("the ship record: %T", eng.State())
+	}
+	flowKey(g, keyEnter)
+	br1Check(t, g, eng, "menu after the record", game.Scene{})
 	flowKey(g, 'm')
 	br1Check(t, g, eng, "heading", game.Scene{})
 	if sc := eng.State().(game.Scene); sc.Kind != game.SceneHeading || sc.Ask == nil || !sc.Ask.Heading {
@@ -59,7 +66,7 @@ func TestBR1Rocket(t *testing.T) {
 	}
 	flowKey(g, keyEsc) // Done: the menu again
 	br1Check(t, g, eng, "menu again", game.Scene{})
-	if sc := eng.State().(game.Scene); sc.Ask == nil || sc.Ask.Heading || len(sc.Ask.Replies) != 1 {
+	if sc := eng.State().(game.Scene); sc.Ask == nil || sc.Ask.Heading || len(sc.Ask.Replies) != 3 {
 		t.Errorf("after Done: %+v", sc.Ask)
 	}
 }

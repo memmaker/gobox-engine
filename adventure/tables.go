@@ -137,25 +137,32 @@ type WallTexture struct {
 // (POR's SQRPACI tile set is cotab's TILES; sotsb and pod have none). An
 // empty name or list: the game has no such picture.
 type ArtNames struct {
-	TileSheets    []TileLoad   // whole sheets Init takes as the tile set, tile First/0x80's half (POR: SQRPACI 1 and 2); none: a blank set
-	Tiles         []TileLoad   // laid over the tile set at Init (cotab: TILES 1 and 2, copyprot's Load24x24Set)
-	DungeonTiles  []TileLoad   // what combat setup lays over the tiles in a dungeon (ovr11:1244, LoadCombatTileSet)
-	WildTiles     []TileLoad   // and outdoors (sotsb: none, the set stays as it is)
-	AreaTiles     []TileLoad   // the area map's (BACPAC), laid over the tiles off the 3D view
-	AreaIcon      string       // the area map's party icon sheet (ICON)
-	CombatSprites string       // the combat sprites (COMSPR)
-	Title         string       // the title pictures (TITLE)
-	BorderCells   []int        // DrawBorder style 0's corner, side and top symbols (POR: 0x114..0x116); none: no border pictures
-	SpriteSlots   []SpriteLoad // the combat sprites' blocks and the icon slots they fill at Init; none: PoolSpriteSlots
-	Missiles      []MissileArt // what flies for each FlightKind; none: PoolMissiles
-	PlaceTiles    []TileLoad   // laid over a fresh tile set at a fight's setup, the sheets whose When and Unless fit the place (BR1: marscom, venuscom, lotek, hitek)
-	TerrainTiles  []int        // the tile each ground terrain value draws, by value (BR1's combatTerrain[t].tile; index 0 for any value outside the table); none: the value is the tile
-	IconMask      byte         // the colour the combat icons (sprites, monsters, members) are masked on (the Pool's 0; BR1's 8)
-	PlainIcons    bool         // the monsters' icons are loaded as drawn (VGA art): not recoloured with the Pool's EGA palette
-	ShipPictures  string       // the file of the foe ships' pictures, block by the ruleset's Ship.Picture (BR: SHIPS); none: no picture
-	Marks         []MarkArt    // the picture over a square for each of the ruleset's SquareMarks; none: no marker is drawn
-	ActionIcons   bool         // a unit shows its icon's second frame (block+0x80) while it attacks (BR1: cbtmap.pas SetCreatureFacing frame 1 in cbtacts.pas MakeAttack)
-	MemberIcons   string       // the sheet of a party member's whole-picture icon (BR1: CHARS, block = the record's icon, +0x80 the action pose); none: composed from CHEAD and CBODY
+	TileSheets     []TileLoad   // whole sheets Init takes as the tile set, tile First/0x80's half (POR: SQRPACI 1 and 2); none: a blank set
+	Tiles          []TileLoad   // laid over the tile set at Init (cotab: TILES 1 and 2, copyprot's Load24x24Set)
+	DungeonTiles   []TileLoad   // what combat setup lays over the tiles in a dungeon (ovr11:1244, LoadCombatTileSet)
+	WildTiles      []TileLoad   // and outdoors (sotsb: none, the set stays as it is)
+	AreaTiles      []TileLoad   // the area map's (BACPAC), laid over the tiles off the 3D view
+	AreaIcon       string       // the area map's party icon sheet (ICON)
+	CombatSprites  string       // the combat sprites (COMSPR)
+	Title          string       // the title pictures (TITLE)
+	BorderCells    []int        // DrawBorder style 0's corner, side and top symbols (POR: 0x114..0x116); none: no border pictures
+	SpriteSlots    []SpriteLoad // the combat sprites' blocks and the icon slots they fill at Init; none: PoolSpriteSlots
+	Missiles       []MissileArt // what flies for each FlightKind; none: PoolMissiles
+	PlaceTiles     []TileLoad   // laid over a fresh tile set at a fight's setup, the sheets whose When and Unless fit the place (BR1: marscom, venuscom, lotek, hitek)
+	TerrainTiles   []int        // the tile each ground terrain value draws, by value (BR1's combatTerrain[t].tile; index 0 for any value outside the table); none: the value is the tile
+	IconMask       byte         // the colour the combat icons (sprites, monsters, members) are masked on (the Pool's 0; BR1's 8)
+	PlainIcons     bool         // the monsters' icons are loaded as drawn (VGA art): not recoloured with the Pool's EGA palette
+	OverlandCursor MarkPicture  // the picture that marks the party's square on an overland drawn as one whole picture (BR1: CURSOR block 1); File "": none
+	ShipPictures   string       // the file of the foe ships' pictures, block by the ruleset's Ship.Picture (BR: SHIPS); none: no picture
+	Marks          []MarkArt    // the picture over a square for each of the ruleset's SquareMarks; none: no marker is drawn
+	ActionIcons    bool         // a unit shows its icon's second frame (block+0x80) while it attacks (BR1: cbtmap.pas SetCreatureFacing frame 1 in cbtacts.pas MakeAttack)
+	MemberIcons    string       // the sheet of a party member's whole-picture icon (BR1: CHARS, block = the record's icon, +0x80 the action pose); none: composed from CHEAD and CBODY
+}
+
+// MarkPicture is a picture of a file's block, masked on one colour.
+type MarkPicture struct {
+	File        string
+	Block, Mask int
 }
 
 // MarkArt is the picture of one SquareMark: the combat sprite slot Slot's frame Frame (0 ready, 1 action).

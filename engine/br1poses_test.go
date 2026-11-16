@@ -103,3 +103,26 @@ func TestBR1BigMonsterPicture(t *testing.T) {
 		}
 	}
 }
+
+// TestBR1OverlandMark: on the overland drawn as one picture the party's square is marked by CURSOR block 1 masked on 13, at the
+// square's own 8x8 cell of the picture (mapcurs.pas DrawCursor draws at wildernessX + 1 on a picture shown at column 1).
+func TestBR1OverlandMark(t *testing.T) {
+	e := br1Begun(t)
+	br1OwnBlock(t, e, 201, "    AreaKind(4, 255)")
+	br1Pages(t, e)
+	if m := commonOf(e.build()).Mark; m != nil {
+		t.Fatalf("a mark without a whole picture: %+v", m)
+	}
+	e.es.bigPic = e.LoadPic("CURSOR", 1) // any whole picture
+	e.world.MapX, e.world.MapY = 10, 5
+	m := commonOf(e.build()).Mark
+	src := e.LoadPic("CURSOR", 1)
+	if m == nil || src == nil || m.At != (rules.MapPos{X: 10, Y: 5}) || m.Picture.W != src.Width*8 || m.Picture.H != src.Height || m.Picture.Clear < 0 {
+		t.Fatalf("the mark: %v (block %v)", m != nil, src != nil)
+	}
+	for i, p := range src.Frame(0) {
+		if (p == 13) != (int(m.Picture.Pixels[i]) == m.Picture.Clear) {
+			t.Fatalf("mark pixel %d differs from the block", i)
+		}
+	}
+}

@@ -198,7 +198,7 @@ func TestBR1RestMenu(t *testing.T) {
 		}
 		return a.Replies
 	}
-	if m := menu(); len(m) != 2 || m[0] != "Rest" || m[1] != "Exit" {
+	if m := menu(); len(m) != 3 || m[0] != "Rest" || m[1] != "Save" || m[2] != "Exit" {
 		t.Fatalf("the rest menu: %q", m)
 	}
 	if _, err := e.doNow(game.Reply{N: restMenuRest}); err != nil {
@@ -207,7 +207,7 @@ func TestBR1RestMenu(t *testing.T) {
 	if hp() != was+1 { // the day on the clock (AdvanceClock) has no layout name to read here
 		t.Errorf("after a rest: hp %d (was %d)", hp(), was)
 	}
-	if m := menu(); len(m) != 2 {
+	if m := menu(); len(m) != 3 {
 		t.Fatalf("the menu is not asked again: %q", m)
 	}
 	if _, err := e.doNow(game.Reply{N: restMenuExit}); err != nil {

@@ -96,6 +96,7 @@ type extras struct {
 	pq     *playQuestion            // a play action's question up (playask.go)
 	read   *Read                    // the journal text being read (Read)
 	levels map[string]slotLevelAt   // the slots' levels as last read (slotLevelOf)
+	screen *game.Screen             // a typed screen over the game (a ship's record outside a fight) until its key
 	ending bool                     // the manifest's End is up as a title-like scene (title.end) until Continue
 	endRun bool                     // the run ends with it (pod: the save, then the end); else the script goes on
 	intro  bool                     // the title is up (Intro) until TitleDone

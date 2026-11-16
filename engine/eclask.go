@@ -56,32 +56,35 @@ const (
 type doneKind int
 
 const (
-	dNone          doneKind = iota // nothing more
-	dNumber                        // InputNumber: the low word to var dst
-	dString                        // InputString: the line to var dst
-	dList                          // VMenu: the line's index to var dst
-	dChoiceVar                     // HMenu: the menu place to var dst
-	dEncounter                     // the encounter menu's choice
-	dParlay                        // Parlay: r[choice] to var dst
-	dWho                           // Who: the member is the selected one (who: where it started)
-	dPauseKey                      // a pause, then a key
-	dYesNo                         // YesNo: equal when the answer is Yes
-	dTavernWager                   // the tavern: the key after "YOU HAVE", then the wager
-	dTavernSpun                    // the tavern: the wager is taken, the spin told
-	dTavernAsk                     // the tavern: the spin had its key
-	dTavernAgain                   // the tavern: go again or not
-	dContinueFight                 // "Continue Battle:"
-	dRestMenu                      // BR's rest menu: Rest rests a day and asks again, Exit leaves
-	dShipMenu                      // the ship fight's crew menu: the place chosen
-	dShipGroup                     // a submenu of it: the offer chosen
-	dShipDodge                     // the ship fight's dodge question
-	dShipRam                       // the ship fight's ram question
-	dShipSheet                     // a ship's record had its key
-	dShipEnd                       // the ship fight's last page had its key
-	dRocketMenu                    // BR's orbit-map menu: Move starts the move mode
-	dRocketMove                    // the rocket's heading, or Done
-	dDevParlay                     // dev scene: the encounter menu's choice
-	dDevPassword                   // dev scene: the word said
+	dNone           doneKind = iota // nothing more
+	dNumber                         // InputNumber: the low word to var dst
+	dString                         // InputString: the line to var dst
+	dList                           // VMenu: the line's index to var dst
+	dChoiceVar                      // HMenu: the menu place to var dst
+	dEncounter                      // the encounter menu's choice
+	dParlay                         // Parlay: r[choice] to var dst
+	dWho                            // Who: the member is the selected one (who: where it started)
+	dPauseKey                       // a pause, then a key
+	dYesNo                          // YesNo: equal when the answer is Yes
+	dTavernWager                    // the tavern: the key after "YOU HAVE", then the wager
+	dTavernSpun                     // the tavern: the wager is taken, the spin told
+	dTavernAsk                      // the tavern: the spin had its key
+	dTavernAgain                    // the tavern: go again or not
+	dContinueFight                  // "Continue Battle:"
+	dRestMenu                       // BR's rest menu: Rest rests a day and asks again, Exit leaves
+	dShipMenu                       // the ship fight's crew menu: the place chosen
+	dShipGroup                      // a submenu of it: the offer chosen
+	dShipDodge                      // the ship fight's dodge question
+	dShipRam                        // the ship fight's ram question
+	dShipSheet                      // a ship's record had its key
+	dShipEnd                        // the ship fight's last page had its key
+	dRocketMenu                     // BR's orbit-map menu: Move starts the move mode, Rocket shows the ship's record, Save saves
+	dRocketSheet                    // the ship's record had its key: the orbit-map menu again
+	dRestSaveQuit                   // SaveQuit's question from the rest menu: quit to DOS (yes), or the menu again
+	dRocketSaveQuit                 // the same from the orbit-map menu
+	dRocketMove                     // the rocket's heading, or Done
+	dDevParlay                      // dev scene: the encounter menu's choice
+	dDevPassword                    // dev scene: the word said
 )
 
 // askDone is what the answer completes, with what it needs.
@@ -457,7 +460,18 @@ func (e *Engine) complete(d askDone, v ansv) {
 	case dShipMenu, dShipGroup, dShipDodge, dShipRam, dShipSheet, dShipEnd:
 		e.shipAnswered(d.kind, v)
 	case dRocketMenu:
-		e.rocketMenuAnswered()
+		e.rocketMenuAnswered(v.n)
+	case dRocketSheet:
+		e.ext.screen = nil
+		e.askRocketMenu()
+	case dRestSaveQuit:
+		if !e.saveQuitAnswered(v.n) {
+			e.askRest()
+		}
+	case dRocketSaveQuit:
+		if !e.saveQuitAnswered(v.n) {
+			e.askRocketMenu()
+		}
 	case dRocketMove:
 		e.rocketMoved(v.n)
 	case dContinueFight:

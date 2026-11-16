@@ -64,7 +64,7 @@ var (
 // brArt is the art BR1 and BR2 name: the combat sprites COMSPR blocks 1..25 in icon rows 13..37 (gameinit.pas
 // LoadIconAnim('COMSPR', index, index + 13 - 1)) and the shots' icons of cbtacts.pas AnimateMissile (the same in both games:
 // the pace 10; the directed ones are Animate(firstKind), the rest the two-frame icons 30 and 37, which also fly for a grenade).
-var brArt = adventure.ArtNames{CombatSprites: "COMSPR", Title: "TITLE", IconMask: brIconMask, PlainIcons: true, MemberIcons: "CHARS", ActionIcons: true, Marks: brMarks, ShipPictures: "SHIPS",
+var brArt = adventure.ArtNames{CombatSprites: "COMSPR", Title: "TITLE", IconMask: brIconMask, PlainIcons: true, MemberIcons: "CHARS", ActionIcons: true, Marks: brMarks, OverlandCursor: adventure.MarkPicture{File: "CURSOR", Block: brCursorBlock, Mask: brCursorMask}, ShipPictures: "SHIPS",
 	PlaceTiles: brCombatTiles, TerrainTiles: brTerrainTiles,
 	SpriteSlots: []adventure.SpriteLoad{{Block: 1, Slot: 13, Count: 25}},
 	Missiles: []adventure.MissileArt{
@@ -84,6 +84,12 @@ var brMarks = []adventure.MarkArt{
 	{Mark: 1, Slot: 33, Frame: 0}, {Mark: 2, Slot: 33, Frame: 1}, {Mark: 3, Slot: 34, Frame: 0},
 	{Mark: 4, Slot: 34, Frame: 1}, {Mark: 5, Slot: 35, Frame: 0},
 }
+
+// The wilderness cursor (gameinit.pas: LoadPic('cursor', 1, True, C_Pic.KEY_COLOR, ..); mapcurs.pas DrawCursor draws it over the party's 8x8 cell).
+const (
+	brCursorBlock = 1
+	brCursorMask  = 13
+)
 
 // brIconMask is the colour COMSPR, CHARS and CPIC icons are masked on (maptiles.pas LoadIconAnim: LoadPic(.., True, 8, ..)).
 const brIconMask = 8

@@ -19,3 +19,19 @@ func (e *Engine) markPicture(m rules.SquareMark) game.Picture {
 	}
 	return game.Picture{}
 }
+
+// overlandMark is the mark of the party's square on an overland drawn as one whole picture (mapcurs.pas DrawCursor: the cursor
+// picture over the 8x8 cell of the party's square, which the picture's own cells count); nil off the overland or where the
+// game names no cursor.
+func (e *Engine) overlandMark() *game.PictureMark {
+	c := e.artNames().OverlandCursor
+	if c.File == "" || e.es.bigPic == nil || e.world.In3D != 0 || e.world.Flying != 0 {
+		return nil
+	}
+	im := e.LoadPicMasked(c.File, c.Block, byte(c.Mask))
+	if im == nil {
+		return nil
+	}
+	sq := e.overlandSquare()
+	return &game.PictureMark{Picture: framePicture(im, 0, im.Mask), At: rules.MapPos{X: sq.X, Y: sq.Y}}
+}
