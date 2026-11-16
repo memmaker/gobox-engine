@@ -44,9 +44,9 @@ func brBorder() *game.Border {
 }
 
 // brPartyMenu is BR1's team menu order and hotkeys (GAME.OVR), by gobox's function labels (presentdata partyMenu).
-var brPartyMenu = []game.MenuKey{{Label: "Create Character", Key: 'C'}, {Label: "Remove Character", Key: 'P'}, {Label: "Modify Character", Key: 'M'},
+var brPartyMenu = []game.MenuKey{{Label: "Create Character", Key: 'C'}, {Label: "Drop Character", Key: 'P'}, {Label: "Modify Character", Key: 'M'},
 	{Label: "Icon Select", Key: 'I'}, {Label: "Train Character", Key: 'T'}, {Label: "View Character", Key: 'V'}, {Label: "Add Character", Key: 'A'},
-	{Label: "Drop Character", Key: 'R'}, {Label: "Load Saved Game", Key: 'L'}, {Label: "Save Current Game", Key: 'S'}, {Label: "Begin Adventuring", Key: 'B'},
+	{Label: "Remove Character", Key: 'R'}, {Label: "Load Saved Game", Key: 'L'}, {Label: "Save Current Game", Key: 'S'}, {Label: "Begin Adventuring", Key: 'B'},
 	{Label: "Quick Start", Key: 'Q'}, {Label: "Exit to DOS", Key: 'E'}}
 
 // brMusicPlaces is every Where.Music trigger of BR1 (buckrogers-go rules/music.go MusicPlaces).
@@ -68,7 +68,7 @@ var brQuickParty = []game.QuickPick{
 // marker pictures, engine.overlandArt) and Scans (the engine's journal, Engine.Data).
 func br1GameData(id string) game.Data {
 	return game.Data{Series: brSeries, ID: id, Border: brBorder(), QuickParty: brQuickParty, DaxMask: brDaxMask,
-		Texts:       map[string]string{"Remove Character": "Purge Character", "Drop Character": "Remove Character"},
+		Texts:       map[string]string{"Drop Character": "Purge Character"}, // gdconsts.pas menuTable: P is Purge Character (DropCharacterMenu: deletes), R Remove Character from Team (saves it)
 		PartyMenu:   brPartyMenu,
 		VerbChords:  map[string]string{"Quick All": "alt+q,alt+a"}, // O065 @0839: Alt-Q, Alt-A quick the whole party
 		Coin:        game.Credits,
@@ -84,9 +84,9 @@ const brSilentSound = `{"program":[{}],"speaker":[[0,0,0,0]],"tandy":[[0,0,0,0]]
 	`"speakerPeriods":[0,0,0,0,0,0,0,0,0,0,0,0],"tandyPeriods":[0,0,0,0,0,0,0,0,0,0,0,0]}`
 
 // br2PartyMenu is BR2's team menu: BR1's with "Begin Adventuring" before "Quick Start" (buckrogers2-go rules/data.go partyMenuKeys).
-var br2PartyMenu = []game.MenuKey{{Label: "Create Character", Key: 'C'}, {Label: "Remove Character", Key: 'P'}, {Label: "Modify Character", Key: 'M'},
+var br2PartyMenu = []game.MenuKey{{Label: "Create Character", Key: 'C'}, {Label: "Drop Character", Key: 'P'}, {Label: "Modify Character", Key: 'M'},
 	{Label: "Icon Select", Key: 'I'}, {Label: "Train Character", Key: 'T'}, {Label: "View Character", Key: 'V'}, {Label: "Add Character", Key: 'A'},
-	{Label: "Drop Character", Key: 'R'}, {Label: "Load Saved Game", Key: 'L'}, {Label: "Save Current Game", Key: 'S'}, {Label: "Quick Start", Key: 'Q'},
+	{Label: "Remove Character", Key: 'R'}, {Label: "Load Saved Game", Key: 'L'}, {Label: "Save Current Game", Key: 'S'}, {Label: "Quick Start", Key: 'Q'},
 	{Label: "Begin Adventuring", Key: 'B'}, {Label: "Exit to DOS", Key: 'E'}}
 
 // br2MusicPlaces is every Where.Music trigger of BR2 (buckrogers2-go rules/data.go MusicPlaces).

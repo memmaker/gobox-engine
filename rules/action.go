@@ -159,7 +159,9 @@ type (
 		Who  CharID
 		Item ItemHandle
 	}
-	GiveItem struct {
+	// SetDifficulty sets the player's level of fights for the rest of the game (BR's Change menu: Level).
+	SetDifficulty struct{ Level Difficulty }
+	GiveItem      struct {
 		From, To CharID
 		Item     ItemHandle // To NoChar in an offer: the engine asks whom
 	}
@@ -388,6 +390,7 @@ func (Ready) action()         {}
 func (Unready) action()       {}
 func (DropItem) action()      {}
 func (GiveItem) action()      {}
+func (SetDifficulty) action() {}
 func (Halve) action()         {}
 func (JoinStack) action()     {}
 func (NewCharacter) action()  {}

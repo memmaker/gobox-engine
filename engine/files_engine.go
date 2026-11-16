@@ -409,3 +409,23 @@ func (e *Engine) saveSlot() error {
 func (e *Engine) charBase(cID rules.CharID) string {
 	return adventure.MakeFileName(rules.RemoveSubstr(e.ruleset().Sheet(cID).Name, "."))
 }
+
+// removeRosterFiles deletes the saved files of the character named name (the Forget picker's, and a purge's).
+func (e *Engine) removeRosterFiles(name string) {
+	base := adventure.MakeFileName(rules.RemoveSubstr(name, "."))
+	for _, ext := range []string{".cha", ".itm", ".spc", ".mem", ".dual", ".pow", ".png", ".icon.png"} {
+		if err := e.removeSaved(e.savePath(base + ext)); err != nil {
+			e.fileError("delete", base+ext)
+		}
+	}
+}
+
+// purgeSaved deletes the saved character name for good (saveload.pas DeleteCharacterFiles): its files and its place in the
+// roster's list.
+func (e *Engine) purgeSaved(name string) {
+	e.removeRosterFiles(name)
+	list := slices.DeleteFunc(e.BuildCharList(), func(n string) bool { return strings.TrimPrefix(n, "* ") == name })
+	if err := e.WriteCharList(list); err != nil {
+		e.fileError("write", "charlist.txt")
+	}
+}

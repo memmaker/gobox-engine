@@ -6,13 +6,14 @@ import (
 )
 
 // restMenuText is BR's rest menu (explore.pas RestMenu: 'Rest Save Change Exit'), the hotkey text MenuInput takes. Change
-// (CampAlterMenu) is not ported: the menu offers only what runs.
-const restMenuText = "~Rest ~Save ~Exit"
+// is the Change menu (change_engine.go).
+const restMenuText = "~Rest ~Save ~Change ~Exit"
 
 // The rest menu's places.
 const (
 	restMenuRest = iota
 	restMenuSave
+	restMenuChange
 	restMenuExit
 )
 
@@ -34,6 +35,8 @@ func (e *Engine) restMenuAnswered(n int) {
 		e.askRest()
 	case restMenuSave:
 		e.saveQuit(dRestSaveQuit)
+	case restMenuChange:
+		e.openChange(false)
 	}
 }
 

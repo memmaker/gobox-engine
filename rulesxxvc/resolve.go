@@ -22,6 +22,9 @@ func (r *Rules) Resolve(s rules.Situation, a rules.Action, rng *rules.RNG) (rule
 			r.recalcAttacksLeft(rules.Fight{Round: int32(r.round)}, c, s)
 		}
 		return rules.Outcome{}, nil
+	case rules.SetDifficulty: // explore.pas CampDifficultyMenu: zone0 difficulty := the level picked
+		r.options.Difficulty = a.Level
+		return rules.Outcome{}, nil
 	case rules.GiveItem:
 		return r.giveItem(a)
 	case rules.Halve:

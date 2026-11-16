@@ -14,14 +14,15 @@ import (
 // rules.World words; the bodies' squares are derived from the orbit step (adventure.SpaceMap.Body) and read by the scripts through
 // the layout's BodySquares. The ship, its fuel and a move's time are the ruleset's (fuel is shown only: the Pascal spends none).
 
-// rocketMenuText is the orbit-map menu's Move (explore.pas MapMainMenu 'Move Rocket Change Save'); Rocket, Change and Save are
-// not ported: like the rest menu, it offers only what runs.
-const rocketMenuText = "~Move ~Rocket ~Save"
+// rocketMenuText is the orbit-map menu's Move (explore.pas MapMainMenu 'Move Rocket Change Save'); Change is the Change menu
+// (change_engine.go).
+const rocketMenuText = "~Move ~Rocket ~Change ~Save"
 
 // The orbit-map menu's places.
 const (
 	rocketMenuMove = iota
 	rocketMenuRocket
+	rocketMenuChange
 	rocketMenuSave
 )
 
@@ -116,6 +117,8 @@ func (e *Engine) rocketMenuAnswered(n int) {
 		}
 		e.ext.screen = &game.Screen{Kind: game.ScreenShipSheet, ShipSheet: &sh}
 		e.eclWait = &eclWait{ask: &game.Question{Continue: true}, shape: shPause, done: askDone{kind: dRocketSheet}}
+	case rocketMenuChange:
+		e.openChange(true)
 	case rocketMenuSave:
 		e.saveQuit(dRocketSaveQuit)
 	}

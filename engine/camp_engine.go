@@ -226,13 +226,16 @@ func (e *Engine) DropMember(n int) error {
 	case e.inCamp():
 		e.dropMember(n)
 	case e.inParty():
-		c := e.ruleset().Sheet(e.actor(n))
-		if c.Status != rules.StatusOkay {
+		id := e.actor(n)
+		if c := e.ruleset().Sheet(id); e.ruleset().Check(rules.Purge{Who: id}, nil).Yes { // the ruleset's drop is a purge
+			e.purge(id)
+		} else if c.Status != rules.StatusOkay {
 			e.say("You dump " + c.Name + " out back.")
+			e.RemoveSelected(false, true) // ovr17:3291
 		} else {
 			e.say(c.Name + " bids you farewell.")
+			e.RemoveSelected(false, true)
 		}
-		e.RemoveSelected(false, true) // ovr17:3291
 	default:
 		return rules.ErrNotNow
 	}

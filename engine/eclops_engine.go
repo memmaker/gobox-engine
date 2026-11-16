@@ -782,6 +782,7 @@ type eclRun struct {
 	savedSel   rules.CharID // DS:4436
 	// a scripted place (World.Scripted): the questions opened when its move entry last ran, and the runs since without one
 	scriptedOpened, scriptedSpins int
+	changeOnOrbit                 bool    // the Change menu was asked from the orbit-map menu (no Order, no Purge)
 	rocketMoving                  bool    // the flying party is in the move mode (explore.pas isMoveMode): the next command is a heading
 	scriptLoad                    byte    // DS:4431
 	needFrame                     byte    // DS:4432: main screen not drawn yet

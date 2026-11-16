@@ -1,7 +1,7 @@
 file,test,asserts,status,shared_tests,note
 adv,TestOpening,"new game opens on the tarmac: intro pages, officer text, heat drives the party back",covered,TestBR1Opening,
 adv,TestTurnAndWall,turning works and a wall stops a step,covered,TestBR1TurnAndWall,
-adv,TestRemove,"party menu Remove asks Overwrite, drops the member, writes a .HID file",port-open,,needs the Change menu (explore.pas CampAlterMenu P = chargen.pas DropCharacterMenu) and the party menu Remove: a new screen and a ruleset roster verb
+adv,TestRemove,"party menu Remove asks Overwrite, drops the member, writes a .HID file",port-done,TestBR1PartyRemove;TestBR2PartyRemove,"FIXED: rulesxxvc Dismiss left the member in the party (the next build panicked on OwedFact: Fact 1: no character). Remove saves the member (its record keeps the stash: Character.Stashed); NOT ported: SaveChar's Overwrite/Rename/Abort question (saveload.pas:345) the engine writes the roster record by its roster id; BR's menu labels were swapped (P is Purge, R Remove: importer br_gamedata.go)"
 adv,TestNewBlock,NEW ECL loads a block and runs its init/step/after-step entries,covered,TestBR1NewBlock,
 adv,TestOverlandMove,an overland step moves one square and the clock runs,covered,TestBR1OverlandMove,
 adv,TestRocketStep,"a rocket step into the sun is undone, counter and orbit step as the Pascal",covered,TestBR1RocketStep;TestBR2RocketStep,
@@ -111,7 +111,7 @@ title_import,TestStartIsBR1Title,the title is the manifest Start sequence,port-d
 treasure,TestRobAndDamage,robbing a member of items and a damage that fells him,covered,TestTakeItems;TestBR1TakeItem;TestScriptDamage,
 under,TestUnderCloud,the tile a cloud covers is read from the clouds list,covered,TestGasCloud;TestGroundMarks,
 view,TestView,"View Character: sheet, Ready, Halve, Trade, Exit",covered,TestEquipWeaponAndArmor;TestDropItem;TestBR1SheetFacts,Halve/Trade: see TestClassItemActs
-view,TestPurge,"Purge asks twice, removes the roster file",port-open,,as TestRemove (the Change menu / DropCharacterMenu)
+view,TestPurge,"Purge asks twice, removes the roster file",port-done,TestBR1PartyPurge;TestBR2PartyPurge;TestBR1ChangePurge;TestBR2ChangePurge,"the party menu's Purge (engine DropMember: rules.Purge says the ruleset deletes) and the Change menu's Purge (engine/change_engine.go): two questions, default No, the roster files and list entry go, the member leaves; the Pascal's two confirmations are the ui's (mainmenu askDrop/askSure)"
 view,TestTrain,"Train with the experience: question, a level, the skills",port-done,TestBR1TrainLevel;TestBR2TrainLevel;TestTrainLevel,"rulesxxvc/train.go: level, base combat, AddLevelHitPoints, saves every third level, a warrior's weapon at an odd level, EditSkills(40,20,15) on the creation allotment (Draft.Rise); FIXED: the hall box was blocked by the party menu question (engine pendingAsk)"
 view,TestModify,"Modify steps a stat, clamped; Exit restores",covered,TestBR1Modify;TestModifyMember,
 view,TestIconSelect,"the icon selector from the team menu: a body, ok",differs,,CustomizeIcon: a CHARS body picker is not built (REFACTOR cr2 Open); ruling: games never assemble portraits

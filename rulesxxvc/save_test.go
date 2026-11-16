@@ -14,7 +14,7 @@ var savedState = map[string]string{
 	"party": "saved", "memberCount": "saved", "acting": "saved", "clock": "saved", "seed": "saved", "empty": "saved",
 	"walls":    "saved",
 	"nextItem": "derived on Load: the largest handle the loaded characters carry (TestLoadKeepsItemHandlesApart)",
-	"campaign": "the game's tables given at Begin, not the game's state", "options": "given at Begin", "tables": "given at Begin",
+	"campaign": "the game's tables given at Begin, not the game's state", "options": "given at Begin; the Difficulty the Change menu sets is saved (saved.Difficulty)", "tables": "given at Begin",
 	"pool":   "a fight's: the credits the beaten left, banked when it ends; a game is saved outside a fight",
 	"loot":   "a fight's: the handles of its loot",
 	"morale": "a fight's (CheckMorale)", "hpPercent": "a fight's", "terms": "a fight's: BeginFight's", "moveBonus": "a fight's",

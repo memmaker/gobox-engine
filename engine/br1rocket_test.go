@@ -39,7 +39,7 @@ func rocketAsk(t *testing.T, e *Engine) *game.Question {
 func rocketMove(t *testing.T, e *Engine, dir int) {
 	t.Helper()
 	if q := rocketAsk(t, e); !q.Heading {
-		if len(q.Replies) != 3 || q.Replies[0] != "Move" {
+		if len(q.Replies) != 4 || q.Replies[0] != "Move" {
 			t.Fatalf("the menu %+v", q)
 		}
 		if _, err := e.doNow(game.Reply{N: 0}); err != nil {
@@ -91,7 +91,7 @@ func brRocketStart(t *testing.T, g brGame) {
 	if am.Terrain[10*22+11] != 296 || sun < 1 || bodies != 14 {
 		t.Errorf("sun %d, %d tiles drawn (the sun and 13 bodies)", sun, bodies)
 	}
-	if q := rocketAsk(t, e); q.Heading || len(q.Replies) != 3 || q.Replies[0] != "Move" || q.Replies[1] != "Rocket" || q.Replies[2] != "Save" {
+	if q := rocketAsk(t, e); q.Heading || len(q.Replies) != 4 || q.Replies[0] != "Move" || q.Replies[1] != "Rocket" || q.Replies[2] != "Change" || q.Replies[3] != "Save" {
 		t.Errorf("menu %+v", q)
 	}
 }
@@ -137,7 +137,7 @@ func brRocketStep(t *testing.T, g brGame) {
 	if _, err := e.doNow(game.Leave{}); err != nil { // Done: back to the menu
 		t.Fatal(err)
 	}
-	if q := rocketAsk(t, e); q.Heading || len(q.Replies) != 3 {
+	if q := rocketAsk(t, e); q.Heading || len(q.Replies) != 4 {
 		t.Errorf("Done leaves the move mode: %+v", q)
 	}
 }
@@ -188,7 +188,7 @@ func TestBR1RocketSaveLoad(t *testing.T) {
 	if !reflect.DeepEqual(ca.Automap, cb.Automap) || ca.Where.Mode != "space" || ca.Where.X != cb.Where.X || ca.Where.Facing != cb.Where.Facing {
 		t.Errorf("where %+v, loaded %+v", ca.Where, cb.Where)
 	}
-	if q := rocketAsk(t, b); q.Heading || len(q.Replies) != 3 {
+	if q := rocketAsk(t, b); q.Heading || len(q.Replies) != 4 {
 		t.Errorf("loaded into %+v, want the menu", q)
 	}
 }
@@ -228,7 +228,7 @@ func TestBR1RocketVerbs(t *testing.T) {
 	if _, err := e.doNow(game.ContinueAction{}); err != nil {
 		t.Fatal(err)
 	}
-	if q := rocketAsk(t, e); len(q.Replies) != 3 || q.Replies[0] != "Move" {
+	if q := rocketAsk(t, e); len(q.Replies) != 4 || q.Replies[0] != "Move" {
 		t.Fatalf("after the record: %+v", q)
 	}
 	if _, err := e.doNow(game.Reply{N: rocketMenuSave}); err != nil {
@@ -240,7 +240,7 @@ func TestBR1RocketVerbs(t *testing.T) {
 	if _, err := e.doNow(game.Reply{N: 0}); err != nil { // No
 		t.Fatal(err)
 	}
-	if q := rocketAsk(t, e); len(q.Replies) != 3 || q.Replies[0] != "Move" {
+	if q := rocketAsk(t, e); len(q.Replies) != 4 || q.Replies[0] != "Move" {
 		t.Fatalf("after No: %+v", q)
 	}
 }

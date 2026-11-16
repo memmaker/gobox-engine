@@ -172,6 +172,12 @@ func (r *Rules) resolveSession(a rules.Action) (o rules.Outcome, ok bool, err er
 			return rules.Outcome{}, true, errNoMember
 		}
 		r.RecalcStats(c)
+	case rules.MoveMember: // explore.pas OrderMoveUp, OrderMoveDown: the member takes place To in the marching order (the first moved up goes last)
+		from := slices.Index(r.party, a.Who)
+		if from < 0 || a.To < 0 || int(a.To) >= len(r.party) {
+			return rules.Outcome{}, true, rules.ErrNotNow
+		}
+		r.party = slices.Insert(slices.Delete(r.party, from, from+1), int(a.To), a.Who)
 	case rules.JoinParty:
 		if r.chars[a.Who] == nil {
 			return rules.Outcome{}, true, errNoMember
@@ -233,6 +239,15 @@ func (r *Rules) sessionCheck(q rules.Check, rng *rules.RNG) rules.Answer {
 		}
 	case rules.HallOpen:
 		return rules.Answer{Yes: r.hall}
+	case rules.Purge: // chargen.pas DropCharacterMenu's line: a disabled member is incinerated
+		c := r.chars[q.Who]
+		if c == nil {
+			return rules.Answer{}
+		}
+		if !c.Enabled {
+			return rules.Answer{Yes: true, Text: "You incinerate " + c.Name + "."}
+		}
+		return rules.Answer{Yes: true, Text: c.Name + " hitches the next rocket."}
 	case rules.TrainFee: // the hall asks nothing (chargen.pas TrainingMenu): Yes says so, the screen leaves the cost out
 		return rules.Answer{Yes: true}
 	case rules.MemberCount:

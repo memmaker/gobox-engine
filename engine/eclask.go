@@ -83,6 +83,13 @@ const (
 	dRocketSheet                    // the ship's record had its key: the orbit-map menu again
 	dRestSaveQuit                   // SaveQuit's question from the rest menu: quit to DOS (yes), or the menu again
 	dRocketSaveQuit                 // the same from the orbit-map menu
+	dChange                         // the Change menu: the place chosen
+	dOrderWho                       // its Order: the member to move
+	dOrderMove                      // up, down or Exit for it
+	dPurgeWho                       // its Purge: the member
+	dPurgeSure                      // "Drop N forever?"
+	dPurgeDone                      // "Are you sure?"
+	dLevel                          // its Level: the difficulty chosen
 	dRocketMove                     // the rocket's heading, or Done
 	dDevParlay                      // dev scene: the encounter menu's choice
 	dDevPassword                    // dev scene: the word said
@@ -478,6 +485,20 @@ func (e *Engine) complete(d askDone, v ansv) {
 		if !e.saveQuitAnswered(v.n) {
 			e.askRest()
 		}
+	case dChange:
+		e.changeAnswered(v.n)
+	case dOrderWho:
+		e.orderChosen(v.who)
+	case dOrderMove:
+		e.orderMoved(d.who, v.n)
+	case dPurgeWho:
+		e.purgeChosen(v.who)
+	case dPurgeSure:
+		e.purgeSure(d.who, v.n == 1)
+	case dPurgeDone:
+		e.purgeDone(d.who, v.n == 1)
+	case dLevel:
+		e.levelChosen(v.n)
 	case dRocketSaveQuit:
 		if !e.saveQuitAnswered(v.n) {
 			e.askRocketMenu()

@@ -194,9 +194,12 @@ func (r *Rules) Purse(id rules.CharID) rules.Copper {
 	return 0
 }
 
+// Dismiss forgets character id: it leaves the party's marching order too (as rules1e's), the member the rules act for staying in it.
 func (r *Rules) Dismiss(id rules.CharID) {
 	delete(r.chars, id)
 	r.order = slices.DeleteFunc(r.order, func(x rules.CharID) bool { return x == id })
+	r.party = slices.DeleteFunc(r.party, func(x rules.CharID) bool { return x == id })
+	r.acting = min(r.acting, max(len(r.party)-1, 0))
 }
 
 func (r *Rules) Sheet(id rules.CharID) rules.Sheet {
@@ -330,11 +333,13 @@ type saved struct {
 	Seed   uint32
 	Empty  rules.CharID `json:",omitempty"`
 	Walls  rules.RecordView
+	// Difficulty is the level the Change menu set (zone0 difficulty); 0: the game's default.
+	Difficulty rules.Difficulty `json:",omitempty"`
 }
 
 func (r *Rules) Save() ([]byte, error) {
 	return json.Marshal(saved{Chars: r.chars, Order: r.order, Next: r.next, Purse: r.purse, Ship: r.ship, Foe: r.foeSaved,
-		Party: r.party, Count: r.memberCount, Acting: r.acting, Clock: r.clock, Seed: r.seed.State, Empty: r.empty, Walls: r.walls})
+		Party: r.party, Count: r.memberCount, Acting: r.acting, Clock: r.clock, Seed: r.seed.State, Empty: r.empty, Walls: r.walls, Difficulty: r.options.Difficulty})
 }
 
 func (r *Rules) Load(b []byte) error {
@@ -345,6 +350,7 @@ func (r *Rules) Load(b []byte) error {
 	r.chars, r.order, r.next, r.purse, r.ship, r.foeSaved = s.Chars, s.Order, s.Next, s.Purse, s.Ship, s.Foe
 	r.party, r.memberCount, r.acting, r.clock, r.seed, r.empty = s.Party, s.Count, s.Acting, s.Clock, rules.RNG{State: s.Seed}, s.Empty
 	r.walls = s.Walls
+	r.options.Difficulty = s.Difficulty
 	r.nextItem = 0 // handOut's last handle: the largest one the loaded characters carry, so a new item never repeats one
 	for _, c := range r.chars {
 		for _, it := range slices.Concat(c.Items, c.Stashed) {

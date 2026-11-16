@@ -123,7 +123,7 @@ func TestSessionActions(t *testing.T) {
 	if _, err := r.Resolve(nil, rules.JoinParty{Who: 99}, nil); err == nil {
 		t.Error("JoinParty of no one")
 	}
-	if _, err := r.Resolve(nil, rules.MoveMember{}, nil); !errors.Is(err, ErrNotPorted) {
+	if _, err := r.Resolve(nil, rules.Intimidate{}, nil); !errors.Is(err, ErrNotPorted) {
 		t.Errorf("an action XXVc does not know: %v", err)
 	}
 	o, err := r.Resolve(nil, rules.EmptyMember{}, nil)

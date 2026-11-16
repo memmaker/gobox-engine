@@ -139,6 +139,12 @@ type ControlledBefore struct{ Who CharID }
 
 func (PartySize) check() {}
 
+// Purge: dropping Who from the party deletes it for good (Yes; Text is the line said as it goes), as BR's Purge Character
+// (chargen.pas DropCharacterMenu does); no: the drop keeps its saved files, as the Pool's.
+type Purge struct{ Who CharID }
+
+func (Purge) check() {}
+
 func (CanJoin) check() {}
 
 func (InParty) check() {}
