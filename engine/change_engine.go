@@ -140,26 +140,34 @@ func (e *Engine) purgeChosen(who rules.CharID) {
 func (e *Engine) purgeSure(who rules.CharID, yes bool) {
 	if !yes {
 		e.say(purgeKept(e.ruleset().Sheet(who).Name))
-		e.askChange()
+		e.purgeBack()
 		return
 	}
 	e.purgeAsk(purgeFinal, askDone{kind: dPurgeDone, who: who})
 }
 
-// purgeDone ends the purge (purge: the ruleset's words, the files deleted, the member out of the party). The party left empty ends the game, as a camp's Drop of the last member (dropMember).
+// purgeDone ends the purge (purge: the ruleset's words, the files deleted, the member out of the party). The Pascal does nothing
+// more when no member is left (DropCharacterMenu only sets isPartyDefeated): the menu it was asked from stays up, and the game loop
+// ends when control reaches it (EclVm GameLoop: the map loop runs until isPartyDefeated, then the party menu).
 func (e *Engine) purgeDone(who rules.CharID, yes bool) {
 	name := e.ruleset().Sheet(who).Name
 	if !yes {
 		e.say(purgeKept(name))
-		e.askChange()
+		e.purgeBack()
 		return
 	}
 	e.purge(who)
-	if e.partySize() == 0 {
-		e.Exit()
-		return
+	if e.partySize() == 0 && !e.menu.on {
+		e.run.quit = true
 	}
-	e.askChange()
+	e.purgeBack()
+}
+
+// purgeBack is where a purge returns: the party menu (it waits under the question), else the Change menu.
+func (e *Engine) purgeBack() {
+	if !e.menu.on {
+		e.askChange()
+	}
 }
 
 // The difficulty menu (GDConsts.difficultyMenu 'Novice Cadet Trooper Veteran Ace Exit'): a level sets zone0's difficulty.
