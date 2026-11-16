@@ -23,9 +23,19 @@ const br1FightCap = 1500
 // else ends its turn. It returns the engine and the battle log; stop is what ended the play ("" the fight is over).
 func br1Fought(t *testing.T, choose func(game.Fighting) game.Action) (e *Engine, log []string, stop string) {
 	t.Helper()
+	return br1FoughtIn(t, br1AdjacentFight, 0, choose)
+}
+
+// br1AdjacentFight is block 201's body: two monsters set up next to the party.
+const br1AdjacentFight = "    ClearMonsters()\n    LoadMonster(41, count=2, icon=32)\n    Combat()"
+
+// br1FoughtIn is br1Fought for a block whose load entry is body, the party facing facing (0: north, 2: east).
+func br1FoughtIn(t *testing.T, body string, facing int, choose func(game.Fighting) game.Action) (e *Engine, log []string, stop string) {
+	t.Helper()
 	e = br1Begun(t)
 	br1Join(t, e)
-	br1OwnBlock(t, e, 201, "    ClearMonsters()\n    LoadMonster(41, count=2, icon=32)\n    Combat()")
+	e.facing = facing // SetupMonster counts the free squares ahead of the party (the start square's walls)
+	br1OwnBlock(t, e, 201, body)
 	var trace []string // the board at each of the party's turns: the fight's events, in order
 	defer func() {
 		if r := recover(); r != nil {

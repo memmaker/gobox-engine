@@ -136,11 +136,13 @@ func (r *Rules) attack(f rules.Fight, aid, did rules.CharID, rng *rules.RNG) (ru
 			if armed && Shielded(rng, wty.WeaponClass, Defences{SawChaff: back.chaff, SawMist: back.mist, ECM: d.Armor.ECM, Fields: d.Armor.Fields, Body: d.Armor.Body}) {
 				dmg = 0
 			}
+			o.Effects = append(o.Effects, attackLines(a, d, backstab, rear, true, dmg)...)
 			o.Effects = append(o.Effects, rules.Attacked{From: unitOf(aid), To: unitOf(did), Hit: true, Damage: int32(dmg)})
 			if InflictDamage(d, dmg) {
 				if ds != nil {
 					ds.initiative = 0
 				}
+				o.Effects = append(o.Effects, downLines(d)...)
 				o.Effects = append(o.Effects, rules.Fell{Unit: unitOf(did)})
 			}
 			if d.Enabled && dmg > 0 && phase == 1 { // COND_HIT_PHASE_2
@@ -149,6 +151,7 @@ func (r *Rules) attack(f rules.Fight, aid, did rules.CharID, rng *rules.RNG) (ru
 		}
 	}
 	if !hit {
+		o.Effects = append(o.Effects, attackLines(a, d, backstab, rear, false, 0)...)
 		o.Effects = append(o.Effects, rules.Attacked{From: unitOf(aid), To: unitOf(did)})
 	}
 	// MakeAttack: a ranged weapon spends a shot per phase-1 attack; a
