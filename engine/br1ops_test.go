@@ -1,7 +1,10 @@
 package engine
 
 import (
+	"path/filepath"
 	"slices"
+	"strconv"
+	"strings"
 	"testing"
 
 	"gobox/ecl"
@@ -14,11 +17,19 @@ var br1Blocks = []int{16, 17, 18, 32, 33, 34, 35, 48, 49, 50, 52, 64, 65, 66, 67
 // one panics. The list must match what the scripts and the engine say: a command ported leaves it (REFACTOR.md B1f).
 var br1OpsNotPorted = []string{}
 
-// TestBR1OpsPorted: every command BR1's scripts use has a handler, but the listed ones.
-func TestBR1OpsPorted(t *testing.T) {
-	e := br1Engine(t)
+// brOpsMissing are the commands the game's scripts (every block of its folder) use that have no handler.
+func brOpsMissing(t *testing.T, e *Engine) []string {
+	t.Helper()
+	files, err := filepath.Glob(filepath.Join(e.scriptDir(), "area*.txt"))
+	if err != nil || len(files) == 0 {
+		t.Fatal("no scripts", err)
+	}
 	missing := map[string]bool{}
-	for _, block := range br1Blocks {
+	for _, f := range files {
+		block, err := strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(filepath.Base(f), "area"), ".txt"))
+		if err != nil {
+			t.Fatal(f, err)
+		}
 		s, err := e.parseScriptFile(block)
 		if err != nil {
 			t.Fatal(block, err)
@@ -34,7 +45,22 @@ func TestBR1OpsPorted(t *testing.T) {
 		got = append(got, name)
 	}
 	slices.Sort(got)
-	if !slices.Equal(got, br1OpsNotPorted) {
+	return got
+}
+
+// TestBR1OpsPorted: every command BR1's scripts use has a handler, but the listed ones.
+func TestBR1OpsPorted(t *testing.T) {
+	if got := brOpsMissing(t, brEngine(t, gameBR1)); !slices.Equal(got, br1OpsNotPorted) {
 		t.Errorf("commands without a handler %v, listed %v", got, br1OpsNotPorted)
+	}
+}
+
+// br2OpsNotPorted are BR2's commands without a handler.
+var br2OpsNotPorted = []string{}
+
+// TestBR2OpsPorted: the same for BR2.
+func TestBR2OpsPorted(t *testing.T) {
+	if got := brOpsMissing(t, brEngine(t, gameBR2)); !slices.Equal(got, br2OpsNotPorted) {
+		t.Errorf("commands without a handler %v, listed %v", got, br2OpsNotPorted)
 	}
 }

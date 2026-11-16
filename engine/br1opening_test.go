@@ -9,48 +9,8 @@ import (
 
 	"gobox/adventure"
 	"gobox/game"
-	"gobox/importer"
 	"gobox/rules"
-	"gobox/rulesxxvc"
 )
-
-// br1Engine is the shared engine on BR1's folder, imported from the originals
-// into a temp dir (importer.ImportBREngine), with the XXVc ruleset, its save folder seeded with the shipped characters
-// as cmd/gobox homeSaves does. It skips
-// without the originals.
-func br1Engine(t *testing.T) *Engine {
-	t.Helper()
-	dos := filepath.Join("..", "data", "br1", "sources", "dos")
-	if _, err := os.Stat(filepath.Join(dos, "START.EXE")); err != nil {
-		t.Skip("no BR1 originals:", err)
-	}
-	adv := t.TempDir()
-	if err := importer.ImportBREngine("br1", importer.BR1EXE, dos, adv); err != nil {
-		t.Fatal(err)
-	}
-	return br1EngineIn(t, adv)
-}
-
-// br1EngineIn is a new engine on an imported BR1 folder (the import is read, never written, by an engine).
-func br1EngineIn(t testing.TB, adv string) *Engine {
-	t.Helper()
-	tables, err := adventure.ReadGameTables(adv)
-	if err != nil {
-		t.Fatal(err)
-	}
-	saves := t.TempDir()
-	if err := os.CopyFS(saves, os.DirFS(filepath.Join(adv, importer.SavesDir))); err != nil { // a new save folder is seeded from the adventure's saves/ (cmd/gobox homeSaves)
-		t.Fatal(err)
-	}
-	e, err := New(rulesxxvc.Builder, tables, adv, t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
-	e.Cfg.SaveDir = saves
-	seed := uint32(7)
-	e.FixedSeed = &seed
-	return e
-}
 
 // TestBR1Opening: BR1's opening on the shared engine (REFACTOR.md B1f1; the
 // oracle is buckrogers-go rules/adv_test.go TestOpening).
@@ -120,7 +80,7 @@ func TestBR1Opening(t *testing.T) {
 // br1Begun is BR1 begun with one roster character, the intro's pages answered: the party stands on the tarmac.
 func br1Begun(t *testing.T) *Engine {
 	t.Helper()
-	return br1BeginOn(t, br1Engine(t))
+	return brBegun(t, gameBR1)
 }
 
 // br1BeginOn takes a new engine through the title and the party menu to the first area.
