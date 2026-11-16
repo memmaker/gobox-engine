@@ -657,6 +657,19 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
          ~/Projects/rulesxxvc-history.bundle (the golden fights are files; regenerating the one
          pinned as diverging needs buckrogers-go's branch golden/one-rng).
 
+      9e. [x] af1: the ship fight's outcome cells are typed (`rules.ShipEnd`; layouts
+         `PostCombatMode enc=BrPostCombat`, `ShipOutcome enc=BrShipEnd`; a loss no longer
+         boards in BR1 block 34 / BR2 block 19; BR import version 24); Remove's questions per
+         game (`Behaviour.SaveExists`: POR silent, cotab/sotsb/pod "Overwrite?" with a rename
+         on No, BR Overwrite/Rename/Abort; `RemoveNPCDrops` for V2, V3, V4); BR1 block 50's
+         loop was the sweep's wrong map set (entry states set `SymbolSet` from the block's
+         disk). NOT landed, on branch `af1-item4`: BR2 block 1's variable editor fix
+         (`Layout.Flat`: a table index past its field resolved by address, for every game:
+         address aliasing that would hide layout faults; the finding stays known). Running:
+         ta1 (TreatInjuries, Blink/Blast, the ship fight's View submenu, its loot screen or
+         proof no script reaches it), dc1 (BR1 vs BR2 Pascal logic differences, routine by
+         routine: `tracks/br-pascal-diff/`).
+
       8. [ ] every BR1 block's entries run headless without a panic (a sweep test over the
          scripts' reachable commands, like the Pool games' sweeps); then BR2 the same
       9. [x] B1g: `cmd/gobox` plays BR1 and BR2 from data folders only; the BR engines and repos
