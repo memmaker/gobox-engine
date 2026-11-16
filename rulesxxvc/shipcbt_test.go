@@ -208,7 +208,7 @@ func TestDodgeQuestion(t *testing.T) {
 	f.ships[foeSide].Mounts = [8]xxvc.ShipMount{} // nothing to fire: ram
 	rng := rules.RNG{State: 77}
 	sf, o := r.Ships().ShipFoe(sf, &rng)
-	if f.stage != foeAsking || f.tailPending != true {
+	if f.stage != foeAsking || f.tailPending != true || o.Confirm != dodgeQuestion { // the question is the outcome's, else the engine plays on with no one at the menu
 		t.Fatalf("no question: %+v", o)
 	}
 	x := rng

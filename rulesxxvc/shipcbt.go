@@ -142,9 +142,17 @@ type shipRules struct{ r *Rules }
 
 func (f *shipFight) say(text string) { f.out = append(f.out, rules.Narrated{Text: text}) }
 
+// dodgeQuestion is RamAttempt's DodgesRam question to the rammed party (shipcbt.pas YesNoMenu, DEFAULT_YES).
+const dodgeQuestion = "Try to dodge enemy ship? "
+
+// flush is what the call did; while the enemy's turn is paused at the dodge question it carries the question
+// (Outcome.Confirm), else the engine would play on with no one at the menu.
 func (f *shipFight) flush() rules.Outcome {
 	o := rules.Outcome{Effects: f.out}
 	f.out = nil
+	if f.stage == foeAsking {
+		o.Confirm = dodgeQuestion
+	}
 	return o
 }
 
