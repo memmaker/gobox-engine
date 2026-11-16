@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"gobox/ecl"
 	"strings"
 	"testing"
 
@@ -61,5 +62,20 @@ func TestBR1PrevSquare(t *testing.T) {
 	e.world.PrevX, e.world.PrevY = 9, 8
 	if br1Cell(t, e, "PrevX") != 9 || br1Cell(t, e, "PrevY") != 8 {
 		t.Errorf("the cells read %d %d, want 9 8", br1Cell(t, e, "PrevX"), br1Cell(t, e, "PrevY"))
+	}
+}
+
+// TestBR1NewEclInLoad: a start entry that loads another script (eclvm.pas NewEclDone repeats from entry 5 for
+// each script loaded) hands over before the first one's move entry: the new script's own start entry runs.
+func TestBR1NewEclInLoad(t *testing.T) {
+	e := br1Begun(t)
+	br1OwnBlock(t, e, 207, "    NewGameBytes = 5") // writes 207's file
+	e.host.Set(func() ecl.Ref { r, _ := e.layoutField("NewGameBytes"); return r }(), 0)
+	br1OwnBlock(t, e, 206, "    NewECL(207)")
+	if got := br1Cell(t, e, "NewGameBytes"); got != 5 {
+		t.Errorf("block 207's start entry did not run: %d", got)
+	}
+	if e.gs.areaKind != 207 {
+		t.Errorf("in block %d", e.gs.areaKind)
 	}
 }

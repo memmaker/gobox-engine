@@ -255,6 +255,7 @@ func (e *Engine) areaChanged() {
 // AreaChange = ovr04:31B4: after a script switched areas, run the new
 // area's start events and settle the view mode; then what follows.
 func (e *Engine) AreaChange() {
+	e.run.areaChanged = false // isNewEclLoaded := False (NewEclDone's repeat)
 	e.es.cell = e.MapCell(e.posX, e.posY)
 	e.world.LeftMap = 0
 	e.ruleset()         // charID
@@ -272,6 +273,10 @@ const overlandViewMode = 2
 // areaStart: the new area's start events are done.
 func (e *Engine) areaStart(sel rules.CharID) {
 	r := &e.run
+	if r.areaChanged { // the start entry loaded another script (17's launch: NewECL): its own start entry comes first (NewEclDone's repeat: entry 5 of each script loaded, then 1 and 2 of the last)
+		e.AreaChange()
+		return
+	}
 	e.setPhase(rules.PhaseAreaStart)
 	if e.world.In3D == 0 && e.eclVersion.Behaviour.ViewKept {
 		if e.world.Scripted == 0 { // the script's view kind (AreaKind) is the overland's: no block numbers
@@ -301,7 +306,6 @@ func (e *Engine) areaStart(sel rules.CharID) {
 		e.prevViewMode == 1 && e.viewMode == 1 {
 		e.Redraw()
 	}
-	r.areaChanged = false
 	e.push(cont{kind: kAreaStep, sel: sel})
 	e.runMoveEntry()
 }
