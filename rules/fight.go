@@ -108,7 +108,12 @@ type Square struct {
 	Wall   bool // nobody walks onto it
 	Height int  // blocking height
 	Crown  bool // its picture stands on the square south's: the top of a two-square thing (a tree's crown over its trunk)
+	Mark   SquareMark
 }
+
+// SquareMark is a marker the ruleset lays over a square's ground (a cloud, a corpse); its number is the ruleset's own and
+// the adventure data names the picture of each (adventure.ArtNames.Marks). 0: none.
+type SquareMark uint8
 
 // Step is one step of a walk: where it ends and whether a foe gets a free
 // attack when the walker leaves it.

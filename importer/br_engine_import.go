@@ -64,7 +64,7 @@ var (
 // brArt is the art BR1 and BR2 name: the combat sprites COMSPR blocks 1..25 in icon rows 13..37 (gameinit.pas
 // LoadIconAnim('COMSPR', index, index + 13 - 1)) and the shots' icons of cbtacts.pas AnimateMissile (the same in both games:
 // the pace 10; the directed ones are Animate(firstKind), the rest the two-frame icons 30 and 37, which also fly for a grenade).
-var brArt = adventure.ArtNames{CombatSprites: "COMSPR", Title: "TITLE", IconMask: brIconMask, PlainIcons: true, MemberIcons: "CHARS", ActionIcons: true,
+var brArt = adventure.ArtNames{CombatSprites: "COMSPR", Title: "TITLE", IconMask: brIconMask, PlainIcons: true, MemberIcons: "CHARS", ActionIcons: true, Marks: brMarks,
 	PlaceTiles: brCombatTiles, TerrainTiles: brTerrainTiles,
 	SpriteSlots: []adventure.SpriteLoad{{Block: 1, Slot: 13, Count: 25}},
 	Missiles: []adventure.MissileArt{
@@ -76,6 +76,14 @@ var brArt = adventure.ArtNames{CombatSprites: "COMSPR", Title: "TITLE", IconMask
 		{Kind: rules.FlightGunBolt, Slot: 22, Directed: true, Pace: brMissilePace},
 		{Kind: rules.FlightRocket, Slot: 25, Directed: true, Pace: brMissilePace},
 	}}
+
+// brMarks are the markers over the ground (cbtmap.pas DrawArenaCell: iconFrames[(tile shr 1) + 33, tile and 1] over the cell, where
+// tile is gdconsts.pas combatTerrain[t].tile = t - 1 for the arena values 1..5 (chaff, gas, 3, aerosol mist, corpse)); rows 33..35
+// are COMSPR blocks 21..23 (LoadIconAnim loads block n into row n + 12).
+var brMarks = []adventure.MarkArt{
+	{Mark: 1, Slot: 33, Frame: 0}, {Mark: 2, Slot: 33, Frame: 1}, {Mark: 3, Slot: 34, Frame: 0},
+	{Mark: 4, Slot: 34, Frame: 1}, {Mark: 5, Slot: 35, Frame: 0},
+}
 
 // brIconMask is the colour COMSPR, CHARS and CPIC icons are masked on (maptiles.pas LoadIconAnim: LoadPic(.., True, 8, ..)).
 const brIconMask = 8

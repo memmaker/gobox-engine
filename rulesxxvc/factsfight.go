@@ -126,12 +126,21 @@ func (r *Rules) fightCard(id rules.CharID, c *Character) rules.FightCard {
 }
 
 // shownTerrain is the terrain a cell shows (cbtmap.pas DrawArenaCell): its own, but a cloud's or corpse's cell the terrain
-// beneath it (ResolveTerrain). (The marker icons laid over those, iconFrames rows 33..35, are not published.)
+// beneath it (ResolveTerrain).
 func (r *Rules) shownTerrain(b rules.Board, p rules.BoardPos, t rules.TerrainID) rules.TerrainID {
 	if t != 0 && t <= corpseTerrain {
 		return r.resolveTerrain(b, p)
 	}
 	return t
+}
+
+// markOf is the marker a cell with terrain t shows over its ground (cbtmap.pas DrawArenaCell: terrain 1..CORPSE_TERRAIN, the
+// clouds' markers and the corpse, draw iconFrames rows 33..35 over it): the terrain value itself.
+func markOf(t rules.TerrainID) rules.SquareMark {
+	if t != 0 && t <= corpseTerrain {
+		return rules.SquareMark(t)
+	}
+	return 0
 }
 
 // groundFact is the arena as squares: the terrain's number as the tile (shownTerrain), a wall where no move can pay (cost
@@ -143,7 +152,7 @@ func (r *Rules) groundFact() rules.Ground {
 		for x := range g.Squares[y] {
 			at := rules.BoardPos{X: x, Y: y}
 			t := terrainAt(b, at)
-			g.Squares[y][x] = rules.Square{Tile: int(r.shownTerrain(b, at, t)), Wall: terrainRow(t).cost == impassable}
+			g.Squares[y][x] = rules.Square{Tile: int(r.shownTerrain(b, at, t)), Wall: terrainRow(t).cost == impassable, Mark: markOf(t)}
 		}
 	}
 	for size := 1; size <= len(iconCells); size++ {

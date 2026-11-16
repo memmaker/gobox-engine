@@ -152,8 +152,15 @@ type ArtNames struct {
 	TerrainTiles  []int        // the tile each ground terrain value draws, by value (BR1's combatTerrain[t].tile; index 0 for any value outside the table); none: the value is the tile
 	IconMask      byte         // the colour the combat icons (sprites, monsters, members) are masked on (the Pool's 0; BR1's 8)
 	PlainIcons    bool         // the monsters' icons are loaded as drawn (VGA art): not recoloured with the Pool's EGA palette
+	Marks         []MarkArt    // the picture over a square for each of the ruleset's SquareMarks; none: no marker is drawn
 	ActionIcons   bool         // a unit shows its icon's second frame (block+0x80) while it attacks (BR1: cbtmap.pas SetCreatureFacing frame 1 in cbtacts.pas MakeAttack)
 	MemberIcons   string       // the sheet of a party member's whole-picture icon (BR1: CHARS, block = the record's icon, +0x80 the action pose); none: composed from CHEAD and CBODY
+}
+
+// MarkArt is the picture of one SquareMark: the combat sprite slot Slot's frame Frame (0 ready, 1 action).
+type MarkArt struct {
+	Mark        rules.SquareMark
+	Slot, Frame int
 }
 
 // SpriteLoad is a run of Count blocks of the combat sprites from block Block into the icon slots from Slot (Init's

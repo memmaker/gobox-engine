@@ -3,6 +3,7 @@ package ui
 import (
 	"cmp"
 	"fmt"
+	"hash/crc32"
 	"image"
 	"image/color"
 	"slices"
@@ -138,7 +139,7 @@ func (p *Presenter) boardOf(c *game.Combat, party []game.Member, fly *flight) *c
 				return i, true
 			}
 		}
-		k := fmt.Sprint(a.File, a.Block, a.Frame, a.Name, len(a.Pixels))
+		k := fmt.Sprint(a.File, a.Block, a.Frame, a.Name, len(a.Pixels), crc32.ChecksumIEEE(a.Pixels)) // pixels of one size differ: the checksum tells them apart
 		t, ok := slots[k]
 		if !ok {
 			for len(tiles) <= slot { // past 0x100 (a game naming every tile): more slots, not none

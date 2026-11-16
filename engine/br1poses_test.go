@@ -43,3 +43,34 @@ func TestBR1ActionPose(t *testing.T) {
 		t.Error("no unit has an action pose")
 	}
 }
+
+// TestBR1MarkPictures: each marker the ruleset lays (arena values 1..5) has the picture of the original's icon row (cbtmap.pas
+// DrawArenaCell: iconFrames[(tile shr 1) + 33, tile and 1], tile = value - 1), COMSPR block row-12 (and +0x80 for frame 1).
+func TestBR1MarkPictures(t *testing.T) {
+	e, _ := br1AtTurn(t, br1FarFight, br1FarFacing)
+	const firstMarkRow = 33 // LoadIconAnim loads COMSPR block n into row n + 12
+	for m := rules.SquareMark(1); m <= 5; m++ {
+		tile := int(m) - 1
+		row, frame := firstMarkRow+tile>>1, tile&1
+		block := row - 12
+		if frame == 1 {
+			block += brActionBlock
+		}
+		src := e.LoadPic("COMSPR", row-12)
+		if frame == 1 {
+			src = e.LoadPic("COMSPR", row-12+brActionBlock)
+		}
+		got := e.markPicture(m)
+		if src == nil || got.Pixels == nil || got.W != src.Width*8 || got.H != src.Height {
+			t.Fatalf("mark %d: picture %dx%d (pixels %v), COMSPR block %d: %v", m, got.W, got.H, got.Pixels != nil, block, src != nil)
+		}
+		for i, p := range src.Frame(0) {
+			if (p == brMaskColour) != (int(got.Pixels[i]) == got.Clear) {
+				t.Fatalf("mark %d: pixel %d differs from the block", m, i)
+			}
+		}
+	}
+	if e.markPicture(0).Pixels != nil || e.markPicture(9).Pixels != nil {
+		t.Error("a marker the data does not name has a picture")
+	}
+}

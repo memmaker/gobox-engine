@@ -45,7 +45,7 @@ func (e *Engine) fightState() *game.Combat {
 		Log:    slices.Clone(b.Log)}
 	for y := range b.Ground {
 		for x, q := range b.Ground[y] {
-			c.Squares = append(c.Squares, game.Ground{At: rules.BoardPos{X: x, Y: y}, Block: q.Wall, Height: q.Height, Tile: e.artNames().TileOf(q.Tile), Crown: q.Crown})
+			c.Squares = append(c.Squares, game.Ground{At: rules.BoardPos{X: x, Y: y}, Block: q.Wall, Height: q.Height, Tile: e.artNames().TileOf(q.Tile), Crown: q.Crown, Overlay: e.markPicture(q.Mark)})
 		}
 	}
 	for i, p := range b.TilePix { // their pictures are Art()'s (overlandArt)

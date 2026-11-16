@@ -229,3 +229,24 @@ func TestBurstOffset(t *testing.T) {
 		t.Fatalf("arena %dx%d, want TArena's 50x25", arenaCols, arenaRows)
 	}
 }
+
+// A cloud's or corpse's cell publishes its marker (the terrain value, cbtmap.pas DrawArenaCell draws rows 33..35 over it)
+// with the ground beneath as its tile; plain ground has none.
+func TestGroundMarks(t *testing.T) {
+	r := New()
+	r.ground = board(arenaCols, arenaRows, openTerrain, nil)
+	r.arena.cells = map[rules.BoardPos]rules.TerrainID{{X: 2, Y: 3}: chaffTerrain, {X: 4, Y: 1}: corpseTerrain, {X: 6, Y: 6}: gasTerrain}
+	r.arena.corpses = []corpse{{at: rules.BoardPos{X: 4, Y: 1}, terrain: 21}}
+	g := r.groundFact().Squares
+	for _, c := range []struct {
+		x, y int
+		mark rules.SquareMark
+	}{{2, 3, rules.SquareMark(chaffTerrain)}, {4, 1, rules.SquareMark(corpseTerrain)}, {6, 6, rules.SquareMark(gasTerrain)}, {0, 0, 0}} {
+		if g[c.y][c.x].Mark != c.mark {
+			t.Errorf("(%d,%d): mark %d, want %d", c.x, c.y, g[c.y][c.x].Mark, c.mark)
+		}
+	}
+	if g[1][4].Tile != 21 {
+		t.Errorf("the corpse's ground is tile %d, want the terrain beneath (21)", g[1][4].Tile)
+	}
+}
