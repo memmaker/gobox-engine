@@ -58,3 +58,28 @@ func TestTreasureOf(t *testing.T) {
 		t.Error("gems are no credits")
 	}
 }
+
+// chargen.pas AddCharacterMenu: a character is refused by name only (a party member of that name), and the
+// player characters ahead of the match are counted against six (ControlledBefore); there is no rule of its own.
+func TestJoinChecks(t *testing.T) {
+	r := New()
+	r.Begin(rules.Campaign{Tables: xxvc.Tables{}}, rules.Options{})
+	a, b, twin, hired := r.Add(Character{Name: "a"}), r.Add(Character{Name: "b"}), r.Add(Character{Name: "a"}), r.Add(Character{Name: "h", NonPlayer: true})
+	for _, id := range []rules.CharID{a, hired, b} {
+		if _, err := r.Resolve(nil, rules.JoinParty{Who: id}, nil); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if !r.Check(rules.CanJoin{Who: b}, nil).Yes || r.Check(rules.CanJoin{Who: 99}, nil).Yes {
+		t.Error("CanJoin: a known character may")
+	}
+	if !r.Check(rules.InParty{Who: twin}, nil).Yes || r.Check(rules.InParty{Who: rules.CharID(99)}, nil).Yes {
+		t.Error("InParty: by name")
+	}
+	if got := r.Check(rules.ControlledBefore{Who: b}, nil).Value; got != 1 { // a; the hired one is no player character
+		t.Errorf("ControlledBefore b: %d, want 1", got)
+	}
+	if got := r.Check(rules.ControlledBefore{Who: 99}, nil).Value; got != 2 {
+		t.Errorf("ControlledBefore a stranger: %d, want 2", got)
+	}
+}

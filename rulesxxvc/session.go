@@ -237,6 +237,21 @@ func (r *Rules) sessionCheck(q rules.Check, rng *rules.RNG) rules.Answer {
 		return rules.Answer{Yes: true, Value: int32(r.acting)}
 	case rules.PartySize:
 		return rules.Answer{Yes: true, Value: int32(len(r.party))}
+	case rules.CanJoin: // chargen.pas AddCharacterMenu refuses by name and count only (InParty, ControlledBefore), no rule of the character's
+		return rules.Answer{Yes: r.chars[q.Who] != nil}
+	case rules.InParty: // the party member of that name (AddCharacterMenu: scan^.name <> candidate^.name)
+		return rules.Answer{Yes: r.inPartyAt(q.Who) >= 0}
+	case rules.ControlledBefore: // the player characters ahead of that member (AddCharacterMenu's realCount), or all
+		at, n := r.inPartyAt(q.Who), int32(0)
+		for i, id := range r.party {
+			if i == at {
+				break
+			}
+			if c := r.chars[id]; c != nil && !c.NonPlayer {
+				n++
+			}
+		}
+		return rules.Answer{Value: n}
 	case rules.IsDay:
 		// BR1 has no day by the clock (the sky the area sets is the day: SkyDay).
 		return rules.Answer{}
@@ -473,4 +488,13 @@ func (r *Rules) ageParty() {
 			c.Age = (c.Age + 1) % (maxAge + 1)
 		}
 	}
+}
+
+// inPartyAt is the index of the party member named as who, -1 for none.
+func (r *Rules) inPartyAt(who rules.CharID) int {
+	c := r.chars[who]
+	if c == nil {
+		return -1
+	}
+	return slices.IndexFunc(r.party, func(id rules.CharID) bool { m := r.chars[id]; return m != nil && m.Name == c.Name })
 }
