@@ -16,7 +16,14 @@ new)
     [ -e "$tree/$r" ] || git -C "$projects/$r" worktree add -b "fold/$track" "$tree/$r" main
     if [ -d "$projects/$r/data" ]; then # unversioned data entries, as gate.sh links them
       mkdir -p "$tree/$r/data"
-      for d in "$projects/$r"/data/*; do [ -e "$tree/$r/data/$(basename "$d")" ] || ln -s "$d" "$tree/$r/data/"; done
+      for d in "$projects/$r"/data/*; do
+        x="$tree/$r/data/$(basename "$d")"
+        [ -e "$x" ] && continue
+        # a game folder with scripts/ is made a folder of the track (its entries linked below, scripts/ copied):
+        # linked whole, a write or delete in the track's data/<game>/scripts goes into the real folder
+        # (it deleted data/br1/scripts and data/br2/scripts once)
+        if [ -d "$d/scripts" ]; then mkdir "$x"; else ln -s "$d" "$x"; fi
+      done
     fi
   done
   for g in "$projects"/gobox-engine/data/*/; do # each game's unversioned data (sources/, the import, extras/)
