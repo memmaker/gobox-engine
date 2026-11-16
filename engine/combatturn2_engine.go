@@ -27,6 +27,7 @@ func (e *Engine) aimConfirm(cID, candID rules.CharID, mode int, ranged bool) (fo
 			e.cs.ask = out.Confirm
 			return false, aimTarget{}
 		}
+		e.present(out.Effects...) // as turnVerb
 		found = out.TurnOver
 	}
 	if !found {

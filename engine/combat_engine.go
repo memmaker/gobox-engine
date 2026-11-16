@@ -50,6 +50,7 @@ func (e *Engine) turnVerb(cID rules.CharID, a rules.Action) bool {
 	if err != nil {
 		panic(fmt.Sprintf("turn %T: %v", a, err))
 	}
+	e.present(out.Effects...) // a ruleset that answers in its Outcome (XXVc) queues nothing: the player's turn shows like the computer's
 	return out.TurnOver
 }
 

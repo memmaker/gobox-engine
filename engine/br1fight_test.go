@@ -194,10 +194,13 @@ func TestBR1Fight(t *testing.T) {
 
 // TestBR1FightSeed: the same seed gives the same fight twice.
 func TestBR1FightSeed(t *testing.T) {
-	_, a, stopA := br1Fought(t, br1TurnAction)
-	_, b, stopB := br1Fought(t, br1TurnAction)
+	eA, a, stopA := br1Fought(t, br1TurnAction)
+	eB, b, stopB := br1Fought(t, br1TurnAction)
 	if stopA != stopB || !slices.Equal(a, b) {
 		t.Errorf("two plays differ:\n%q (%s)\n%q (%s)", a, stopA, b, stopB)
+	}
+	if len(eA.ext.battleLog) == 0 || !slices.Equal(eA.ext.battleLog, eB.ext.battleLog) {
+		t.Errorf("the battle logs differ:\n%q\n%q", eA.ext.battleLog, eB.ext.battleLog)
 	}
 }
 

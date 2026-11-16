@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"regexp"
+	"strings"
 	"testing"
 
 	"gobox/game"
@@ -179,4 +181,41 @@ func TestBR1Approach(t *testing.T) {
 		t.Errorf("the monster did not close in: %v", dists)
 	}
 	t.Logf("distance at each round's start: %v", dists)
+}
+
+// TestBR1BattleLog: a fight's log holds the original's attack lines (cbtacts.pas ProcessAttackResult) in order: each
+// attack is "<attacker> Attacks" then "<defender> Hitting for N point(s) of damage" or "<defender> and Misses"; a
+// defender that went down is followed by "<defender> goes down ...".
+func TestBR1BattleLog(t *testing.T) {
+	e, _, stop := br1Fought(t, br1TurnAction)
+	if stop != "" {
+		t.Fatal(stop)
+	}
+	log := e.ext.battleLog
+	hitting := regexp.MustCompile(`^(.+) (?:\(from behind\) )?Hitting for (\d+) points? of damage$`)
+	miss := regexp.MustCompile(`^(.+) (?:\(from behind\) )?and Misses$`)
+	attacks, hits, downs := 0, 0, 0
+	for i := 0; i < len(log); i++ {
+		switch {
+		case strings.HasSuffix(log[i], " Attacks") || strings.HasSuffix(log[i], " -Backstabs-"):
+			attacks++
+			if i+1 >= len(log) || !hitting.MatchString(log[i+1]) && !miss.MatchString(log[i+1]) {
+				t.Fatalf("an attack line is not followed by its result: %q", log[i:min(i+2, len(log))])
+			}
+			if hitting.MatchString(log[i+1]) {
+				hits++
+			}
+			i++
+		case strings.Contains(log[i], " goes down"):
+			downs++
+			if !hitting.MatchString(log[i-1]) {
+				t.Errorf("%q does not follow a hit: %q", log[i], log[i-1])
+			}
+		default:
+			t.Errorf("unexpected line %q", log[i])
+		}
+	}
+	if attacks < 4 || hits == 0 || downs == 0 {
+		t.Errorf("%d attacks, %d hits, %d went down in %q", attacks, hits, downs, log)
+	}
 }
