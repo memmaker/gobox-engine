@@ -314,8 +314,15 @@ func (e *Engine) fixture(id rules.FixtureID, who rules.CharID) {
 
 // DevAt (-at BLOCK,X,Y) enters script block block at x, y, as a script's
 // NEW ECL does (opNewECL), and runs the area's start events (AreaChange).
-func (e *Engine) DevAt(block, x, y int) {
+func (e *Engine) DevAt(block, x, y int) { e.DevAtWith(block, x, y, nil) }
+
+// DevAtWith is DevAt with before run once the block left is noted (the script's ScriptBlock) and before the new block's
+// scripts run: a test sets the story's words there.
+func (e *Engine) DevAtWith(block, x, y int, before func()) {
 	e.setLastBlock(int(e.gs.areaKind))
+	if before != nil {
+		before()
+	}
 	e.gs.areaKind = byte(block)
 	e.eclFile = e.set.File("ECL") + ".dax"
 	e.LoadArea(block)

@@ -24,6 +24,7 @@ func (e *Engine) newEngineFields() map[string]engineField {
 		return e.selFact(f), true
 	}
 	m := map[string]engineField{
+		fieldTravelKind: {stored: true, changed: func(_, v int64) { e.travelKindWritten(byte(v)) }},
 		"SymbolSet": { // ovr08:07BC/0A74 +0x312: the symbol set (0802:094A)
 			get: func(int) (int64, bool) {
 				if e.eclVersion.Behaviour.SymbolSetFrames {
@@ -361,7 +362,14 @@ func (e *Engine) setVar(r ecl.Ref, v int64) {
 		if f.Width != ecl.WidthText {
 			e.inField(f, r.Index)
 		}
+		var old int64
+		if c := e.cells(f)[f.Name]; r.Index < len(c) {
+			old = c[r.Index]
+		}
 		e.storeCells(f, r.Index, []int64{v})
+		if bound && ef.changed != nil && old != v {
+			ef.changed(old, v)
+		}
 	}
 	if bound && writesIgnored(f) {
 		return

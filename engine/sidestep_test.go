@@ -65,13 +65,16 @@ func TestSidestepAside(t *testing.T) {
 
 // stepBy is gobox's step by (0 ahead, 4 back, 6 left, 2 right of the facing):
 // RunEvent{Before}, then an Arrive.
-func stepBy(e *Engine, by int) error {
+func stepBy(e *Engine, by int) error { return stepVia(e, e.doNow, by) }
+
+// stepVia is stepBy sending its actions through do (e.Do where the state need not be built anew first).
+func stepVia(e *Engine, do func(game.Action) (game.Outcome, error), by int) error {
 	d := (e.facing + by) % 8
 	from := rules.MapPos{X: e.posX, Y: e.posY}
-	if _, err := e.doNow(game.RunEvent{Before: true, Side: d}); err != nil {
+	if _, err := do(game.RunEvent{Before: true, Side: d}); err != nil {
 		return err
 	}
-	_, err := e.doNow(game.Arrive{From: from, To: rules.MapPos{X: from.X + rules1e.DirDX[d], Y: from.Y + rules1e.DirDY[d]}, Facing: e.facing})
+	_, err := do(game.Arrive{From: from, To: rules.MapPos{X: from.X + rules1e.DirDX[d], Y: from.Y + rules1e.DirDY[d]}, Facing: e.facing})
 	return err
 }
 
