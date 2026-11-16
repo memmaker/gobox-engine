@@ -198,7 +198,7 @@ func TestBandage(t *testing.T) {
 	if !bandage() {
 		t.Fatalf("no Bandage with %s dying: %+v", d.Name(), fighting(e).Allowed.Plain)
 	}
-	o, err := e.doNow(game.Bandage{Member: max(e.sel, 0)})
+	o, err := e.doNow(game.Bandage{})
 	if err != nil {
 		t.Fatalf("Bandage: %v", err)
 	}
@@ -531,5 +531,22 @@ func testDropOnce(t *testing.T, mk func(*testing.T) *Engine) {
 	}
 	if _, err := e.doNow(game.Drop{Member: m, Item: e.itemHandle(w)}); err != nil || slices.Contains(e.state().Carried(c), w) || commonOf(e.build()).Ask != nil {
 		t.Fatalf("Drop: %v, still carried %v, ask %+v", err, slices.Contains(e.state().Carried(c), w), commonOf(e.build()).Ask)
+	}
+}
+
+// TestQuickAll: Quick for the whole party (Shift-U, the bar's Quick All) is
+// offered and taken: every party member goes to the computer.
+func TestQuickAll(t *testing.T) {
+	e := partyTurnScene(t)
+	if !slices.Contains(fighting(e).Allowed.Plain, game.Action(game.Quick{All: true})) {
+		t.Fatalf("no Quick All: %+v", fighting(e).Allowed.Plain)
+	}
+	if _, err := e.doNow(game.Quick{All: true}); err != nil {
+		t.Fatalf("Quick All: %v", err)
+	}
+	for _, c := range e.state().Party {
+		if c.Side == rules1e.SideParty && c.Control < 0x80 && c.Auto == 0 {
+			t.Errorf("%s not on Quick after Quick All", c.Name())
+		}
 	}
 }

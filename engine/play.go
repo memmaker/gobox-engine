@@ -587,8 +587,8 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 		for _, v := range []struct { // in a fixed order: State is the same on every call (BUG-CLASSES 33)
 			k   TurnVerb
 			act game.Action
-		}{{VerbTurn, game.TurnUndead{}}, {VerbQuick, game.Quick{}}, {VerbGuard, game.Guard{}},
-			{VerbWait, game.Delay{}}, {VerbEnd, game.EndTurn{}}, {VerbBandage, game.Bandage{Member: max(cm.Selected, 0)}}} {
+		}{{VerbTurn, game.TurnUndead{}}, {VerbQuick, game.Quick{}}, {VerbQuick, game.Quick{All: true}}, {VerbGuard, game.Guard{}},
+			{VerbWait, game.Delay{}}, {VerbEnd, game.EndTurn{}}, {VerbBandage, game.Bandage{}}} {
 			if slices.Contains(can, v.k) {
 				add(v.act)
 			}
@@ -981,6 +981,9 @@ func (e *Engine) combatDo(a game.Action, al game.Allowed, native func(func() err
 	case game.Delay:
 		return turn(TurnAct{Verb: VerbWait})
 	case game.Quick:
+		if a.All { // Shift-U: the whole party (TurnAct N 1)
+			return turn(TurnAct{Verb: VerbQuick, N: 1})
+		}
 		return turn(TurnAct{Verb: VerbQuick})
 	case game.Manual:
 		return true, native(func() error { e.aiKey = rules.TakeBack{}; return nil })

@@ -605,7 +605,7 @@ type (
 	Forget     struct{ Member, Spell int }
 	Scribe     struct{ Member, Spell int }
 	Fix        struct{ Member int }
-	Bandage    struct{ Member int }
+	Bandage    struct{}
 	LayOnHands struct{ Member int }
 	BreakCamp  struct{}
 	Plan       struct{ Member, Spell, Count int } // copies to memorize at the next rest

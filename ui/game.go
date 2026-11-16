@@ -816,7 +816,7 @@ func (g *Game) act(a Action) func() error {
 	case ActQuick:
 		return send(game.Quick{All: a.N == 1})
 	case ActBandage:
-		return send(game.Bandage{Member: m})
+		return send(game.Bandage{})
 	case ActTurn:
 		return send(game.TurnUndead{})
 	case ActRanged:
