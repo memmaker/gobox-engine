@@ -148,16 +148,17 @@ func (e *Engine) roll(minimal bool, mins string) error {
 }
 
 // pointBuy (extra: gobox's Point Buy) gives the created character the
-// abilities bought, STR .. CHA, then the post-roll rules and hit points.
+// abilities bought, in the ruleset's order, then the post-roll rules and hit points.
 func (e *Engine) pointBuy(scores []int) error {
 	if e.creation == nil {
 		return errors.New("Point buy is for a new character")
 	}
-	if len(scores) != 6 {
-		return errors.New("Point buy needs 6 scores")
+	list := e.abilityList()
+	if len(scores) != len(list) {
+		return errors.New("Point buy needs a score per ability")
 	}
 	bases := map[rules.Ability]int32{}
-	for i, a := range abilities { // scores are in Creation.StatNames' order: STR .. CHA
+	for i, a := range list { // scores are in the ruleset's ability order
 		bases[a] = int32(scores[i])
 	}
 	return e.creationEdit(func(cr *creation) error { return cr.d.PointBuy(bases) })
@@ -173,13 +174,14 @@ func (e *Engine) rename(name string) error {
 	})
 }
 
-// setStat sets the created character's ability i (STR .. CHA) as typed (STR as 18/xx).
+// setStat sets the created character's ability i (the ruleset's order) as typed (STR as 18/xx).
 func (e *Engine) setStat(i int, typed string) error {
-	if i < 0 || i >= len(abilities) {
+	list := e.abilityList()
+	if i < 0 || i >= len(list) {
 		return &game.Refusal{Text: "no such stat"}
 	}
 	return e.creationEdit(func(cr *creation) error {
-		err := cr.d.SetScore(abilities[i], typed)
+		err := cr.d.SetScore(list[i], typed)
 		if errors.Is(err, ErrScore) {
 			return &game.Refusal{Text: "not a number"}
 		}

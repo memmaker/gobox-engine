@@ -21,8 +21,6 @@ func memberPage(m game.Member) *game.SheetPage {
 		p.Levels = strings.Join(l, "/")
 	}
 	p.Class = cmp.Or(m.ClassText, m.Class)
-	for i, k := range []string{"str", "int", "wis", "dex", "con", "cha"} {
-		p.Stats[i] = m.Stats[k]
-	}
+	p.Abilities = defaultStats(m.Stats)
 	return p
 }

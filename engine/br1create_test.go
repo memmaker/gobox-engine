@@ -39,7 +39,14 @@ func TestBR1Create(t *testing.T) {
 	if d.Member.Class != "Medic" || d.Member.MaxHP < 2 || d.Member.MaxHP > 2*(10+3) {
 		t.Fatalf("draft member %+v", d.Member)
 	}
-	for _, k := range []string{"str", "dex", "con", "int", "wis", "cha"} {
+	var labels []string
+	for _, st := range d.Stats {
+		labels = append(labels, st.Label)
+	}
+	if !slices.Equal(labels, []string{"STR", "DEX", "CON", "INT", "WIS", "CHA", "TCH"}) {
+		t.Fatalf("the draft lists the seven abilities in the original's order: %v", labels)
+	}
+	for _, k := range []string{"str", "dex", "con", "int", "wis", "cha", "tch"} {
 		if v := d.Member.Stats[k]; v < 1 {
 			t.Errorf("ability %s %d", k, v)
 		}

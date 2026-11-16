@@ -2,7 +2,6 @@ package engine
 
 import (
 	"gobox/asset"
-	"slices"
 
 	"gobox/rules"
 )
@@ -43,8 +42,8 @@ func (h creationHost) QuickParty() []rules.Template {
 	for _, qp := range h.e.gameData.QuickParty {
 		need := map[rules.Ability]int32{}
 		for key, v := range qp.Need {
-			if i := slices.Index(statKeys, key); i >= 0 {
-				need[abilities[i]] = int32(v)
+			if a, ok := h.e.abilityByKey(key); ok {
+				need[a] = int32(v)
 			}
 		}
 		out = append(out, rules.Template{
@@ -54,9 +53,3 @@ func (h creationHost) QuickParty() []rules.Template {
 	}
 	return out
 }
-
-// statKeys are Data's QuickPick.Need keys in stat order (game.StatKeys).
-var statKeys = []string{"str", "int", "wis", "dex", "con", "cha"}
-
-// abilities are the abilities in stat order, STR .. CHA (statKeys, the creation's StatNames).
-var abilities = [6]rules.Ability{rules.Strength, rules.Intelligence, rules.Wisdom, rules.Dexterity, rules.Constitution, rules.Charisma}

@@ -42,9 +42,9 @@ func (e *Engine) loadChar(name string) rules.CharID {
 	return id
 }
 
-// mod is the modifier of c's ability a (0 strength .. 5 charisma).
-func (e *Engine) mod(cID rules.CharID, a int) int {
-	return int(e.fact(cID, rules.ModFact{Ability: rules.Abilities[a]}).(rules.Number))
+// mod is the modifier of c's ability a.
+func (e *Engine) mod(cID rules.CharID, a rules.Ability) int {
+	return int(e.fact(cID, rules.ModFact{Ability: a}).(rules.Number))
 }
 
 // paladinHeals and paladinCures are whether c may lay on hands, cure disease now.

@@ -179,7 +179,7 @@ func (p *Presenter) typeLine(prompt, text string, n int, act ActKind, an int) {
 // showing the last one (a blank line keeps it), then rolls to them.
 func (p *Presenter) minimal(cr *FrontCreation) {
 	cur := strings.Fields(cr.Minimums)
-	got := make([]string, 0, 6)
+	got := make([]string, 0, len(cr.StatLabels))
 	var ask func()
 	ask = func() {
 		i := len(got)
@@ -187,12 +187,12 @@ func (p *Presenter) minimal(cr *FrontCreation) {
 		if i < len(cur) {
 			old = cur[i]
 		}
-		p.typeLine("Minimum "+statNames[i]+" ("+old+")", "", 6, ActRoll, 1)
+		p.typeLine("Minimum "+cr.StatLabels[i]+" ("+old+")", "", 6, ActRoll, 1)
 		p.scr.then = func(t string) {
 			if t = strings.TrimSpace(t); t == "" {
 				t = "-" // not a value: the last one stays
 			}
-			if got = append(got, t); len(got) < 6 {
+			if got = append(got, t); len(got) < len(cr.StatLabels) {
 				ask()
 				return
 			}
@@ -683,8 +683,6 @@ type spot struct {
 	key byte
 	do  func()
 }
-
-var statNames = [6]string{"STR", "INT", "WIS", "DEX", "CON", "CHA"}
 
 // spots are the special screen's parts, in reading order, the bar's words
 // last; nil on other screens.

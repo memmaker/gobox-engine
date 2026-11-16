@@ -3,6 +3,7 @@ package engine
 import (
 	"fmt"
 	"image"
+	"slices"
 	"strconv"
 
 	"gobox/game"
@@ -94,7 +95,11 @@ func (e *Engine) adjustStat(stat, by int) error {
 		if sc[rules.Strength] != 18 || n < 1 || n > 100 {
 			return &game.Refusal{Text: "no exceptional strength"}
 		}
-		return e.setStat(0, fmt.Sprintf("18/%02d", n%100))
+		return e.setStat(slices.Index(e.abilityList(), rules.Strength), fmt.Sprintf("18/%02d", n%100))
 	}
-	return e.setStat(stat, strconv.Itoa(int(e.ruleset().Sheet(cr.c).Scores[abilities[stat]])+by))
+	a, ok := e.abilityByKey(game.StatKeys[stat])
+	if !ok {
+		return &game.Refusal{Text: "not in this game"}
+	}
+	return e.setStat(slices.Index(e.abilityList(), a), strconv.Itoa(int(e.ruleset().Sheet(cr.c).Scores[a])+by))
 }

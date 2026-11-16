@@ -77,6 +77,14 @@ var brGenders = [...]rules.Sex{rules.Male, rules.Female}
 var brStatOrder = [7]rules.Ability{rules.Strength, rules.Dexterity, rules.Constitution, rules.Intelligence,
 	rules.Wisdom, rules.Charisma, xxvc.Tech}
 
+// abilityNames are gdconsts.pas abilityAbbreviations (STR DEX CON INT WIS CHA TCH) with the names written out.
+var abilityNames = map[rules.Ability]rules.AbilityName{
+	rules.Strength: {Short: "STR", Long: "Strength"}, rules.Dexterity: {Short: "DEX", Long: "Dexterity"},
+	rules.Constitution: {Short: "CON", Long: "Constitution"}, rules.Intelligence: {Short: "INT", Long: "Intelligence"},
+	rules.Wisdom: {Short: "WIS", Long: "Wisdom"}, rules.Charisma: {Short: "CHA", Long: "Charisma"},
+	xxvc.Tech: {Short: "TCH", Long: xxvc.TechLabel},
+}
+
 // ConvertBRCharacter turns one BR saved character, as the importer decoded
 // it, into a typed Character. Each saved item becomes the template of
 // t.Items with its type and name words (the lowest ItemID of equals), its own

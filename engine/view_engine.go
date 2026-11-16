@@ -31,10 +31,8 @@ func (e *Engine) sheetPage(id rules.CharID) *SheetPage {
 	sh := e.ruleset().Sheet(id)
 	sp := &SheetPage{Name: sh.Name, NameColour: e.nameColour(id), NPC: e.fact(id, rules.FactControl).(rules.Number) > 0x7F,
 		Sex: e.word(id, rules.FactSex), Race: e.word(id, rules.FactRace), Age: int(sh.Age),
-		Alignment: e.word(id, rules.FactAlignment), Class: e.word(id, rules.FactClasses), Str00: e.word(id, rules.FactExceptional), Creating: e.ext.creating}
-	for i, a := range [...]rules.Ability{rules.Strength, rules.Intelligence, rules.Wisdom, rules.Dexterity, rules.Constitution, rules.Charisma} {
-		sp.Stats[i] = int(sh.Scores[a])
-	}
+		Alignment: e.word(id, rules.FactAlignment), Class: e.word(id, rules.FactClasses), Creating: e.ext.creating}
+	sp.Abilities = e.statDefs(id, nil)
 	e.combatStats(id, sp)
 	if !e.ext.creating { // extra: the creation's sheet: no level, experience or status yet (create.go)
 		for _, l := range e.fact(id, rules.BookFact{}).(rules.Book).Levels {
@@ -94,9 +92,7 @@ func (e *Engine) combatStats(id rules.CharID, sp *SheetPage) {
 	sp.THAC0, sp.Damage, sp.Move = int(sh.THAC0), rules.Cut(string(e.fact(id, rules.DamageFact{}).(rules.Text)), textCols), int(sh.Move)
 	figs := e.fact(id, rules.FiguresFact{}).(rules.Figures) // extra: the rule set's figures and, when it has them, its modifiers
 	if sp.ShowMods = figs != nil; sp.ShowMods {
-		for a := range sp.Mods {
-			sp.Mods[a] = e.mod(id, a)
-		}
+		sp.Abilities = e.statDefs(id, func(a rules.Ability) int { return e.mod(id, a) })
 	}
 	sp.Rules = append(figs, sh.Figures...)
 }

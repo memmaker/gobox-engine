@@ -40,7 +40,7 @@ func TestDraftFigures(t *testing.T) {
 	s := shown{Mode: game.ModeCreate, Creation: &game.Creation{Draft: game.Member{Name: "Doc", Stats: map[string]int{"str": 12}}},
 		SheetPage: &game.SheetPage{AC: 4, THAC0: 17, Damage: "1d8"}}
 	k := draftPage(s.Creation, s.SheetPage)
-	if k == nil || k.Damage != "1d8" || k.THAC0 != 17 || k.AC != 4 || k.Name != "Doc" || k.Stats[0] != 12 {
+	if k == nil || k.Damage != "1d8" || k.THAC0 != 17 || k.AC != 4 || k.Name != "Doc" || k.Abilities[0].Value != 12 {
 		t.Fatalf("%+v", k)
 	}
 }
@@ -56,7 +56,7 @@ func TestDraftNameColour(t *testing.T) {
 }
 
 func TestMinimums(t *testing.T) {
-	if s := minimums(map[string]int{"str": 9, "int": 12}); s != "9 12 - - - -" {
+	if s := minimums(map[string]int{"str": 9, "int": 12}, defaultStats(nil)); s != "9 12 - - - -" {
 		t.Fatal(s)
 	}
 }

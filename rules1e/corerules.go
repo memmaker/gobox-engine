@@ -78,9 +78,16 @@ var ErrNotPorted = errors.New("rules1e: not behind core.Rules yet")
 // saveNames are the words the sheet gives the saves.
 var saveNames = map[rules.Save]string{rules.SaveParalysis: "Paralyze", rules.SavePetrify: "Petrify", rules.SaveRod: "Rod", rules.SaveBreath: "Breath", rules.SaveSpell: "Spell"}
 
+// abilityNames are the words the sheet gives the six abilities.
+var abilityNames = map[rules.Ability]rules.AbilityName{
+	rules.Strength: {Short: "STR", Long: "Strength"}, rules.Intelligence: {Short: "INT", Long: "Intelligence"},
+	rules.Wisdom: {Short: "WIS", Long: "Wisdom"}, rules.Dexterity: {Short: "DEX", Long: "Dexterity"},
+	rules.Constitution: {Short: "CON", Long: "Constitution"}, rules.Charisma: {Short: "CHA", Long: "Charisma"},
+}
+
 // Catalog: what the records number (the engine reads the tables by place): the races, alignments and class combinations in record order, the classes in the order of a record's level columns, the saving throws in sheet order.
 func (r *Rules) Catalog() rules.Catalog {
-	return rules.Catalog{Races: RecordRace[:], Alignments: RecordAlignment[:], Classes: PorClass[:], ClassSets: RecordClassSets[:], Saves: SaveOrder[:], SaveNames: saveNames, Features: []rules.Feature{rules.FeatureSpells}}
+	return rules.Catalog{Races: RecordRace[:], Alignments: RecordAlignment[:], Classes: PorClass[:], ClassSets: RecordClassSets[:], Saves: SaveOrder[:], SaveNames: saveNames, Abilities: rules.Abilities[:], AbilityNames: abilityNames, Features: []rules.Feature{rules.FeatureSpells}}
 }
 
 func (r *Rules) Begin(c rules.Campaign, o rules.Options) { r.campaign, r.options = c, o }

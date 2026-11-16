@@ -25,9 +25,8 @@ func (e *Engine) partyState() (party []game.Member, selected int) {
 			e.iconState(id, &gm)
 			gm.Stats = map[string]int{}
 			scores := e.ruleset().Sheet(id).Scores
-			for n, a := range map[string]rules.Ability{"str": rules.Strength, "int": rules.Intelligence, "wis": rules.Wisdom,
-				"dex": rules.Dexterity, "con": rules.Constitution, "cha": rules.Charisma} {
-				gm.Stats[n] = int(scores[a])
+			for _, a := range e.abilityList() {
+				gm.Stats[e.abilityKey(a)] = int(scores[a])
 			}
 			book := e.fact(id, rules.BookFact{}).(rules.Book)
 			for _, sp := range book.Known { // the book: the spells id knows
@@ -383,8 +382,8 @@ func (e *Engine) creationState(cr *creation) *game.Draft {
 	sh := e.ruleset().Sheet(id)
 	d := game.Member{Name: sh.Name, Race: e.word(id, rules.FactRace), Class: e.word(id, rules.FactClasses), Alignment: e.word(id, rules.FactAlignment),
 		HP: int(sh.HP), MaxHP: int(sh.MaxHP), Stats: map[string]int{}, Str00: int(sh.Scores[rules.StrengthPercent])}
-	for k, n := range game.StatKeys[:6] {
-		d.Stats[n] = int(sh.Scores[abilities[k]])
+	for _, a := range e.abilityList() {
+		d.Stats[e.abilityKey(a)] = int(sh.Scores[a])
 	}
 	var sp SheetPage // the figures as the sheet's redraw works them out (combatStats), on every roll
 	e.applyItems(id)
@@ -395,13 +394,13 @@ func (e *Engine) creationState(cr *creation) *game.Draft {
 	cl := e.Creation()
 	mins := map[string]int{}
 	for a, v := range cl.Minimums(cr.d.D) {
-		if k := slices.Index(abilities[:], a); k >= 0 {
-			mins[statKeys[k]] = int(v)
+		if slices.Contains(e.abilityList(), a) {
+			mins[e.abilityKey(a)] = int(v)
 		}
 	}
-	g := &game.Draft{Member: d, Minimums: mins}
+	g := &game.Draft{Member: d, Minimums: mins, Stats: e.statDefs(id, nil)}
 	for _, f := range cl.Fields(cr.d.D) { // the four, then the power picks (setPower)
-		fl := game.Field{Name: f.Label, Options: slices.Clone(f.Options), Pick: cr.d.D.Picks[f.ID]}
+		fl := game.Field{Name: f.Label, Options: slices.Clone(f.Options), Pick: cr.d.D.Picks[f.ID], Alignment: f.Alignment}
 		for i := range f.Options {
 			fl.Fits = append(fl.Fits, cl.Fits(cr.d.D, f.ID, i))
 		}

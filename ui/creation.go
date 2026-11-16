@@ -7,11 +7,48 @@ import (
 	"strings"
 )
 
-// statLongNames are the creation sheet's abilities written out, padded
-// to statLongCol, the column their values start at.
-var statLongNames = [6]string{"Strength    ", "Intelligence", "Wisdom      ", "Dexterity   ", "Constitution", "Charisma    "}
-
+// statLongCol is the column the creation sheet's ability values start at, after the names written out.
 const statLongCol = 14
+
+// defaultStat lists the six abilities a state that lists none shows, in the 1e order.
+var defaultStat = [...]game.StatDef{{Key: "str", Label: "STR", Name: "Strength"}, {Key: "int", Label: "INT", Name: "Intelligence"},
+	{Key: "wis", Label: "WIS", Name: "Wisdom"}, {Key: "dex", Label: "DEX", Name: "Dexterity"},
+	{Key: "con", Label: "CON", Name: "Constitution"}, {Key: "cha", Label: "CHA", Name: "Charisma"}}
+
+// defaultStats is the default six with the values by key.
+func defaultStats(values map[string]int) []game.StatDef {
+	out := slices.Clone(defaultStat[:])
+	for i := range out {
+		out[i].Value = values[out[i].Key]
+	}
+	return out
+}
+
+// pageStats is the abilities page sp lists: its own, else the six of the old engines (Stats, Str00, Mods), else the
+// default six.
+func pageStats(sp *game.SheetPage) []game.StatDef {
+	if len(sp.Abilities) > 0 {
+		return sp.Abilities
+	}
+	out := defaultStats(nil)
+	for i := range out {
+		out[i].Value, out[i].Mod = sp.Stats[i], sp.Mods[i]
+	}
+	out[0].Extra = sp.Str00
+	return out
+}
+
+// statsOf is the abilities c's draft lists: its own, else the default six.
+func statsOf(c *game.Creation) []game.StatDef {
+	if len(c.Stats) > 0 {
+		return c.Stats
+	}
+	d := defaultStats(c.Draft.Stats)
+	if d[0].Value == 18 && c.Draft.Str00 != 0 {
+		d[0].Extra = "(00)"
+	}
+	return d
+}
 
 // Creation is the creation sheet's parts from s (nil: none up) on a page
 // of cols by rows cells: the sheet's text from the top left, the portrait
@@ -23,7 +60,7 @@ func Creation(mode game.Mode, c *game.Creation, pending *game.Ask, cols, rows in
 	}
 	d := c.Draft
 	winRight, winBottom := max(cols, 40)-2, max(rows, 25)-3
-	v := &FrontCreation{Minimums: minimums(c.Minimums), Abandon: "Abandon this character?"}
+	v := &FrontCreation{Minimums: minimums(c.Minimums, statsOf(c)), Abandon: "Abandon this character?"}
 	if a := pending; a != nil && a.Kind == game.YesNo {
 		v.Abandon = a.Prompt
 	}
@@ -61,23 +98,10 @@ func Creation(mode game.Mode, c *game.Creation, pending *game.Ask, cols, rows in
 			}[i]
 		}
 	}
-	if c.Stats != nil {
-		for i, st := range c.Stats {
-			v.StatNames = append(v.StatNames, st.Label)
-			x2 := StatCol(st.Label) + 1 + len(st.Extra)
-			v.Stats = append(v.Stats, CellRect{X1: 1, Y1: 7 + i, X2: x2, Y2: 7 + i})
-		}
-	} else {
-		for _, n := range statLongNames {
-			v.StatNames = append(v.StatNames, strings.TrimSpace(n))
-		}
-		for i := range v.StatNames {
-			x1 := statLongCol + 1 // "Strength      18", "(00)" after an exceptional strength
-			if i == 0 && d.Stats["str"] == 18 && d.Str00 != 0 {
-				x1 += len("(00)")
-			}
-			v.Stats = append(v.Stats, CellRect{X1: 1, Y1: 7 + i, X2: x1, Y2: 7 + i})
-		}
+	for i, st := range statsOf(c) { // the abilities written out, their values from statLongCol, an extra (an exceptional strength) after
+		v.StatNames = append(v.StatNames, st.Name)
+		v.StatLabels = append(v.StatLabels, st.Label)
+		v.Stats = append(v.Stats, CellRect{X1: 1, Y1: 7 + i, X2: statLongCol + 1 + len(st.Extra), Y2: 7 + i})
 	}
 	sc := max(1, min((winRight-statLongCol-7)/11, (winBottom-3)/14)) // the abilities reach past their value column, the bottom rows stay free
 	left := winRight - 11*sc + 1                                     // the portrait's 11x11 cells at 1x
@@ -98,7 +122,7 @@ func Drafting(mode game.Mode, c *game.Creation) bool { return c != nil && mode =
 // sheets, BR1 O0D2:00E3, BR2 O07E:00EA). A sheet with one has the four fields
 // at their places (sex and race, alignment, class), the power picks after.
 func rowFields(c *game.Creation) bool {
-	return !slices.ContainsFunc(c.Fields, func(f game.Field) bool { return strings.EqualFold(f.Name, "alignment") })
+	return !slices.ContainsFunc(c.Fields, func(f game.Field) bool { return f.Alignment })
 }
 
 // fieldRow is the first row of the adnd2-br sheet's fields.
@@ -112,12 +136,11 @@ func picked(f game.Field) string {
 	return ""
 }
 
-// minimums is the six abilities' minimums as Minimal shows them, STR
-// first ("-": none).
-func minimums(m map[string]int) string {
+// minimums is the abilities' minimums as Minimal shows them, in the sheet's order ("-": none).
+func minimums(m map[string]int, stats []game.StatDef) string {
 	var f []string
-	for _, k := range []string{"str", "int", "wis", "dex", "con", "cha"} {
-		if v, ok := m[k]; ok {
+	for _, st := range stats {
+		if v, ok := m[st.Key]; ok {
 			f = append(f, strconv.Itoa(v))
 		} else {
 			f = append(f, "-")

@@ -54,10 +54,9 @@ type SheetPage struct {
 	Age                int
 	Alignment          string
 	Class              string
-	Stats              [6]int // STR .. CHA
-	Str00              string // the exceptional strength after STR: "(78)", ""
-	Creating           bool   // the creation's sheet: no level, experience, party items, items or status
-	Levels             string // "1/2"
+	Abilities          []game.StatDef // the abilities in the ruleset's order, strength with its exceptional extra
+	Creating           bool           // the creation's sheet: no level, experience, party items, items or status
+	Levels             string         // "1/2"
 	Exp                int
 	Next               int // the experience the next level takes (0: none)
 	AC, HP             int // AC as displayed (10 down to negative): the front one
@@ -67,7 +66,6 @@ type SheetPage struct {
 	Damage             string
 	Move               int
 	Saves              []game.Throw   // extra: the saving throw targets the ruleset lists, with its names, in Catalog.Saves order (0: not shown)
-	Mods               [6]int         // extra: the rule set's ability modifiers, STR .. CHA (shown with ShowMods)
 	ShowMods           bool           // the rule set has ability modifiers (FiguresFact answers)
 	Rules              []rules.Figure // extra: the rule set's own figures (CombatRules.Sheet; nil: none, and no Mods)
 	Status             string

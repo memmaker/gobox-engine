@@ -52,7 +52,7 @@ func draftPage(c *game.Creation, rules *game.SheetPage) *game.SheetPage {
 		AC: d.AC, RearAC: d.AC, HP: d.HP, MaxHP: d.MaxHP, THAC0: d.THAC0, Move: d.Move, Status: d.Status, Age: d.Age}
 	if r := rules; r != nil { // the rules' own figures: one source, never a 0 the game did figure
 		p.Age, p.AC, p.RearAC, p.HP, p.MaxHP, p.THAC0, p.Damage, p.Move = r.Age, r.AC, r.RearAC, r.HP, r.MaxHP, r.THAC0, r.Damage, r.Move
-		p.Saves, p.Mods, p.ShowMods, p.Rules, p.Levels, p.Exp, p.Next, p.Portrait = r.Saves, r.Mods, r.ShowMods, r.Rules, r.Levels, r.Exp, r.Next, r.Portrait
+		p.Saves, p.ShowMods, p.Rules, p.Levels, p.Exp, p.Next, p.Portrait = r.Saves, r.ShowMods, r.Rules, r.Levels, r.Exp, r.Next, r.Portrait
 	}
 	if d.ClassText != "" {
 		p.Class = d.ClassText
@@ -62,11 +62,11 @@ func draftPage(c *game.Creation, rules *game.SheetPage) *game.SheetPage {
 	} else if len(c.Fields) > FieldSex {
 		p.Sex = picked(c.Fields[FieldSex])
 	}
-	for i, k := range []string{"str", "int", "wis", "dex", "con", "cha"} {
-		p.Stats[i] = d.Stats[k]
-	}
-	if p.Stats[0] == 18 && d.Str00 > 0 {
-		p.Str00 = fmt.Sprintf("(%02d)", d.Str00%100)
+	if p.Abilities = c.Stats; len(p.Abilities) == 0 { // the draft lists none: the default six, strength's extra from Str00
+		p.Abilities = defaultStats(d.Stats)
+		if p.Abilities[0].Value == 18 && d.Str00 > 0 {
+			p.Abilities[0].Extra = fmt.Sprintf("(%02d)", d.Str00%100)
+		}
 	}
 	return p
 }

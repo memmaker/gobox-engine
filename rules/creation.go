@@ -62,6 +62,8 @@ type FieldDef struct {
 	Label   string
 	Options []string
 	Budget  int32 // FieldSkills: the points to spend
+	// Alignment: the field picks the alignment (the sheet places it on a row of its own; a sheet without one lists its fields one per row).
+	Alignment bool
 }
 
 // RollKind is how Roll rolls.

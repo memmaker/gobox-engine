@@ -28,8 +28,15 @@ func TestBR1SheetFacts(t *testing.T) {
 	if pg.Sex != "Male" || pg.Race != "Desert Runner" || pg.Class != "Warrior" || pg.Alignment != "" || pg.AC != 2 || pg.RearAC != 8 || pg.THAC0 != 16 || pg.ShowMods {
 		t.Errorf("sheet: %+v", pg)
 	}
-	if len(pg.Rules) != 9 || pg.Rules[0].Name != "Tech" || pg.Rules[0].Value != "15" || pg.Rules[3].Name != "Battle Tactics" || pg.Rules[3].Value != "47" {
-		t.Errorf("tech and the career's skills: %+v", pg.Rules)
+	if len(pg.Rules) != 8 || pg.Rules[2].Name != "Battle Tactics" || pg.Rules[2].Value != "47" {
+		t.Errorf("the career's skills: %+v", pg.Rules)
+	}
+	var names []string
+	for _, a := range pg.Abilities {
+		names = append(names, a.Label)
+	}
+	if !slices.Equal(names, []string{"STR", "DEX", "CON", "INT", "WIS", "CHA", "TCH"}) || pg.Abilities[6].Name != "Tech" || pg.Abilities[6].Value != 15 {
+		t.Errorf("the seven abilities in the original's order: %+v", pg.Abilities)
 	}
 }
 

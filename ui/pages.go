@@ -521,32 +521,20 @@ func (c *cellPage) sheet(s *game.SheetPage, d *game.Creation, nameColour int, po
 		c.str(1, 4, inkWhite, s.Alignment)
 		c.str(1, 5, inkWhite, s.Class)
 	}
-	if d == nil || len(d.Stats) == 0 {
-		names, vx := []string{"STR ", "INT ", "WIS ", "DEX ", "CON ", "CHA "}, 5 // and showStat
+	stats := pageStats(s)
+	for i, st := range stats {
+		y, name, vx := i+7, st.Label+" ", StatCol(st.Label) // and showStat
 		if s.Creating {
-			names, vx = statLongNames[:], statLongCol
+			name, vx = fmt.Sprintf("%-*s", statLongCol-2, st.Name), statLongCol // the names written out, the values past them
 		}
-		for i, l := range names {
-			y := i + 7
-			c.str(1, y, inkGreen, l)
-			c.clear(vx, y, vx+6, y)
-			x := vx
-			if s.Stats[i] < 10 {
-				x++
-			}
-			c.str(x, y, inkGreen, strconv.Itoa(s.Stats[i]))
-			if i == 0 {
-				c.str(vx+2, 7, inkGreen, s.Str00)
-			}
+		c.str(1, y, inkGreen, name)
+		c.clear(vx, y, vx+6, y)
+		x := vx
+		if st.Value < 10 {
+			x++
 		}
-	}
-	if d != nil {
-		for i, r := range d.Stats { // the game's own abilities, as given
-			y, x := i+7, StatCol(r.Label)
-			c.str(1, y, inkGreen, r.Label+" ")
-			c.clear(x, y, x+6, y)
-			c.str(x, y, inkGreen, fmt.Sprintf("%2d", r.Value)+r.Extra)
-		}
+		c.str(x, y, inkGreen, strconv.Itoa(st.Value))
+		c.str(vx+2, y, inkGreen, st.Extra)
 	}
 	if len(s.Saves) > 0 && s.Saves[0].Value > 0 { // extra: the saving throws beside the abilities, as the ruleset names them
 		for i, t := range s.Saves {

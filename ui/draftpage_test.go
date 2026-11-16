@@ -11,7 +11,7 @@ func TestSheetFromDraft(t *testing.T) {
 	c := &game.Creation{Draft: game.Member{Name: "Ann", Race: "Human", Class: "Fighter", Stats: map[string]int{"str": 18, "cha": 9}, Str00: 100},
 		Fields: []game.Field{{Name: "gender", Options: []string{"Male", "Female"}, Pick: 1}}}
 	p := draftPage(c, nil)
-	if p == nil || !p.Creating || p.Sex != "Female" || p.Stats[0] != 18 || p.Stats[5] != 9 || p.Str00 != "(00)" || p.Race != "Human" {
+	if p == nil || !p.Creating || p.Sex != "Female" || p.Abilities[0].Value != 18 || p.Abilities[5].Value != 9 || p.Abilities[0].Extra != "(00)" || p.Race != "Human" {
 		t.Fatalf("%+v", p)
 	}
 }

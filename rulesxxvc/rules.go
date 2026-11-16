@@ -139,7 +139,8 @@ func (r *Rules) Catalog() rules.Catalog {
 		ClassSets: careerSets,
 		Skills:    xxvc.Skills,
 		Saves:     xxvc.Saves,
-		Features:  []rules.Feature{rules.FeatureSpaceCombat},
+		Abilities: brStatOrder[:], AbilityNames: abilityNames,
+		Features: []rules.Feature{rules.FeatureSpaceCombat},
 	}
 }
 
@@ -225,10 +226,10 @@ const sheetBase = 60
 // shownArmorClass is the armour class the sheet shows for the record's value.
 func shownArmorClass(record int) int32 { return int32(max(record-sheetBase, sheetBase-record)) }
 
-// figures are the lines the sheet adds to the six scores (viewchar.pas DisplayChar's seventh, TCH, and
-// DisplayCareerSkills: the career's eight skills with their values).
+// figures are the lines the sheet adds to the seven abilities (Catalog.Abilities; viewchar.pas DisplayCareerSkills: the
+// career's eight skills with their values).
 func figures(c *Character) []rules.Figure {
-	out := []rules.Figure{{Name: xxvc.TechLabel, Value: strconv.Itoa(c.Scores[xxvc.Tech])}}
+	var out []rules.Figure
 	i := slices.Index(xxvc.Careers, c.Career)
 	if i < 0 {
 		return out

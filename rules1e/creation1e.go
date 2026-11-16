@@ -73,7 +73,7 @@ func (p Creation) Fields(d rules.Draft) []rules.FieldDef {
 	out := []rules.FieldDef{
 		{ID: FieldSex, Label: "Gender", Options: GenderNames[:]},
 		{ID: FieldRace, Label: "Race", Options: races},
-		{ID: FieldAlign, Label: "Alignment", Options: AlignmentNames[:]},
+		{ID: FieldAlign, Label: "Alignment", Options: AlignmentNames[:], Alignment: true},
 		{ID: FieldClass, Label: "Class", Options: cls},
 	}
 	if d.Sheet.Race == "" {

@@ -39,9 +39,9 @@ func gameRect(r CellRect) image.Rectangle { return image.Rect(r.X1, r.Y1, r.X2, 
 func gameSheetPage(p *SheetPage) *game.SheetPage {
 	if p != nil {
 		k := &game.SheetPage{Name: p.Name, NPC: p.NPC, Spells: p.Spells, Sex: p.Sex, Race: p.Race, Age: p.Age,
-			Alignment: p.Alignment, Class: p.Class, Stats: p.Stats, Str00: p.Str00, Creating: p.Creating, Levels: p.Levels,
+			Alignment: p.Alignment, Class: p.Class, Abilities: p.Abilities, Creating: p.Creating, Levels: p.Levels,
 			Exp: p.Exp, Next: p.Next, AC: p.AC, RearAC: p.RearAC, HP: p.HP, MaxHP: p.MaxHP, THAC0: p.THAC0, Damage: p.Damage, Move: p.Move,
-			Saves: p.Saves, Mods: p.Mods, ShowMods: p.ShowMods, Status: p.Status, Weapon: p.Weapon, Armour: p.Armour, Encumbrance: p.Encumbrance,
+			Saves: p.Saves, ShowMods: p.ShowMods, Status: p.Status, Weapon: p.Weapon, Armour: p.Armour, Encumbrance: p.Encumbrance,
 			Coins: p.Coins, Effects: p.Effects, DualClass: p.DualClass, HasPortrait: p.PortraitAt != (CellRect{}), Portrait: p.Portrait, IconPNG: p.IconPNG}
 		for _, r := range p.Rules {
 			k.Rules = append(k.Rules, r)

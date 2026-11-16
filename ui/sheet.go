@@ -208,29 +208,29 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note) {
 	}
 	text(sp.Sex+" "+sp.Race+", age "+strconv.Itoa(sp.Age), rx, row(0), white)
 	text(sp.Alignment, rx, row(1), white)
-	for j, l := range abilityNames {
-		help := abilityHelp[j]
+	stats := pageStats(sp)
+	for j, st := range stats {
+		help := abilityHelp[st.Key]
 		if sp.ShowMods {
 			help = append(slices.Clone(help), "", "Yellow: the 4e modifier,", "(score - 10) / 2, rounded down.")
 		}
-		line(l, strconv.Itoa(sp.Stats[j]), 3+j, help)
-		x := num + 8*len("(00)") // the modifiers on one column, past any exceptional strength
-		if j == 0 {
-			text(sp.Str00, num, row(3), green)
-		}
+		line(st.Name, strconv.Itoa(st.Value), 3+j, help)
+		x := num + 8*len("(00)")             // the modifiers on one column, past any exceptional strength
+		text(st.Extra, num, row(3+j), green) // an exceptional strength
 		if sp.ShowMods {
-			m := strconv.Itoa(sp.Mods[j])
-			if sp.Mods[j] >= 0 {
+			m := strconv.Itoa(st.Mod)
+			if st.Mod >= 0 {
 				m = "+" + m
 			}
 			text(" ("+m+")", x, row(3+j), col(inkYellow))
 		}
 	}
-	line("Movement", strconv.Itoa(sp.Move), 10, // a blank line after the abilities
+	moveRow := 4 + len(stats)
+	line("Movement", strconv.Itoa(sp.Move), moveRow, // a blank line after the abilities
 		[]string{"Squares walked in one", "combat round.", "", "Set by race; heavy armour", "and load slow it down."})
 	vy := (ch-2)*8 - 10                                    // the last row inside the border
 	fits := func(r int) bool { return row(r)+10 <= vy-14 } // a row clear of the AC/THAC0/Damage labels
-	r := 11
+	r := moveRow + 1
 	for j, st := range sp.Rules {
 		if !fits(r+1) && j < len(sp.Rules)-1 { // a long list (BR2's skills) stops above the footer, the rest counted
 			text("+"+strconv.Itoa(len(sp.Rules)-j)+" more", rx, row(r), white)
@@ -375,16 +375,14 @@ func paneName(dst *gpu.Image, glyph func(byte) [8]byte, name string) {
 	onBorder(dst, glyph, (lw-8*(len(name)+2))/2, 0, true, []string{name}, []color.RGBA{white})
 }
 
-var abilityNames = [6]string{"Strength", "Intelligence", "Wisdom", "Dexterity", "Constitution", "Charisma"}
-
 // abilityHelp and bottomHelp are the sheet's tooltips (drawSheet).
-var abilityHelp = [6][]string{
-	{"Physical power. Raises", "melee hits and damage and", "what you can carry.", "", "A fighter's 18 adds an", "exceptional (01-00) roll."},
-	{"Reasoning and memory.", "Mages need it to learn", "and cast spells."},
-	{"Insight and willpower.", "Clerics gain extra spells", "from a high score."},
-	{"Agility and reflexes.", "Improves armour class and", "missile attacks."},
-	{"Health and stamina. Adds", "hit points every level."},
-	{"Presence and leadership.", "Paladins need 17 or more."},
+var abilityHelp = map[string][]string{ // by ability key; an ability with none (the seventh of XXVc) has no tooltip
+	"str": {"Physical power. Raises", "melee hits and damage and", "what you can carry.", "", "A fighter's 18 adds an", "exceptional (01-00) roll."},
+	"int": {"Reasoning and memory.", "Mages need it to learn", "and cast spells."},
+	"wis": {"Insight and willpower.", "Clerics gain extra spells", "from a high score."},
+	"dex": {"Agility and reflexes.", "Improves armour class and", "missile attacks."},
+	"con": {"Health and stamina. Adds", "hit points every level."},
+	"cha": {"Presence and leadership.", "Paladins need 17 or more."},
 }
 
 var bottomHelp = [3][]string{

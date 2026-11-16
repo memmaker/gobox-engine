@@ -235,12 +235,15 @@ type Throw struct {
 
 // SheetPage is what the character sheet's page shows.
 type SheetPage struct {
-	Name                        string
-	NPC                         bool
-	Spells                      string
-	Sex, Race                   string
-	Age                         int
-	Alignment, Class            string
+	Name             string
+	NPC              bool
+	Spells           string
+	Sex, Race        string
+	Age              int
+	Alignment, Class string
+	Abilities        []StatDef // the abilities the ruleset lists, in its order (Catalog.Abilities)
+	// Stats, Str00 and Mods are the six abilities of the old engines (buckrogers, buckrogers2: other repos that build
+	// against this package), STR INT WIS DEX CON CHA; the front reads them only when Abilities is empty. The engine never fills them.
 	Stats                       [6]int
 	Str00                       string
 	Creating                    bool
@@ -252,7 +255,7 @@ type SheetPage struct {
 	Move                        int
 	Saves                       []Throw // the saving throws the ruleset names, in its order (Catalog.Saves); nil: not shown
 	Mods                        [6]int
-	ShowMods                    bool // the ruleset has ability modifiers: Mods is shown beside the scores
+	ShowMods                    bool // the ruleset has ability modifiers: each Abilities entry's Mod (the old engines: Mods) is shown beside its score
 	Rules                       []Stat
 	Status                      string
 	Weapon, Armour              string
@@ -740,10 +743,12 @@ type Creation struct {
 	Derived []Derived `json:",omitempty"`
 }
 
-// StatDef is one ability on the creation sheet.
+// StatDef is one ability on the sheet or the creation sheet.
 type StatDef struct {
-	Key      string // the Member.Stats key ("str", "tech", ...), for the game
-	Label    string // what the sheet shows ("STR", "TECH", ...)
+	Key      string // the Member.Stats key ("str", "tch", ...), for the game
+	Label    string // what the sheet shows ("STR", "TCH", ...)
+	Name     string // the name written out ("Strength")
+	Mod      int    // its modifier (SheetPage.ShowMods)
 	Min, Max int    // the range the rules allow it (0, 0: not given)
 	Value    int    // its current value
 	Extra    string // shown after the value, e.g. "(00)" for an exceptional strength
@@ -759,10 +764,11 @@ type Derived struct {
 // Field is one creation choice: its options, which fit the draft so far,
 // and the current pick (-1 none).
 type Field struct {
-	Name    string
-	Options []string
-	Fits    []bool
-	Pick    int
+	Name      string
+	Options   []string
+	Fits      []bool
+	Pick      int
+	Alignment bool // the field picks the alignment: a sheet with one places its fields as 1e does, one without lists them one per row
 }
 
 // SaveSlot is a save slot: its name, info text, when it was saved (as the
