@@ -164,7 +164,14 @@ func (e *Engine) removeMember(n int) error {
 	if !e.inParty() || e.partySize() == 0 {
 		return rules.ErrNotNow
 	}
-	if err := e.SaveCharacter(e.actor(n), ""); err != nil {
+	who := e.actor(n)
+	if e.eclVersion.Behaviour.RemoveNPCDrops && e.fact(who, rules.FactControl).(rules.Number) >= npcControl {
+		e.selectChar(who)
+		e.purgeChosen(who) // chargen.pas: Remove on an NPC calls DropCharacterMenu
+		e.openAsk()
+		return nil
+	}
+	if err := e.SaveCharacter(who, ""); err != nil {
 		return err // not saved: the character stays in the party
 	}
 	e.RemoveSelected(false, true)
