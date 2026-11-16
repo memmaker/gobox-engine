@@ -84,3 +84,71 @@ func (r *Rules) skillDamage(a rules.SkillDamage, rng *rules.RNG) rules.Outcome {
 	}
 	return o
 }
+
+// scriptDamage is eclvm.pas EclDamage: the damage is rolled once (a Word: a Byte roll plus a Byte bonus), and then
+// the random member's place when the whole party is not meant (memberIndex, rolled before any branch). The flagged
+// forms hit the whole party, the selected member or the random one, each with a saving throw of the type named
+// unless there is none (Save ""); a made save spares unless SaveHurts. The unflagged form makes Count attacks on
+// random members, each rolled against HitBonus (AttackRollNoAttacker) with the damage rolled anew after each.
+// EclInflictDamage passes over a member who is not okay and "dies" when the hit points and ten do not cover it.
+// The message "party is killed" and its pause are the engine's.
+func (r *Rules) scriptDamage(a rules.ScriptDamage, rng *rules.RNG) rules.Outcome {
+	var o rules.Outcome
+	roll := func() int { return int(byte(rules.RNGDice(rng, int(a.Dice), int(a.Sides)))) + int(a.Bonus) }
+	dmg := roll()
+	pick := 0
+	if !a.All {
+		pick = rules.RNGDice(rng, 1, int(r.memberCount))
+	}
+	member := func(k int) rules.CharID { // 1-based; the original's walk down the list would run off its end, here it stops
+		if len(r.party) == 0 {
+			return rules.NoChar
+		}
+		return r.party[max(1, min(k, len(r.party)))-1]
+	}
+	hurt := func(id rules.CharID) {
+		c := r.chars[id]
+		if c == nil || c.Status != StOkay {
+			return
+		}
+		o.Effects = append(o.Effects, rules.Hurt{Unit: id, Damage: int32(dmg), Dies: c.HP+10 < dmg})
+		InflictDamage(c, dmg)
+	}
+	// spared: c rolls the save of the type and a made save spares unless it hurts anyway; no type, no roll.
+	spared := func(id rules.CharID) bool {
+		c := r.chars[id]
+		kind := saveIndex(a.Save)
+		if a.Save == "" || kind < 0 {
+			return false
+		}
+		return c != nil && rollSave(c, kind, int8(byte(a.SaveBonus)), rng) && !a.SaveHurts
+	}
+	switch {
+	case a.Random:
+		for range a.Count {
+			// AttackRollNoAttacker: a natural 1 misses, a natural 20 counts 100, else the roll plus the target must
+			// pass the defender's armor class; the effects at COND_ATTACK_ROLL_DEF are none.
+			id := member(rules.RNGDice(rng, 1, int(r.memberCount)))
+			d := rules.RNGDice(rng, 1, 20)
+			if c := r.chars[id]; c != nil && d > 1 && (d == 20 || d+int(byte(a.HitBonus)) > c.ArmorClass[0]) {
+				hurt(id)
+			}
+			dmg = roll()
+		}
+	case a.All:
+		for _, id := range r.party {
+			if !spared(id) {
+				hurt(id)
+			}
+		}
+	case a.BySelected:
+		if !spared(a.Selected) {
+			hurt(a.Selected)
+		}
+	default:
+		if id := member(pick); !spared(id) {
+			hurt(id)
+		}
+	}
+	return o
+}

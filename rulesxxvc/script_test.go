@@ -212,3 +212,28 @@ func TestSoloCombatLost(t *testing.T) {
 		t.Errorf("%+v status %v party %v", res, r.chars[duelist].Status, r.party)
 	}
 }
+
+// eclvm.pas EclDamage: the whole party without a save (flags 0x40|0x20) takes Dice d Sides + Bonus each, a member
+// not okay is passed over, "dies" when the hit points and ten do not cover it; the selected member alone (BySelected,
+// no save) takes it once. 1d1 + 4 is always 5.
+func TestScriptDamage(t *testing.T) {
+	r := New()
+	ann, bob, cy := member("Ann", 10, 0, 0, 0), member("Bob", 10, 0, 0, 0), member("Cy", 10, 0, 0, 0)
+	ann.HP, bob.HP, cy.HP, cy.Status = 20, 3, 20, StDead
+	a, b, c := r.Add(ann), r.Add(bob), r.Add(cy)
+	r.party, r.memberCount = []rules.CharID{a, b, c}, 3
+	o, err := r.Resolve(rules.Scripted{Party: r.party}, rules.ScriptDamage{Selected: a, Dice: 1, Sides: 1, Bonus: 4, All: true}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(o.Effects) != 2 || r.chars[a].HP != 15 || r.chars[b].HP != 0 || r.chars[c].HP != 20 {
+		t.Errorf("party: effects %v, hit points %d %d %d, want 15 0 20 and two Hurt", o.Effects, r.chars[a].HP, r.chars[b].HP, r.chars[c].HP)
+	}
+	if h := o.Effects[1].(rules.Hurt); h.Unit != b || h.Damage != 5 || h.Dies {
+		t.Errorf("Bob: %+v (3 hit points and 10 cover 5)", h)
+	}
+	o, err = r.Resolve(rules.Scripted{Party: r.party}, rules.ScriptDamage{Selected: a, Dice: 1, Sides: 1, Bonus: 30, BySelected: true}, nil)
+	if err != nil || len(o.Effects) != 1 || !o.Effects[0].(rules.Hurt).Dies || r.chars[a].HP != 0 {
+		t.Errorf("selected: %v %v, hit points %d", o.Effects, err, r.chars[a].HP)
+	}
+}
