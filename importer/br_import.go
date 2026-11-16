@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"io/fs"
 	"maps"
 	"os"
 	"path/filepath"
@@ -13,8 +14,10 @@ import (
 	"gobox/asset"
 	"gobox/asset/orig"
 	"gobox/ecl"
+	"gobox/game"
 	"gobox/rules"
 	"gobox/rules/xxvc"
+	"gobox/rules1e"
 )
 
 // BRSources are the originals both games' imports read.
@@ -66,35 +69,96 @@ const itemWordSize = 21
 // registerBR registers adventure id (br1, br2) with title, its START.EXE and
 // its title sequence start (Game.Start).
 func registerBR(id, title string, e BREXE, start func(dos string) (*adventure.Sequence, error)) {
-	Register(Game{ID: id, Title: title, Ruleset: "rulesxxvc", Sources: BRSources, Version: 22 /* 22: the layouts name the display options ViewFlags (was SaveFlags) and the GEO map Geo (was GeoBlock), the engine's world words; the shipped SAVGAMA.DAT becomes the slot "GAME A"; 21: party menu P/R as the Pascal (gamedata); 20: training: PartyExp layout name, Creation level-up numbers and MaxLevel; party menu P/R as the Pascal; 19: the layout names Party[725] LeftMap and Party[786] SymbolSet (the engine words, were OffMap and Disk, unbound); 18: BR1's places carry the map's area title (adventure.Place.Name); 17: BR2 layout names the rocket and ship cells (BodySquares, RocketX, RocketY, Ship*, Foe*) as BR1; 16: xxvc.Tables.Creation (start level, skill points, experience, base combat, BR2's initial skills); 15: the layout names the sky cells Sky, SkyInside; 14: BR2 gets walls, backs, places, game data, overland size and system map (BREXE.Space, MapSteps); 13: BR2 gets its Log Book (importer/br2/journal, from buckrogers2-go data/journal); 12: the layout names the step's previous square PrevX, PrevY; 11: the layout names the rocket's cells (BodySquares, RocketX, RocketY) and the import writes the system map (adventure.SpaceMap); 10: the layout names the party's ship cells (Ship*) and the last foe's (Foe*); 9: the characters' combat icon (the record's CHARS body); 8: the characters' age (the record's age byte); 7: the layout names the overland square MapX, MapY; 6: the layout comment names StockShop.Terms; 5: the shop's item lists (xxvc.Tables.ShopLists); 4: the script commands FindItem (was HasItem), AddNPC (was NPCJoin), SkillShow, TakeItem, Stash, SkillDamage; 3: a monster's isCompanion, npc byte and READIED items in the tables (xxvc.Monster); 2: the script commands Program (was MenuCall) and Who (was PickMember); 1: the credits' Colour a game.Ink (gobox C1) */, Start: start, Import: func(dos, dst string) error { return ImportBR(id, e, dos, dst) }, ImportShared: func(dos, dst string) error { return ImportBREngine(id, e, dos, dst) }})
+	Register(Game{ID: id, Title: title, Ruleset: "rulesxxvc", Sources: BRSources, Version: 23 /* 23: one import: the old engines' own files are no longer written (data/MON0, ITEM0, ITEMS, START, OVR, 8X8D1, SHIPS blocks; the partial script layout); 22: the layouts name the display options ViewFlags (was SaveFlags) and the GEO map Geo (was GeoBlock), the engine's world words; the shipped SAVGAMA.DAT becomes the slot "GAME A"; 21: party menu P/R as the Pascal (gamedata); 20: training: PartyExp layout name, Creation level-up numbers and MaxLevel; party menu P/R as the Pascal; 19: the layout names Party[725] LeftMap and Party[786] SymbolSet (the engine words, were OffMap and Disk, unbound); 18: BR1's places carry the map's area title (adventure.Place.Name); 17: BR2 layout names the rocket and ship cells (BodySquares, RocketX, RocketY, Ship*, Foe*) as BR1; 16: xxvc.Tables.Creation (start level, skill points, experience, base combat, BR2's initial skills); 15: the layout names the sky cells Sky, SkyInside; 14: BR2 gets walls, backs, places, game data, overland size and system map (BREXE.Space, MapSteps); 13: BR2 gets its Log Book (importer/br2/journal, from buckrogers2-go data/journal); 12: the layout names the step's previous square PrevX, PrevY; 11: the layout names the rocket's cells (BodySquares, RocketX, RocketY) and the import writes the system map (adventure.SpaceMap); 10: the layout names the party's ship cells (Ship*) and the last foe's (Foe*); 9: the characters' combat icon (the record's CHARS body); 8: the characters' age (the record's age byte); 7: the layout names the overland square MapX, MapY; 6: the layout comment names StockShop.Terms; 5: the shop's item lists (xxvc.Tables.ShopLists); 4: the script commands FindItem (was HasItem), AddNPC (was NPCJoin), SkillShow, TakeItem, Stash, SkillDamage; 3: a monster's isCompanion, npc byte and READIED items in the tables (xxvc.Monster); 2: the script commands Program (was MenuCall) and Who (was PickMember); 1: the credits' Colour a game.Ink (gobox C1) */, Start: start, Import: func(dos, dst string) error { return ImportBR(id, e, dos, dst) }})
 }
 
-// ImportBR writes adventure id's folder dst from the DOS originals in dos.
+// ImportBR writes adventure id's folder dst from the DOS originals in dos: the script blocks under the game's full layout, the
+// GEO maps and rule tables, the roster, the pictures table, the art, the Log Book, the front's data (gamedata.json), the silent
+// sound table, gametables.json and the originals' saved games as slots. A game without a full layout or a start entry in brStarts is an error.
+//
+// Not written yet: BR's sound tables (sound.json is the silent one, brSilentSound), portraits.json, the cover and docs (no
+// launcher entry reads them from a BR folder).
 func ImportBR(id string, e BREXE, dos, dst string) error {
+	full, err := fs.ReadFile(embeddedScripts(id), ecl.GlobalLayout)
+	if err != nil {
+		return fmt.Errorf("%s has no full script layout yet: %w", id, err)
+	}
+	start, ok := brStarts[id]
+	if !ok {
+		return fmt.Errorf("%s has no start-up values (brStarts)", id)
+	}
 	l, err := orig.NewLoader(dos)
 	if err != nil {
 		return err
 	}
 	scripts := filepath.Join(dst, "scripts")
-	if err := os.MkdirAll(scripts, 0o755); err != nil {
+	g := filepath.Join(scripts, ecl.GlobalLayout)
+	if err := os.MkdirAll(filepath.Dir(g), 0o755); err != nil {
 		return err
 	}
-	if err := WriteBRLayout(scripts); err != nil {
+	if err := os.WriteFile(g, full, 0o644); err != nil {
 		return err
 	}
 	if _, err := ecl.Import(ecl.V4, orig.DAXSource(l), os.DirFS(scripts), scripts, ecl.FoldGates, nil); err != nil {
 		return err
 	}
-	if err := ImportData(l, e, filepath.Join(dst, "data")); err != nil {
+	data := filepath.Join(dst, adventure.DataDir)
+	if err := ImportData(l, e, data); err != nil {
 		return err
 	}
-	if err := copySaves(l.Dir, filepath.Join(dst, SavesDir)); err != nil {
+	if err := writeRoster(dst); err != nil {
 		return err
 	}
 	if err := asset.WritePictures(map[string]string{"br1": "buckrogers", "br2": "buckrogers2"}[id], dst); err != nil {
 		return err
 	}
-	return orig.ImportArt(dos, filepath.Join(filepath.Dir(dos), "amiga"), filepath.Join(dst, "art"))
+	if err := orig.ImportArt(dos, filepath.Join(filepath.Dir(dos), "amiga"), filepath.Join(dst, adventure.ArtDir)); err != nil {
+		return err
+	}
+	if start.Logbook != nil { // BR2 has no journal yet
+		if err := ImportJournal(id, filepath.Join(dst, adventure.JournalDir)); err != nil {
+			return err
+		}
+	}
+	front := game.Data{Series: brSeries, ID: id}
+	if start.Data != nil {
+		front = start.Data(id)
+	}
+	if err := adventure.WriteGameData(data, front); err != nil {
+		return err
+	}
+	if err := os.WriteFile(filepath.Join(data, adventure.SoundFile), []byte(brSilentSound), 0o644); err != nil {
+		return err
+	}
+	im, err := orig.Load(l.Path("START.EXE"), e.DS)
+	if err != nil {
+		return err
+	}
+	tables := adventure.GameTables{
+		Dialect:       rules.DialectBR,
+		AddNPCIcon:    true, // saveload.pas AddCreatureToParty loads the NPC's CPIC icon (both games)
+		FirstBlock:    start.FirstBlock,
+		GameSet:       start.GameSet,
+		Logbook:       start.Logbook,
+		PictureSets:   start.PictureSets,
+		BigPictures:   adventure.BigPictures{First: start.FirstBigPicture},
+		OriginalSave:  rules1e.SaveLayout{CodeBase: start.CodeBase, CodeSize: start.CodeSize}, // eclLayout reads only these two
+		Symbols:       start.Symbols,
+		Art:           &start.Art,
+		Places:        start.Places,
+		ScriptSounds:  brScriptSounds(),
+		OverlandSteps: start.Overland,
+		Space:         SpaceTables(im.Mem[im.DS:], e),
+	}
+	if start.Walls {
+		// the 3D view's textures: buckrogers-go rules/wallindex.txt as walls/<id>.txt (chunk (value-1)/5+1, wall (value-1)%5+1); the
+		// flats and the BACK picture are not published yet (a view's floor and sky: backFlats by BACK block, not by area)
+		tables.Walls = wallTextures(id, "", "")
+	}
+	if err := WriteJSON(filepath.Join(data, adventure.GameTablesFile), tables); err != nil {
+		return err
+	}
+	return importBRGames(dos, dst, im.Mem[im.DS:], e) // the originals' saved games become slots
 }
 
 // BRMonster is a BR monster's records: MON0CHA, SPC (9-byte effects), ITM (items).
@@ -105,9 +169,8 @@ const (
 	templateSize = 16 // an ITEM0 block 1 template (TItemTemplate)
 )
 
-// ImportData writes the GEO maps, MON0 (BRMonster by id), ITEM0 (templates
-// by block id) and the rule tables (ITEMS, ITEM0's templates, START.EXE's
-// item words, MON0's monsters typed) into dst.
+// ImportData writes the GEO maps, the rule tables (ITEMS, ITEM0's templates, START.EXE's tables, MON0's monsters typed) and the
+// originals' saved characters into dst.
 func ImportData(l *orig.Loader, e BREXE, dst string) error {
 	if err := os.MkdirAll(dst, 0o755); err != nil {
 		return err
@@ -119,30 +182,13 @@ func ImportData(l *orig.Loader, e BREXE, dst string) error {
 			}
 		}
 	}
-	if l.Exists("SHIPS.DAX") {
-		if err := adventure.WriteBlocks(dst, "SHIPS", "SHIPS.bin: SHIPS.DAX blocks, the ships' records (importbr)", orig.Blocks(l, "SHIPS")); err != nil {
-			return err
-		}
-	}
-	if err := adventure.WriteJSON(dst, "MON0", orig.Monsters[BRRecord, [effectSize]byte, BRItem](l, "MON0")); err != nil {
-		return err
-	}
-	if err := adventure.WriteJSON(dst, "ITEM0", orig.ItemBlocks[[templateSize]byte](l, "ITEM0")); err != nil {
-		return err
-	}
 	b, err := os.ReadFile(l.Path("ITEMS"))
 	if err != nil {
-		return err
-	}
-	if err := adventure.WriteBlocks(dst, ItemsFile, ItemsFile+".bin: the ITEMS file as block 0 (importbr)", map[int][]byte{0: b}); err != nil {
 		return err
 	}
 	t := Tables(b, l.BlockShared("ITEM0", templateBlock))
 	im, err := orig.Load(l.Path("START.EXE"), e.DS)
 	if err != nil {
-		return err
-	}
-	if err := writeImages(l, im, dst); err != nil {
 		return err
 	}
 	t.ItemWords = ItemWords(im.Mem[im.DS:], e)
@@ -177,63 +223,8 @@ func ImportData(l *orig.Loader, e BREXE, dst string) error {
 	return importBRSaves(l, t, filepath.Join(dst, CharactersDir))
 }
 
-// ItemsFile is the ITEMS file (the item types' records) as block 0 of a
-// block file in the folder's data dir.
-const ItemsFile = "ITEMS"
-
-// SavesDir holds the originals' shipped characters (CHRDATA*) as they are,
-// the saves the engine seeds a new save folder with.
+// SavesDir holds the shipped characters in the engine's roster format (writeRoster).
 const SavesDir = "saves"
-
-// copySaves copies dos's CHRDATA* files into dst.
-func copySaves(dos, dst string) error {
-	m, err := filepath.Glob(filepath.Join(dos, "CHRDATA*"))
-	if err != nil || len(m) == 0 {
-		return err
-	}
-	if err := os.MkdirAll(dst, 0o755); err != nil {
-		return err
-	}
-	for _, p := range m {
-		b, err := os.ReadFile(p)
-		if err != nil {
-			return err
-		}
-		if err := os.WriteFile(filepath.Join(dst, filepath.Base(p)), b, 0o644); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// The block files of the program images and the font the engines index by
-// address (START.EXE's data segment, GAME.OVR's string literals) or read raw
-// (8X8D1 block 201, the text font: no picture).
-const (
-	DSFile    = "START" // block 0: START.EXE's load image from its data segment on
-	OVRFile   = "OVR"   // block 0: GAME.OVR as it is
-	FontFile  = "8X8D1" // block FontBlock: 8X8D1.DAX's block as it is
-	FontBlock = 201
-)
-
-// writeImages writes DSFile from im, OVRFile and FontFile from l into dst.
-func writeImages(l *orig.Loader, im *orig.ExeImage, dst string) error {
-	ovr, err := os.ReadFile(l.Path("GAME.OVR"))
-	if err != nil {
-		return err
-	}
-	if err := adventure.WriteBlocks(dst, DSFile, DSFile+".bin: START.EXE's load image from the data segment on, block 0 (importbr)", map[int][]byte{0: im.Mem[im.DS:]}); err != nil {
-		return err
-	}
-	if err := adventure.WriteBlocks(dst, OVRFile, OVRFile+".bin: GAME.OVR, block 0 (importbr)", map[int][]byte{0: ovr}); err != nil {
-		return err
-	}
-	font := l.BlockShared("8X8D1", FontBlock)
-	if font == nil {
-		return nil
-	}
-	return adventure.WriteBlocks(dst, FontFile, FontFile+".bin: 8X8D1.DAX block 201, the text font (importbr)", map[int][]byte{FontBlock: font})
-}
 
 // CharactersDir holds the originals' saved characters in the folder's data
 // dir, each <name>.json a rulesxxvc.Character (saves.go).

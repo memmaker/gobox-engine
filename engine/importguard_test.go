@@ -29,7 +29,7 @@ func TestPoolImportsNoRuleset(t *testing.T) {
 		}
 		for _, imp := range ast.Imports {
 			p := strings.TrimPrefix(strings.Trim(imp.Path.Value, `"`), "gobox/")
-			isGame := p == "por" || strings.HasPrefix(p, "por/") || strings.HasPrefix(p, "games/") || strings.HasPrefix(p, "buckrogers")
+			isGame := p == "por" || strings.HasPrefix(p, "por/") || strings.HasPrefix(p, "games/")
 			isRuleset := p == "rules1e" || p == "rules4e" || p == "rulesxxvc" || strings.HasPrefix(p, "rules1e/") || strings.HasPrefix(p, "rules4e/")
 			if isGame {
 				t.Errorf("%s imports the game %s", f, p)

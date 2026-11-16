@@ -366,13 +366,6 @@ func (g *Game) StopWalk() error   { return g.run("stopWalk", g.r.stopWalk) }
 func (g *Game) EndGame() error { return g.do(game.EndGame{}) }
 
 // Creation sheet.
-
-// CreateCharacter, Roll and Rename stay exported for the Buck Rogers repos' front tests (buckrogers-go, buckrogers2-go), which have no other way to send an action and read its refusal.
-func (g *Game) CreateCharacter() error { return g.do(game.NewCharacter{}) }
-func (g *Game) Roll(minimal bool, minimums string) error {
-	return g.do(game.Reroll{Minimal: minimal})
-}
-func (g *Game) Rename(name string) error { return g.do(game.Rename{Name: name}) }
 func (g *Game) SetField(f, o int) error {
 	return g.run("setField", func() game.Result { return g.r.setField(f, o) })
 }

@@ -32,21 +32,19 @@ import (
 // ruleset1e is the manifest Ruleset the pool host plays.
 const ruleset1e = "rules1e"
 
-// rulesetXXVc is the manifest Ruleset of the Buck Rogers games; the shared
-// engine plays it only under -shared.
+// rulesetXXVc is the manifest Ruleset of the Buck Rogers games.
 const rulesetXXVc = "rulesxxvc"
 
-// launch is f's game as ui.Launch: on the shared engine (its ruleset's host:
-// the pool games always, a rulesxxvc game under -shared) or on its own old one.
+// launch is f's game as ui.Launch, on the host its ruleset selects (hosts).
 func launch(s start, f importer.Folder) (ui.Launch, error) {
-	if hs, ok := hosts[f.Ruleset]; ok && (f.Ruleset == ruleset1e || s.Shared) {
-		return playPool(s, hs)
+	hs, ok := hosts[f.Ruleset]
+	if !ok {
+		return ui.Launch{}, fmt.Errorf("adventure %s: no host for ruleset %q", f.Dir, f.Ruleset)
 	}
-	return playOther(s, f)
+	return playPool(s, hs)
 }
 
-// play runs the adventure folder f in the engine of its game until the
-// window closes.
+// play runs the adventure folder f until the window closes.
 func play(s start, f importer.Folder) error {
 	l, err := launch(s, f)
 	if err != nil {
@@ -84,8 +82,6 @@ func main() {
 	flag.StringVar(&s.Dev, "dev", "", "debug: a dev scene (e.g. combat) at the first adventuring prompt")
 	seed := flag.Int64("seed", -1, "debug: the same dice every run (e.g. 1), for comparing captures; <0: the clock, but a scripted run (-keys) without it plays seed 1")
 	captureOf := captureFlags(escapes())
-	flag.BoolVar(&s.Shared, "shared", false, "dev, temporary until the old Buck Rogers engines go: play br1 on the shared engine from a folder imported with `gobox import -shared`")
-	brFlags()
 	flag.Parse()
 	s.Capture = captureOf()
 	s.Seed = resolveSeed(*seed, len(s.Capture.Keys) > 0, time.Now())
@@ -99,7 +95,7 @@ func main() {
 	}
 	var playable []importer.Folder
 	for _, f := range folders {
-		if f.Ruleset == ruleset1e || players[f.ID] != nil {
+		if _, ok := hosts[f.Ruleset]; ok {
 			playable = append(playable, f)
 		}
 	}

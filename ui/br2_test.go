@@ -7,7 +7,7 @@ import (
 	"gobox/game"
 )
 
-// BR2 on the presenter, as BR1 (br1_test.go, whose helpers these use): the folder of `gobox import -shared br2`, the
+// BR2 on the presenter, as BR1 (br1_test.go, whose helpers these use): the folder of `gobox import br2`, the
 // shared engine, no window.
 
 // TestBR2Explore: the title, the party menu, a member added, Begin and the opening's pages (block 19's briefing, the

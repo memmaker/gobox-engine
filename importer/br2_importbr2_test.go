@@ -45,28 +45,13 @@ func TestBR2ImportEqualsDecode(t *testing.T) {
 		t.Error("art:", err)
 	}
 	data := filepath.Join(dst, "data")
-	for _, c := range []struct {
-		file string
-		id   int
-		want []byte
-	}{{OVRFile, 0, brReadFile(t, l.Path("GAME.OVR"))}, {FontFile, FontBlock, l.BlockShared("8X8D1", FontBlock)}, {"SHIPS", 50, l.BlockShared("SHIPS", 50)}, {ItemsFile, 0, brReadFile(t, l.Path("ITEMS"))}} {
-		if b, err := adventure.ReadBlocks(data, c.file); err != nil || !bytes.Equal(b[c.id], c.want) {
-			t.Errorf("%s %d differs from the originals: %v", c.file, c.id, err)
-		}
-	}
-	if ds, err := adventure.ReadBlocks(data, DSFile); err != nil || len(ds[0]) < 0x3D84 {
-		t.Errorf("%s: %d bytes, %v", DSFile, len(ds[0]), err)
-	}
-	if !bytes.Equal(brReadFile(t, filepath.Join(dst, SavesDir, "CHRDATA1.SAV")), brReadFile(t, l.Path("CHRDATA1.SAV"))) {
-		t.Error("saves: CHRDATA1.SAV differs")
-	}
 	geo, err := adventure.ReadBlocks(data, "GEO1")
 	if err != nil || len(geo) == 0 {
 		t.Fatal("GEO1:", err)
 	}
-	var mons map[int]BRMonster
-	if _, err := adventure.ReadJSON(data, "MON0", &mons); err != nil || len(mons) == 0 {
-		t.Fatal("MON0:", len(mons), err)
+	mons := orig.Monsters[BRRecord, [effectSize]byte, BRItem](l, "MON0")
+	if len(mons) == 0 {
+		t.Fatal("MON0: none")
 	}
 	for id := range 256 {
 		if b := l.BlockShared("GEO1", id); !bytes.Equal(b, geo[id]) {

@@ -162,9 +162,8 @@ func savePNG(t *testing.T, _ *cellPage, v sfView) {
 	if out == "" {
 		return
 	}
-	home, _ := os.UserHomeDir()
 	var fl *orig.Loader
-	if l, err := orig.NewLoader(filepath.Join(home, "Projects", "buckrogers2-go", "data", "dos")); err == nil {
+	if l, err := orig.NewLoader(filepath.Join("..", "data", "br2", "sources", "dos")); err == nil {
 		useArt(t, l.Dir)
 		fl = l
 		clear(daxPics)

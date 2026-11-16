@@ -242,8 +242,7 @@ type SheetPage struct {
 	Age              int
 	Alignment, Class string
 	Abilities        []StatDef // the abilities the ruleset lists, in its order (Catalog.Abilities)
-	// Stats, Str00 and Mods are the six abilities of the old engines (buckrogers, buckrogers2: other repos that build
-	// against this package), STR INT WIS DEX CON CHA; the front reads them only when Abilities is empty. The engine never fills them.
+	// Stats, Str00 and Mods are the six fixed abilities (STR INT WIS DEX CON CHA); the front reads them only when Abilities is empty.
 	Stats                       [6]int
 	Str00                       string
 	Creating                    bool

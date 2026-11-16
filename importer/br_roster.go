@@ -13,17 +13,16 @@ import (
 )
 
 // The shipped characters are the roster a new game starts with. In the original they are the CHRDATAn.SAV files the
-// installation puts into the save folder (buckrogers-go rules/rules.go seedSaves); the engine's roster is charlist.txt
+// installation puts into the save folder; the engine's roster is charlist.txt
 // and one <NAME>.cha per character (engine/roster.go), and a new save folder is seeded from the adventure's saves/
-// (cmd/gobox homeSaves). So saves/ holds the shipped characters in the engine's format, not the originals' bytes.
+// (cmd/gobox homeSaves). So saves/ holds the shipped characters in the engine's format.
 const (
 	rosterListFile = "charlist.txt" // the engine's roster list (engine.WriteCharList: a name and CRLF a line)
 	rosterExt      = ".cha"         // the engine's roster file of a character (engine.rosterFile)
 )
 
 // writeRoster writes saves/charlist.txt and saves/<NAME>.cha for each character in data/characters (written by
-// importBRSaves), in the originals' file number order (CHRDATA2 before CHRDATA10), one per name (see below), and removes the originals' CHRDATA*
-// copies from saves/. The files carry no roster number: the engine numbers them when it first reads the list.
+// importBRSaves), in the originals' file number order (CHRDATA2 before CHRDATA10), one per name (see below). The files carry no roster number: the engine numbers them when it first reads the list.
 func writeRoster(dst string) error {
 	chars := filepath.Join(dst, adventure.DataDir, CharactersDir)
 	ents, err := os.ReadDir(chars)
@@ -75,15 +74,6 @@ func writeRoster(dst string) error {
 	}
 	if err := os.WriteFile(filepath.Join(saves, rosterListFile), []byte(list.String()), 0o644); err != nil {
 		return err
-	}
-	old, err := filepath.Glob(filepath.Join(saves, "CHRDATA*"))
-	if err != nil {
-		return err
-	}
-	for _, p := range old {
-		if err := os.Remove(p); err != nil {
-			return err
-		}
 	}
 	return nil
 }

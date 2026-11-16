@@ -12,7 +12,7 @@ import (
 // explore.pas, orbitmap.pas, gameinit.pas): 58 body squares, five orbits, eight belt bodies, the ship's start on orbit 2's body at
 // phase 0, and the bodies at the buckrogers-go oracle's squares (adv_test.go TestRocketStep: planet 2 on (9,8) at step 0).
 func TestBR1SpaceMap(t *testing.T) {
-	tb, err := adventure.ReadGameTables(br1EngineFolder(t))
+	tb, err := adventure.ReadGameTables(br1Folder(t))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -47,7 +47,7 @@ func TestBR1SpaceMap(t *testing.T) {
 // TestBR2SpaceMap: BR2's system map from its own data segment (buckrogers2-go rules/restspace_data.go spaceAt) holds the
 // same shape and the oracle's start (rules TestRocketStep) as BR1's; where the two games' tables differ it says so.
 func TestBR2SpaceMap(t *testing.T) {
-	tb, err := adventure.ReadGameTables(brEngineFolder(t, "br2", BR2EXE))
+	tb, err := adventure.ReadGameTables(brFolder(t, "br2", BR2EXE))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,7 +56,7 @@ func TestBR2SpaceMap(t *testing.T) {
 		t.Fatal("no system map")
 	}
 	t.Logf("start %d square %v orbits %v belt %v steps %v squares %d", s.Start, s.Squares[s.Start], s.Orbits, s.Offsets, s.Steps, len(s.Squares))
-	b1, err := adventure.ReadGameTables(br1EngineFolder(t))
+	b1, err := adventure.ReadGameTables(br1Folder(t))
 	if err != nil {
 		t.Fatal(err)
 	}

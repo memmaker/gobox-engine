@@ -51,19 +51,9 @@ func TestBR1ImportEqualsDecode(t *testing.T) {
 	if err != nil || len(geo) == 0 {
 		t.Fatal("GEO1:", err)
 	}
-	if items, err := adventure.ReadBlocks(data, ItemsFile); err != nil || !bytes.Equal(items[0], brReadFile(t, l.Path("ITEMS"))) {
-		t.Error("ITEMS differs:", err)
-	}
-	ships, err := adventure.ReadBlocks(data, "SHIPS")
-	if err != nil || len(ships) == 0 || !bytes.Equal(ships[50], l.BlockShared("SHIPS", 50)) {
-		t.Error("SHIPS 50 differs:", err)
-	}
-	if !bytes.Equal(brReadFile(t, filepath.Join(dst, SavesDir, "CHRDATA1.SAV")), brReadFile(t, l.Path("CHRDATA1.SAV"))) {
-		t.Error("saves: CHRDATA1.SAV differs")
-	}
-	var mons map[int]BRMonster
-	if _, err := adventure.ReadJSON(data, "MON0", &mons); err != nil || len(mons) == 0 {
-		t.Fatal("MON0:", len(mons), err)
+	mons := orig.Monsters[BRRecord, [effectSize]byte, BRItem](l, "MON0")
+	if len(mons) == 0 {
+		t.Fatal("MON0: none")
 	}
 	for id := range 256 {
 		if b := l.BlockShared("GEO1", id); !bytes.Equal(b, geo[id]) {

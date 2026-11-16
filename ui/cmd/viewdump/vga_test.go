@@ -9,9 +9,9 @@ import (
 )
 
 // Buck Rogers' VGA WALLDEF/8X8D blocks dump as pictures, not as transparent EGA misreads
-// (skipped without buckrogers-go's data/dos).
+// (skipped without data/br1/sources/dos).
 func TestViewdumpVGA(t *testing.T) {
-	data := "../../../../buckrogers-go/data/dos"
+	data := "../../../data/br1/sources/dos"
 	if _, err := os.Stat(filepath.Join(data, "WALLDEF1.DAX")); err != nil {
 		t.Skip("no Buck Rogers data")
 	}

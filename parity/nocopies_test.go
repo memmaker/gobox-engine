@@ -26,7 +26,7 @@ var knownCopies = map[string][]string{}
 // TestNoPrivatePlumbing: no game declares its own copy of gobox's game↔UI
 // types beyond the known ones still being removed.
 func TestNoPrivatePlumbing(t *testing.T) {
-	games := []string{"por-go", "cotab-go", "sotsb-go", "pod-go", "buckrogers-go", "buckrogers2-go"}
+	games := []string{"por-go", "cotab-go", "sotsb-go", "pod-go"}
 	for _, g := range games {
 		dir := filepath.Join("..", "..", g, "rules")
 		files, err := os.ReadDir(dir)
@@ -74,8 +74,7 @@ func TestNoPrivatePlumbing(t *testing.T) {
 // funcFields caps each game's function-typed struct fields in rules: a
 // stored func is a continuation (the game paused mid-routine), and games
 // are passive (MIGRATION.md, order 2). The caps only shrink.
-var funcFields = map[string]int{"cotab-go": 2, "sotsb-go": 2, "pod-go": 1, "por-go": 7,
-	"buckrogers-go": 1, "buckrogers2-go": 2}
+var funcFields = map[string]int{"cotab-go": 2, "sotsb-go": 2, "pod-go": 1, "por-go": 7}
 
 // TestPassive: no game gains a stored callback; lower a cap when one goes.
 func TestPassive(t *testing.T) {
@@ -128,8 +127,7 @@ var oldPathImports = []string{"gobox/front/playrules"}
 
 // TestNoOldPath fails on any reference to the removed rules path.
 func TestNoOldPath(t *testing.T) {
-	roots := []string{"..", "../games/por", "../games/cotab", "../games/sotsb", "../games/pod",
-		"../../buckrogers-go", "../../buckrogers2-go", "../../buckrogers-core"}
+	roots := []string{"..", "../games/por", "../games/cotab", "../games/sotsb", "../games/pod"}
 	for _, root := range roots {
 		err := filepath.WalkDir(root, func(p string, d os.DirEntry, err error) error {
 			if err != nil || d.IsDir() || !strings.HasSuffix(p, ".go") {

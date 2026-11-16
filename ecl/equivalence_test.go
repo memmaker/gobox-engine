@@ -20,7 +20,7 @@ func TestScriptEqualsByteCode(t *testing.T) {
 	for _, g := range []struct {
 		dir string // the game's data: dos/ is its originals
 		v   *ecl.Version
-	}{{"../data/por/sources", ecl.V1}, {"../data/cotab/sources", ecl.V2}, {"../data/sotsb/sources", ecl.V2}, {"../data/pod/sources", ecl.V3}, {"../../buckrogers-go/data", ecl.V4}, {"../../buckrogers2-go/data", ecl.V4}} {
+	}{{"../data/por/sources", ecl.V1}, {"../data/cotab/sources", ecl.V2}, {"../data/sotsb/sources", ecl.V2}, {"../data/pod/sources", ecl.V3}, {"../data/br1/sources", ecl.V4}, {"../data/br2/sources", ecl.V4}} {
 		t.Run(g.dir, func(t *testing.T) {
 			dos := filepath.Join(g.dir, "dos")
 			if _, err := os.Stat(dos); err != nil {

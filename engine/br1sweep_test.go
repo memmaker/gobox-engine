@@ -65,7 +65,7 @@ func sweepGameRun(t *testing.T, g brGame, blockList []int, known []struct{ Patte
 		t.Skip("no "+g.Name+" originals:", err)
 	}
 	adv := t.TempDir()
-	if err := importer.ImportBREngine(g.ID, g.EXE, g.dos(), adv); err != nil {
+	if err := importer.ImportBR(g.ID, g.EXE, g.dos(), adv); err != nil {
 		t.Fatal(err)
 	}
 	heavy := os.Getenv("GOBOX_SWEEP") == "heavy"
@@ -174,7 +174,7 @@ func TestBR1SweepReplay(t *testing.T) {
 	if os.Getenv("GOBOX_SWEEP_GAME") == gameBR2.ID { // GOBOX_SWEEP_GAME=br2 replays a BR2 finding
 		g, blocks = gameBR2, br2Blocks
 	}
-	if err := importer.ImportBREngine(g.ID, g.EXE, g.dos(), adv); err != nil {
+	if err := importer.ImportBR(g.ID, g.EXE, g.dos(), adv); err != nil {
 		t.Fatal(err)
 	}
 	sweepStoryOf(t, adv, blocks)

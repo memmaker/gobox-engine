@@ -26,7 +26,7 @@ var (
 func (g brGame) dos() string { return filepath.Join("..", "data", g.ID, "sources", "dos") }
 
 // brEngine is the shared engine on the game's folder, imported from the originals into a temp dir
-// (importer.ImportBREngine), with the XXVc ruleset, its save folder seeded with the shipped characters as cmd/gobox
+// (importer.ImportBR), with the XXVc ruleset, its save folder seeded with the shipped characters as cmd/gobox
 // homeSaves does. It skips without the originals.
 func brEngine(t *testing.T, g brGame) *Engine {
 	t.Helper()
@@ -34,7 +34,7 @@ func brEngine(t *testing.T, g brGame) *Engine {
 		t.Skip("no "+g.Name+" originals:", err)
 	}
 	adv := t.TempDir()
-	if err := importer.ImportBREngine(g.ID, g.EXE, g.dos(), adv); err != nil {
+	if err := importer.ImportBR(g.ID, g.EXE, g.dos(), adv); err != nil {
 		t.Fatal(err)
 	}
 	return brEngineIn(t, adv)

@@ -1,21 +1,18 @@
 package importer
 
 import (
-	"os"
-	"path/filepath"
 	"testing"
 
 	"gobox/adventure"
-	"gobox/ecl"
 	"gobox/engine"
 	"gobox/rules"
 )
 
-// BR2 through ImportBREngine, as BR1 (br1_engine_import_test.go).
+// BR2 through ImportBR, as BR1 (br1_import_test.go).
 
-func TestImportBREngineFolderBR2(t *testing.T) {
-	checkEngineFolder(t, "br2", BR2EXE)
-	tb, err := adventure.ReadGameTables(brEngineFolder(t, "br2", BR2EXE))
+func TestImportBR2Folder(t *testing.T) {
+	checkFolder(t, "br2", BR2EXE)
+	tb, err := adventure.ReadGameTables(brFolder(t, "br2", BR2EXE))
 	if err != nil || tb.Logbook == nil {
 		t.Error("br2's logbook:", tb.Logbook, err)
 	}
@@ -29,7 +26,7 @@ func TestImportBREngineFolderBR2(t *testing.T) {
 
 // TestBR2EngineNew: engine.New on the folder returns no error (the ruleset is built at its first use; Init is not called).
 func TestBR2EngineNew(t *testing.T) {
-	dst := brEngineFolder(t, "br2", BR2EXE)
+	dst := brFolder(t, "br2", BR2EXE)
 	tb, err := adventure.ReadGameTables(dst)
 	if err != nil {
 		t.Fatal(err)
@@ -39,24 +36,10 @@ func TestBR2EngineNew(t *testing.T) {
 	}
 }
 
-func TestImportBRUnchangedBR2(t *testing.T) {
-	_, dos, _ := brBlocks(t, "br2")
-	dst := t.TempDir()
-	if err := ImportBR("br2", BR2EXE, dos, dst); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := os.Stat(filepath.Join(dst, "scripts", ecl.PartialLayout)); err != nil {
-		t.Error(err)
-	}
-	if _, err := os.Stat(filepath.Join(dst, adventure.DataDir, adventure.GameTablesFile)); !os.IsNotExist(err) {
-		t.Errorf("ImportBR wrote gametables.json: %v", err)
-	}
-}
-
 // TestBR2GameData: the front's data of BR2 is the old BR2 engine's (buckrogers2-go rules/data.go): its party menu (Quick Start before
 // Begin Adventuring), masks, the Aid key and its own music places.
 func TestBR2GameData(t *testing.T) {
-	d, err := adventure.ReadGameData(brEngineFolder(t, "br2", BR2EXE))
+	d, err := adventure.ReadGameData(brFolder(t, "br2", BR2EXE))
 	if err != nil {
 		t.Fatal(err)
 	}

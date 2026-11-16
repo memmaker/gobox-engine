@@ -11,10 +11,9 @@ import (
 )
 
 // Data.DaxMask makes a ref's colour index transparent, wherever it is in the
-// picture; no entry keeps it (skipped without buckrogers-go's data/dos). PNG: $DAXMASK_PNG.
+// picture; no entry keeps it (skipped without data/br1/sources/dos). PNG: $DAXMASK_PNG.
 func TestDaxMask(t *testing.T) {
-	home, _ := os.UserHomeDir()
-	l, err := orig.NewLoader(filepath.Join(home, "Projects", "buckrogers-go", "data", "dos"))
+	l, err := orig.NewLoader(filepath.Join("..", "data", "br1", "sources", "dos"))
 	if err != nil || !l.Exists("CHARS.DAX") {
 		t.Skip("no buckrogers data")
 	}

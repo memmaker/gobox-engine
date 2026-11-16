@@ -15,7 +15,7 @@ import (
 // Rogers, PoD), each frame its full size and the block used up.
 func TestAnimBlocksDecode(t *testing.T) {
 	seen := 0
-	for _, data := range []string{"../../data/por/sources", "../../data/cotab/sources", "../../data/sotsb/sources", "../../data/pod/sources", "../../../buckrogers-go/data", "../../../buckrogers2-go/data"} {
+	for _, data := range []string{"../../data/por/sources", "../../data/cotab/sources", "../../data/sotsb/sources", "../../data/pod/sources", "../../data/br1/sources", "../../data/br2/sources"} {
 		for _, side := range []string{"dos", "amiga"} {
 			dir := filepath.Join(data, side)
 			ents, _ := os.ReadDir(dir)

@@ -43,7 +43,7 @@ func osCall(n ast.Node, names map[string]bool) bool {
 // Fix by returning the error (one os.WriteFile per file, saves.Store.Write,
 // asset.WritePNG). A new violation fails here.
 func TestNoUncheckedWrites(t *testing.T) {
-	for _, root := range []string{"../games/por", "../../gobox-engine", "../games/cotab", "../games/sotsb", "../games/pod", "../../buckrogers-core", "../../buckrogers-go", "../../buckrogers2-go", "../rules1e", "../rulesxxvc"} {
+	for _, root := range []string{"../games/por", "../../gobox-engine", "../games/cotab", "../games/sotsb", "../games/pod", "../rules1e", "../rulesxxvc"} {
 		filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
 				t.Error(err)

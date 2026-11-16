@@ -3,8 +3,6 @@ module gobox
 go 1.26.2
 
 require (
-	buckrogers v0.0.0
-	buckrogers2 v0.0.0
 	github.com/ebitengine/oto/v3 v3.5.0
 	github.com/go-webgpu/goffi v0.6.3
 	github.com/gogpu/gogpu v0.54.0
@@ -20,14 +18,12 @@ require (
 )
 
 require (
-	ecl-br v0.0.0 // indirect
 	github.com/ebitengine/purego v0.11.0 // indirect
 	github.com/go-webgpu/webgpu v0.5.5 // indirect
 	github.com/jfreymuth/pulse v0.1.3 // indirect
 	github.com/jfreymuth/vorbis v1.0.2 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 )
-
 
 replace github.com/gogpu/wgpu => ../gogpu-wgpu
 
@@ -37,10 +33,3 @@ replace github.com/go-webgpu/goffi => ../goffi
 replace github.com/gogpu/gogpu => ../goplay/third_party/gogpu
 
 replace github.com/retro-ware/gameimport => ../gameimport
-
-replace buckrogers => ../buckrogers-go
-
-replace buckrogers2 => ../buckrogers2-go
-
-replace ecl-br => ../buckrogers-core
-

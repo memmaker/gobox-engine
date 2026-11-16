@@ -1,17 +1,9 @@
 package importer
 
 import (
-	"fmt"
-	"io/fs"
-	"os"
-	"path/filepath"
-
 	"gobox/adventure"
-	"gobox/asset/orig"
-	"gobox/ecl"
 	"gobox/game"
 	"gobox/rules"
-	"gobox/rules1e"
 )
 
 // brSeries is presentdata/data.go's Series (buckrogers-go), the same in buckrogers2-go rules/data.go:14.
@@ -116,90 +108,4 @@ var brStarts = map[string]brStart{
 	// Overland: buckrogers2-go rules/adv.go overland(): area 195 0..37, 196 0..14. Logbook: buckrogers2-go rules/journal.go logBox "Log Book", logTitle "Log Entry N" over data/journal (importer/br2/journal).
 	"br2": {FirstBlock: 16, GameSet: 1, FirstBigPicture: 112, CodeBase: 32768, CodeSize: 9217, Symbols: brSymbols, PictureSets: brPictureSets,
 		Art: brArt, Walls: true, Data: br2GameData, Places: br2Places, Overland: rules.Size{W: 38, H: 15}, Logbook: &adventure.Logbook{Box: "Log Book", Title: "Log Entry "}}, // br2_importbr2.go br2Start's TITLE
-}
-
-// ImportBREngine is ImportBR plus what the shared engine reads from an adventure folder (engine.New, Init): the game's
-// full script layout in place of ImportBR's partial one (the scripts re-imported with it), gametables.json and gamedata.json.
-// Tests and `gobox import -shared` call it (Game.ImportShared); the default import stays ImportBR. It replaces ImportBR when the BR engines go (REFACTOR.md B1g).
-// A game without a full layout or a start entry in brStarts is an error.
-//
-// Not written yet: BR1's sound tables (sound.json is the silent one, brSilentSound), portraits.json, the walls' flats and BACK pictures.
-func ImportBREngine(id string, e BREXE, dos, dst string) error {
-	full, err := fs.ReadFile(embeddedScripts(id), ecl.GlobalLayout)
-	if err != nil {
-		return fmt.Errorf("%s has no full script layout yet: %w", id, err)
-	}
-	start, ok := brStarts[id]
-	if !ok {
-		return fmt.Errorf("%s has no start-up values (brStarts)", id)
-	}
-	if err := ImportBR(id, e, dos, dst); err != nil {
-		return err
-	}
-	if err := writeRoster(dst); err != nil {
-		return err
-	}
-	l, err := orig.NewLoader(dos)
-	if err != nil {
-		return err
-	}
-	scripts := filepath.Join(dst, "scripts")
-	if err := os.Remove(filepath.Join(scripts, ecl.PartialLayout)); err != nil {
-		return err
-	}
-	g := filepath.Join(scripts, ecl.GlobalLayout)
-	if err := os.MkdirAll(filepath.Dir(g), 0o755); err != nil {
-		return err
-	}
-	if err := os.WriteFile(g, full, 0o644); err != nil {
-		return err
-	}
-	if _, err := ecl.Import(ecl.V4, orig.DAXSource(l), os.DirFS(scripts), scripts, ecl.FoldGates, nil); err != nil {
-		return err
-	}
-	if start.Logbook != nil { // BR2 has no journal yet
-		if err := ImportJournal(id, filepath.Join(dst, adventure.JournalDir)); err != nil {
-			return err
-		}
-	}
-	data := filepath.Join(dst, adventure.DataDir)
-	front := game.Data{Series: brSeries, ID: id}
-	if start.Data != nil {
-		front = start.Data(id)
-	}
-	if err := adventure.WriteGameData(data, front); err != nil {
-		return err
-	}
-	if err := os.WriteFile(filepath.Join(data, adventure.SoundFile), []byte(brSilentSound), 0o644); err != nil {
-		return err
-	}
-	im, err := orig.Load(l.Path("START.EXE"), e.DS)
-	if err != nil {
-		return err
-	}
-	tables := adventure.GameTables{
-		Dialect:       rules.DialectBR,
-		AddNPCIcon:    true, // saveload.pas AddCreatureToParty loads the NPC's CPIC icon (both games)
-		FirstBlock:    start.FirstBlock,
-		GameSet:       start.GameSet,
-		Logbook:       start.Logbook,
-		PictureSets:   start.PictureSets,
-		BigPictures:   adventure.BigPictures{First: start.FirstBigPicture},
-		OriginalSave:  rules1e.SaveLayout{CodeBase: start.CodeBase, CodeSize: start.CodeSize}, // eclLayout reads only these two
-		Symbols:       start.Symbols,
-		Art:           &start.Art,
-		Places:        start.Places,
-		ScriptSounds:  brScriptSounds(),
-		OverlandSteps: start.Overland,
-		Space:         SpaceTables(im.Mem[im.DS:], e),
-	}
-	if start.Walls {
-		// the 3D view's textures: buckrogers-go rules/wallindex.txt as walls/<id>.txt (chunk (value-1)/5+1, wall (value-1)%5+1); the
-		// flats and the BACK picture are not published yet (a view's floor and sky: backFlats by BACK block, not by area)
-		tables.Walls = wallTextures(id, "", "")
-	}
-	if err := WriteJSON(filepath.Join(data, adventure.GameTablesFile), tables); err != nil {
-		return err
-	}
-	return importBRGames(dos, dst, im.Mem[im.DS:], e) // the originals' saved games become slots
 }

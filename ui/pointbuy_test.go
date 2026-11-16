@@ -97,8 +97,7 @@ func TestPointBuy(t *testing.T) {
 // brBits is BR2's own font from its DOS files (shipsheet_test.go's brFont),
 // gobox's copy where they are not installed.
 func brBits() []byte {
-	home, _ := os.UserHomeDir()
-	if l, err := orig.NewLoader(filepath.Join(home, "Projects", "buckrogers2-go", "data", "dos")); err == nil {
+	if l, err := orig.NewLoader(filepath.Join("..", "data", "br2", "sources", "dos")); err == nil {
 		if b := brFont(l); b != nil {
 			return b
 		}

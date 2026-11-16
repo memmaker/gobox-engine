@@ -28,6 +28,5 @@ func TestMain(m *testing.M) {
 	if len(stuck) > 0 && code == 0 {
 		code = 1
 	}
-	os.RemoveAll(brAdvs()) // the br1/br2 tests' imported folders
 	os.Exit(code)
 }

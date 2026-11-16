@@ -14,7 +14,7 @@ import (
 	"gobox/importer"
 )
 
-// br1Folder imports BR1 for the shared engine (gobox import -shared) into a
+// br1Folder imports BR1 for the shared engine into a
 // temp dir, once per test.
 func br1Folder(t *testing.T) importer.Folder { return brFolder(t, "br1") }
 
@@ -26,7 +26,7 @@ func brFolder(t *testing.T, id string) importer.Folder {
 		t.Skip("no "+id+" originals:", err)
 	}
 	root := t.TempDir()
-	if err := importer.RunWith(id, dos, root, true); err != nil {
+	if err := importer.Run(id, dos, root); err != nil {
 		t.Fatal(err)
 	}
 	f, err := importer.Read(filepath.Join(root, id))

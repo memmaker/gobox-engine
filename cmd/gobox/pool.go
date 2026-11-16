@@ -217,3 +217,14 @@ func attachSound(eng *engine.Engine, drv *audio.Driver) (*audio.Voice, error) {
 	eng.SetSound(drv, play, vox)
 	return vox, nil
 }
+
+// defaultWindow is the window's size at scale 1 for a manifest without one.
+var defaultWindow = importer.Size{W: 320, H: 200}
+
+// window is f's window size at scale 1.
+func window(f importer.Folder) (w, h int) {
+	if f.Window == (importer.Size{}) {
+		return defaultWindow.W, defaultWindow.H
+	}
+	return f.Window.W, f.Window.H
+}

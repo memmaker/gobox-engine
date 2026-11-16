@@ -26,7 +26,7 @@ for repo in gobox-engine ${games[@]+"${games[@]}"}; do # no game: an empty list,
   git -C "$projects/$repo" ls-tree -r --name-only "$tree" >"$out/$repo.tracked"
 done
 # A test must not write into its repo: after the tests, no tracked file of an export may be gone or
-# changed (unchanged_exports). Bug class: buckrogers-go's import test emptied the repo's art/, 46 tracked
+# changed (unchanged_exports). Bug class: an import test emptied the repo's art/, 46 tracked
 # pictures, on every run, and an agent committed it. The marker is older than anything a test writes.
 touch "$out/.exported"
 sleep 1
@@ -44,7 +44,7 @@ unchanged_exports() {
 }
 # Tests that look at the other games (scripts/check-game-imports.sh) see these exports.
 export PROJECTS="$out"
-# Tests that find a sibling repo through $HOME/Projects (buckrogers bugclass_test, front sequence_test) see them too.
+# Tests that find a sibling repo through $HOME/Projects see them too.
 ln -s "$out" "$HOME/Projects"
 # Unversioned here: third-party checkouts, the -re reconstructions (tests read ../../<game>-re), and the game data
 # (gobox-engine/data/<game>: the imported folder, sources/, extras/; its docs are versioned and exported).
