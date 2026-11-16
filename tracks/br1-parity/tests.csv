@@ -58,10 +58,10 @@ eclops,TestRestMenu,"the rest menu rests, sets the level, exits",covered,TestBR1
 eclwalk,TestECLWalk,every command every block reaches is one the dispatch handles,covered,TestBR1LayoutResolvesEveryOperand;TestBR1OpsPorted;TestBR1Sweep,
 engaged,TestFightEngaged,a fight begun in a step tells gobox its board (play.Engaged),n/a,,the old front contract; the shared state is Fighting
 escreply,TestViewEscIsExit,Esc over the view menu names its Exit entry,n/a,,the old front contract (escReply); the sheet is the ui's
-exit,TestClassEdgeFlagBeforeStep,a step off the map flags party 725 before the step entry runs,port-open,,"the shared engine does it (engine/game_engine.go checkEdge) but a test needs a block with an open map edge: DevAt(81) in the shared import has walls on every edge square (Map walls 5; the old test read an open (15,0)); find which geo the script loads and the Pascal's edge squares"
+exit,TestClassEdgeFlagBeforeStep,a step off the map flags party 725 before the step entry runs,port-done,TestBR1ClassEdgeFlagBeforeStep,"the layout named Party[725] OffMap and Party[786] Disk (unbound): now LeftMap and SymbolSet, the engine words; block 81 reads GEO5"
 exit,TestClassJoinedName,a joined stack shows its new count,port-open,,needs JoinStack/Halve for BR (see TestClassItemActs)
 exit,TestClassPartyPurse,"one purse: pooling members credits on one holder, a buy spends it whoever shops",differs,,"ruling: credits are paid out at once, one purse (REFACTOR sh1); TestSetCredits, TestPurse, TestBR1Credits"
-exitstep,TestClassExitOneStep,one step off the east edge of block 81 asks to leave and Yes goes to block 80,port-open,,as TestClassEdgeFlagBeforeStep
+exitstep,TestClassExitOneStep,one step off the east edge of block 81 asks to leave and Yes goes to block 80,port-done,TestBR1ClassExitOneStep,as TestBR1ClassEdgeFlagBeforeStep
 fightend,TestClassFightEndWaits,"every page after a fight (wipe, win) is a pending question",covered,TestBR1FledAndDown;TestBR1QuickBack,
 imports,TestGameImports,no UI imports from the game module,covered,TestImportsOnlyCore;TestPoolImportsNoRuleset,
 items,TestCalcShipped,derived bytes of the shipped characters equal the file,covered,TestBR1SheetFacts;TestRecalcStats,

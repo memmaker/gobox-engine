@@ -242,10 +242,10 @@
 7EC9 1 byte game ForwardHeld # Party[713]: 255 forward key held (adv.go:418) [BR2: buckrogers2-go rules/adv.go:224,465; types.pas TZone1.moveBlocked]; scripts: byte r0/w56
 7ECA 1 byte game Search # Party[714]: bit0 searching, bit1 looking (adv.go:341-378); POD name Search [BR2: buckrogers2-go rules/adv.go:407-410; types.pas TZone1.searchFlags]; scripts: byte r2/w0
 7ECB 1 byte game InitiativeSide # Party[715]: initiative side bits (combat.go:105,145) [BR2: buckrogers2-go rules/combat.go:112,155; types.pas TZone1.sideMask]; scripts: byte r0/w22
-7ED5 1 byte game OffMap # Party[725]: off-the-map flag (adv.go:162,357) [BR2: buckrogers2-go rules/adv.go:205,393-398; types.pas TZone1.hasLeftMap]; scripts: byte r9/w0
+7ED5 1 byte game LeftMap # Party[725]: off-the-map flag (adv.go:162,357) [BR2: buckrogers2-go rules/adv.go:205,393-398; types.pas TZone1.hasLeftMap]; scripts: byte r9/w0
 7EE3 1 byte game SkipsCombatItems # Party[739]: name from layout/partial.txt (loot.go:138,292) [BR2: buckrogers2-go rules/loot.go:138,292; types.pas TZone1.skipsCombatItems]; engine only (not in BR2 scripts)
 7EE6 1 byte game RevivesParty # Party[742]: name from layout/partial.txt (loot.go:138,241) [BR2: buckrogers2-go rules/loot.go:138,241; types.pas TZone1.revivesParty]; scripts: byte r0/w1
-7F12 1 byte game Disk # Party[786]: disk number (savegame.go:42,167) [BR2: buckrogers2-go rules/ecl.go:130,203, savegame.go:42; types.pas TZone1.savedDataSet]; scripts: byte r1/w51
+7F12 1 byte game SymbolSet # Party[786]: the data set (disk), SpecialReadZ1/SpecialWriteZ1 $312 = GDVars.dataSet (eclmenu.pas:544,584), the engine's set; disk number (savegame.go:42,167) [BR2: buckrogers2-go rules/ecl.go:130,203, savegame.go:42; types.pas TZone1.savedDataSet]; scripts: byte r1/w51
 7F33 1 byte game FightActive # Party[819]: combat in progress (cmap.go:831, combatturn.go:436) [BR2: buckrogers2-go rules/combatturn.go:518, cmap.go:730]; engine only (not in BR2 scripts)
 7F3E 1 byte game PartyCount # Party[830]: party size (adv.go:142); POD name PartyCount [BR2: buckrogers2-go rules/adv.go:157, eclops.go:751; types.pas TZone1.partyCount]; scripts: byte r3/w0
 7F3F 1 dword game DivideRemainder # Party[831..834]: the remainder of the last DIVIDE, a longint (types.pas divisionRemainder); the engine writes it; scripts read the low byte [BR2: types.pas TZone1.divisionRemainder (a longint the engine writes; scripts read its low byte)]; scripts: byte r2/w0
