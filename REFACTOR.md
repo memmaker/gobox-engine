@@ -411,6 +411,29 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
       a whole-turn ruleset still gets `AutoTurn.Key`), `TestBR1QuickBack`, `TestTakeBack`; after a
       fled fight the members who did not flee are removed with their items (postcbt.pas
       TEAM_FLED), no experience, no loot: `TestEndFightFled`, `TestBR1FledAndDown`.
+    - PLAN from here (2026-11-16; Felix is away: "decide for yourself; do not stop until all
+      games of all series run as data folders"). Order, each a track of its own, landed through
+      `foldwt.sh land`, this list kept current:
+      1. [ ] d1: the three diverging golden fights traced and fixed; `Unit.Damage`, `HitFact`
+      2. [ ] o1: BR1's script commands without a handler (`engine/br1ops_test.go`
+         `br1OpsNotPorted`: Skill, SkillAll, HasItem, NPCJoin, Shop, WallDistance, Duel,
+         Damage6, Op64, Op72; SpaceFight is B1e)
+      3. [ ] t1: the sheet, team menu and roster for XXVc (AC as shown, health, no AD&D spell
+         slots, the catalog's saves and abilities with their names, who seeds a new save
+         folder's roster, BR's character creation in `rulesxxvc`)
+      4. [ ] l2: BR2's full script layout (as B1b2 for BR1) and `ImportBREngine` for BR2
+      5. [ ] w1: BR on `cmd/gobox` through the shared engine (a host naming `rulesxxvc`), the
+         front's data (`game.Data`: border, party menu, texts), walls without WALLDEF, sounds,
+         portraits; windowed scripted smoke run
+      6. [ ] v1: the overland, the rocket's view (view kind 2), Program 9 (rest), block changes
+         across disks, save and load during BR play
+      7. [ ] e1 (B1e): the space fight, ships, jetpack, throw on the shared engine
+      8. [ ] every BR1 block's entries run headless without a panic (a sweep test over the
+         scripts' reachable commands, like the Pool games' sweeps); then BR2 the same
+      9. [ ] B1g: `cmd/gobox` plays BR1 and BR2 from data folders only; the BR engines and repos
+         go; `ImportBR` replaced by `ImportBREngine`
+      10. [ ] R2f (AD&D names out of neutral `rules`), the one "take back" for the Pool games,
+          G3 (the contract by owner)
     - Open after B1f9:
       - `rules1e` still takes the key in `AutoTurn.Key` (its poll inside the turn and "act again
         at once" differ; `TakeBack` is in `notAnswered`): two ways for the engine to say "take
