@@ -80,6 +80,11 @@ type (
 	Guard      struct{}
 	Delay      struct{}
 	Quick      struct{ All bool }
+	// TakeBack: the player takes the quick-played members back, the key Space during a computer turn (buckroger-re
+	// combatai.pas CheckKeystroke): every member of the party that is no companion is the player's again, and the
+	// turn of the acting one ends if it was one of them. A ruleset that plays a turn whole (AutoTurn) takes the key in
+	// AutoTurn.Key instead.
+	TakeBack   struct{}
 	Flee       struct{}
 	EndTurn    struct{}
 	Aid        struct{ Target CharID } // BR
@@ -359,6 +364,7 @@ func (TurnUndead) action()    {}
 func (Guard) action()         {}
 func (Delay) action()         {}
 func (Quick) action()         {}
+func (TakeBack) action()      {}
 func (Flee) action()          {}
 func (EndTurn) action()       {}
 func (Aid) action()           {}

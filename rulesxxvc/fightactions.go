@@ -13,6 +13,24 @@ func endActions(s *combatState) {
 	s.initiative, s.guarding, s.movement = 0, false, 0
 }
 
+// handBackInitiative is combatai.pas HAND_BACK_INITIATIVE: marks a combatant handed back to the player; AiMoveAttack
+// stops acting at it and the turn is over.
+const handBackInitiative = 20
+
+// takeBack is combatai.pas CheckKeystroke's Space: every team member in play that is no companion leaves quick-fight
+// (a companion keeps it); when the actor is no longer quick its turn is handed back (initiative 20, the turn over).
+func (r *Rules) takeBack(f rules.Fight, c *Character, s *combatState) {
+	wasQuick := c.Side == rules.SideAuto
+	for _, id := range r.fightParty(f) {
+		if m := r.chars[id]; m != nil && m.Side == rules.SideAuto && !m.Companion && r.fight[id] != nil && m.Status != StFleeing {
+			m.Side = rules.SideParty
+		}
+	}
+	if wasQuick && c.Side == rules.SideParty {
+		s.initiative = handBackInitiative
+	}
+}
+
 // allowedFight is combat.pas CombatMenu's choices for the actor.
 // Jetpack needs areaKind Venus or Mars wilderness (core.AreaWilderness).
 func (r *Rules) allowedFight(f rules.Fight) rules.Allowed {
@@ -126,7 +144,7 @@ func (r *Rules) resolveFight(f rules.Fight, act rules.Action, rng *rules.RNG) (r
 		// The turn is used when the actor has no actions left (EndActions: initiative 0), or it waited (Delay).
 		_, waited := act.(rules.Delay)
 		if st := r.fight[f.Actor]; st != nil {
-			o.TurnOver = o.Confirm == "" && (st.initiative <= 0 || waited)
+			o.TurnOver = o.Confirm == "" && (st.initiative <= 0 || st.initiative == handBackInitiative || waited)
 		}
 		r.layFallen(&f.Board, &o)
 		if own {
@@ -184,6 +202,9 @@ func (r *Rules) resolveAction(f rules.Fight, act rules.Action, rng *rules.RNG) (
 				}
 			}
 		}
+		return rules.Outcome{}, nil
+	case rules.TakeBack:
+		r.takeBack(f, c, s)
 		return rules.Outcome{}, nil
 	case rules.Intimidate: // 'I'; ponytail: the turn ending after it is assumed (EndActions)
 		at, _ := unitAt(f, f.Actor)
