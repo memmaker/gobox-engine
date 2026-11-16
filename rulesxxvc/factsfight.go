@@ -125,15 +125,25 @@ func (r *Rules) fightCard(id rules.CharID, c *Character) rules.FightCard {
 	return card
 }
 
-// groundFact is the arena as squares: the terrain's number as the tile, a wall where no move can pay (cost
+// shownTerrain is the terrain a cell shows (cbtmap.pas DrawArenaCell): its own, but a cloud's or corpse's cell the terrain
+// beneath it (ResolveTerrain). (The marker icons laid over those, iconFrames rows 33..35, are not published.)
+func (r *Rules) shownTerrain(b rules.Board, p rules.BoardPos, t rules.TerrainID) rules.TerrainID {
+	if t != 0 && t <= corpseTerrain {
+		return r.resolveTerrain(b, p)
+	}
+	return t
+}
+
+// groundFact is the arena as squares: the terrain's number as the tile (shownTerrain), a wall where no move can pay (cost
 // IMPASSABLE). Height is 0: XXVc's lines are classed by terrain, not by heights; Crown false.
 func (r *Rules) groundFact() rules.Ground {
 	var g rules.Ground
 	b := r.board(rules.Board{})
 	for y := range g.Squares {
 		for x := range g.Squares[y] {
-			t := terrainAt(b, rules.BoardPos{X: x, Y: y})
-			g.Squares[y][x] = rules.Square{Tile: int(t), Wall: terrainRow(t).cost == impassable}
+			at := rules.BoardPos{X: x, Y: y}
+			t := terrainAt(b, at)
+			g.Squares[y][x] = rules.Square{Tile: int(r.shownTerrain(b, at, t)), Wall: terrainRow(t).cost == impassable}
 		}
 	}
 	for size := 1; size <= len(iconCells); size++ {

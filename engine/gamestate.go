@@ -542,6 +542,9 @@ func (e *Engine) iconState(id rules.CharID, m *game.Member) {
 	if ic.Size == 2 { // the T files' blocks follow the S ones' by 0x40 (LoadIconPic)
 		off = 0x40
 	}
+	if e.artNames().MemberIcons != "" { // a whole picture: the fight's unit carries it (Unit.Art), no head and body to compose
+		return
+	}
 	m.Icon, m.IconColors = map[string]int{"head": ic.Head + off, "body": ic.Body + off}, nil
 	for _, col := range ic.Colours { // the record's bytes: low nibble and high nibble
 		m.IconColors = append(m.IconColors, col.High<<4|col.Low)

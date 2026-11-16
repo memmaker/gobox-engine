@@ -206,8 +206,35 @@ func TestBR1Fight(t *testing.T) {
 	eng.DevAction = eng.DevScene("combat")
 	br1Begin(t, g, eng)
 	br1Enter(t, g, eng, "fight", game.Fighting{}, 80)
+	br1FightPictures(t, eng)
 	for range 10 {
 		g.Key(keyEnter)
 		br1Check(t, g, eng, "fight turn", nil)
+	}
+}
+
+// br1FightPictures: the fight publishes a picture for every unit and every square's tile (typed pictures: pixels in
+// the art's own palette, the mask colour Clear), and a shot flown with a unit's picture as its sprite is a Report
+// the presenter draws (eventsAt) with that sprite. The shot of a real weapon is engine/br1aim_test.go's.
+func br1FightPictures(t *testing.T, eng *engine.Engine) {
+	t.Helper()
+	f := eng.State().(game.Fighting)
+	art := eng.Art()
+	for _, u := range f.Field.Units {
+		if u.Foe { // the dev scene's foe loads CPIC block 1, which BR's CPIC1 does not hold: a script's foes are engine/br1pictures_test.go's
+			continue
+		}
+		if u.Art.Pixels == nil || len(u.Art.Palette) == 0 || u.Art.Clear < 0 {
+			t.Errorf("unit %d %s has no picture (%d pixels, %d colours, clear %d)", u.ID, u.Name, len(u.Art.Pixels), len(u.Art.Palette), u.Art.Clear)
+		}
+	}
+	for _, s := range f.Field.Squares {
+		if name := f.Field.Tiles[s.Tile]; name == "" || art[name].Pixels == nil {
+			t.Errorf("square %v: tile %d (%q) has no picture", s.At, s.Tile, name)
+		}
+	}
+	shot := game.Shot{From: f.Field.Units[0].ID, To: f.Field.Units[len(f.Field.Units)-1].At, Art: f.Field.Units[0].Art, StepMs: 10}
+	if es := eventsAt([]game.Event{shot}, 0, nil); len(es) != 1 || es[0].Kind != game.EvMissile || len(es[0].Sprite) != 1 || es[0].Sprite[0].Pixels == nil {
+		t.Errorf("the shot is %+v, want one missile with its sprite", es)
 	}
 }

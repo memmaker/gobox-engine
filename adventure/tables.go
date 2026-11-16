@@ -147,6 +147,11 @@ type ArtNames struct {
 	BorderCells   []int        // DrawBorder style 0's corner, side and top symbols (POR: 0x114..0x116); none: no border pictures
 	SpriteSlots   []SpriteLoad // the combat sprites' blocks and the icon slots they fill at Init; none: PoolSpriteSlots
 	Missiles      []MissileArt // what flies for each FlightKind; none: PoolMissiles
+	PlaceTiles    []TileLoad   // laid over a fresh tile set at a fight's setup, the sheets whose When and Unless fit the place (BR1: marscom, venuscom, lotek, hitek)
+	TerrainTiles  []int        // the tile each ground terrain value draws, by value (BR1's combatTerrain[t].tile; index 0 for any value outside the table); none: the value is the tile
+	IconMask      byte         // the colour the combat icons (sprites, monsters, members) are masked on (the Pool's 0; BR1's 8)
+	PlainIcons    bool         // the monsters' icons are loaded as drawn (VGA art): not recoloured with the Pool's EGA palette
+	MemberIcons   string       // the sheet of a party member's whole-picture icon (BR1: CHARS, block = the record's icon, +0x80 the action pose); none: composed from CHEAD and CBODY
 }
 
 // SpriteLoad is a run of Count blocks of the combat sprites from block Block into the icon slots from Slot (Init's
@@ -186,8 +191,23 @@ var PoolMissiles = []MissileArt{
 type TileLoad struct {
 	File               string
 	Block, First, Last int
-	From               TileFrom `json:",omitempty"`
+	From               TileFrom          `json:",omitempty"`
+	When, Unless       rules.PlaceTraits `json:",omitempty"` // PlaceTiles: laid when the place has all of When and none of Unless
 }
+
+// TileOf is the tile terrain value t draws.
+func (a ArtNames) TileOf(t int) int {
+	if len(a.TerrainTiles) == 0 {
+		return t
+	}
+	if t < 1 || t >= len(a.TerrainTiles) {
+		t = 0
+	}
+	return a.TerrainTiles[t]
+}
+
+// Fits is whether a place with traits t takes the load (PlaceTiles).
+func (l TileLoad) Fits(t rules.PlaceTraits) bool { return t.Has(l.When) && t&l.Unless == 0 }
 
 // TileFrom is where a TileLoad's block number comes from.
 type TileFrom int

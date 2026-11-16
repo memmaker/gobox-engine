@@ -45,7 +45,7 @@ func (e *Engine) fightState() *game.Combat {
 		Log:    slices.Clone(b.Log)}
 	for y := range b.Ground {
 		for x, q := range b.Ground[y] {
-			c.Squares = append(c.Squares, game.Ground{At: rules.BoardPos{X: x, Y: y}, Block: q.Wall, Height: q.Height, Tile: q.Tile, Crown: q.Crown})
+			c.Squares = append(c.Squares, game.Ground{At: rules.BoardPos{X: x, Y: y}, Block: q.Wall, Height: q.Height, Tile: e.artNames().TileOf(q.Tile), Crown: q.Crown})
 		}
 	}
 	for i, p := range b.TilePix { // their pictures are Art()'s (overlandArt)
@@ -61,7 +61,7 @@ func (e *Engine) fightState() *game.Combat {
 	for i, u := range b.Units {
 		g := game.Unit{ID: u.ID, Name: u.Name, At: rules.BoardPos{X: u.X, Y: u.Y}, Facing: u.Facing, Foe: !u.Party, HP: u.HP, MaxHP: u.MaxHP,
 			Size: u.Size, Squares: slices.Clone(u.Squares), AC: u.AC, Status: u.Status, Dmg: u.Dmg, Member: -1, Active: u.Active, Hit: u.Hit}
-		if !u.Party { // a member's icon is the front's to compose from its icon numbers
+		if !u.Party || e.artNames().MemberIcons != "" { // a member's icon is the front's to compose from its icon numbers, unless the game has whole pictures
 			g.Art = gamePicture(b.IconPix[i])
 		}
 		if u.Party {

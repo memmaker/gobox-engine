@@ -87,7 +87,7 @@ func (e *Engine) recolour(im *asset.Image, tt *[16]byte) {
 // icon, block and block+0x80, loaded masked on colour 0.
 func (e *Engine) LoadIconPic(name string, block, slot int) {
 	up := strings.ToUpper(name)
-	load := func(n string, b int) *asset.Image { return e.LoadPicMasked(n, b, 0) }
+	load := func(n string, b int) *asset.Image { return e.LoadPicMasked(n, b, byte(e.artNames().IconMask)) }
 	ic := &e.icons[slot]
 	switch {
 	case strings.HasPrefix(up, "CHEAD") || strings.HasPrefix(up, "CBODY"):
@@ -96,7 +96,8 @@ func (e *Engine) LoadIconPic(name string, block, slot int) {
 		}
 		n := name[:len(name)-1]
 		ic[0], ic[1] = load(n, block), load(n, block+0x80)
-	case up == strings.ToUpper(e.artNames().CombatSprites) || up == strings.ToUpper(e.artNames().AreaIcon):
+	case up == strings.ToUpper(e.artNames().CombatSprites) || up == strings.ToUpper(e.artNames().AreaIcon) ||
+		e.artNames().MemberIcons != "" && up == strings.ToUpper(e.artNames().MemberIcons):
 		ic[0], ic[1] = load(name, block), load(name, block+0x80)
 		if up == strings.ToUpper(e.artNames().AreaIcon) {
 			e.recolour(ic[0], &IconPaletteCF2)
@@ -108,8 +109,10 @@ func (e *Engine) LoadIconPic(name string, block, slot int) {
 			n = e.monsterSet().File(name)
 		}
 		ic[0], ic[1] = load(n, block), load(n, block+0x80)
-		e.recolour(ic[0], &IconPaletteCE2)
-		e.recolour(ic[1], &IconPaletteCE2)
+		if !e.artNames().PlainIcons {
+			e.recolour(ic[0], &IconPaletteCE2)
+			e.recolour(ic[1], &IconPaletteCE2)
+		}
 	}
 }
 

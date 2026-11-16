@@ -177,6 +177,7 @@ func (r *Rules) resolveSession(a rules.Action) (o rules.Outcome, ok bool, err er
 			return rules.Outcome{}, true, errNoMember
 		}
 		r.party = append(r.party, a.Who) // pO0CA_194D: at the end, current, counted
+		r.assignIconSlot(r.chars[a.Who])
 		r.acting = len(r.party) - 1
 		r.memberCount++
 	case rules.EmptyParty:

@@ -23,6 +23,7 @@ func (e *Engine) combatSetup() {
 	e.battleMusic()
 	e.combatMapSetup()
 	e.placeCombatants()
+	e.loadMemberIcons()
 	e.spr = nil // 0464:248E (1, 4, 3, 0x18): iconToSprite sizes it
 	e.combatUseHook()
 	e.as(e.sel)
@@ -42,8 +43,42 @@ func (e *Engine) combatMapSetup() {
 	for _, l := range lays {
 		e.LayTiles(l)
 	}
+	e.layPlaceTiles()
 	if _, err := e.ruleset().Resolve(e.fight(), e.groundTerms(), nil); err != nil {
 		panic(fmt.Sprintf("combat ground: %v", err))
+	}
+}
+
+// layPlaceTiles is LoadCombatTileSet's sheet by the place (the game's PlaceTiles): the arena's tiles are a fresh set with
+// the sheet laid in it, in the sheet's own colours.
+func (e *Engine) layPlaceTiles() {
+	traits, _ := e.placeTraits()
+	for _, l := range e.artNames().PlaceTiles {
+		if !l.Fits(traits) {
+			continue
+		}
+		im := e.LoadPic(l.File, l.Block)
+		if im == nil {
+			panic(fmt.Sprintf("combat tiles: no %s block %d in the art", l.File, l.Block))
+		}
+		e.sqrpaci[0] = blankTiles()
+		e.sqrpaci[0].Palette = im.Palette
+		e.LayTiles(l)
+		return
+	}
+}
+
+// loadMemberIcons loads each party unit's whole-picture icon (saveload.pas LoadCharIconAnim: the sheet's block the record's
+// icon names, into the slot of its orderNumber); a game that composes its members' icons has no sheet.
+func (e *Engine) loadMemberIcons() {
+	sheet := e.artNames().MemberIcons
+	if sheet == "" {
+		return
+	}
+	for _, u := range e.fact(rules.NoChar, rules.UnitsFact{}).(rules.Units) {
+		if u.Party {
+			e.LoadIconPic(sheet, e.fact(u.ID, rules.IconPicsFact{}).(rules.IconPics).Body, u.Icon)
+		}
 	}
 }
 

@@ -64,7 +64,8 @@ var (
 // brArt is the art BR1 and BR2 name: the combat sprites COMSPR blocks 1..25 in icon rows 13..37 (gameinit.pas
 // LoadIconAnim('COMSPR', index, index + 13 - 1)) and the shots' icons of cbtacts.pas AnimateMissile (the same in both games:
 // the pace 10; the directed ones are Animate(firstKind), the rest the two-frame icons 30 and 37, which also fly for a grenade).
-var brArt = adventure.ArtNames{CombatSprites: "COMSPR", Title: "TITLE",
+var brArt = adventure.ArtNames{CombatSprites: "COMSPR", Title: "TITLE", IconMask: brIconMask, PlainIcons: true, MemberIcons: "CHARS",
+	PlaceTiles: brCombatTiles, TerrainTiles: brTerrainTiles,
 	SpriteSlots: []adventure.SpriteLoad{{Block: 1, Slot: 13, Count: 25}},
 	Missiles: []adventure.MissileArt{
 		{Kind: rules.FlightDefault, Slot: 37, Pace: brMissilePace},
@@ -75,6 +76,19 @@ var brArt = adventure.ArtNames{CombatSprites: "COMSPR", Title: "TITLE",
 		{Kind: rules.FlightGunBolt, Slot: 22, Directed: true, Pace: brMissilePace},
 		{Kind: rules.FlightRocket, Slot: 25, Directed: true, Pace: brMissilePace},
 	}}
+
+// brIconMask is the colour COMSPR, CHARS and CPIC icons are masked on (maptiles.pas LoadIconAnim: LoadPic(.., True, 8, ..)).
+const brIconMask = 8
+
+// brCombatTiles is combatst.pas LoadCombatTileSet: the arena's tile sheet by the area kind, Load24x24Set(name, 1, slot, n) laying
+// the sheet's block 1 from tile slot: marscom (Mars wilderness $A8: a wilderness with the terrain shift) and venuscom (the
+// other wilderness) 52 tiles from 1, lotek ($88, $82) and hitek (all else) 53 from 0.
+var brCombatTiles = []adventure.TileLoad{
+	{File: "MARSCOM", Block: 1, First: 1, Last: 51, When: rules.TraitWilderness | rules.TraitTerrainShift},
+	{File: "VENUSCOM", Block: 1, First: 1, Last: 51, When: rules.TraitWilderness, Unless: rules.TraitTerrainShift},
+	{File: "LOTEK", Block: 1, First: 0, Last: 52, When: rules.TraitLowTech, Unless: rules.TraitWilderness},
+	{File: "HITEK", Block: 1, First: 0, Last: 52, Unless: rules.TraitWilderness | rules.TraitLowTech},
+}
 
 // brMissilePace is AnimateMissile's local.pace := 10.
 const brMissilePace = 10
