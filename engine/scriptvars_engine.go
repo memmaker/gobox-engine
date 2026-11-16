@@ -200,6 +200,7 @@ func (e *Engine) newEngineFields() map[string]engineField {
 		fieldEffectTable: {stored: true, get: func(i int) (int64, bool) { v, ok := e.effect(i); return int64(v), ok }},
 	}
 	maps.Copy(m, e.memberFields())
+	maps.Copy(m, e.shipFields())
 	for i, name := range selFlagFields {
 		f := rules.FlagFact{Slot: i}
 		m[name] = engineField{get: func(int) (int64, bool) { return e.selFact(f), true },

@@ -112,6 +112,7 @@ var notAnswered = map[string]bool{
 	"Forget":        true,
 	"GiveItem":      true,
 	"Halve":         true,
+	"ShipCellFact":  true,
 	"Heal":          true,
 	"Identify":      true,
 	"Intimidate":    true,

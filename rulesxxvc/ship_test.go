@@ -1,6 +1,7 @@
 package rulesxxvc
 
 import (
+	"gobox/rules/xxvc"
 	"testing"
 
 	"gobox/rules"
@@ -35,5 +36,29 @@ func TestShipArithmetic(t *testing.T) {
 	r = rules.RNG{State: 1}
 	if CrewLost(&r, 120, 0) || r.State == 1 {
 		t.Error("no crew: rolls, loses none")
+	}
+}
+
+// TestShipCells: the scripts' ship cells (ShipCellFact) read and write the party's ship and the foe's summary
+// by the record's width; the crew's byte replaces the word's low byte.
+func TestShipCells(t *testing.T) {
+	r := &Rules{tables: xxvc.Tables{Ships: map[rules.ShipID]xxvc.ShipRecord{xxvc.PartyShip: {Status: [6]int16{1, 2, 3, 4, 5, 6}}}}}
+	fuel := rules.ShipCellFact{Part: rules.ShipSystemStatus, Index: 4}
+	if n, err := r.shipNumber(fuel); err != nil || n != 5 {
+		t.Fatalf("fuel %d %v", n, err)
+	}
+	if err := r.SetFact(rules.NoChar, fuel, rules.Number(400)); err != nil {
+		t.Fatal(err)
+	}
+	if n, _ := r.shipNumber(fuel); n != 400 {
+		t.Errorf("fuel word %d", n)
+	}
+	r.foeSaved.Crew = 0x0102
+	crew := rules.ShipCellFact{Foe: true, Part: rules.ShipCrew}
+	if err := r.SetFact(rules.NoChar, crew, rules.Number(9)); err != nil || r.foeSaved.Crew != 0x0109 {
+		t.Errorf("foe crew %#x %v", r.foeSaved.Crew, err)
+	}
+	if err := r.SetFact(rules.NoChar, rules.ShipCellFact{Part: rules.ShipMountAmmo, Index: 8}, rules.Number(1)); err == nil {
+		t.Error("a ninth mount was set")
 	}
 }

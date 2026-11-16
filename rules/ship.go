@@ -16,6 +16,28 @@ type ShipEncounter struct {
 	PilotSkill, ToHit int32
 }
 
+// ShipPart is the kind of cell of the party's ship a PartyShipFact reads (types.pas TShip).
+type ShipPart uint8
+
+const (
+	ShipSystemStatus ShipPart = iota + 1 // systemStatus[Index], the system's strength (Index: the ruleset's system order)
+	ShipMountStatus                      // weapons[Index].status
+	ShipMountAmmo                        // weapons[Index].ammo
+	ShipMountReloads                     // weapons[Index].reloads
+	ShipCrew                             // crew, the low byte as the scripts' byte reads it (Index 0)
+	ShipWeaponCount                      // the foe's weapons: how many mounts it has (Index 0; foe only)
+)
+
+// ShipCellFact is one number of the party's own ship, or of the last foe's summary (Foe), which the ruleset
+// owns and the scripts read and write (SetFact with NoChar). Index is a system or a mount, by Part.
+type ShipCellFact struct {
+	Foe   bool
+	Part  ShipPart
+	Index int
+}
+
+func (ShipCellFact) fact() {}
+
 // Gauge is a system's state.
 type Gauge struct{ Now, Max int32 }
 

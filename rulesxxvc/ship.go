@@ -1,7 +1,9 @@
 package rulesxxvc
 
 import (
+	"fmt"
 	"gobox/rules"
+	"gobox/rules/xxvc"
 )
 
 // ShipSkillCheck is shipcbt.pas ShipCombat's SkillCheck once the value is
@@ -97,4 +99,81 @@ func HitSystem(r *rules.RNG) int {
 // support failed).
 func CrewLost(r *rules.RNG, value, crew int) bool {
 	return PercentileRoll(r, int(uint8(uint16(value)>>1))) && crew > 0 // PercentileRoll takes a Byte
+}
+
+// shipCell is the cell a ShipCellFact names of the party's ship (ok false: it has no such cell). The word cells
+// come back as p, the byte cells as b.
+func shipCell(s *xxvc.ShipRecord, f rules.ShipCellFact) (p *int16, b *uint8, ok bool) {
+	switch {
+	case f.Part == rules.ShipSystemStatus && f.Index >= 0 && f.Index < len(s.Status):
+		return &s.Status[f.Index], nil, true
+	case f.Part == rules.ShipCrew:
+		return &s.Crew, nil, true
+	case f.Index < 0 || f.Index >= len(s.Mounts):
+		return nil, nil, false
+	}
+	m := &s.Mounts[f.Index]
+	switch f.Part {
+	case rules.ShipMountStatus:
+		return nil, &m.Status, true
+	case rules.ShipMountAmmo:
+		return nil, &m.Ammo, true
+	case rules.ShipMountReloads:
+		return nil, &m.Reloads, true
+	}
+	return nil, nil, false
+}
+
+// foeCell is the cell a ShipCellFact names of the last foe's summary (zone0's savedFoe, the Area[620..642] copy).
+func foeCell(s *savedFoe, f rules.ShipCellFact) (p *int16, b *uint8, ok bool) {
+	switch {
+	case f.Part == rules.ShipSystemStatus && f.Index >= 0 && f.Index < len(s.Status):
+		return &s.Status[f.Index], nil, true
+	case f.Part == rules.ShipCrew:
+		return &s.Crew, nil, true
+	case f.Part == rules.ShipWeaponCount:
+		return nil, &s.WeaponCount, true
+	}
+	return nil, nil, false
+}
+
+// cell is the address of the number f names.
+func (r *Rules) cell(f rules.ShipCellFact) (*int16, *uint8, bool) {
+	if f.Foe {
+		return foeCell(&r.foeSaved, f)
+	}
+	r.partyShip()
+	return shipCell(r.ship, f)
+}
+
+// shipNumber is a number of the party's or the foe's ship (the scripts' reads of Area[512..642]).
+func (r *Rules) shipNumber(f rules.ShipCellFact) (int32, error) {
+	p, b, ok := r.cell(f)
+	switch {
+	case !ok:
+		return 0, fmt.Errorf("rulesxxvc: no ship cell %+v", f)
+	case p != nil && f.Part == rules.ShipCrew:
+		return int32(uint8(*p)), nil
+	case p != nil:
+		return int32(*p), nil
+	}
+	return int32(*b), nil
+}
+
+// setShipCell is a script's write of a ship cell, stored as the record's width (a word or a byte); the crew's
+// byte replaces the word's low byte.
+func (r *Rules) setShipCell(f rules.ShipCellFact, v rules.Value) error {
+	n, isNumber := v.(rules.Number)
+	p, b, ok := r.cell(f)
+	switch {
+	case !ok || !isNumber:
+		return fmt.Errorf("rulesxxvc: no ship cell %+v to set to %v", f, v)
+	case p != nil && f.Part == rules.ShipCrew:
+		*p = int16(uint16(*p)&0xFF00 | uint16(uint8(n)))
+	case p != nil:
+		*p = int16(n)
+	default:
+		*b = uint8(n)
+	}
+	return nil
 }

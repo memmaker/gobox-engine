@@ -82,6 +82,9 @@ func (r *Rules) Fact(id rules.CharID, f rules.Fact) (rules.Value, error) {
 
 // SetFact stores; consequences are Actions (core.Fact).
 func (r *Rules) SetFact(id rules.CharID, f rules.Fact, v rules.Value) error {
+	if f, ok := f.(rules.ShipCellFact); ok {
+		return r.setShipCell(f, v)
+	}
 	c := r.chars[id]
 	if c == nil {
 		return fmt.Errorf("SetFact %d: no character", id)

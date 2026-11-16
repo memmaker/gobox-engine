@@ -217,30 +217,30 @@
 4CF7 1 byte game LoopLimit # Area[503]: FOR/NEXT limit; engine only (not in BR1 scripts)
 4CFD 1 byte game Word4CFD # scripts: byte r34/w94
 4CFE 1 byte game Word4CFE # scripts: byte r33/w86
-4D16 1 word game Word4D16 # scripts: word r1/w2
-4D18 1 word game Word4D18 # scripts: word r3/w2
-4D1A 1 word game Word4D1A # scripts: word r4/w4
-4D1C 1 word game Word4D1C # scripts: word r3/w4
-4D1E 1 word game Word4D1E # scripts: word r10/w5
-4D20 1 word game Word4D20 # scripts: word r4/w4
-4D3E 1 byte game Word4D3E # scripts: byte r1/w2
-4D40 1 byte game Word4D40 # scripts: byte r0/w1
-4D41 1 byte game Word4D41 # scripts: byte r3/w2
-4D44 1 byte game Word4D44 # scripts: byte r1/w2
-4D46 1 byte game Word4D46 # scripts: byte r0/w1
-4D47 1 byte game Word4D47 # scripts: byte r3/w2
-4D4A 1 byte game Word4D4A # scripts: byte r1/w2
-4D6C 1 word game Word4D6C # scripts: word r1/w0
-4D6E 1 word game Word4D6E # scripts: word r1/w0
-4D70 1 word game Word4D70 # scripts: word r3/w0
-4D72 1 word game Word4D72 # scripts: word r1/w0
-4D76 1 word game Word4D76 # scripts: word r3/w0
+4D16 1 word game ShipHull # scripts: word r1/w2
+4D18 1 word game ShipSensors # scripts: word r3/w2
+4D1A 1 word game ShipControl # scripts: word r4/w4
+4D1C 1 word game ShipLifeSupport # scripts: word r3/w4
+4D1E 1 word game ShipFuel # scripts: word r10/w5
+4D20 1 word game ShipEngines # scripts: word r4/w4
+4D3E 1 byte game ShipMount0Status # scripts: byte r1/w2
+4D40 1 byte game ShipMount0Ammo # scripts: byte r0/w1
+4D41 1 byte game ShipMount0Reloads # scripts: byte r3/w2
+4D44 1 byte game ShipMount1Status # scripts: byte r1/w2
+4D46 1 byte game ShipMount1Ammo # scripts: byte r0/w1
+4D47 1 byte game ShipMount1Reloads # scripts: byte r3/w2
+4D4A 1 byte game ShipMount2Status # scripts: byte r1/w2
+4D6C 1 word game FoeHull # scripts: word r1/w0
+4D6E 1 word game FoeSensors # scripts: word r1/w0
+4D70 1 word game FoeControl # scripts: word r3/w0
+4D72 1 word game FoeLifeSupport # scripts: word r1/w0
+4D76 1 word game FoeEngines # scripts: word r3/w0
 4D78 1 byte game Word4D78 # space-fight foe byte (foe[57]); engine only (not in BR1 scripts)
-4D79 1 byte game Word4D79 # space-fight foe byte (foe[48]); scripts: byte r8/w3
+4D79 1 byte game FoeCrew # space-fight foe byte (foe[48]); scripts: byte r8/w3
 4D7A 1 byte game Word4D7A # space-fight foe byte (foe[49]); engine only (not in BR1 scripts)
 4D7B 1 byte game Word4D7B # space-fight foe byte (foe[53]); engine only (not in BR1 scripts)
 4D7C 1 byte game FightState # Area[636]: combat/space-fight outcome state (loot.go:79,111,119); scripts: byte r3/w2
-4D81 1 byte game Word4D81 # space-fight foe weapons sum (spacefight.go:1285-1287); scripts: byte r1/w0
+4D81 1 byte game FoeWeaponCount # space-fight foe weapons sum (spacefight.go:1285-1287); scripts: byte r1/w0
 4D82 1 byte game Word4D82 # space-fight foe, cleared (spacefight.go:1289); engine only (not in BR1 scripts)
 7B04 7 text game Word7B04 # scripts: text r2/w9
 7B0B 1 text game Word7B0B # scripts: text r3/w1

@@ -297,6 +297,9 @@ func (r *Rules) factSession(id rules.CharID, f rules.Fact) (v rules.Value, ok bo
 		return rules.Party(slices.Clone(r.party)), true, nil
 	case rules.PurseFact:
 		return r.partyPurse(f.Loot), true, nil
+	case rules.ShipCellFact:
+		n, err := r.shipNumber(f)
+		return rules.Number(n), true, err
 	case rules.ItemByNumber:
 		// the scripts' item number is the item type (ItemTemplate.Type), whose kind is the id (xxvc.ItemKinds)
 		if id, ok := xxvc.ItemKinds[int32(f.N)]; ok {
