@@ -59,7 +59,7 @@ func (e *Engine) opSkill() {
 	e.host.Set(outcome, int64(a.Grade))
 	if e.cmdIs(ecl.OpSkillShow) {
 		e.scriptText(true, a.Text)
-		e.askPause(skillReportPauses*int(e.msgDelay)*messageDelayUnit, askDone{})
+		e.askPause(e.messagePause(skillReportPauses), askDone{})
 	}
 }
 

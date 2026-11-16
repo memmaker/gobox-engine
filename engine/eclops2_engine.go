@@ -314,7 +314,7 @@ func (e *Engine) opCall() {
 			e.es.wallAhead = e.WallAt(e.posX, e.posY, e.facing)
 		}
 	case ecl.CallPause: // cotab gameDelay, sotsb pauseForMessage
-		e.askPause(int(e.msgDelay)*messageDelayUnit, askDone{})
+		e.askPause(e.messagePause(1), askDone{})
 	case ecl.CallNextFrame: // pod: the picture's next frame, wrapping at its frame count
 		e.nextPictureFrame()
 	}
@@ -355,8 +355,18 @@ func (e *Engine) opClearExit() {
 	e.opExit()
 }
 
-// messageDelayUnit is one step of the message delay, the unit of a script's pause after its message.
+// messageDelayUnit is one step of the message delay, the unit of a script's pause after its message (the
+// dialect's Behaviour.MessageDelayMs where it has one).
 const messageDelayUnit = 0xE1
+
+// messagePause is the pause of n steps of the game's message speed in ms; none at speed 0.
+func (e *Engine) messagePause(n int) int {
+	unit := e.eclVersion.Behaviour.MessageDelayMs
+	if unit == 0 {
+		unit = messageDelayUnit
+	}
+	return n * int(e.msgDelay) * unit
+}
 
 // opGainExperience = sotsb O050:37F4 (whole party, points): the points go
 // to everyone (or the selected member), split among each one's classes.
@@ -372,7 +382,7 @@ func (e *Engine) opGainExperience() {
 	}
 	e.do(rules.GainExperience{Whom: whom, Points: int32(uint16(e.vm.Arg(2, e.host)))})
 	e.scriptText(true, text)
-	e.askPause(int(e.msgDelay)*messageDelayUnit, askDone{})
+	e.askPause(e.messagePause(1), askDone{})
 }
 
 // opSpell = sotsb O050:3410 (spell, slot, who): who in the party first has
@@ -643,7 +653,7 @@ func (e *Engine) opWho() {
 // opDelay = ovr04:271F.
 func (e *Engine) opDelay() {
 	e.vm.PC++
-	e.askPause(int(e.msgDelay)*messageDelayUnit, askDone{})
+	e.askPause(e.messagePause(1), askDone{})
 }
 
 // opProtection = ovr04:2E7D (base): the glyph string stored in the

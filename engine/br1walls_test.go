@@ -85,3 +85,19 @@ func TestBR1ScriptSound(t *testing.T) {
 		t.Error("the intro sounded nothing")
 	}
 }
+
+// TestBR1DelayMs: a script's Delay pauses 100 ms a unit of the game speed (BR textrend.pas PauseOnly), none at speed 0.
+func TestBR1DelayMs(t *testing.T) {
+	for _, c := range []struct{ speed, ms int }{{3, 300}, {0, 0}} {
+		e := br1Begun(t)
+		e.msgDelay = byte(c.speed)
+		br1OwnBlock(t, e, 201, "    Delay()")
+		got := 0
+		if e.eclWait != nil {
+			got = e.eclWait.ms
+		}
+		if got != c.ms {
+			t.Errorf("speed %d: pause %d ms, want %d", c.speed, got, c.ms)
+		}
+	}
+}
