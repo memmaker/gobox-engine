@@ -127,6 +127,12 @@ func (r *Rules) resolveSession(a rules.Action) (o rules.Outcome, ok bool, err er
 		// No XXVc counterpart: the item templates came with the tables at Begin.
 	case rules.SetSeed:
 		r.seed = rules.RNG{State: a.Seed}
+	case rules.RecordView:
+		r.walls = a // the wall slots the next Save records (saved with the rules: the area record's)
+	case rules.TakeSavedWalls:
+		w := rules.SavedWalls{A: r.walls.WallsA, B: r.walls.WallsB}
+		r.walls = rules.RecordView{}
+		return rules.Outcome{Effects: []rules.Effect{w}}, true, nil
 	case rules.NewAdventure:
 		// A new game's: the clock, the count, the acting member, the shared purse and
 		// the ship, which the first ship fight loads again (record 50). The characters

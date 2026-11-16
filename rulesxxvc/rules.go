@@ -119,8 +119,9 @@ type Rules struct {
 	memberCount int32          // the party's count as the game record has it (Party[830]), not the list's length
 	acting      int            // the member the rules act for (ActFor), an index into party
 	clock       [clockUnits]int
-	seed        rules.RNG    // the stream the engine's calls without one roll from (SetSeed)
-	empty       rules.CharID // the placeholder of an empty party (EmptyMember); NoChar until asked
+	seed        rules.RNG        // the stream the engine's calls without one roll from (SetSeed)
+	empty       rules.CharID     // the placeholder of an empty party (EmptyMember); NoChar until asked
+	walls       rules.RecordView // the wall slots the next Save records, and a Load brought (RecordView, TakeSavedWalls)
 }
 
 var _ rules.Rules = (*Rules)(nil)
@@ -322,11 +323,12 @@ type saved struct {
 	Clock  [clockUnits]int
 	Seed   uint32
 	Empty  rules.CharID `json:",omitempty"`
+	Walls  rules.RecordView
 }
 
 func (r *Rules) Save() ([]byte, error) {
 	return json.Marshal(saved{Chars: r.chars, Order: r.order, Next: r.next, Purse: r.purse, Ship: r.ship, Foe: r.foeSaved,
-		Party: r.party, Count: r.memberCount, Acting: r.acting, Clock: r.clock, Seed: r.seed.State, Empty: r.empty})
+		Party: r.party, Count: r.memberCount, Acting: r.acting, Clock: r.clock, Seed: r.seed.State, Empty: r.empty, Walls: r.walls})
 }
 
 func (r *Rules) Load(b []byte) error {
@@ -336,6 +338,13 @@ func (r *Rules) Load(b []byte) error {
 	}
 	r.chars, r.order, r.next, r.purse, r.ship, r.foeSaved = s.Chars, s.Order, s.Next, s.Purse, s.Ship, s.Foe
 	r.party, r.memberCount, r.acting, r.clock, r.seed, r.empty = s.Party, s.Count, s.Acting, s.Clock, rules.RNG{State: s.Seed}, s.Empty
+	r.walls = s.Walls
+	r.nextItem = 0 // handOut's last handle: the largest one the loaded characters carry, so a new item never repeats one
+	for _, c := range r.chars {
+		for _, it := range slices.Concat(c.Items, c.Stashed) {
+			r.nextItem = max(r.nextItem, it.Handle)
+		}
+	}
 	if r.chars == nil {
 		r.chars = map[rules.CharID]*Character{}
 	}

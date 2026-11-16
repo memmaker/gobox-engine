@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 
@@ -214,5 +215,85 @@ func TestBR1RestMenu(t *testing.T) {
 	}
 	if got := paneText(commonOf(e.build())); !strings.HasPrefix(got, "AFTER THE REST") {
 		t.Errorf("the script did not go on after Exit: %q", got)
+	}
+}
+
+// br1Loaded is a fresh BR1 engine at the party menu that loads blob (Engine.Save's).
+func br1Loaded(t *testing.T, blob []byte) *Engine {
+	t.Helper()
+	e := br1Engine(t)
+	e.Open("")
+	e.titleDone()
+	e.Advance()
+	if err := e.Load(blob); err != nil {
+		t.Fatal(err)
+	}
+	br1Settle(e)
+	return e
+}
+
+// br1Settle lets the engine's own steps run until it waits for a decision.
+func br1Settle(e *Engine) { e.Advance() }
+
+// TestBR1SaveLoadExploring: a game saved while exploring block 16 after the intro, loaded into a fresh engine, goes on at the
+// same square with the same party, purse, script cells, clock and view, and does not play the intro again.
+func TestBR1SaveLoadExploring(t *testing.T) {
+	a := br1Begun(t)
+	blob, err := a.Save()
+	if err != nil {
+		t.Fatal(err)
+	}
+	b := br1Loaded(t, blob)
+	wa, wb := commonOf(a.build()), commonOf(b.build())
+	if _, ok := b.build().(game.Exploring); !ok {
+		t.Fatalf("loaded into %T %q, want exploring", b.build(), paneText(wb))
+	}
+	if !reflect.DeepEqual(wa.Where, wb.Where) {
+		t.Errorf("where %+v, loaded %+v", wa.Where, wb.Where)
+	}
+	if wb.Ask != nil || paneText(wb) != "" {
+		t.Errorf("the intro plays again: %q %+v", paneText(wb), wb.Ask)
+	}
+	if len(wa.Party) == 0 || len(wa.Party) != len(wb.Party) || wa.Party[0].Name != wb.Party[0].Name || wa.Party[0].HP != wb.Party[0].HP {
+		t.Errorf("party %+v, loaded %+v", wa.Party, wb.Party)
+	}
+	if !reflect.DeepEqual(wa.Purse, wb.Purse) {
+		t.Errorf("purse %v, loaded %v", wa.Purse, wb.Purse)
+	}
+	for _, name := range []string{fieldScriptBlock, "MsgDelay", "LastX", "LastY", "Word4BFB", "Word4BFD", "Word4BFE"} {
+		ra, ok := a.layoutField(name)
+		if !ok {
+			t.Fatalf("no %s", name)
+		}
+		rb, _ := b.layoutField(name)
+		if a.host.Get(ra) != b.host.Get(rb) {
+			t.Errorf("%s %d, loaded %d", name, a.host.Get(ra), b.host.Get(rb))
+		}
+	}
+	if a.world.Scripted != b.world.Scripted || a.world.In3D != b.world.In3D || a.clockPart(rules.ClockMinuteOfDay) != b.clockPart(rules.ClockMinuteOfDay) {
+		t.Errorf("scripted %d/%d In3D %d/%d clock %d/%d", a.world.Scripted, b.world.Scripted, a.world.In3D, b.world.In3D,
+			a.clockPart(rules.ClockMinuteOfDay), b.clockPart(rules.ClockMinuteOfDay))
+	}
+}
+
+// TestBR1SaveLoadScriptedPlace: a game saved in block 17 (a scripted place: the base's menu) loads back into its menu, the
+// walls of the view the same.
+func TestBR1SaveLoadScriptedPlace(t *testing.T) {
+	a := br1Begun(t)
+	br1ToBaseMenu(t, a)
+	if !br1AtBaseMenu(a) {
+		t.Fatal("not at the base's menu")
+	}
+	blob, err := a.Save()
+	if err != nil {
+		t.Fatal(err)
+	}
+	b := br1Loaded(t, blob)
+	if !br1AtBaseMenu(b) {
+		c := commonOf(b.build())
+		t.Fatalf("loaded into %T %q ask %+v", b.build(), paneText(c), c.Ask)
+	}
+	if b.gs.areaKind != 17 || b.world.Scripted != a.world.Scripted {
+		t.Errorf("block %d scripted %d, want 17 and %d", b.gs.areaKind, b.world.Scripted, a.world.Scripted)
 	}
 }
