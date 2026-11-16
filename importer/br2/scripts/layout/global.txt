@@ -56,8 +56,8 @@
 4BE7 1 byte game Word4BE7 # scripts: byte r0/w28
 4BE8 1 byte game Word4BE8 # scripts: byte r0/w28
 4BE9 1 byte game Word4BE9 # scripts: byte r0/w28
-4BF0 1 byte game LastX # Area[240]: party x saved on a step (adv.go:417) [BR2: buckrogers2-go rules/adv.go:464; types.pas TZone0.prevX]; scripts: byte r24/w5
-4BF1 1 byte game LastY # Area[241]: party y saved on a step (adv.go:417) [BR2: buckrogers2-go rules/adv.go:464; types.pas TZone0.prevY]; scripts: byte r25/w5
+4BF0 1 byte game PrevX # Area[240]: party x saved on a step (adv.go:417) [BR2: buckrogers2-go rules/adv.go:464; types.pas TZone0.prevX]; scripts: byte r24/w5
+4BF1 1 byte game PrevY # Area[241]: party y saved on a step (adv.go:417) [BR2: buckrogers2-go rules/adv.go:464; types.pas TZone0.prevY]; scripts: byte r25/w5
 4BF2 1 byte game ScriptBlock # Area[242]: current ECL block number (adv.go:124,363) [BR2: buckrogers2-go rules/adv.go:146,423; types.pas TZone0.stateValue]; scripts: byte r50/w36
 4BFB 1 byte game Word4BFB # scripts: byte r0/w26
 4BFC 1 byte game MsgDelay # Area[252]: game speed, pauses = value*100 ms (rest.go:172, eclops.go:63); POD global.txt calls it MsgDelay [BR2: buckrogers2-go rules/rest.go:172; types.pas TZone0.messageSpeed]; scripts: byte r0/w2

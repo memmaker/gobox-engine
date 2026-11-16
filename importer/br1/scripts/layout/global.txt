@@ -30,8 +30,8 @@
 4BE7 1 byte game Word4BE7 # wall-set selector flag (eclops.go:444, with Area[232]); scripts: byte r0/w15
 4BE8 1 byte game Word4BE8 # wall-set selector flag (eclops.go:444, with Area[231]); scripts: byte r0/w15
 4BE9 1 byte game Word4BE9 # scripts: byte r0/w15
-4BF0 1 byte game LastX # Area[240]: party x saved on a step (adv.go:417); scripts: byte r3/w3
-4BF1 1 byte game LastY # Area[241]: party y saved on a step (adv.go:417); scripts: byte r3/w3
+4BF0 1 byte game PrevX # Area[240]: party x saved on a step (adv.go:417); scripts: byte r3/w3
+4BF1 1 byte game PrevY # Area[241]: party y saved on a step (adv.go:417); scripts: byte r3/w3
 4BF2 1 byte game ScriptBlock # Area[242]: current ECL block number (adv.go:124,363); scripts: byte r38/w6
 4BFB 1 byte game Word4BFB # scripts: byte r0/w17
 4BFC 1 byte game MsgDelay # Area[252]: game speed, pauses = value*100 ms (rest.go:172, eclops.go:63); POD global.txt calls it MsgDelay; engine only (not in BR1 scripts)

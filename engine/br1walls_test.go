@@ -260,7 +260,7 @@ func TestBR1SaveLoadExploring(t *testing.T) {
 	if !reflect.DeepEqual(wa.Purse, wb.Purse) {
 		t.Errorf("purse %v, loaded %v", wa.Purse, wb.Purse)
 	}
-	for _, name := range []string{fieldScriptBlock, "MsgDelay", "LastX", "LastY", "Word4BFB", "Word4BFD", "Word4BFE"} {
+	for _, name := range []string{fieldScriptBlock, "MsgDelay", "PrevX", "PrevY", "Word4BFB", "Word4BFD", "Word4BFE"} {
 		ra, ok := a.layoutField(name)
 		if !ok {
 			t.Fatalf("no %s", name)

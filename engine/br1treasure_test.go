@@ -49,3 +49,17 @@ func TestBR1ExperienceText(t *testing.T) {
 		t.Errorf("text %q", got)
 	}
 }
+
+// TestBR1PrevSquare: Area[240], [241] are the square before the step (eclvm.pas: previousX/Y := the party's
+// square after entry 1, before ResolveMovement): the one World.PrevX/PrevY, so a script reads them after a step.
+func TestBR1PrevSquare(t *testing.T) {
+	e := br1Begun(t)
+	br1OwnBlock(t, e, 205, "    PartyX = 3\n    PartyY = 4")
+	if br1Cell(t, e, "PrevX") != int64(e.world.PrevX) || br1Cell(t, e, "PrevY") != int64(e.world.PrevY) {
+		t.Fatalf("the cells are not the world's: %d %d / %d %d", br1Cell(t, e, "PrevX"), br1Cell(t, e, "PrevY"), e.world.PrevX, e.world.PrevY)
+	}
+	e.world.PrevX, e.world.PrevY = 9, 8
+	if br1Cell(t, e, "PrevX") != 9 || br1Cell(t, e, "PrevY") != 8 {
+		t.Errorf("the cells read %d %d, want 9 8", br1Cell(t, e, "PrevX"), br1Cell(t, e, "PrevY"))
+	}
+}
