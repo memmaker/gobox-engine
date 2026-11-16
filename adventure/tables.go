@@ -35,6 +35,7 @@ type GameTables struct {
 	BigPictures                BigPictures          // the Picture command's whole-screen BIGPIC pictures; zero: none (POR)
 	OverlandSteps              rules.Size           // MapX and MapY range over 0..W-1 and 0..H-1 on the overland, which is the whole map (BR1: 38 by 15, Area[195], [196]); zero: the Pool's window of the map (16 by 36, shifted by the view)
 	Places                     []Place              // the area blocks' own places (the front's music trigger); none: none
+	Space                      *SpaceMap            // the rocket's system map (BR1); nil: the game has none (the Pool games, BR2 yet)
 }
 
 // Place is area block Block's own place: the music trigger the front plays its own music for

@@ -159,6 +159,10 @@ func ImportBREngine(id string, e BREXE, dos, dst string) error {
 	if err := os.WriteFile(filepath.Join(data, adventure.SoundFile), []byte(brSilentSound), 0o644); err != nil {
 		return err
 	}
+	im, err := orig.Load(l.Path("START.EXE"), e.DS)
+	if err != nil {
+		return err
+	}
 	tables := adventure.GameTables{
 		Dialect:       rules.DialectBR,
 		AddNPCIcon:    true, // saveload.pas AddCreatureToParty loads the NPC's CPIC icon (both games)
@@ -173,6 +177,7 @@ func ImportBREngine(id string, e BREXE, dos, dst string) error {
 		Places:        start.Places,
 		ScriptSounds:  brScriptSounds(),
 		OverlandSteps: start.Overland,
+		Space:         SpaceTables(im.Mem[im.DS:], e),
 	}
 	if start.Walls {
 		// the 3D view's textures: buckrogers-go rules/wallindex.txt as walls/<id>.txt (chunk (value-1)/5+1, wall (value-1)%5+1); the

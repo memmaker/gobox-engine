@@ -36,6 +36,9 @@ type BREXE struct {
 	ShipWeapons, WeaponShort, ShipTypes int
 	// Explosion is ShipCbt DamageCrew's hurt when the party's hull goes.
 	Explosion xxvc.Explosion
+	// Space is GDConsts.orbitPositions[0] (58 rows of 3 Bytes), the orbit tables right after it, and MapSteps GDConsts.mapStepX (8
+	// ShortInts) with mapStepY after: the rocket's system map; 0: none yet (BR2).
+	Space, MapSteps int
 }
 
 // Ammunition item types (gdconsts.pas ammoPrices' bounds).
