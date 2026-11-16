@@ -421,7 +421,7 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
       3. [ ] t1: the sheet, team menu and roster for XXVc (AC as shown, health, no AD&D spell
          slots, the catalog's saves and abilities with their names, who seeds a new save
          folder's roster, BR's character creation in `rulesxxvc`)
-      4. [ ] l2: BR2's full script layout (as B1b2 for BR1) and `ImportBREngine` for BR2
+XX
       5. [ ] w1: BR on `cmd/gobox` through the shared engine (a host naming `rulesxxvc`), the
          front's data (`game.Data`: border, party menu, texts), walls without WALLDEF, sounds,
          portraits; windowed scripted smoke run
