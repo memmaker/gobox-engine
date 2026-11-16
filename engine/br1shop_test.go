@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"errors"
 	"path/filepath"
 	"slices"
 	"testing"
@@ -32,8 +33,11 @@ func br1Credits(e *Engine) rules.Copper {
 // TestBR1Shop: Shop(1) at PriceMultiplier 16 opens the shop with list 1's items at their values, newest first (shop.pas
 // ItemPrice, eclvm.pas EclShop); a buy takes the price and gives the item; a sale asks first, then pays half the value
 // (viewchar.pas SellItem); Leave goes on with the script after the shop.
-func TestBR1Shop(t *testing.T) {
-	e := br1Run(t, 201, "    PriceMultiplier = 16\n    Shop(1)\n    Word4C31 = 77")
+func TestBR1Shop(t *testing.T) { brShop(t, gameBR1) }
+
+// brShop is TestBR1Shop on game g: both games' itemListEntries list 1 is the same (gdconsts.pas), the templates are each game's own.
+func brShop(t *testing.T, g brGame) {
+	e := brRun(t, g, 201, "    PriceMultiplier = 16\n    Shop(1)\n    Word4C31 = 77")
 	tab := br1Tables(t, e)
 	tr, ok := e.build().(game.Trading)
 	if !ok || tr.Kind != game.TradeShop || !tr.Buys {
@@ -61,6 +65,7 @@ func TestBR1Shop(t *testing.T) {
 	}
 
 	good := tr.Goods[0]
+	brMakeRoom(t, e, e.partyIDs()[0])
 	before, n := br1Credits(e), len(e.listedItems(e.partyIDs()[0]))
 	rules1 := rules.Copper(good.Price)
 	if before < rules1 {
@@ -106,6 +111,23 @@ func TestBR1Shop(t *testing.T) {
 	}
 	if br1Cell(t, e, "Word4C31") != 77 {
 		t.Error("the script did not go on after the shop")
+	}
+}
+
+// brMakeRoom drops unreadied items of who until one more fits: a member at the item limit (maxCarriedItems 16; BR2's shipped
+// characters carry that many) is refused a buy as "OverLoaded" (shop.pas GiveItemCopyToCreature).
+func brMakeRoom(t *testing.T, e *Engine, who rules.CharID) {
+	t.Helper()
+	for _, h := range e.listedItems(who) {
+		if len(e.listedItems(who)) < 16 {
+			return
+		}
+		if _, err := e.ruleset().Resolve(nil, rules.DropItem{Who: who, Item: h}, nil); err != nil && !errors.Is(err, rules.ErrNotNow) { // a readied one stays
+			t.Fatal("drop:", err)
+		}
+	}
+	if len(e.listedItems(who)) >= 16 {
+		t.Fatal("no room made")
 	}
 }
 

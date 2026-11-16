@@ -185,8 +185,11 @@ func TestBR1OverlandMove(t *testing.T) {
 // TestBR1RestMenu: Program(9) opens the rest menu (explore.pas RestMenu) and holds the script, which goes on after Exit.
 // Rest is a day: every okay member one hit point up (and the clock a day on) (gametime.pas RestAndHeal(1), the same as
 // rulesxxvc.RestAndHeal).
-func TestBR1RestMenu(t *testing.T) {
-	e := br1Begun(t)
+func TestBR1RestMenu(t *testing.T) { brRestMenu(t, gameBR1) }
+
+// brRestMenu is TestBR1RestMenu on game g.
+func brRestMenu(t *testing.T, g brGame) {
+	e := brBegun(t, g)
 	hp := func() int { return int(e.selFact(rules.FactHP)) }
 	e.setSelFact(rules.FactHP, int64(hp()-3))
 	was := hp()
@@ -219,9 +222,12 @@ func TestBR1RestMenu(t *testing.T) {
 }
 
 // br1Loaded is a fresh BR1 engine at the party menu that loads blob (Engine.Save's).
-func br1Loaded(t *testing.T, blob []byte) *Engine {
+func br1Loaded(t *testing.T, blob []byte) *Engine { return brLoaded(t, gameBR1, blob) }
+
+// brLoaded is br1Loaded on game g.
+func brLoaded(t *testing.T, g brGame, blob []byte) *Engine {
 	t.Helper()
-	e := br1Engine(t)
+	e := brEngine(t, g)
 	e.Open("")
 	e.titleDone()
 	e.Advance()
@@ -237,13 +243,16 @@ func br1Settle(e *Engine) { e.Advance() }
 
 // TestBR1SaveLoadExploring: a game saved while exploring block 16 after the intro, loaded into a fresh engine, goes on at the
 // same square with the same party, purse, script cells, clock and view, and does not play the intro again.
-func TestBR1SaveLoadExploring(t *testing.T) {
-	a := br1Begun(t)
+func TestBR1SaveLoadExploring(t *testing.T) { brSaveLoadExploring(t, gameBR1) }
+
+// brSaveLoadExploring is TestBR1SaveLoadExploring on game g.
+func brSaveLoadExploring(t *testing.T, g brGame) {
+	a := brBegun(t, g)
 	blob, err := a.Save()
 	if err != nil {
 		t.Fatal(err)
 	}
-	b := br1Loaded(t, blob)
+	b := brLoaded(t, g, blob)
 	wa, wb := commonOf(a.build()), commonOf(b.build())
 	if _, ok := b.build().(game.Exploring); !ok {
 		t.Fatalf("loaded into %T %q, want exploring", b.build(), paneText(wb))

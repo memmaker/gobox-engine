@@ -63,8 +63,14 @@ func indexOf(q *game.Question, name string) int {
 // TestBR1SpaceFightPlayed: SpaceFight holds the script, the state is the ship fight with both ships, and a front's
 // answers play it to its end; the script goes on and reads FightState.
 func TestBR1SpaceFightPlayed(t *testing.T) {
-	e := br1Begun(t)
-	br1OwnBlock(t, e, 201, spaceFightScript)
+	brSpaceFightPlayed(t, gameBR1, spaceFightScript, "Word4CE2", "NewGameBytes")
+}
+
+// brSpaceFightPlayed is TestBR1SpaceFightPlayed on game g with the block's script, the cell it sets once the fight is over
+// (to 77) and the cell it reads FightState into.
+func brSpaceFightPlayed(t *testing.T, g brGame, script, doneCell, stateCell string) {
+	e := brBegun(t, g)
+	br1OwnBlock(t, e, 201, script)
 	f, ok := shipFightOn(e)
 	if !ok {
 		t.Fatalf("state %T", e.State())
@@ -72,11 +78,11 @@ func TestBR1SpaceFightPlayed(t *testing.T) {
 	if f.Fight.Own.Max[0] == 0 || f.Fight.Enemy.Max[0] == 0 || f.Fight.Range != 8 || !f.NoSave || f.Ask == nil || f.Ask.Text == "" {
 		t.Fatalf("the fight's first state: %+v ask %+v", f.Fight, f.Ask)
 	}
-	if got := br1Cell(t, e, "Word4CE2"); got == 77 {
+	if got := br1Cell(t, e, doneCell); got == 77 {
 		t.Fatal("the script went on while the fight was up")
 	}
 	steps, _ := answerShip(t, e, func(q *game.Question) int {
-		for _, n := range []string{"Fire", "Close", "Quit"} {
+		for _, n := range []string{"Fire", "Close", "Command", "Quit"} { // BR2's pilot reaches Close through Command
 			if i := indexOf(q, n); i >= 0 {
 				return i
 			}
@@ -84,10 +90,10 @@ func TestBR1SpaceFightPlayed(t *testing.T) {
 		return 0
 	})
 	t.Logf("%d answers", steps)
-	if got := br1Cell(t, e, "Word4CE2"); got != 77 {
+	if got := br1Cell(t, e, doneCell); got != 77 {
 		t.Fatalf("the script did not go on: %d", got)
 	}
-	if got := br1Cell(t, e, "NewGameBytes"); got != 0 && got != 1 {
+	if got := br1Cell(t, e, stateCell); got != 0 && got != 1 {
 		t.Fatalf("FightState %d", got)
 	}
 }

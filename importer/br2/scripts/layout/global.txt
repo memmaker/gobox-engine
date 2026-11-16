@@ -9,32 +9,7 @@
 # Engine ranges not listed (they overlay script-used addresses): ship record Area[512..619]=4D00..4D6B, foe summary Area[620..642]=4D6C..4D82 (BR1's note; BR2's 4D16..4D20, 4D6C.. words below are scripts' own use of them).
 4B00 1 byte game Word4B00 # SaveTable base of area1's debug poke V_4B00[&V_7F7B] = V_7F7D (index runs past the field: any Area byte); table base writes 1
 4B80 1 byte game ShipStageFlag # Area[128]: 0 picks the StHeal stage after combat, else StShip (loot.go:81, spacefight.go:1272) [BR2: buckrogers2-go rules/loot.go:81, spacefight.go:1272; types.pas TZone0.medicalDone]; engine only (not in BR2 scripts)
-4B85 1 byte game Word4B85 # scripts: byte r1/w0
-4B86 1 byte game Word4B86 # scripts: byte r1/w0
-4B87 1 byte game Word4B87 # scripts: byte r1/w0
-4B88 1 byte game Word4B88 # scripts: byte r1/w0
-4B89 1 byte game Word4B89 # scripts: byte r1/w0
-4B8A 1 byte game Word4B8A # scripts: byte r1/w0
-4B8B 1 byte game Word4B8B # scripts: byte r1/w0
-4B8C 1 byte game Word4B8C # scripts: byte r1/w0
-4B8D 1 byte game Word4B8D # scripts: byte r1/w0
-4B8E 1 byte game Word4B8E # scripts: byte r1/w0
-4B8F 1 byte game Word4B8F # scripts: byte r1/w0
-4B90 1 byte game Word4B90 # scripts: byte r1/w0
-4B91 1 byte game Word4B91 # scripts: byte r1/w0
-4B92 1 byte game Word4B92 # scripts: byte r1/w0
-4B93 1 byte game Word4B93 # scripts: byte r1/w0
-4B94 1 byte game Word4B94 # scripts: byte r1/w0
-4B95 1 byte game Word4B95 # scripts: byte r1/w0
-4B96 1 byte game Word4B96 # scripts: byte r1/w0
-4B97 1 byte game Word4B97 # scripts: byte r1/w0
-4B98 1 byte game Word4B98 # scripts: byte r1/w0
-4B99 1 byte game Word4B99 # scripts: byte r1/w0
-4B9A 1 byte game Word4B9A # scripts: byte r1/w0
-4B9B 1 byte game Word4B9B # scripts: byte r1/w0
-4B9C 1 byte game Word4B9C # scripts: byte r1/w0
-4B9D 1 byte game Word4B9D # scripts: byte r1/w0
-4B9E 1 byte game Word4B9E # scripts: byte r1/w0
+4B85 26 byte game BodySquares readonly # Area[133..158] zone0 bodyPositions: the 13 bodies' squares (x, y), derived from the orbit step by the system map (adventure.SpaceMap.Body), the rocket's; scripts: byte r1 each [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
 4BA5 1 byte game Word4BA5 # scripts: byte r7/w7
 4BA6 1 byte game AreaViewKind # Area[166]: view kind the AreaKind command writes (eclops.go:535: 0 3D, 2 rocket, 3 ?, 4 overland) [BR2: buckrogers2-go rules/eclops.go:554; types.pas TZone0.extendedPictureMode]; engine only (not in BR2 scripts)
 4BAB 1 byte game Word4BAB # scripts: byte r0/w7
@@ -42,8 +17,8 @@
 4BB7 1 byte game WildTerrain # Area[183] zone0 wildernessTerrain (types.pas: BuildWildernessArena's terrain, +10 when the area kind's low nibble is 8; old engine cmap.go wild(): Area[183]); written with Area[230] on the overland [BR2: buckrogers2-go rules/cmap.go:306 (+10 when the area kind low nibble is 8); types.pas TZone0.terrain]; scripts: byte r30/w36
 4BB8 1 byte game ItemsStashed # Area[184]: opStash flag (eclops.go:817) [BR2: buckrogers2-go rules/eclops.go:836; types.pas TZone0.listTransferState]; engine only (not in BR2 scripts)
 4BBA 1 byte game SpaceOwnShip # Area[186]: space fight 1 own ship (spacefight.go:383,388) [BR2: buckrogers2-go rules/spacefight.go:383,388; types.pas TZone0.shipCombatOutcome (0 enemy destroyed or boarded, 1 party ship lost or enemy gone)]; scripts: byte r4/w6
-4BBE 1 byte game Word4BBE # scripts: byte r7/w4
-4BBF 1 byte game Word4BBF # scripts: byte r7/w4
+4BBE 1 byte game RocketX # scripts: byte r7/w4 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
+4BBF 1 byte game RocketY # scripts: byte r7/w4 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
 4BC3 1 byte game MapX # Area[195]: the overland's square x (buckrogers-go rules/adv.go overland(): 0..37), the Pool's MapX; scripts: byte r27/w9
 4BC4 1 byte game MapY # Area[196]: the overland's square y (0..14), the Pool's MapY; scripts: byte r12/w9
 4BC5 1 byte game GeoBlock # Area[197]: current GEO map block, 127 none (eclops.go:430, savegame.go:172) [BR2: buckrogers2-go rules/eclops.go:448, adv.go:632; types.pas TZone0.mapId]; scripts: byte r2/w0
@@ -200,26 +175,26 @@
 4CF7 1 byte game LoopLimit # Area[503]: FOR/NEXT limit [BR2: buckrogers2-go rules/eclops.go:85,91; types.pas TZone0.loopLimit]; engine only (not in BR2 scripts)
 4CFD 1 byte game Word4CFD # scripts: byte r2/w30
 4CFE 1 byte game Word4CFE # scripts: byte r2/w15
-4D16 1 word game Word4D16 # scripts: word r13/w12
-4D18 1 word game Word4D18 # scripts: word r9/w6
-4D1A 1 word game Word4D1A # scripts: word r10/w8
-4D1C 1 word game Word4D1C # scripts: word r6/w6
-4D1E 1 word game Word4D1E # scripts: word r12/w7
-4D20 1 word game Word4D20 # scripts: word r8/w6
-4D3E 1 byte game Word4D3E # scripts: byte r1/w2
-4D40 1 byte game Word4D40 # scripts: byte r0/w1
-4D41 1 byte game Word4D41 # scripts: byte r3/w2
-4D44 1 byte game Word4D44 # scripts: byte r1/w2
-4D46 1 byte game Word4D46 # scripts: byte r0/w1
-4D47 1 byte game Word4D47 # scripts: byte r3/w2
-4D4A 1 byte game Word4D4A # scripts: byte r1/w2
-4D6C 1 word game Word4D6C # scripts: word r1/w0
-4D6E 1 word game Word4D6E # scripts: word r1/w0
-4D70 1 word game Word4D70 # scripts: word r1/w0
-4D72 1 word game Word4D72 # scripts: word r1/w0
-4D76 1 word game Word4D76 # scripts: word r1/w0
+4D16 1 word game ShipHull # scripts: word r13/w12 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
+4D18 1 word game ShipSensors # scripts: word r9/w6 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
+4D1A 1 word game ShipControl # scripts: word r10/w8 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
+4D1C 1 word game ShipLifeSupport # scripts: word r6/w6 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
+4D1E 1 word game ShipFuel # scripts: word r12/w7 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
+4D20 1 word game ShipEngines # scripts: word r8/w6 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
+4D3E 1 byte game ShipMount0Status # scripts: byte r1/w2 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
+4D40 1 byte game ShipMount0Ammo # scripts: byte r0/w1 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
+4D41 1 byte game ShipMount0Reloads # scripts: byte r3/w2 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
+4D44 1 byte game ShipMount1Status # scripts: byte r1/w2 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
+4D46 1 byte game ShipMount1Ammo # scripts: byte r0/w1 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
+4D47 1 byte game ShipMount1Reloads # scripts: byte r3/w2 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
+4D4A 1 byte game ShipMount2Status # scripts: byte r1/w2 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
+4D6C 1 word game FoeHull # scripts: word r1/w0 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
+4D6E 1 word game FoeSensors # scripts: word r1/w0 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
+4D70 1 word game FoeControl # scripts: word r1/w0 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
+4D72 1 word game FoeLifeSupport # scripts: word r1/w0 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
+4D76 1 word game FoeEngines # scripts: word r1/w0 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
 4D7C 1 byte game FightState # Area[636]: combat/space-fight outcome state (loot.go:79,111,119) [BR2: buckrogers2-go rules/loot.go:79,111,119]; scripts: byte r4/w8
-4D81 1 byte game Word4D81 # scripts: byte r1/w0
+4D81 1 byte game FoeWeaponCount # scripts: byte r1/w0 [BR2: same Area offset as BR1 (buckrogers2-go rules/space.go spaceRec 133, ship.go Area[512:620]; types.pas TOrbitView, TShipRec: systemNow at 22)]
 7A00 1 text game Word7A00 # scripts: text/byte r11/w23
 7A01 1 byte game Word7A01 # scripts: byte r9/w9
 7A02 1 byte game Word7A02 # scripts: byte r13/w11

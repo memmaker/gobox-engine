@@ -32,7 +32,13 @@ const br1AdjacentFight = "    ClearMonsters()\n    LoadMonster(41, count=2, icon
 // br1FoughtIn is br1Fought for a block whose load entry is body, the party facing facing (0: north, 2: east).
 func br1FoughtIn(t *testing.T, body string, facing int, choose func(game.Fighting) game.Action) (e *Engine, log []string, stop string) {
 	t.Helper()
-	e = br1Begun(t)
+	return brFoughtIn(t, gameBR1, body, facing, choose)
+}
+
+// brFoughtIn is br1FoughtIn on game g.
+func brFoughtIn(t *testing.T, g brGame, body string, facing int, choose func(game.Fighting) game.Action) (e *Engine, log []string, stop string) {
+	t.Helper()
+	e = brBegun(t, g)
 	br1Join(t, e)
 	e.facing = facing // SetupMonster counts the free squares ahead of the party (the start square's walls)
 	br1OwnBlock(t, e, 201, body)

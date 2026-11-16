@@ -14,21 +14,22 @@ import (
 	"gobox/importer"
 )
 
-// br1Originals are BR1's DOS files, beside the repo's data (skipped without).
-const br1Originals = "../data/br1/sources/dos"
-
 // br1Folder imports BR1 for the shared engine (gobox import -shared) into a
 // temp dir, once per test.
-func br1Folder(t *testing.T) importer.Folder {
+func br1Folder(t *testing.T) importer.Folder { return brFolder(t, "br1") }
+
+// brFolder imports game id (br1, br2) from its DOS files, beside the repo's data (skipped without), as above.
+func brFolder(t *testing.T, id string) importer.Folder {
 	t.Helper()
-	if _, err := os.Stat(filepath.Join(br1Originals, "START.EXE")); err != nil {
-		t.Skip("no BR1 originals:", err)
+	dos := filepath.Join("..", "data", id, "sources", "dos")
+	if _, err := os.Stat(filepath.Join(dos, "START.EXE")); err != nil {
+		t.Skip("no "+id+" originals:", err)
 	}
 	root := t.TempDir()
-	if err := importer.RunWith("br1", br1Originals, root, true); err != nil {
+	if err := importer.RunWith(id, dos, root, true); err != nil {
 		t.Fatal(err)
 	}
-	f, err := importer.Read(filepath.Join(root, "br1"))
+	f, err := importer.Read(filepath.Join(root, id))
 	if err != nil {
 		t.Fatal(err)
 	}

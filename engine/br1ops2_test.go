@@ -10,9 +10,12 @@ import (
 )
 
 // br1Run runs body as a block of the test's own on BR1 begun with its one member.
-func br1Run(t *testing.T, block int, body string) *Engine {
+func br1Run(t *testing.T, block int, body string) *Engine { return brRun(t, gameBR1, block, body) }
+
+// brRun is br1Run on game g.
+func brRun(t *testing.T, g brGame, block int, body string) *Engine {
 	t.Helper()
-	e := br1Begun(t)
+	e := brBegun(t, g)
 	br1OwnBlock(t, e, block, body)
 	return e
 }

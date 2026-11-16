@@ -11,13 +11,16 @@ import (
 // The rocket's tests mirror buckrogers-go TestRocketStep (the oracle) against buckroger-re explore.pas MoveRocket.
 
 // rocketMoveText is the test block's move entry: it copies the ship's column and the first and fifth bodies' squares into cells the
-// test reads (Word4BA5, Word4BAB, Word4BAA are scripts' words with no other meaning in a block of the test's own).
-const rocketMoveText = "Word4BA5 = RocketX\n    Word4BAB = BodySquares[0]\n    Word4BAA = BodySquares[9]"
+// test reads (Word4BA5, Word4BAB, Word4BE7 are scripts' words with no other meaning in a block of the test's own).
+const rocketMoveText = "Word4BA5 = RocketX\n    Word4BAB = BodySquares[0]\n    Word4BE7 = BodySquares[9]"
 
 // br1Flying is a begun BR1 game flying the rocket in a block of the test's own (view kind 2), the menu up.
-func br1Flying(t *testing.T) *Engine {
+func br1Flying(t *testing.T) *Engine { return brFlying(t, gameBR1) }
+
+// brFlying is br1Flying on game g.
+func brFlying(t *testing.T, g brGame) *Engine {
 	t.Helper()
-	e := br1Begun(t)
+	e := brBegun(t, g)
 	br1OwnBlockMove(t, e, 201, "AreaKind(2, 255)", rocketMoveText)
 	return e
 }
@@ -62,8 +65,11 @@ func rocketFuel(t *testing.T, e *Engine) string {
 
 // TestBR1RocketStart: the flight starts on orbit 2's body (9,8), heading 87's north, the counters clear (gameinit.pas
 // InitShipAndOrbit); the front gets the system map as an overland with the ship as the party, and a menu of Move.
-func TestBR1RocketStart(t *testing.T) {
-	e := br1Flying(t)
+func TestBR1RocketStart(t *testing.T) { brRocketStart(t, gameBR1) }
+
+// brRocketStart is TestBR1RocketStart on game g (both games start the flight the same: gameinit.pas InitShipAndOrbit).
+func brRocketStart(t *testing.T, g brGame) {
+	e := brFlying(t, g)
 	w := e.world
 	if w.Flying != 1 || w.In3D != 0 || w.Scripted != 0 || w.RocketX != 9 || w.RocketY != 8 || w.RocketHeading != 0 || w.OrbitTick != 0 || w.OrbitStep != 0 {
 		t.Fatalf("world %+v", w)
@@ -93,8 +99,11 @@ func TestBR1RocketStart(t *testing.T) {
 // TestBR1RocketStep mirrors TestRocketStep: a move east into the sun is undone, the counter rises by 3 (30 to 33, wrapped to 1), the
 // orbit steps down from 0 to 223, three days pass (a hit point a day) and the bodies stand where step 223 puts them, which the script
 // reads through BodySquares.
-func TestBR1RocketStep(t *testing.T) {
-	e := br1Flying(t)
+func TestBR1RocketStep(t *testing.T) { brRocketStep(t, gameBR1) }
+
+// brRocketStep is TestBR1RocketStep on game g (buckrogers2-go TestRocketStep is the same assertions).
+func brRocketStep(t *testing.T, g brGame) {
+	e := brFlying(t, g)
 	e.world.RocketX, e.world.RocketY, e.world.OrbitTick = 10, 10, 30
 	hp := e.selFact(rules.FactHP)
 	e.setSelFact(rules.FactHP, hp-10)
@@ -110,8 +119,8 @@ func TestBR1RocketStep(t *testing.T) {
 	if b := s.Body(0, 223).At; int(br1Cell(t, e, "Word4BAB")) != b.X {
 		t.Errorf("the script reads body 0 at x %d, want %d", br1Cell(t, e, "Word4BAB"), b.X)
 	}
-	if b := s.Body(4, 223).At; int(br1Cell(t, e, "Word4BAA")) != b.Y {
-		t.Errorf("the script reads body 4's y %d, want %d", br1Cell(t, e, "Word4BAA"), b.Y)
+	if b := s.Body(4, 223).At; int(br1Cell(t, e, "Word4BE7")) != b.Y {
+		t.Errorf("the script reads body 4's y %d, want %d", br1Cell(t, e, "Word4BE7"), b.Y)
 	}
 	if int(br1Cell(t, e, "Word4BA5")) != 10 {
 		t.Errorf("the script reads the ship's column %d", br1Cell(t, e, "Word4BA5"))
