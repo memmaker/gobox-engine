@@ -136,7 +136,7 @@ func DecodeSave(record, items, effects []byte) (rulesxxvc.BRSave, error) {
 		return rulesxxvc.BRSave{}, err
 	}
 	s := rulesxxvc.BRSave{
-		Name: pascalString(b.Name[:]), Gender: int(b.Gender), Race: int(b.Race), Career: int(b.Career), Level: int(b.Level),
+		Name: pascalString(b.Name[:]), Gender: int(b.Gender), Race: int(b.Race), Career: int(b.Career), Level: int(b.Level), Age: int(b.Age),
 		CreditTotal: int64(b.CreditTotal), Experience: int64(b.Experience), BaseCombat: int(b.BaseCombat), IconDimensions: int(b.IconDimensions),
 		BaseMovement: int(b.BaseMovement), BaseArmorClass: int(b.BaseArmorClass),
 		BaseScale: int(b.BaseScale), Scale: int(b.Scale), HitPointMaximum: int(b.HitPointMaximum),

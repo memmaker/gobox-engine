@@ -18,6 +18,7 @@ type Character struct {
 	Race       rules.Race
 	Career     rules.Class
 	Level      int
+	Age        int // the years (types.pas age, a Byte); a year's carry of the clock adds one to each party member
 	Scores     map[rules.Ability]int
 	HP, MaxHP  int
 	BaseCombat int
@@ -204,7 +205,7 @@ func (r *Rules) Sheet(id rules.CharID) rules.Sheet {
 		Saves: map[rules.Save]int32{}, Skills: map[rules.Skill]int32{},
 		Classes: rules.ClassSet{c.Career}, AC: shownArmorClass(c.ArmorClass[0]), RearAC: shownArmorClass(c.ArmorClass[1]),
 		THAC0: int32(sheetBase - c.AttackBonus), Move: int32(c.Movement), Figures: figures(c),
-		Health: health(c.Status)} // no age (the record's is not kept), no experience still to reach: 0
+		Age: int32(c.Age), Health: health(c.Status)} // no experience still to reach: 0
 	for a, v := range c.Scores {
 		s.Scores[a] = int32(v)
 	}

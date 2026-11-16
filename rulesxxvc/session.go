@@ -90,7 +90,7 @@ var clockUnitScale = [clockUnits]int{10, 10, 6, 24, 30, 12, 100}
 
 // advanceClock is gametime.pas AdvanceTime (BR1 pO0E3_0388): count of unit pass, carrying up, and
 // the effects of everyone run down by the minutes that is (pO0E3_0000: the fight's, else the party's).
-// A year's carry ages the characters in the original; a Character keeps no age.
+// The years' carry (the last unit's, at clockUnitScale 100) ages every party member a year (gametime.pas ValidateClock).
 func (r *Rules) advanceClock(count, unit int) {
 	if unit < 0 || unit >= clockUnits {
 		return // pO0E3_0388: no such unit, no time
@@ -102,6 +102,8 @@ func (r *Rules) advanceClock(count, unit int) {
 				r.clock[i] -= clockUnitScale[i]
 				if i+1 < clockUnits {
 					r.clock[i+1]++
+				} else {
+					r.ageParty()
 				}
 			}
 		}
@@ -455,4 +457,13 @@ func (r *Rules) itemCard(c *Character, h rules.ItemHandle) (rules.ItemCard, erro
 	return rules.ItemCard{Item: h, Name: strings.Join(it.NameWords, " "), Type: t.Type, Count: it.Count, Price: it.Price, Sale: rules.Purse{Copper: uint64(r.sellPrice(ci))}, // credits are Copper
 
 		Kind: ci.Ref.ID, Weight: t.Weight, Readied: ci.Readied, Identified: it.Identified, Tab: string(it.Kind)}, nil
+}
+
+// ageParty is ValidateClock's last carry: each party member's age is one more (a Byte: it wraps at 256 as Inc does).
+func (r *Rules) ageParty() {
+	for _, id := range r.party {
+		if c := r.chars[id]; c != nil {
+			c.Age = (c.Age + 1) % (maxAge + 1)
+		}
+	}
 }

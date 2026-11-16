@@ -105,6 +105,7 @@ func (c creation) Enforce(d rules.Draft, f rules.FieldID, o int, rng *rules.RNG)
 	career := pickCareers[d.Picks[fieldCareer]]
 	d.Sheet.Classes = rules.ClassSet{career}
 	if f != fieldGender || d.Sheet.Scores == nil {
+		d.Sheet.Age = int32(rules.RNGDice(rng, 1, ageDie) + ageBase) // age := RollDice(1, 6) + 18, before the abilities are rolled
 		rollAbilities(&d, rng)
 	}
 	return d
@@ -295,7 +296,7 @@ func (r *Rules) draftCharacter(d rules.Draft, kit bool) (Character, error) {
 	}
 	race, career := d.Sheet.Race, d.Sheet.Classes[0]
 	c := Character{
-		Name: d.Name, Sex: d.Sheet.Sex, Race: race, Career: career, Level: startLevel,
+		Name: d.Name, Sex: d.Sheet.Sex, Race: race, Career: career, Level: startLevel, Age: int(d.Sheet.Age),
 		Scores: map[rules.Ability]int{}, HP: int(d.Sheet.HP), MaxHP: int(d.Sheet.MaxHP),
 		BaseCombat: careerBaseCombat[career][startLevel], IconDimensions: startIconDimensions,
 		Coins: startCredits, Enabled: true, Status: StOkay, Side: rules.SideParty, Exp: experienceNeeded[career][0],

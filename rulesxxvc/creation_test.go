@@ -99,3 +99,27 @@ func TestRollsOffered(t *testing.T) {
 		t.Errorf("offered %v", offered)
 	}
 }
+
+// TestCreationAge: chargen.pas age := RollDice(1, 6) + 18, rolled with the career (a gender change keeps it), kept on
+// the character and the sheet.
+func TestCreationAge(t *testing.T) {
+	c := creation{r: New()}
+	seen := map[int32]bool{}
+	for seed := uint32(1); seed <= 400; seed++ {
+		d := newDraft(t, c, 0, 0, 0, seed)
+		if d.Sheet.Age < 19 || d.Sheet.Age > 24 {
+			t.Fatalf("seed %d: age %d, want 1d6+18", seed, d.Sheet.Age)
+		}
+		seen[d.Sheet.Age] = true
+		if got := c.Enforce(d, fieldGender, 1, &rules.RNG{State: seed + 1000}).Sheet.Age; got != d.Sheet.Age {
+			t.Fatalf("a gender change rolled the age again: %d to %d", d.Sheet.Age, got)
+		}
+		ch, err := c.r.draftCharacter(d, false)
+		if err != nil || int32(ch.Age) != d.Sheet.Age {
+			t.Fatalf("character age %d, draft %d (%v)", ch.Age, d.Sheet.Age, err)
+		}
+	}
+	if len(seen) != 6 {
+		t.Errorf("ages seen %v, want all of 19..24", seen)
+	}
+}

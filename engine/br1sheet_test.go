@@ -31,6 +31,9 @@ func TestBR1SheetFacts(t *testing.T) {
 	if len(pg.Rules) != 8 || pg.Rules[2].Name != "Battle Tactics" || pg.Rules[2].Value != "47" {
 		t.Errorf("the career's skills: %+v", pg.Rules)
 	}
+	if pg.Age < 18 {
+		t.Errorf("the shipped character keeps the record's age: %d", pg.Age)
+	}
 	var names []string
 	for _, a := range pg.Abilities {
 		names = append(names, a.Label)

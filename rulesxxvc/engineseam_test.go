@@ -406,3 +406,18 @@ func TestAdvanceClock(t *testing.T) {
 		t.Errorf("after a turn: clock %v effects %+v", r.clock, fx)
 	}
 }
+
+// The clock's last carry (years at clockUnitScale 100) ages each party member a year (gametime.pas ValidateClock).
+func TestYearsAgeTheParty(t *testing.T) {
+	r, _ := seamRules(t)
+	id := seamJoin(t, r, "OLD")
+	r.chars[id].Age = 30
+	r.clock[clockYear] = clockUnitScale[clockYear] - 1
+	r.clock[clockMonth] = clockUnitScale[clockMonth] - 1
+	if _, err := r.Resolve(nil, rules.AdvanceClock{Count: 1, Unit: clockMonth}, nil); err != nil {
+		t.Fatal(err)
+	}
+	if r.chars[id].Age != 31 || r.clock[clockYear] != 0 {
+		t.Errorf("age %d, years %d", r.chars[id].Age, r.clock[clockYear])
+	}
+}

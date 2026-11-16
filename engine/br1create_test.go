@@ -55,6 +55,9 @@ func TestBR1Create(t *testing.T) {
 			t.Errorf("ability %s %d", k, v)
 		}
 	}
+	if d.Member.Age < 19 || d.Member.Age > 24 {
+		t.Fatalf("age %d, want 1d6+18", d.Member.Age)
+	}
 	if err := e.rename("Zed"); err != nil {
 		t.Fatal(err)
 	}
@@ -70,7 +73,7 @@ func TestBR1Create(t *testing.T) {
 	}
 	id := e.partyIDs()[0]
 	sh := e.ruleset().Sheet(id)
-	if sh.Name != "Zed" || sh.Levels[sh.Classes[0]] != 2 {
+	if sh.Name != "Zed" || sh.Levels[sh.Classes[0]] != 2 || sh.Age != int32(d.Member.Age) {
 		t.Fatalf("created: %+v", sh)
 	}
 	if its := e.itemsState(id); len(its) != 2 || its[0].Name != "Spacesuit" || its[1].Name != "Gun Bolt" || !its[0].Readied || !its[1].Readied || its[1].Count != 100 {

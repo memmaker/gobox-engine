@@ -88,8 +88,11 @@ const (
 	startCredits        = 1000 // creditTotal := 1000
 	startIconDimensions = 1    // iconDimensions := 1
 	startLevel          = 2    // free training stops at the level the starting experience (experienceNeeded[career, 2]) buys
-	fixedGainLevel      = 9    // chargen.pas FIXED_GAIN_LEVEL: from it a level's hit points are fixed, not rolled
-	maxStartScore       = 18   // Modify keeps each ability between raceStatAdjust + 3 and + 18
+	ageBase             = 18   // age := RollDice(1, 6) + 18
+	ageDie              = 6
+	maxAge              = 255 // age is a Byte
+	fixedGainLevel      = 9   // chargen.pas FIXED_GAIN_LEVEL: from it a level's hit points are fixed, not rolled
+	maxStartScore       = 18  // Modify keeps each ability between raceStatAdjust + 3 and + 18
 	minStartScore       = 3
 )
 
