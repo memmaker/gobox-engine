@@ -169,13 +169,14 @@ const firstShipRecord = 40
 // contest decides who moves first.
 func (s shipRules) BeginShips(e rules.ShipEncounter, rng *rules.RNG) (rules.ShipFight, error) {
 	r := s.r
-	foe, ok := r.tables.Ships[e.Foe]
+	rng = r.stream(rng)
+	foe, ok := r.tables.Ships[e.Foe+firstShipRecord]
 	if !ok {
 		return rules.ShipFight{}, errors.New("rulesxxvc: no ship " + strconv.Itoa(int(e.Foe)))
 	}
 	f := &shipFight{ships: [2]xxvc.ShipRecord{r.partyShip(), foe}, reporting: true, firingSlot: -1, damageSlot: -1,
-		dying: map[rules.CharID]int{}, foeID: e.Foe, rng: rng}
-	f.exp = shipExperience[e.Foe-firstShipRecord]
+		dying: map[rules.CharID]int{}, foeID: e.Foe + firstShipRecord, rng: rng}
+	f.exp = shipExperience[e.Foe]
 	for _, id := range r.order {
 		if c := r.chars[id]; c != nil && c.team() {
 			f.crew = append(f.crew, id)
@@ -203,7 +204,7 @@ func (s shipRules) BeginShips(e rules.ShipEncounter, rng *rules.RNG) (rules.Ship
 func (r *Rules) shipSnapshot() rules.ShipFight {
 	f := r.space
 	ship := func(i int) rules.Ship {
-		sh := rules.Ship{Name: f.ships[i].Name, Systems: map[rules.ShipSystem]rules.Gauge{}}
+		sh := rules.Ship{Name: f.ships[i].Name, Systems: map[rules.ShipSystem]rules.Gauge{}, Mounts: r.mountLines(f.ships[i])}
 		for n, sys := range xxvc.ShipSystems {
 			sh.Systems[sys] = rules.Gauge{Now: int32(f.ships[i].Status[n]), Max: int32(f.ships[i].Maximum[n])}
 		}
@@ -217,6 +218,7 @@ func (r *Rules) shipSnapshot() rules.ShipFight {
 // ShipRound is the round's start: shotsFired cleared; the enemy first when
 // the party won the pilot contest.
 func (s shipRules) ShipRound(sf rules.ShipFight, rng *rules.RNG) (rules.ShipFight, rules.Outcome) {
+	rng = s.r.stream(rng)
 	f := s.r.space
 	if f == nil {
 		return sf, rules.Outcome{}
@@ -240,6 +242,7 @@ func (s shipRules) ShipRound(sf rules.ShipFight, rng *rules.RNG) (rules.ShipFigh
 
 // ShipFoe is the enemy's turn (when it did not go first) and the round's end.
 func (s shipRules) ShipFoe(sf rules.ShipFight, rng *rules.RNG) (rules.ShipFight, rules.Outcome) {
+	rng = s.r.stream(rng)
 	f := s.r.space
 	if f == nil {
 		return sf, rules.Outcome{}
@@ -284,6 +287,7 @@ func (s shipRules) EndShips(_ rules.ShipFight, rng *rules.RNG) rules.FightResult
 	if f == nil {
 		return rules.FightResult{}
 	}
+	rng = r.stream(rng)
 	f.rng = rng
 	f.removeJuryRigs()
 	if f.exp == 0 {
@@ -296,8 +300,15 @@ func (s shipRules) EndShips(_ rules.ShipFight, rng *rules.RNG) rules.FightResult
 		}
 	}
 	var res rules.FightResult
-	if f.end != boarded && !r.partyDefeated(f) {
+	switch {
+	case r.partyDefeated(f): // postcbt.pas PostCombat's else branch
+		f.say("Your team has been destroyed.")
+		f.say("RAM continues its plans unopposed.")
+	case f.end != boarded:
 		res.Exp = int32(r.repairShip(f))
+		if res.Exp != 0 { // PostCombatSummary
+			f.say("Each character receives " + strconv.Itoa(int(res.Exp)) + " experience points.")
+		}
 	}
 	ship := f.ships[partySide]
 	r.ship = &ship
@@ -1107,13 +1118,13 @@ func (r *Rules) shipPatients(c *Character) []rules.CharID {
 // shipAllowed is BuildPlayerMenu for the member at the menu.
 func (r *Rules) shipAllowed(sf rules.ShipFight) rules.Allowed {
 	id := r.crewActor()
-	if id == rules.NoChar || id != sf.Actor {
+	if id == rules.NoChar {
 		return rules.Allowed{}
 	}
 	f := r.space
 	c := r.chars[id]
 	pilot := id == f.pilot
-	var a rules.Allowed
+	a := rules.Allowed{Prompt: "what does " + c.Name + " want to do?"} // shipcbt.pas BuildPlayerMenu
 	offer := func(act rules.Action, name string) {
 		if !slices.ContainsFunc(a.Offers, func(o rules.Offer) bool { return o.Action == act }) {
 			a.Offers = append(a.Offers, rules.Offer{Action: act, Name: name})
@@ -1151,6 +1162,7 @@ func (r *Rules) shipAllowed(sf rules.ShipFight) rules.Allowed {
 		}
 	}
 	offer(rules.EndTurn{}, "Quit")
+	offer(rules.ShipView{}, "View")
 	if pilot {
 		if f.canManeuver {
 			if f.rangeNow > 1 {
@@ -1198,6 +1210,7 @@ func systemIndex(s rules.ShipSystem) int {
 // shipResolve is PlayerTurnBody's case for the member at the menu, and the
 // answer to the dodge question.
 func (r *Rules) shipResolve(sf rules.ShipFight, act rules.Action, rng *rules.RNG) (rules.Outcome, error) {
+	rng = r.stream(rng)
 	f := r.space
 	f.rng = rng
 	if d, ok := act.(rules.ShipDodge); ok {
@@ -1223,7 +1236,7 @@ func (r *Rules) shipResolve(sf rules.ShipFight, act rules.Action, rng *rules.RNG
 	if !slices.ContainsFunc(allowed.Offers, func(o rules.Offer) bool { return o.Action == act }) {
 		return rules.Outcome{}, errNotOffered
 	}
-	id := sf.Actor
+	id := r.crewActor()
 	c := r.chars[id]
 	taken := true
 	switch a := act.(type) {
@@ -1273,6 +1286,9 @@ func (r *Rules) shipResolve(sf rules.ShipFight, act rules.Action, rng *rules.RNG
 	case rules.ShipRetreat:
 		r.retreatShip(partySide, f.speed(partySide))
 		f.canManeuver, taken = false, false
+	case rules.ShipView:
+		f.out = append(f.out, rules.ShipSheetShown{Known: true})
+		taken = false
 	case rules.ShipSensors:
 		g, _ := SkillCheck([]int8{skillValue(c, sensorOperation)}, rules.Easy, rng)
 		outcome := "fails"
@@ -1280,6 +1296,8 @@ func (r *Rules) shipResolve(sf rules.ShipFight, act rules.Action, rng *rules.RNG
 			outcome = "succeeds"
 		}
 		f.say(c.Name + " " + outcome + " at sensor operation!")
+		// DrawShipDetails(enemyShip, isActionTaken): the foe's figures are known when the roll was made and the sensors work.
+		f.out = append(f.out, rules.ShipSheetShown{Foe: true, Known: g >= rules.Made && f.ships[partySide].Status[sysSensors] > 0})
 	}
 	if taken {
 		f.turn++

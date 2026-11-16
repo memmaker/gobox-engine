@@ -145,6 +145,7 @@ var notAnswered = map[string]bool{
 	"ShipReload":    true,
 	"ShipRetreat":   true,
 	"ShipSensors":   true,
+	"ShipView":      true,
 	"Shoot":         true,
 	"SpringTrap":    true,
 	"Sprint":        true,

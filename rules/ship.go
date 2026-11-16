@@ -9,8 +9,8 @@ type ShipSystem string
 
 // ShipEncounter is what a script's SpaceFight says (spaceFight v1b, v4b, v3b).
 type ShipEncounter struct {
-	Foe   ShipID
-	Range int32 // B4A1F
+	Foe   ShipID // the script's ship number less one (ECL argument 1 less 1); the ruleset knows where its records start
+	Range int32  // B4A1F
 	// The script's pilot skill and to-hit number for the foe (BR ShipCombat's
 	// ECL arguments 3 and 4).
 	PilotSkill, ToHit int32
@@ -46,8 +46,32 @@ type Ship struct {
 	ID      ShipID
 	Name    string
 	Systems map[ShipSystem]Gauge
-	Weapons []ItemID // the mounts
+	Weapons []ItemID    // the mounts
+	Mounts  []ShipMount // the mounts in slot order, an empty one with Short ""
 }
+
+// ShipMount is one weapon mount's line (the panel's and the sheet's).
+type ShipMount struct {
+	Short                         string // the weapon's short name ("": no weapon)
+	Count, Working, Ammo, Reloads int32
+}
+
+// ShipSheet is one ship's record as the sheet shows it (CharHlp.DrawShipDetails): the party's, or the foe's.
+type ShipSheet struct {
+	Name, Type, Race                                  string
+	Tonnage, Length, Width, Cargo, Armor, Crew, Speed int32
+	Reaction                                          int32
+	Mounts                                            []ShipMount
+}
+
+// ShipSheetShown is an effect: the ruleset shows a ship's record over the fight (View, Sensors). Known: the foe's
+// armour class, crew, speed and reaction are known (the sensor roll made and own sensors work).
+type ShipSheetShown struct {
+	Foe   bool
+	Known bool
+}
+
+func (ShipSheetShown) effect() {}
 
 // ShipFight is a fight's snapshot, and the Situation for Allowed and Resolve.
 // Crew takes turns aboard Own (teamStart, memberNext).
@@ -75,6 +99,7 @@ type (
 	ShipCommand struct{}           // take over as pilot (BR)
 	ShipBoard   struct{}           // board a stopped foe (BR)
 	ShipSensors struct{}           // sensor operation (BR)
+	ShipView    struct{}           // look at the own ship's record (BR's View, Ship); takes no turn
 	ShipClose   struct{}
 	ShipRetreat struct{}
 	ShipReload  struct{ Weapon int32 }
@@ -91,6 +116,7 @@ func (ShipReload) action()  {}
 func (ShipCommand) action() {}
 func (ShipBoard) action()   {}
 func (ShipSensors) action() {}
+func (ShipView) action()    {}
 
 // ShipRules are a ship fight's sequence. Rules.Ships gives them, nil when the
 // ruleset's Catalog lacks FeatureSpaceCombat: such an adventure never loads.
@@ -102,4 +128,9 @@ type ShipRules interface {
 	ShipFoe(ShipFight, *RNG) (ShipFight, Outcome)      // foeTurn, foeShoots, foeFire
 	ShipVerdict(ShipFight) Verdict                     // spaceEnd
 	EndShips(ShipFight, *RNG) FightResult              // spaceEnd
+
+	// ShipState is the fight now (the gauges, the range, the mounts), outside one the party's ship alone.
+	ShipState() ShipFight
+	// ShipSheetOf is a ship's record: the party's, or the foe's of the fight on (zero outside one).
+	ShipSheetOf(foe bool) ShipSheet
 }

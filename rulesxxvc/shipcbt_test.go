@@ -42,7 +42,7 @@ func shipFightOf(t *testing.T, seed uint32) (*Rules, rules.ShipFight, rules.Char
 		Career: xxvc.RocketJock, Scores: sc, Pilot: true})
 	b := r.Add(Character{Name: "Bo", Enabled: true, Status: StOkay, HP: 30, MaxHP: 30, BaseCombat: 8, Scores: sc, Pilot: true})
 	rng := rules.RNG{State: seed}
-	sf, err := r.Ships().BeginShips(rules.ShipEncounter{Foe: 40, PilotSkill: 80, ToHit: 15}, &rng)
+	sf, err := r.Ships().BeginShips(rules.ShipEncounter{Foe: 0, PilotSkill: 80, ToHit: 15}, &rng)
 	if err != nil {
 		t.Fatal(err)
 	}

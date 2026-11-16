@@ -28,6 +28,7 @@ type Aimed struct {
 // Allowed is what a situation lets anyone do now (play.Allowed). Moves is the
 // squares the actor may walk to, with the path, computed on Fight.Board.
 type Allowed struct {
+	Prompt string // the question the offers answer, in the rules' words ("": none)
 	Offers []Offer
 	Aimed  []Aimed
 	Moves  []Reach
