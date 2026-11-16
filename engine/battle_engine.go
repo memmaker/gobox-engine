@@ -54,10 +54,14 @@ func (e *Engine) battle() *Battle {
 			u.Squares = append(u.Squares, q)
 		}
 		u.IconSize = image.Pt(24, 24)
-		var icon Picture
+		var icon, action Picture
 		if im := e.icons[p.Icon][0]; im != nil {
 			icon, u.IconSize = e.picPix(im, 0, u.Facing > 3, nil), image.Pt(im.Width*8, im.Height)
 		}
+		if im := e.icons[p.Icon][1]; im != nil && e.artNames().ActionIcons {
+			action = e.picPix(im, 0, u.Facing > 3, nil)
+		}
+		b.ActionPix = append(b.ActionPix, action)
 		b.Units = append(b.Units, u)
 		b.IconPix = append(b.IconPix, icon)
 	}

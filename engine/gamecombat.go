@@ -63,6 +63,7 @@ func (e *Engine) fightState() *game.Combat {
 			Size: u.Size, Squares: slices.Clone(u.Squares), AC: u.AC, Status: u.Status, Dmg: u.Dmg, Member: -1, Active: u.Active, Hit: u.Hit}
 		if !u.Party || e.artNames().MemberIcons != "" { // a member's icon is the front's to compose from its icon numbers, unless the game has whole pictures
 			g.Art = gamePicture(b.IconPix[i])
+			g.Action = gamePicture(b.ActionPix[i])
 		}
 		if u.Party {
 			id := e.unitID(u.ID)

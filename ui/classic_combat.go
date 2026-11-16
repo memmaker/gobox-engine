@@ -286,6 +286,9 @@ func weapon(w *game.Weapon) *InvItem {
 // pixels (zero: the decoded picture's): its Art, or a member's figure (memberPicture)
 // when it has no icon of its own.
 func figureOf(g game.Unit, party []game.Member) (icon Picture, size image.Point) {
+	if g.Pose&1 == 1 && hasPic(g.Action) { // the unit's action pose, where the game has one
+		g.Art = g.Action
+	}
 	icon = pix(g.Art)
 	if a := shownPic(g.Art); a.W > 0 { // a DAX ref's size is the decoded picture's (the presenter's nativeSize)
 		size = image.Pt(a.W, a.H)
