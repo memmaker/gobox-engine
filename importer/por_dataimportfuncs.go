@@ -29,13 +29,17 @@ var porGameTables = adventure.GameTables{GameSet: 3, // DS:5376 = 3
 		8:  {Cue: rules.CueStep},
 		10: {Cue: rules.CueFireball},
 	},
-	ScriptFixes:  porScriptFixes,
-	OriginalSave: porSave,
-	Quests:       porQuests,
-	Art:          &porArt,
-	MapLabels:    porMapLabels,
-	Music:        &porMusic,
-	Walls:        wallTextures("por", "", ""), // the floor and sky are the areas' own (walls/por_areas.txt)
+	ScriptFixes: porScriptFixes,
+	Overland: []adventure.OverlandBlock{ // eclvm.pas WILD_WEST_SCRIPT 25, WILD_CENTRAL_SCRIPT 26, WILD_EAST_SCRIPT 27 (locType 2..4)
+		{Block: 25, ViewMode: 2}, {Block: 26, ViewMode: 3, Finale: true}, {Block: 27, ViewMode: 4},
+	},
+	NoRemainsBlocks: []int{10}, // combatst.pas SprinkleRareFeatures
+	OriginalSave:    porSave,
+	Quests:          porQuests,
+	Art:             &porArt,
+	MapLabels:       porMapLabels,
+	Music:           &porMusic,
+	Walls:           wallTextures("por", "", ""), // the floor and sky are the areas' own (walls/por_areas.txt)
 	PurseWhos: []adventure.PurseWho{
 		{ScriptAt: adventure.ScriptAt{Area: 0, Label: "PayPlatinum"}, By: 0},
 		{ScriptAt: adventure.ScriptAt{Area: 0, Label: "TavernGamble"}, By: -1},

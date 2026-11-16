@@ -9,7 +9,6 @@ import (
 	"os"
 	"slices"
 	"strconv"
-	"strings"
 )
 
 // RunECL = ovr04:3171 (addr): run the script from instruction addr until
@@ -342,14 +341,12 @@ func (e *Engine) opPrint() {
 // scriptText is opPrint's text: clear starts the text window over.
 func (e *Engine) scriptText(clear bool, s string) {
 	e.run.textCleared = 0
-	orig := s
-	s = platinumPrices.Replace(s)
 	e.vm.Text[1] = s
 	if clear {
 		e.msgRow, e.msgCol = 0x11, 1
 	}
 	e.paneText(game.InkLightGreen, clear, s)
-	e.speak(voiceKey(orig)) // the narration was recorded from the scripts' own text
+	e.speak(voiceKey(s)) // the narration was recorded from the scripts' own text
 	if clear {
 		e.ext.printed = ""
 	}
@@ -752,14 +749,6 @@ func (e *Engine) strAt(k int) string {
 	}
 	return ""
 }
-
-// platinumPrices (extra) reprices the scripts' platinum in gold: the purse
-// holds gold and copper, and a script's platinum is 5 of its gold.
-var platinumPrices = strings.NewReplacer(
-	"1 PLATINUM PIECE", "5 GOLD PIECES", // inn, harbor master (ECL3)
-	"ENOUGH PLATINUM", "ENOUGH GOLD",
-	// the training hall's notice (ECL11 ReadNotices): paladins and rangers train with the fighters
-	"AND FIGHTERS AND 'ROGUES' TO GO EAST.", "AND FIGHTERS, PALADINS, RANGERS AND 'ROGUES' TO GO EAST.")
 
 // census is what opCheckParty counts: its first operand, the address of
 // the field whose value it averages (a variable operand) or 0 (a number).

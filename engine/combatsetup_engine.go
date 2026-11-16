@@ -84,7 +84,7 @@ func (e *Engine) loadMemberIcons() {
 
 // groundTerms is what the rules lay the combat ground from.
 func (e *Engine) groundTerms() rules.BuildGround {
-	g := rules.BuildGround{Walls: e.gmap(), Dungeon: e.viewMode == 1, NoRemains: e.gs.areaKind == 0xA, MapX: e.world.MapX, MapY: e.world.MapY, Boss: e.world.Boss}
+	g := rules.BuildGround{Walls: e.gmap(), Dungeon: e.viewMode == 1, NoRemains: e.game().NoRemains(int(e.gs.areaKind)), MapX: e.world.MapX, MapY: e.world.MapY, Boss: e.world.Boss}
 	g.Block = int32(e.gs.areaKind) // the ECL block in play (the field's name is older than its use)
 	g.Place, _ = e.placeTraits()
 	if r, ok := e.layoutField(fieldWildTerrain); ok {

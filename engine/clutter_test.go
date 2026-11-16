@@ -24,7 +24,9 @@ func TestClutterDice(t *testing.T) {
 		{3, 0, 0x5fde4711f45315fc},
 		{4, 0xA, 0x337953e4003feeab},
 	} {
-		e := &Engine{}
+		tables := porTables
+		tables.NoRemainsBlocks = []int{0xA} // POR's (combatst.pas: eclScriptId <> 10), whatever the installed folder holds
+		e := &Engine{given: &tables}
 		e.initVM()
 		for i := range 0x200 {
 			e.gs.geo.Plane[i] = byte(i*7) & 0x33

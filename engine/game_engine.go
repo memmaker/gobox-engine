@@ -25,7 +25,7 @@ func (e *Engine) GameLoop() {
 		e.gs.areaKind = byte(e.game().FirstBlock)
 	}
 	fresh := !e.loadedGame // extra: a new adventure, not a loaded game
-	if k := e.gs.areaKind; (k == 0x19 || k == 0x1A || k == 0x1B) && e.world.In3D == 0 {
+	if e.game().OverlandBlock(int(e.gs.areaKind)) != nil && e.world.In3D == 0 {
 		e.setPhase(rules.PhaseExploring)
 	}
 	// the area's text script, also for a loaded game (whose save holds
@@ -284,19 +284,12 @@ func (e *Engine) areaStart(sel rules.CharID) {
 			e.setPhase(rules.PhaseExploring)
 		}
 	} else if e.world.In3D == 0 {
-		switch e.gs.areaKind {
-		case 0x19:
-			e.viewMode = 2
+		if o := e.game().OverlandBlock(int(e.gs.areaKind)); o != nil {
+			e.viewMode = o.ViewMode
 			e.setPhase(rules.PhaseExploring)
-		case 0x1A:
-			e.viewMode = 3
-			e.setPhase(rules.PhaseExploring)
-			if e.world.Boss == 0xFE && e.world.RiverOpen == 0 {
+			if o.Finale && e.world.Boss == 0xFE && e.world.RiverOpen == 0 {
 				e.EndgameHook(1)
 			}
-		case 0x1B:
-			e.viewMode = 4
-			e.setPhase(rules.PhaseExploring)
 		}
 	}
 	if e.prevViewMode > 1 && e.viewMode == 1 {

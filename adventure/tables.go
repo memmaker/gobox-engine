@@ -36,7 +36,31 @@ type GameTables struct {
 	OverlandSteps              rules.Size           // MapX and MapY range over 0..W-1 and 0..H-1 on the overland, which is the whole map (BR1: 38 by 15, Area[195], [196]); zero: the Pool's window of the map (16 by 36, shifted by the view)
 	Places                     []Place              // the area blocks' own places (the front's music trigger); none: none
 	Space                      *SpaceMap            // the rocket's system map (BR1); nil: the game has none (the Pool games, BR2 yet)
+	Overland                   []OverlandBlock      // the script blocks that are the overland's maps (POR's three wildernesses); none: none (the others' scripts say AreaKind)
+	NoRemainsBlocks            []int                // the script blocks whose arena clutter has no remains (POR combatst.pas SprinkleRareFeatures: eclScriptId <> 10); none: none
 }
+
+// OverlandBlock is a script block that is an overland map: outdoors (not 3D) its start leaves the view
+// at ViewMode (2..4, the wilderness's place). Finale: with the boss gone (Boss 0xFE) and the river shut
+// the area's start runs the endgame hook (POR's central wilderness).
+type OverlandBlock struct {
+	Block    int
+	ViewMode int
+	Finale   bool
+}
+
+// OverlandBlock is the overland entry of script block block; nil: it is not an overland map.
+func (t GameTables) OverlandBlock(block int) *OverlandBlock {
+	for i := range t.Overland {
+		if t.Overland[i].Block == block {
+			return &t.Overland[i]
+		}
+	}
+	return nil
+}
+
+// NoRemains reports whether script block block's arena clutter has no remains.
+func (t GameTables) NoRemains(block int) bool { return slices.Contains(t.NoRemainsBlocks, block) }
 
 // Place is area block Block's own place: the music trigger the front plays its own music for
 // (game.Where.Music, a gobox data/music folder) and whether it is a town's peaceful streets

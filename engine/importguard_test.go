@@ -3,7 +3,9 @@ package engine
 import (
 	"go/parser"
 	"go/token"
+	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -34,6 +36,36 @@ func TestPoolImportsNoRuleset(t *testing.T) {
 			}
 			if isRuleset && !strings.HasSuffix(f, "_test.go") { // tests build their rules from rules1e
 				t.Errorf("%s imports the ruleset %s", f, p)
+			}
+		}
+	}
+}
+
+// TestNoBlockLiteralsInEngine: a script block's number is a game's data
+// (adventure.GameTables), never an engine literal. Bug class: POR's
+// wilderness blocks 0x19..0x1B and block 10 compared in the engine.
+func TestNoBlockLiteralsInEngine(t *testing.T) {
+	files, err := filepath.Glob("*.go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, f := range files {
+		if strings.HasSuffix(f, "_test.go") {
+			continue
+		}
+		b, err := os.ReadFile(f)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for i, line := range strings.Split(string(b), "\n") {
+			if c := strings.Index(line, "//"); c >= 0 {
+				line = line[:c]
+			}
+			if regexp.MustCompile(`areaKind\s*(==|!=)\s*(0x|\d)`).MatchString(line) && !strings.Contains(line, "== 0 ") {
+				t.Errorf("%s:%d compares areaKind with a block literal: %s", f, i+1, strings.TrimSpace(line))
+			}
+			if regexp.MustCompile(`case 0x1[9AB]:`).MatchString(line) {
+				t.Errorf("%s:%d names a POR overland block: %s", f, i+1, strings.TrimSpace(line))
 			}
 		}
 	}

@@ -1959,4 +1959,19 @@ WagerRefused:
 `, New: `    TavernGamble:
     TavernGame() # the top spun for gold wagers over the party purse in 64-bit gold, house limit 5000 GP; on at TavernEvent (too hurt) or ResetVisits
 `},
+	// platinum in gold (extra): the purse holds gold and copper, a script's platinum is 5 of its gold; the training
+	// hall's notice (ECL11 ReadNotices): paladins and rangers train with the fighters. Was the engine's text replacer.
+	// CHANGES: POR script text, inn, harbor master, training hall.
+	{Area: 0, Old: `    Text("THE HARBOR MASTER TELLS YOU BOATS LEAVE FOR THE WEST, THE EAST, SOKAL KEEP, AND THE NORTH SIDE OF THE BAY.  'ROUND TRIP PASSAGE IS 1 PLATINUM PIECE. WHAT PASSAGE CAN I SELL YOU?'")
+`, New: `    Text("THE HARBOR MASTER TELLS YOU BOATS LEAVE FOR THE WEST, THE EAST, SOKAL KEEP, AND THE NORTH SIDE OF THE BAY.  'ROUND TRIP PASSAGE IS 5 GOLD PIECES. WHAT PASSAGE CAN I SELL YOU?'")
+`},
+	{Area: 0, Old: `    Text("'IT WILL COST YOU 1 PLATINUM PIECE TO REST HERE.  DO YOU WANT TO STAY?'")
+`, New: `    Text("'IT WILL COST YOU 5 GOLD PIECES TO REST HERE.  DO YOU WANT TO STAY?'")
+`},
+	{Area: 0, Old: `    Text("YOU DON'T HAVE ENOUGH PLATINUM.")
+`, New: `    Text("YOU DON'T HAVE ENOUGH GOLD.")
+`},
+	{Area: 11, Old: `    Text("NOTICES FOR TEACHERS AND STUDENTS ARE POSTED ON THE WALLS.  A NOTE DIRECTS MAGIC USERS AND CLERICS TO GO NORTH AND FIGHTERS AND 'ROGUES' TO GO EAST.")
+`, New: `    Text("NOTICES FOR TEACHERS AND STUDENTS ARE POSTED ON THE WALLS.  A NOTE DIRECTS MAGIC USERS AND CLERICS TO GO NORTH AND FIGHTERS, PALADINS, RANGERS AND 'ROGUES' TO GO EAST.")
+`},
 }
