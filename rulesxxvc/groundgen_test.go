@@ -85,7 +85,7 @@ func (oneWall) MapCell(x, y int) byte { return 0 }
 // states 1 (left) and 4 (right) lay leftWallTiles[1] = (24,24)/(25,25) at columns 1-2 and rightWallTiles[4] the same
 // at columns 5-6. An open map lays nothing but the floor (7 for kind $88).
 func TestBuildDungeonArena(t *testing.T) {
-	c := buildDungeonArena(rules.TraitHasKind, oneWall{}, rules.BoardPos{X: 8, Y: 8}, 5)
+	c := buildDungeonArena(rules.TraitHasKind, oneWall{}, rules.BoardPos{X: 8, Y: 8}, 5, false)
 	const (
 		top, bottom = 25, 26 // 24 + 1, 25 + 1
 		col0, row0  = blockX0, blockY0
@@ -103,7 +103,7 @@ func TestBuildDungeonArena(t *testing.T) {
 			t.Errorf("cell %d,%d = %d, want %d", cell.x, cell.y, got, cell.want)
 		}
 	}
-	open := buildDungeonArena(rules.TraitHasKind|rules.TraitLowTech|rules.TraitSecondTileSet, openMap{}, rules.BoardPos{X: 8, Y: 8}, 5)
+	open := buildDungeonArena(rules.TraitHasKind|rules.TraitLowTech|rules.TraitSecondTileSet, openMap{}, rules.BoardPos{X: 8, Y: 8}, 5, false)
 	for y := range open {
 		for x := range open[y] {
 			if open[y][x] != floorLotek {
@@ -124,7 +124,7 @@ func (openMap) MapCell(x, y int) byte     { return 0 }
 func TestBuildDungeonArenaSeed(t *testing.T) {
 	place := rules.TraitHasKind | rules.TraitScatterTiles
 	at := rules.BoardPos{X: 8, Y: 8}
-	a, b, c := buildDungeonArena(place, oneWall{}, at, 16), buildDungeonArena(place, oneWall{}, at, 16), buildDungeonArena(place, oneWall{}, at, 17)
+	a, b, c := buildDungeonArena(place, oneWall{}, at, 16, false), buildDungeonArena(place, oneWall{}, at, 16, false), buildDungeonArena(place, oneWall{}, at, 17, false)
 	if *a != *b {
 		t.Error("the same block laid two arenas")
 	}

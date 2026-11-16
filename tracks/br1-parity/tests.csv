@@ -49,7 +49,7 @@ create,TestSkillsEscDone,Esc on the skill screen is Done,differs,,"the skill scr
 cull,TestSkillCull,"the remaster culls skills, restores 69/70/82, shrinks career lists",differs,,"the shared engine follows the Pascal tables (xxvc_compare knownDiff, REFACTOR b2 notOffered)"
 debug,TestDebugBegin,"each test start lands in its state (shop, fight)",n/a,,"the old engine's dev starts; shared has DevAt (TestBR1NewBlock, TestScriptedPlace)"
 debug,TestShopShows,goods carry a price and the purse is the credits,covered,TestBR1Shop;TestBR1PurseInCredits,
-deskew,TestDeskewWestColumn,"on the deskewed map every west wall is one straight column, rows 1..4, post above",port-open,,"rules.Board.Straight is not built by rulesxxvc (rulesxxvc/ground.go): needs the unskewed dungeon arena of cmap.go in the BR arena builder, an engine option (Deskew)"
+deskew,TestDeskewWestColumn,"on the deskewed map every west wall is one straight column, rows 1..4, post above",port-done,TestDeskewWestColumn (rulesxxvc);TestBR1DeskewFight,"the Pool definition (rules.StraightX, 5-wide squares), BR tiles; rulesxxvc/dungeongen.go squareWalls"
 dispatch,TestClassOpsPorted,every case of the original ECL dispatch has an op and the port adds none,covered,TestBR1OpsPorted;TestBR2OpsPorted,"compared with the scripts' used commands, not the Pascal dispatch list"
 dispatch,TestClassStubOps,"pause waits the game speed, sound is an event",covered,TestBR1DelayMs;TestBR1ScriptSound,
 ds,TestDSImg,the data-segment image holds the tables at their offsets,n/a,,old engine internals; the importer reads START.EXE (importer br_creation/br_space tests)

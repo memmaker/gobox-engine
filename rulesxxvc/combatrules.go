@@ -54,6 +54,7 @@ func (r *Rules) fighters(f rules.Fight) []rules.CharID {
 func (r *Rules) BeginFight(f rules.Fight, _ *rules.RNG) rules.Outcome {
 	var o rules.Outcome
 	r.arena = arena{}
+	r.ground.Straight = f.Board.Straight // the option: the arena is laid deskewed (buildGround) and placed on it
 	f.Board = r.board(f.Board)
 	r.layCorpses(&f.Board, r.fighters(f), func(id rules.CharID) (rules.BoardPos, bool) { return unitAt(f, id) }, &o) // PlaceAllCreatures
 	r.fight = map[rules.CharID]*combatState{}

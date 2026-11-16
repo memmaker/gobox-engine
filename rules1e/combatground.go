@@ -2,25 +2,6 @@ package rules1e
 
 import "gobox/rules"
 
-// The straight board (extra, Deskew): a cell is a square block of
-// straightCell squares, its west wall the first column, its north wall the
-// first row, its floor 4x4 as the original's; the party's cell starts at
-// column straightParty, so the board holds 10 cells by 5.
-const (
-	straightCell  = 5
-	straightParty = 20
-)
-
-// StraightX is the column on the straight board of square (x, y) of the
-// original's skewed dungeon map: the skew taken out (a square west for each
-// row down), then the original's 6-wide block made 5: its two wall columns
-// are the one. Floor squares keep their own square; two squares of a wall
-// line open to the west share one.
-func StraightX(x, y int) int {
-	sx := x - (y - 0xA) - 0x15 + 60 // unskewed, from the block 10 cells west of the party's
-	return straightParty + (sx/6-10)*straightCell + max(sx%6-1, 0)
-}
-
 // squareWalls (extra, Deskew) lays the straight board's walls over the
 // original's pieces, before anyone is placed: one square thick with square
 // corners (the original's west wall is two wide, its door posts and wall
@@ -46,9 +27,9 @@ func (r *Rules) squareWalls(m rules.MapSides) {
 		for c := -4; c <= 5; c++ {
 			x, y := r.S.PosX+c, r.S.PosY+dr
 			w, n := CellEdge(m, r.S.PosY, x, y, 6), CellEdge(m, r.S.PosY, x, y, 0)
-			x0, y0 := straightParty+c*straightCell, dr*5+0xA
+			x0, y0 := rules.StraightParty+c*rules.StraightCell, dr*5+0xA
 			set(x0, y0, w != 0 || n != 0 || CellEdge(m, r.S.PosY, x, y-1, 6) != 0 || CellEdge(m, r.S.PosY, x-1, y, 0) != 0, corner) // wherever a wall or door ends
-			for i := 1; i < straightCell; i++ {
+			for i := 1; i < rules.StraightCell; i++ {
 				set(x0+i, y0, n == 1 || n == 3 && !gap(i), north)
 				set(x0, y0+i, w == 1 || w == 3 && !gap(i), west)
 			}
@@ -59,7 +40,7 @@ func (r *Rules) squareWalls(m rules.MapSides) {
 // boardX is the board's column of square (x, y) of the original's map.
 func (r *Rules) boardX(x, y int) int {
 	if r.straight {
-		return StraightX(x, y)
+		return rules.StraightX(x, y)
 	}
 	return x
 }

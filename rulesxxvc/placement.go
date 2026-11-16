@@ -127,6 +127,9 @@ func (p *placer) tryPlaceAt(id rules.CharID, team, qx, qy, baseQX, baseQY, ring 
 		return false
 	}
 	at := rules.BoardPos{X: qx + baseQX*blockCols + baseQY*blockRows + placeX0, Y: qy + baseQY*blockRows + blockY0}
+	if p.b.Straight { // the original's square, on the deskewed board
+		at.X = rules.StraightX(at.X, at.Y)
+	}
 	i := slices.IndexFunc(p.b.Units, func(u rules.BoardUnit) bool { return u.ID == id })
 	p.b.Units[i].At = at
 	blocked, terrain, _ := p.r.probeDirection(p.b, id, centerDir)
@@ -263,7 +266,7 @@ func (r *Rules) placeAllCreatures(f rules.Fight, walls rules.MapSides) rules.Out
 		if team == teamHostile {
 			face = (facing + 4) % 8
 		}
-		p.b.Units = append(p.b.Units, rules.BoardUnit{ID: id, Size: int32(c.IconDimensions & iconSizeLowBits), Facing: rules.Facing(quarterDirections[face/2]), Side: c.Side})
+		p.b.Units = append(p.b.Units, rules.BoardUnit{ID: id, Size: int32(c.IconDimensions & iconSizeLowBits), Facing: p.facingDir(face), Side: c.Side})
 		if !(f.Terms.Duel && !c.Enabled) && p.findPlacement(id, team) { // a solo combat places only who is enabled (combatst.pas:948)
 			if !c.Enabled && !outOfPlay {
 				u := p.b.Units[len(p.b.Units)-1]
@@ -279,6 +282,15 @@ func (r *Rules) placeAllCreatures(f rules.Fight, walls rules.MapSides) rules.Out
 	}
 	r.ground.Units = p.b.Units
 	return o
+}
+
+// facingDir is the unit's facing for the party's facing face: the original's table leans the north-south moves into its
+// perspective; deskewed, north is north (rules1e's facingDir).
+func (p *placer) facingDir(face int) rules.Facing {
+	if p.b.Straight {
+		return rules.Facing(face &^ 1) // the quarter's own direction, 0 2 4 6
+	}
+	return rules.Facing(quarterDirections[face/2])
 }
 
 // sideTeam is C_Side: the party's side, steered or not, is 0 (TEAM), the hostile 1.

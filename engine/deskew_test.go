@@ -51,7 +51,7 @@ func straightFight(t *testing.T, straight bool, east byte, dist uint16) *rules1e
 func straightCellOf(x, y int) image.Point { return image.Pt((x-20+50)/5-10, (y-0xA+50)/5-10) }
 
 // TestStraightIsOriginalUnskewed: the Deskew board is the original's with
-// the skew taken out and its cells made square (rules1e.StraightX): the same
+// the skew taken out and its cells made square (rules.StraightX): the same
 // floor, and everyone the original placed is placed, in its cell or (its
 // square a post here) the next, on a square of their own and never in a
 // wall, whatever stands ahead. The foes
@@ -65,7 +65,7 @@ func TestStraightIsOriginalUnskewed(t *testing.T) {
 		skew, straight := straightFight(t, false, c.east, c.dist), straightFight(t, true, c.east, c.dist)
 		for y := range 25 {
 			for x := range 50 {
-				sx := rules1e.StraightX(x, y)
+				sx := rules.StraightX(x, y)
 				if sx < 0 || sx >= 50 || skew.Cmap.Ground[y][x] == 0 || (y-0xA)%5 == 0 || (sx-20+50)%5 == 0 {
 					continue // off the board, or a cell's wall row or column
 				}
@@ -80,7 +80,7 @@ func TestStraightIsOriginalUnskewed(t *testing.T) {
 		taken, same := map[image.Point]int{}, 0
 		for i := 1; i <= len(straight.Party) && i <= len(skew.Party); i++ {
 			a, b := skew.Cpos[i], straight.Cpos[i]
-			at, was := image.Pt(int(b.X), int(b.Y)), image.Pt(rules1e.StraightX(int(a.X), int(a.Y)), int(a.Y))
+			at, was := image.Pt(int(b.X), int(b.Y)), image.Pt(rules.StraightX(int(a.X), int(a.Y)), int(a.Y))
 			switch {
 			case a.Size == 0 || b.Size == 0:
 				t.Errorf("%s: combatant %d has no place", c.name, i)

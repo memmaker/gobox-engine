@@ -48,11 +48,22 @@ type dungeonArena struct {
 	ox, oy                        int
 	wallWest, wallNorth, wallEast int
 	squareVariant                 int
+	straight                      bool // Board.Straight (extra, Deskew): the skew is taken out, see rules.StraightX
+}
+
+// cell is the arena cell of the block coordinates (px, py) of the current map square: PlotCell's column and row,
+// the column deskewed on the straight board.
+func (d *dungeonArena) cell(px, py int) (col, row int) {
+	col, row = d.ox*blockCols+d.oy*blockRows+blockX0+px, d.oy*blockRows+blockY0+py
+	if d.straight {
+		col = rules.StraightX(col, row)
+	}
+	return col, row
 }
 
 // plot is combatst.pas PlotCell: terrain pv + 1 at (px, py) of the current map square's block, inside the arena.
 func (d *dungeonArena) plot(px, py, pv int) {
-	col, row := d.ox*blockCols+d.oy*blockRows+blockX0+px, d.oy*blockRows+blockY0+py
+	col, row := d.cell(px, py)
 	if col >= 0 && col < arenaCols && row >= 0 && row < arenaRows {
 		d.cells[row][col] = rules.TerrainID(byte(pv + 1))
 	}
@@ -62,7 +73,7 @@ func (d *dungeonArena) plot(px, py, pv int) {
 // first upper-bound test reads row where col is meant; a column past the arena then reads another row's cell and
 // PlotCell's own test plots nothing, so it is skipped here.
 func (d *dungeonArena) plotOnFloor(px, py, pv int) {
-	col, row := d.ox*blockCols+d.oy*blockRows+blockX0+px, d.oy*blockRows+blockY0+py
+	col, row := d.cell(px, py)
 	if col >= 0 && col < arenaCols && row >= 0 && row < arenaRows {
 		if t := d.cells[row][col]; t == floorLotek || t == floorHitek {
 			d.plot(px, py, pv)
@@ -172,6 +183,22 @@ var rightWallTiles = [15][2][2]int{
 
 // layMapSquare is BuildDungeonArena's body for one map square: its walls' tiles, the corners, then the scatter.
 func (d *dungeonArena) layMapSquare(walls rules.MapSides, partyAt rules.BoardPos, place rules.PlaceTraits) {
+	d.layStructure(walls, partyAt)
+	d.scatterSquare(walls, partyAt, place)
+}
+
+// scatterSquare is the map square's scatter: its wall kinds and variant, then ScatterWallTiles.
+func (d *dungeonArena) scatterSquare(walls rules.MapSides, partyAt rules.BoardPos, place rules.PlaceTraits) {
+	mapX, mapY := partyAt.X+d.ox, partyAt.Y+d.oy
+	wall := func(x, y, dir int) int { return wallBetween(walls, partyAt.Y, x, y, dir) }
+	d.wallWest, d.wallNorth, d.wallEast = wall(mapX, mapY, dirWest), wall(mapX, mapY, dirNorth), wall(mapX, mapY, dirEast)
+	// GetMapEvent and $40; off the 16x16 map the original wraps (GetWallType).
+	d.squareVariant = int(walls.MapCell((mapX+arenaMapSide)%arenaMapSide, (mapY+arenaMapSide)%arenaMapSide)) & squareVariantEv
+	d.scatterWallTiles(place)
+}
+
+// layStructure lays the map square's walls' tiles and the corners (no random draw).
+func (d *dungeonArena) layStructure(walls rules.MapSides, partyAt rules.BoardPos) {
 	mapX, mapY := partyAt.X+d.ox, partyAt.Y+d.oy
 	wall := func(x, y, dir int) int { return wallBetween(walls, partyAt.Y, x, y, dir) }
 	d.wallWest, d.wallNorth, d.wallEast = wall(mapX, mapY, dirWest), wall(mapX, mapY, dirNorth), wall(mapX, mapY, dirEast)
@@ -261,9 +288,6 @@ func (d *dungeonArena) layMapSquare(walls rules.MapSides, partyAt rules.BoardPos
 			d.plot(5, 0, 41)
 		}
 	}
-	// GetMapEvent and $40; off the 16x16 map the original wraps (GetWallType).
-	d.squareVariant = int(walls.MapCell((mapX+arenaMapSide)%arenaMapSide, (mapY+arenaMapSide)%arenaMapSide)) & squareVariantEv
-	d.scatterWallTiles(place)
 }
 
 // The dungeon block's reach from the party: 6 columns and 2 rows of map squares each way.
@@ -276,8 +300,10 @@ const (
 // else 45), tile groups scattered with the scatter trait, and each map square within 6 columns and 2 rows of the party
 // laid from its walls. The generator is seeded with the ECL script's id (ReseedRandom(eclId)), so one script draws
 // the same sequence: seed is that stream's start; the call's own stream is not touched (RestoreRandom).
-func buildDungeonArena(place rules.PlaceTraits, walls rules.MapSides, partyAt rules.BoardPos, seed uint32) *[arenaRows][arenaCols]rules.TerrainID {
-	d := &dungeonArena{rng: &rules.RNG{State: seed}}
+// straight (Board.Straight) is the deskewed arena: the same squares with the skew taken out (rules.StraightX) and their
+// walls one square thick, laid over the original's pieces before the scatter (rules1e's squareWalls).
+func buildDungeonArena(place rules.PlaceTraits, walls rules.MapSides, partyAt rules.BoardPos, seed uint32, straight bool) *[arenaRows][arenaCols]rules.TerrainID {
+	d := &dungeonArena{rng: &rules.RNG{State: seed}, straight: straight}
 	floor := rules.TerrainID(floorHitek)
 	if place.Has(rules.TraitLowTech) {
 		floor = floorLotek
@@ -299,10 +325,62 @@ func buildDungeonArena(place rules.PlaceTraits, walls rules.MapSides, partyAt ru
 			}
 		}
 	}
+	if straight { // the structure of every square, the straight walls over it, then the scatter on the floor left (the draws keep the original's order)
+		d.eachSquare(func() { d.layStructure(walls, partyAt) })
+		d.squareWalls(walls, partyAt, floor)
+		d.eachSquare(func() { d.scatterSquare(walls, partyAt, place) })
+		return &d.cells
+	}
+	d.eachSquare(func() { d.layMapSquare(walls, partyAt, place) })
+	return &d.cells
+}
+
+// eachSquare runs lay for every map square within the reach, row by row, as the original's loops.
+func (d *dungeonArena) eachSquare(lay func()) {
 	for d.oy = -dungeonReachY; d.oy <= dungeonReachY; d.oy++ {
 		for d.ox = -dungeonReachX; d.ox <= dungeonReachX; d.ox++ {
-			d.layMapSquare(walls, partyAt, place)
+			lay()
 		}
 	}
-	return &d.cells
+}
+
+// The straight board's wall tiles (terrain pv, as plot takes them): the skewed west wall's body, the north wall's top,
+// and the post where walls end (leftWallTiles' state 15 corner), after the old engine's flatWest, flatNorth, flatPost.
+const (
+	straightWest  = 28
+	straightNorth = 24
+	straightPost  = 40
+)
+
+// squareWalls (extra, Deskew) lays the straight board's walls over the original's pieces, before the scatter: one
+// square thick with square corners. A square's west wall is its block's first column, its north wall the first row, a
+// door the two middle squares between posts (rules1e's squareWalls, the same cells with this game's tiles).
+func (d *dungeonArena) squareWalls(walls rules.MapSides, partyAt rules.BoardPos, floor rules.TerrainID) {
+	set := func(x, y int, wall, doorway bool, pv int) {
+		if x < 0 || x >= arenaCols || y < 0 || y >= arenaRows {
+			return
+		}
+		switch {
+		case doorway: // the open middle of a door: no piece of the original stands in it
+			d.cells[y][x] = floor
+		case wall: // a piece of the original's already there is replaced: the column is one tile (the old test's)
+			d.cells[y][x] = rules.TerrainID(pv + 1)
+		case terrainRow(d.cells[y][x]).cost == impassable: // an original piece with no wall here
+			d.cells[y][x] = floor
+		}
+	}
+	edge := func(x, y, dir int) int { return wallBetween(walls, partyAt.Y, x, y, dir) }
+	gap := func(i int) bool { return i == 2 || i == 3 } // a door's squares, of the floor's 1..4
+	for dr := -dungeonReachY; dr <= dungeonReachY; dr++ {
+		for c := -4; c <= 5; c++ { // the board holds 10 squares
+			x, y := partyAt.X+c, partyAt.Y+dr
+			w, n := edge(x, y, dirWest), edge(x, y, dirNorth)
+			x0, y0 := rules.StraightParty+c*rules.StraightCell, dr*blockRows+blockY0
+			set(x0, y0, w != 0 || n != 0 || edge(x, y-1, dirWest) != 0 || edge(x-1, y, dirNorth) != 0, false, straightPost) // wherever a wall or door ends
+			for i := 1; i < rules.StraightCell; i++ {
+				set(x0+i, y0, n == wallPlain || n == wallDoor && !gap(i), n == wallDoor && gap(i), straightNorth)
+				set(x0, y0+i, w == wallPlain || w == wallDoor && !gap(i), w == wallDoor && gap(i), straightWest)
+			}
+		}
+	}
 }

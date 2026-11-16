@@ -300,7 +300,7 @@ func (r *Rules) buildGround(f rules.Fight, g rules.BuildGround, rng *rules.RNG) 
 		if g.Walls == nil {
 			return fmt.Errorf("BuildGround dungeon: no map walls handed in")
 		}
-		cells = buildDungeonArena(g.Place, g.Walls, rules.BoardPos{X: f.Terms.PartyAt.X, Y: f.Terms.PartyAt.Y}, uint32(g.Block))
+		cells = buildDungeonArena(g.Place, g.Walls, rules.BoardPos{X: f.Terms.PartyAt.X, Y: f.Terms.PartyAt.Y}, uint32(g.Block), r.ground.Straight)
 	} else {
 		terrain := int(g.Terrain)
 		if g.Place.Has(rules.TraitTerrainShift) {
@@ -316,6 +316,7 @@ func (r *Rules) buildGround(f rules.Fight, g rules.BuildGround, rng *rules.RNG) 
 	for y := range cells {
 		copy(b.Terrain[y*arenaCols:], cells[y][:])
 	}
+	b.Straight = r.ground.Straight // BeginFight's, the option
 	r.ground = b
 	return nil
 }
