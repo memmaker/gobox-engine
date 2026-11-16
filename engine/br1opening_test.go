@@ -101,6 +101,14 @@ func br1BeginWith(t testing.TB, e *Engine, n int) *Engine {
 		t.Fatalf("Begin: %v", err)
 	}
 	br1Pages(t, e)
+	for range 4 { // BR2 opens on a treasure screen (block 19's no-monster Combat)
+		st := e.build()
+		if _, ok := st.(game.Looting); !ok {
+			break
+		}
+		br1AfterFight(e, st)
+		br1Pages(t, e)
+	}
 	return e
 }
 

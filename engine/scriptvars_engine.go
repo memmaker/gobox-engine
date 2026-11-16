@@ -324,6 +324,12 @@ func (e *Engine) getCell(f *ecl.Field, r ecl.Ref) int64 {
 			return e.gameValue(f, v)
 		}
 	}
+	if bound && f.Width == ecl.WidthText && ef.text != nil && r.Index == 0 { // a number read of a text is its first character, as the original's memory holds a string (BR2's Text(SelName) prints it)
+		if s := ef.text(); s != "" {
+			return int64(s[0])
+		}
+		return 0
+	}
 	if bound && !ef.stored {
 		panic(fmt.Sprintf("script: %s has no value to read", f.Name))
 	}
@@ -417,6 +423,9 @@ func (e *Engine) setText(r ecl.Ref, s string) {
 		return
 	}
 	e.textField(f)
+	if f.Width == ecl.WidthBytes && r.Index+len(s)+1 > f.Len { // the original wrote on into the next zone; no script does (BR2: 8 characters into 10 bytes)
+		panic(fmt.Sprintf("script: the text %q does not fit %s from %d", s, f.Name, r.Index))
+	}
 	vs := make([]int64, len(s)+1)
 	for i := range len(s) {
 		vs[i] = int64(s[i])
@@ -424,8 +433,10 @@ func (e *Engine) setText(r ecl.Ref, s string) {
 	e.storeCells(f, r.Index, vs)
 }
 
+// textField checks that f holds characters: a text field, or a byte buffer, whose addresses are the same run of
+// bytes the original's strings occupy (BR2 keeps text in EntryBytes and NewGameBytes).
 func (e *Engine) textField(f *ecl.Field) {
-	if f.Width != ecl.WidthText {
+	if f.Width != ecl.WidthText && f.Width != ecl.WidthBytes {
 		panic(fmt.Sprintf("script: %s is no text field", f.Name))
 	}
 }
