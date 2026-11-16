@@ -362,6 +362,9 @@ func (r *Rules) ground() rules.Ground {
 		for y := range g.Squares {
 			for x := range g.Squares[y] {
 				g.Squares[y][x] = s.GroundSquare(byte(s.Cmap.Ground[y][x]))
+				if under, ok := s.groundUnder(x, y); ok { // a cloud or a body over the ground: the ground's tile, the cover over it
+					g.Squares[y][x].Cover, g.Squares[y][x].Tile = g.Squares[y][x].Tile+1, s.GroundSquare(byte(under)).Tile
+				}
 				g.Squares[y][x].Crown = y+1 < len(g.Squares) && s.T().Gen.Wild.crownOver(s.Cmap.Ground[y][x], s.Cmap.Ground[y+1][x])
 			}
 		}

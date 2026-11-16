@@ -109,6 +109,7 @@ type Square struct {
 	Height int  // blocking height
 	Crown  bool // its picture stands on the square south's: the top of a two-square thing (a tree's crown over its trunk)
 	Mark   SquareMark
+	Cover  int // a tile lying over Tile for a while (a cloud, a body): its picture+1, 0 none; Tile is then the ground under it
 }
 
 // SquareMark is a marker the ruleset lays over a square's ground (a cloud, a corpse); its number is the ruleset's own and

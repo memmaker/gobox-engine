@@ -76,6 +76,35 @@ func (cl *cloud) covers(x, y int) bool {
 	return false
 }
 
+// groundUnder is the ground a cloud or a body lying on x, y covers (what
+// lifting them gives back: clearCloud, the body's Ground), and whether one
+// lies there.
+func (e *RuleState) groundUnder(x, y int) (Ground, bool) {
+	g, ids := e.Cmap.Ground[y][x], e.grounds()
+	covered := false
+	for range len(e.Clouds) + e.Nbodies + 1 { // a body under a cloud under an older one: each lift once
+		under, found := g, false
+		for i := len(e.Clouds) - 1; i >= 0 && !found; i-- { // the newest cloud on top
+			cl := e.Clouds[i]
+			for k := range cloudSpecs[cl.Kind].dirs {
+				if sx, sy := cl.square(k); cl.Covered[k] != 0 && sx == x && sy == y && g == cloudSpecs[cl.Kind].ground(ids) && cl.Ground[k] != g {
+					under, found = cl.Ground[k], true
+				}
+			}
+		}
+		for b := 1; b <= e.Nbodies && !found && g == ids.Body && ids.Body != 0; b++ {
+			if bd := e.Bodies[b]; int(int8(bd.X)) == x && int(int8(bd.Y)) == y && Ground(bd.Ground) != g {
+				under, found = Ground(bd.Ground), true
+			}
+		}
+		if !found {
+			break
+		}
+		g, covered = under, true
+	}
+	return g, covered
+}
+
 // olderGround: the ground an older cloud of the kind saved at x, y, else g.
 func (e *RuleState) olderGround(kind CloudKind, self *cloud, x, y int, g Ground, firstOlder bool) Ground {
 	for _, o := range e.Clouds {

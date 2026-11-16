@@ -129,3 +129,28 @@ func TestEntangleRuling(t *testing.T) {
 	}
 	t.Error("no seed failed the save")
 }
+
+// TestCloudCoversGround: a cloud lies over the ground as published: the
+// square keeps its floor's tile, the cloud's tile is its Cover (a view that
+// takes the floor from the squares never takes the cloud for it); lifted,
+// the cover goes.
+func TestCloudCoversGround(t *testing.T) {
+	e := cotabFirstScene(t, newChar("FOE", 3))
+	r := &Rules{S: e}
+	floor := e.GroundSquare(byte(e.grounds().Floor)).Tile
+	e.TgtX, e.TgtY = 12, 10
+	castOn(e, spCloudKill)
+	if e.Cmap.Ground[10][12] != e.grounds().PoisonCloud {
+		t.Fatalf("cloud not laid: ground %#x", e.Cmap.Ground[10][12])
+	}
+	q := r.ground().Squares[10][12]
+	if want := e.GroundSquare(byte(e.grounds().PoisonCloud)).Tile + 1; q.Tile != floor || q.Cover != want {
+		t.Fatalf("under the cloud: tile %d cover %d, want %d and %d", q.Tile, q.Cover, floor, want)
+	}
+	a := e.FindAffect(e.Party[0], affCloudkill)
+	e.RemoveAffect(e.Party[0], affCloudkill, a)
+	e.callAffect(affCloudkill, e.Party[0], a, 0)
+	if q := r.ground().Squares[10][12]; q.Tile != floor || q.Cover != 0 {
+		t.Fatalf("lifted: tile %d cover %d", q.Tile, q.Cover)
+	}
+}
