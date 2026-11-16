@@ -274,12 +274,7 @@ var daxMask map[string]int // Data.DaxMask
 func gameData(g game.Data) {
 	gameID, daxMask = g.ID, g.DaxMask
 	confirms = g.Confirms
-	for k, v := range g.Texts { // NewFront's games name their texts here (SetData's Data.Texts too)
-		if texts == nil {
-			texts = map[string]string{}
-		}
-		texts[k] = v
-	}
+	texts = g.Texts // the game's own, whole: another game's names must not stay (they did: BR's "Purge Character" in a Pool party menu)
 	filesDir, advDir = g.AnimDir(), g.Adventure
 	GameID = g.ID
 	if g.Series != "" {
