@@ -186,7 +186,7 @@ func (r *Rules) resolveSession(a rules.Action) (o rules.Outcome, ok bool, err er
 	case rules.Toughen:
 		// No XXVc counterpart: BR has no Toughness rule; hit points stay as they are.
 	default:
-		return rules.Outcome{}, false, nil
+		return r.resolveSheet(a)
 	}
 	return rules.Outcome{}, true, nil
 }

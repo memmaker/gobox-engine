@@ -93,21 +93,12 @@ func TestBuilder(t *testing.T) {
 	if cr == nil {
 		t.Fatal("no creation")
 	}
-	// Not ported: no panic, errors where the interface has them, zero values else.
-	d := rules.Draft{}
-	if cr.Fields(d) != nil || cr.Fits(d, 0, 0) || cr.Minimums(d) != nil || cr.QuickParty() != nil || cr.QuickRerolls() != 0 {
-		t.Error("creation answers something")
+	// The creation is ported (creation.go); what is not (modifying) answers an error.
+	if d, err := cr.Draft(rules.NoChar); err != nil || len(cr.Fields(d)) != 3 || cr.QuickParty() != nil {
+		t.Errorf("creation: %v %v", d, err)
 	}
-	for name, err := range map[string]error{
-		"Roll":     cr.Roll(&d, rules.RollFull, nil),
-		"SetScore": func() error { _, err := cr.SetScore(d, rules.Strength, 10); return err }(),
-		"Make":     func() error { _, _, err := cr.Make(d); return err }(),
-		"Join":     func() error { _, err := cr.Join(1); return err }(),
-		"Draft":    func() error { _, err := cr.Draft(rules.NoChar); return err }(),
-	} {
-		if !errors.Is(err, ErrNotPorted) {
-			t.Errorf("creation %s: %v", name, err)
-		}
+	if _, err := cr.Draft(1); !errors.Is(err, ErrNoModify) {
+		t.Errorf("creation Draft of a member: %v", err)
 	}
 	defer func() {
 		if recover() == nil {

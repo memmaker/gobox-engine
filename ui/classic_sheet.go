@@ -57,7 +57,9 @@ func draftPage(c *game.Creation, rules *game.SheetPage) *game.SheetPage {
 	if d.ClassText != "" {
 		p.Class = d.ClassText
 	}
-	if len(c.Fields) > FieldSex {
+	if rules != nil && rules.Sex != "" { // the ruleset's own word: its fields may not start with the sex (BR's start with the race)
+		p.Sex = rules.Sex
+	} else if len(c.Fields) > FieldSex {
 		p.Sex = picked(c.Fields[FieldSex])
 	}
 	for i, k := range []string{"str", "int", "wis", "dex", "con", "cha"} {
