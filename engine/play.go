@@ -433,7 +433,10 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 				}
 			}
 		}
-		add(game.Search{}, game.Look{}, game.MakeCamp{})
+		add(game.Search{}, game.Look{})
+		if !e.eclVersion.Behaviour.NoCamp {
+			add(game.MakeCamp{})
+		}
 		if e.mapView() { // the automap's marks: any square and text (allows)
 			add(game.Mark{}, game.Unmark{})
 		}
