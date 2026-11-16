@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 // TestBR1Create: a BR1 character made as a front makes it (the engine's creation actions, one seed), kept to the
@@ -38,6 +39,9 @@ func TestBR1Create(t *testing.T) {
 	}
 	if d.Member.Class != "Medic" || d.Member.MaxHP < 2 || d.Member.MaxHP > 2*(10+3) {
 		t.Fatalf("draft member %+v", d.Member)
+	}
+	if !slices.Equal(d.Rolls, []rules.RollKind{rules.RollFull}) {
+		t.Fatalf("BR offers the original's one roll: %v", d.Rolls)
 	}
 	var labels []string
 	for _, st := range d.Stats {

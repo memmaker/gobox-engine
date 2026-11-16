@@ -184,6 +184,11 @@ func (p Creation) Minimums(rules.Draft) map[rules.Ability]int32 {
 	return m
 }
 
+// Rolls: the three ways of the 1e sheet (Roll, Minimal, point buy).
+func (p Creation) Rolls() []rules.RollKind {
+	return []rules.RollKind{rules.RollFull, rules.RollMinimal, rules.RollPointBuy}
+}
+
 // QuickRerolls: quickPick.good keeps the roll after 2000 rerolls.
 func (p Creation) QuickRerolls() int { return quickRerolls }
 

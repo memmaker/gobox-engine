@@ -2,6 +2,7 @@ package rulesxxvc
 
 import (
 	"errors"
+	"slices"
 	"testing"
 
 	"gobox/rules"
@@ -80,5 +81,21 @@ func TestDraftCharacter(t *testing.T) {
 	}
 	if rj.Skills.Level(skillPilotRocket) != favoredStart || rj.Skills.Level(skillDriveJetcar) != favoredStart {
 		t.Errorf("rocket jock skills: pilot rocket %d", rj.Skills.Level(skillPilotRocket))
+	}
+}
+
+// TestRollsOffered: the rolls the ruleset offers are the ones Roll takes: the original (CreateCharacterMenu) rolls one way.
+func TestRollsOffered(t *testing.T) {
+	c := creation{r: New()}
+	d := newDraft(t, c, 0, 0, 0, 7)
+	offered := c.Rolls()
+	for _, k := range []rules.RollKind{rules.RollFull, rules.RollMinimal, rules.RollPointBuy} {
+		err := c.Roll(&d, k, &rules.RNG{State: 3})
+		if slices.Contains(offered, k) != (err == nil) {
+			t.Errorf("kind %d: offered %v, error %v", k, slices.Contains(offered, k), err)
+		}
+	}
+	if !slices.Equal(offered, []rules.RollKind{rules.RollFull}) {
+		t.Errorf("offered %v", offered)
 	}
 }

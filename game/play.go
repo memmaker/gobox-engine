@@ -189,11 +189,12 @@ type Draft struct {
 	Member
 	Fields       []Field
 	MinHP, MaxHP int
-	Minimums     map[string]int // the class's lowest ability scores, by Member.Stats key ("str", ...)
-	Step         string         // the creation step the rules are on ("race", "skills", ...), "" any
-	Ask          *Question      // that step's question (its options, a typed name, a number, a yes/no), answered by SetChoice{Field: Step, N or Text}; nil: the sheet's fields
-	Stats        []StatDef      // the sheet's abilities in the game's order and count (nil: STR .. CHA from Member.Stats)
-	Derived      []Derived      // the sheet's figures besides the abilities, in the game's order (nil: from Member)
+	Minimums     map[string]int   // the class's lowest ability scores, by Member.Stats key ("str", ...)
+	Step         string           // the creation step the rules are on ("race", "skills", ...), "" any
+	Ask          *Question        // that step's question (its options, a typed name, a number, a yes/no), answered by SetChoice{Field: Step, N or Text}; nil: the sheet's fields
+	Stats        []StatDef        // the sheet's abilities in the game's order and count (nil: STR .. CHA from Member.Stats)
+	Rolls        []rules.RollKind // the ways the rules roll abilities, the ones to offer (nil: the front offers every way)
+	Derived      []Derived        // the sheet's figures besides the abilities, in the game's order (nil: from Member)
 }
 
 // Exploring: the party walks a map (dungeon, town or wilderness).

@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"gobox/gpu"
+	"gobox/rules"
 	"gobox/ui/input"
 )
 
@@ -247,7 +248,7 @@ func (p *Presenter) drawScreen(dst *gpu.Image) {
 	s := &p.scr
 	if n := p.screenName(); n != s.up {
 		s.up, s.sub, s.sel, s.top, s.anchor = n, scrMain, 0, 0, nil
-		if n == "creation" && s.newChar {
+		if cr := p.creation(); n == "creation" && s.newChar && (cr == nil || cr.offers(rules.RollPointBuy)) { // a ruleset without bought abilities asks nothing
 			s.sub, s.mainSel = scrHow, 0
 		}
 		s.newChar = false
@@ -747,10 +748,15 @@ func (p *Presenter) spots() []spot {
 func (p *Presenter) barWords() []footWord {
 	ws := []string{"Keep", "Exit"}
 	if p.iconEditor(p.ink()) == nil {
-		ws = []string{"Roll", "Minimal", "Keep", "Exit"}
-		if p.creation() != nil && len(p.creation().Powers) > 0 {
-			ws = []string{"Roll", "Minimal", "Powers", "Keep", "Exit"}
+		ws = []string{"Roll"}
+		cr := p.creation()
+		if cr == nil || cr.offers(rules.RollMinimal) {
+			ws = append(ws, "Minimal")
 		}
+		if cr != nil && len(cr.Powers) > 0 {
+			ws = append(ws, "Powers")
+		}
+		ws = append(ws, "Keep", "Exit")
 	}
 	var out []footWord
 	x := 0

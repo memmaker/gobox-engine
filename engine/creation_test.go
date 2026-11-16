@@ -48,7 +48,10 @@ func (f *fake) Roll(d *rules.Draft, k rules.RollKind, r *rules.RNG) error {
 	return nil
 }
 func (f *fake) Minimums(d rules.Draft) map[rules.Ability]int32 { return nil }
-func (f *fake) QuickRerolls() int                              { return 2000 }
+func (f *fake) Rolls() []rules.RollKind {
+	return []rules.RollKind{rules.RollFull, rules.RollMinimal, rules.RollPointBuy}
+}
+func (f *fake) QuickRerolls() int { return 2000 }
 
 func (f *fake) QuickParty() []rules.Template {
 	return []rules.Template{{Picks: map[rules.FieldID]int{fKind: 1}, Name: "Q", Need: map[rules.Ability]int32{rules.Strength: 15}}}

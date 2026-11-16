@@ -398,7 +398,7 @@ func (e *Engine) creationState(cr *creation) *game.Draft {
 			mins[e.abilityKey(a)] = int(v)
 		}
 	}
-	g := &game.Draft{Member: d, Minimums: mins, Stats: e.statDefs(id, nil)}
+	g := &game.Draft{Member: d, Minimums: mins, Stats: e.statDefs(id, nil), Rolls: cl.Rolls()}
 	for _, f := range cl.Fields(cr.d.D) { // the four, then the power picks (setPower)
 		fl := game.Field{Name: f.Label, Options: slices.Clone(f.Options), Pick: cr.d.D.Picks[f.ID], Alignment: f.Alignment}
 		for i := range f.Options {

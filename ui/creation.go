@@ -2,10 +2,16 @@ package ui
 
 import (
 	"gobox/game"
+	"gobox/rules"
 	"slices"
 	"strconv"
 	"strings"
 )
+
+// offers says whether the state offers roll kind k: any way when it lists none.
+func (cr *FrontCreation) offers(k rules.RollKind) bool {
+	return len(cr.Rolls) == 0 || slices.Contains(cr.Rolls, k)
+}
 
 // statLongCol is the column the creation sheet's ability values start at, after the names written out.
 const statLongCol = 14
@@ -60,7 +66,7 @@ func Creation(mode game.Mode, c *game.Creation, pending *game.Ask, cols, rows in
 	}
 	d := c.Draft
 	winRight, winBottom := max(cols, 40)-2, max(rows, 25)-3
-	v := &FrontCreation{Minimums: minimums(c.Minimums, statsOf(c)), Abandon: "Abandon this character?"}
+	v := &FrontCreation{Minimums: minimums(c.Minimums, statsOf(c)), Rolls: c.Rolls, Abandon: "Abandon this character?"}
 	if a := pending; a != nil && a.Kind == game.YesNo {
 		v.Abandon = a.Prompt
 	}

@@ -741,6 +741,8 @@ type Creation struct {
 	// source: a figure not given is not shown. nil: the figures come from
 	// Draft.
 	Derived []Derived `json:",omitempty"`
+	// Rolls are the ways the rules roll abilities: the ones a front offers (nil: every way).
+	Rolls []rules.RollKind `json:",omitempty"`
 }
 
 // StatDef is one ability on the sheet or the creation sheet.

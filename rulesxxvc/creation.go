@@ -184,6 +184,9 @@ func hpMaximum(career rules.Class, con int) int32 {
 	return int32(v * startLevel)
 }
 
+// Rolls: the original rolls one way (chargen.pas CreateCharacterMenu has no minimums and no bought abilities).
+func (creation) Rolls() []rules.RollKind { return []rules.RollKind{rules.RollFull} }
+
 // Roll rolls afresh; the original has no other way (no minimums, no point buy).
 func (c creation) Roll(d *rules.Draft, k rules.RollKind, rng *rules.RNG) error {
 	if k != rules.RollFull {

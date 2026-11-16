@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 // br1Stats are the seven abilities a constructed state lists in the original's order (gdconsts.pas abilityAbbreviations).
@@ -48,5 +49,25 @@ func TestSheetListsSevenAbilities(t *testing.T) {
 		if !strings.HasPrefix(rows[i], st.Name) {
 			t.Errorf("row %d: %q, want the name %s", i, rows[i], st.Name)
 		}
+	}
+}
+
+// A state that offers one roll gets Roll alone: no Minimal on the bar, no Roll or Point Buy question for a new character.
+func TestOnlyOfferedRolls(t *testing.T) {
+	p, _ := draftOn(&game.Draft{Stats: br1Stats, Rolls: []rules.RollKind{rules.RollFull}})
+	var words []string
+	for _, w := range p.barWords() {
+		words = append(words, w.label)
+	}
+	if !slices.Equal(words, []string{"Roll", "Keep", "Exit"}) {
+		t.Errorf("bar %v", words)
+	}
+	p, _ = draftOn(&game.Draft{Stats: br1Stats})
+	words = nil
+	for _, w := range p.barWords() {
+		words = append(words, w.label)
+	}
+	if !slices.Equal(words, []string{"Roll", "Minimal", "Keep", "Exit"}) {
+		t.Errorf("a state listing no rolls offers every way: %v", words)
 	}
 }
