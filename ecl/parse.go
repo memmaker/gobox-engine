@@ -581,7 +581,7 @@ func (p *parser) call(name string) error {
 	if !ok {
 		a, isRoutine := p.routines[name]
 		if !isRoutine {
-			return fmt.Errorf("no command, section or routine %s", name)
+			return fmt.Errorf("no command, section or routine %s (a text of an older import names commands that were renamed: run the game's import again)", name)
 		}
 		if err := p.expect(")"); err != nil {
 			return err

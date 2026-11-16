@@ -33,10 +33,17 @@ var dataDirs = []string{"names", "layout"}
 
 // Key is what the texts are made from: the decompiler's version, the
 // folding, the game's script data (dataDirs: every file, path and content)
-// and its special cases. A text whose header carries another key is stale.
+// its special cases and the dialect's command words. A text whose header carries another key is stale.
 func Key(v *Version, data fs.FS, fold Folding, fixes []Fix) (string, error) {
 	h := sha256.New()
 	fmt.Fprintf(h, "%s\x00fold %d\x00", v.Header(), fold)
+	// the dialect's words: a command renamed or re-shaped makes every text stale (bug class: MenuCall became
+	// Program and PickMember became Who, and the installed BR folders no longer parsed)
+	for b, c := range v.Cmds {
+		if c.Known {
+			fmt.Fprintf(h, "cmd %d %s %d %d\x00", b, OpName(c.Op), c.Fixed, c.Count)
+		}
+	}
 	for _, f := range fixes {
 		fmt.Fprintf(h, "fix %d\x00%d\x00%s\x00%d\x00%s\x00", f.Area, len(f.Old), f.Old, len(f.New), f.New)
 	}

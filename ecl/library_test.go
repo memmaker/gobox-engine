@@ -43,3 +43,23 @@ func TestLibraryKey(t *testing.T) {
 		t.Error("withKey/textKey")
 	}
 }
+
+// TestKeyHoldsCommandWords: a command renamed (another canonical command at a byte code) or re-shaped makes
+// the texts stale. Bug class: MenuCall became Program and PickMember became Who, and the installed Buck
+// Rogers folders, written with the old words, no longer parsed.
+func TestKeyHoldsCommandWords(t *testing.T) {
+	data := fstest.MapFS{}
+	was, err := Key(V4, data, FoldGates, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	renamed := *V4
+	renamed.Cmds[57].Op = OpProgram // 57 is Who
+	shaped := *V4
+	shaped.Cmds[57].Fixed++
+	for name, v := range map[string]*Version{"renamed": &renamed, "re-shaped": &shaped} {
+		if k, err := Key(v, data, FoldGates, nil); err != nil || k == was {
+			t.Errorf("%s: the key did not change (%v)", name, err)
+		}
+	}
+}
