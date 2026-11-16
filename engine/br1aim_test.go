@@ -92,10 +92,12 @@ func TestBR1Aim(t *testing.T) {
 		t.Fatal(err)
 	}
 	st := e.fightState().Strike
-	if st.Seq != seq+1 || st.From != me.ID || st.To != foe.ID {
-		t.Fatalf("strike %+v after the shot, want %d to %d, seq %d", st, me.ID, foe.ID, seq+1)
+	// one Aim is the round's attacks at that target (combat.pas CreatureAction: the swings start anew each turn),
+	// so more than one strike may follow; the last one is shown
+	if st.Seq <= seq || st.From != me.ID || st.To != foe.ID {
+		t.Fatalf("strike %+v after the shot, want %d to %d, seq above %d", st, me.ID, foe.ID, seq)
 	}
-	if got := br1HP(e, foe.ID); got != before-st.Damage || st.Hit != (st.Damage > 0) && st.Hit {
+	if got := br1HP(e, foe.ID); got > before-st.Damage || st.Hit != (st.Damage > 0) && st.Hit {
 		t.Errorf("hit points %d -> %d for strike %+v", before, got, st)
 	}
 	if got := br1Ammo(e, f); got >= ammo || got < 0 {
