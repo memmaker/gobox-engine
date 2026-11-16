@@ -21,6 +21,7 @@ var savedState = map[string]string{
 	"duelist": "a fight's", "tactics": "a fight's", "round": "a fight's", "initiative": "a fight's", "fight": "a fight's",
 	"arena": "a fight's", "ground": "a fight's, as rules1e's is not saved", "space": "a ship fight's",
 	"cloning":   "between a NewGroup and its Spawns, inside one script command",
+	"lastActor": "a fight's: the character who acted last (the solo fight's test)",
 	"held":      "the copies a Modify sheet holds until Keep or Exit: the party menu's, no game is saved under it",
 	"phase":     "the engine's (EnterPhase): entered again when a loaded game's loop starts",
 	"shopTerms": "a shop's (StockShop): set each time a script opens one; a loaded game opens it again",

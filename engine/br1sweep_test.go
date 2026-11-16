@@ -34,7 +34,6 @@ var br1SweepKnown = []struct{ Pattern, Why string }{
 	{`^fact rules.FlightFact: Fact #: no character`, "open, owner presentation (vw1): the engine's missileArt is the Pool games' art; BR1's AnimateMissile (cbtacts.pas) has its own, rulesxxvc answers no FlightFact"},
 	{`^rules: rules.AddLoot: .*not ported yet`, "open, sw1 (needs an engine change): BR's TreasureOf(credits, count, items...) (eclvm.pas EclTreasure) reaches the Pool handler opTreasureOf, which reads 4 fixed operands (platinum, gems, jewelry, count) and converts by GoldBoxRates; V4 has 2 fixed. Wants a Behaviour for the coin operands, rulesxxvc AddLoot (pool credits) and AddLibraryItems (templates to the loot, newest first). The GainExperience text is also the Pool's (BR: 'Congrats. The team gains experience!')"},
 	{`^ecl: view kind # not ported`, "vw1: the rocket's view (AreaKind view kind 2)"},
-	{`^ecl: opcode #B on line # not ported`, "sh1: the Shop command"},
 	{`^LOG: script: area \d+: T_\w+\[\d+\] is past the field's \d+ entries`, "none: the entry skips the story, so the index variable (Word4C61 ...) holds 0 and the table is read past its end as the original does (engine log, TableFaults)"},
 }
 
