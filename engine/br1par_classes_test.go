@@ -75,3 +75,71 @@ func brTitleThenPartyMenu(t *testing.T, g brGame) {
 	}
 	quitEnds(t, e)
 }
+
+// TestBR1AimKeepsFighting ports rules TestClassAimedSquares and TestClassSubAskKeepsState: with the aim cursor up
+// the state is still Fighting, it carries no Ask (a square ask is answered by the aimed actions, not a question),
+// and every square the aimed actions offer is one the ruleset's aim check accepts.
+func TestBR1AimKeepsFighting(t *testing.T) {
+	e, _, _, _ := br1AimTurn(t)
+	f, ok := e.build().(game.Fighting)
+	if !ok || f.Ask != nil {
+		t.Fatalf("state %T, ask %+v", e.build(), f.Ask)
+	}
+	offered := 0
+	for _, a := range f.Allowed.Aimed {
+		for _, sq := range a.Squares {
+			offered++
+			if why := e.cs.aim.check(sq).Why; why != "" {
+				t.Errorf("%T offered at %v is refused: %q", a.Action, sq, why)
+			}
+		}
+	}
+	if offered == 0 {
+		t.Error("no square offered with the aim up")
+	}
+}
+
+// TestBR1SheetEverywhere ports rules TestClassSheetEverywhere: every member's sheet is published in a fight and in a
+// shop (the party list of the state carries it), as the game's own.
+func TestBR1SheetEverywhere(t *testing.T) { brSheetEverywhere(t, gameBR1) }
+
+func TestBR2SheetEverywhere(t *testing.T) { brSheetEverywhere(t, gameBR2) }
+
+func brSheetEverywhere(t *testing.T, g brGame) {
+	states := brParStates(g)
+	for _, name := range []string{"fight", "shop"} {
+		var party []game.Member
+		switch st := states[name](t).build().(type) {
+		case game.Fighting:
+			party = st.Party
+		case game.Trading:
+			party = st.Party
+		default:
+			t.Fatalf("%s: state %T", name, st)
+		}
+		if len(party) == 0 {
+			t.Fatalf("%s: no party", name)
+		}
+		for i, m := range party {
+			if m.Page == nil || m.Page.Name != m.Name {
+				t.Errorf("%s: member %d (%s) has no sheet", name, i, m.Name)
+			}
+		}
+	}
+}
+
+// TestBR1QuietAnswer ports rules TestClassQuietAnswer (bug class 79): with nothing asked the state offers no Reply
+// or Continue (no Enter, Yes or No).
+func TestBR1QuietAnswer(t *testing.T) {
+	e := brBegun(t, gameBR1)
+	c := commonOf(e.build())
+	if c.Ask != nil {
+		t.Skipf("still asked: %+v", c.Ask)
+	}
+	for _, a := range c.Allowed.Plain {
+		switch a.(type) {
+		case game.Reply, game.ContinueAction:
+			t.Errorf("%T offered with nothing asked", a)
+		}
+	}
+}

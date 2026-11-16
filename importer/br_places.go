@@ -5,7 +5,7 @@ import "gobox/adventure"
 // brPlaces are BR1's blocks' music triggers (buckrogers-go rules/music.go musicPlace, by disk and block; the blocks are
 // unique over the disks) and townPlaces ("salvation", "spaceport": the peaceful streets, Where.Mode "town"). Every trigger is
 // in brMusicPlaces (game.Data.MusicPlaces).
-var brPlaces = []adventure.Place{
+var brPlaces = named(brPlaceNames, []adventure.Place{
 	{Block: 16, Music: "neo-chicago"}, {Block: 17, Music: "salvation", Town: true},
 	{Block: 32, Music: "derelict"}, {Block: 33, Music: "derelict"}, {Block: 34, Music: "space"}, {Block: 35, Music: "asteroid-mine"},
 	{Block: 48, Music: "ceres-base"}, {Block: 49, Music: "ceres-base"}, {Block: 50, Music: "pirate-base"}, {Block: 52, Music: "ship-boarding"},
@@ -13,6 +13,21 @@ var brPlaces = []adventure.Place{
 	{Block: 80, Music: "venus-surface"}, {Block: 81, Music: "venus-surface"}, {Block: 82, Music: "venus-base"}, {Block: 83, Music: "venus-base"},
 	{Block: 94, Music: "mercury"}, {Block: 95, Music: "spaceport", Town: true}, {Block: 96, Music: "mercury"}, {Block: 97, Music: "mercury"},
 	{Block: 98, Music: "mariposa-doomsday"}, {Block: 99, Music: "spaceport", Town: true},
+})
+
+// brPlaceNames is each BR1 music place's name as the game's texts call it, the map's area title (buckrogers-go
+// rules/music.go placeName).
+var brPlaceNames = map[string]string{"neo-chicago": "Neo-Chicago", "salvation": "Salvation", "derelict": "Derelict Ship",
+	"space": "Space", "asteroid-mine": "Asteroid Mine", "ceres-base": "Ceres Base", "pirate-base": "Pirate Base",
+	"ship-boarding": "Boarded Ship", "mars-surface": "Mars", "mars-gradivus": "Gradivus", "venus-surface": "Venus",
+	"venus-base": "Venus Base", "mercury": "Mercury", "spaceport": "Mercury Spaceport", "mariposa-doomsday": "Mariposa"}
+
+// named is ps with each place's Name from names by its music trigger.
+func named(names map[string]string, ps []adventure.Place) []adventure.Place {
+	for i := range ps {
+		ps[i].Name = names[ps[i].Music]
+	}
+	return ps
 }
 
 // br2Places are BR2's blocks' music triggers (buckrogers2-go rules/data.go blockMusic by block; townBlocks 17, 18 and 32 are the

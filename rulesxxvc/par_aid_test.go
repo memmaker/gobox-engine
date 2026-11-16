@@ -118,3 +118,40 @@ func TestShipAid(t *testing.T) {
 		t.Errorf("status %v, error %v", r.chars[pilot].Status, err)
 	}
 }
+
+// TestShipDyingCount ports rules TestSpaceNotices (charhlp.pas ProcessDyingCharacters, shipcbt.pas round end): each
+// round a dying crew member's count goes up and "Your Teammate is Dying!" is said (Teammates are, for several); past 9
+// it slips into a coma with its line and is not counted.
+func TestShipDyingCount(t *testing.T) {
+	said := func(r *Rules) (lines []string) {
+		for _, e := range r.space.out {
+			if n, ok := e.(rules.Narrated); ok {
+				lines = append(lines, n.Text)
+			}
+		}
+		return lines
+	}
+	r, _, a, b := shipFightOf(t, 1)
+	r.space.crew = []rules.CharID{a, b}
+	r.chars[a].Status = StDying
+	r.space.dying = map[rules.CharID]int{a: 9}
+	r.space.out = nil
+	r.roundEnd()
+	got := said(r)
+	if r.chars[a].Status != StComatose || len(got) != 1 || got[0] != "Ace slips into a coma!" {
+		t.Errorf("past 9: %v %v", r.chars[a].Status, got)
+	}
+	r.chars[a].Status, r.chars[b].Status = StDying, StDying
+	r.space.dying = map[rules.CharID]int{}
+	r.space.out = nil
+	r.roundEnd()
+	if got := said(r); len(got) == 0 || got[len(got)-1] != "Your Teammates are Dying!" {
+		t.Errorf("two dying: %v", got)
+	}
+	r.chars[b].Status = StOkay
+	r.space.out = nil
+	r.roundEnd()
+	if got := said(r); len(got) == 0 || got[len(got)-1] != "Your Teammate is Dying!" {
+		t.Errorf("one dying: %v", got)
+	}
+}

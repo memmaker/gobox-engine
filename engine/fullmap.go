@@ -132,6 +132,9 @@ func (e *Engine) Unmark(x, y int) error {
 // mapName is the current map's name in words, from the scripts' names of
 // the GEO blocks (names/pictures.txt, read once), or "Map".
 func (e *Engine) mapName() string {
+	if p := e.game().Place(int(e.gs.areaKind)); p != nil && p.Name != "" { // a game that names its places
+		return p.Name
+	}
 	if !e.mapNamesRead {
 		var err error
 		if e.mapNames, err = ecl.ReadValues(os.DirFS(e.scriptDir()), "names/pictures.txt", nil); err != nil {

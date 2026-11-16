@@ -71,6 +71,7 @@ type Place struct {
 	Block int
 	Music string
 	Town  bool
+	Name  string `json:",omitempty"` // the map's area title (game.Automap.Area); "": the game's names file or "Map"
 }
 
 // Place is the place of area block block; nil: none.

@@ -48,3 +48,17 @@ func TestBR2PlacesInMusicPlaces(t *testing.T) {
 		}
 	}
 }
+
+// TestBRPlaceNames ports rules TestAreaName (music.go areaName): every BR1 block with a place has the area title the
+// map shows (Salvation for block 17, Gradivus for 66, Mercury Spaceport for 95), none is empty.
+func TestBRPlaceNames(t *testing.T) {
+	want := map[int]string{17: "Salvation", 66: "Gradivus", 95: "Mercury Spaceport"}
+	for _, p := range brPlaces {
+		if p.Name == "" {
+			t.Errorf("block %d (%s) has no area title", p.Block, p.Music)
+		}
+		if w, ok := want[p.Block]; ok && p.Name != w {
+			t.Errorf("block %d: %q, want %q", p.Block, p.Name, w)
+		}
+	}
+}

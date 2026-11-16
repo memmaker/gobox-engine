@@ -102,3 +102,12 @@ func TestBR1SidestepTwin(t *testing.T) {
 		t.Error("no sidestep moved")
 	}
 }
+
+// TestBR1AreaName: the map's area title is the block's place name (rules TestAreaName): Salvation in block 17.
+func TestBR1AreaName(t *testing.T) {
+	e := br1Begun(t)
+	br1ToBaseMenu(t, e)
+	if got := commonOf(e.build()).Automap.Area; got != "Salvation" {
+		t.Errorf("map area %q in block %d, want Salvation", got, e.gs.areaKind)
+	}
+}
