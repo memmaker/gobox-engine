@@ -93,8 +93,11 @@ func br1BeginWith(t testing.TB, e *Engine, n int) *Engine {
 	e.titleDone()
 	e.Advance()
 	for i := range n {
+		// the roster list shrinks as characters join: index i is the i-th of what is left, which a roster of six (BR2) lacks for the fourth
 		if _, err := e.doNow(game.AddCharacter{Roster: i}); err != nil {
-			t.Fatalf("AddCharacter: %v", err)
+			if _, err := e.doNow(game.AddCharacter{Roster: 0}); err != nil {
+				t.Fatalf("AddCharacter: %v", err)
+			}
 		}
 	}
 	if _, err := e.doNow(game.Begin{}); err != nil {

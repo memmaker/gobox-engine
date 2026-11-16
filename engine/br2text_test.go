@@ -79,3 +79,13 @@ func TestBR2Logbook(t *testing.T) {
 		t.Errorf("entry 62 not read: %T %q", e.build(), paneText(commonOf(e.build())))
 	}
 }
+
+// TestBR2SkillLiteralDestination: BR2's Skill(62, 1, x) (area84) gives a literal where the member's place goes: the original writes
+// it to the address the literal is, in no zone, so the script goes on and the outcome still lands in x.
+func TestBR2SkillLiteralDestination(t *testing.T) {
+	e := brBegun(t, gameBR2)
+	br1OwnBlock(t, e, 201, "    Skill(62, 1, Word7B06)\n    Word7B05 = 9")
+	if got := br1Cell(t, e, "Word7B05"); got != 9 {
+		t.Errorf("the script stopped after the Skill: %d", got)
+	}
+}

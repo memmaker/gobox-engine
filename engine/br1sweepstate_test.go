@@ -199,7 +199,7 @@ func sweepRunBlock(t testing.TB, adv string, block, entries int, hit map[int]map
 // sweepCoverageTotal logs the distinct instructions run over all blocks' (the table's last row).
 func sweepCoverageTotal(t testing.TB, e *Engine, hit map[int]map[int]bool) {
 	run, total := 0, 0
-	for _, block := range br1Blocks {
+	for _, block := range sweepBlocks {
 		s, err := e.parseScriptFile(block)
 		if err != nil {
 			t.Fatal(block, err)

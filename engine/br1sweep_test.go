@@ -265,14 +265,20 @@ func sweepEntries(t testing.TB, adv string, block, n int, rng *rules.RNG) (out [
 	return out
 }
 
-func TestBR1Sweep(t *testing.T) {
+func TestBR1Sweep(t *testing.T) { sweepGameRun(t, gameBR1, br1Blocks, br1SweepKnown) }
+
+// sweepBlocks are the blocks of the game being swept (sweepGameRun sets it; the sweep's helpers read it).
+var sweepBlocks = br1Blocks
+
+// sweepGameRun is TestBR1Sweep on game g: its blocks and its known findings (br2sweep_test.go: TestBR2Sweep).
+func sweepGameRun(t *testing.T, g brGame, blockList []int, known []struct{ Pattern, Why string }) {
 	t.Setenv("GOBOX_NOSOUND", "1")
-	dos := filepath.Join("..", "data", "br1", "sources", "dos")
-	if _, err := os.Stat(filepath.Join(dos, "START.EXE")); err != nil {
-		t.Skip("no BR1 originals:", err)
+	sweepBlocks = blockList
+	if _, err := os.Stat(filepath.Join(g.dos(), "START.EXE")); err != nil {
+		t.Skip("no "+g.Name+" originals:", err)
 	}
 	adv := t.TempDir()
-	if err := importer.ImportBREngine("br1", importer.BR1EXE, dos, adv); err != nil {
+	if err := importer.ImportBREngine(g.ID, g.EXE, g.dos(), adv); err != nil {
 		t.Fatal(err)
 	}
 	entries := sweepEntriesN
@@ -286,7 +292,7 @@ func TestBR1Sweep(t *testing.T) {
 	clear(sweepNotPorted)
 	hit := map[int]map[int]bool{}
 	groups := map[string][]*sweepFinding{}
-	for _, block := range br1Blocks {
+	for _, block := range sweepBlocks {
 		sweepRunBlock(t, adv, block, entries, hit, groups, nil)
 	}
 
@@ -302,7 +308,7 @@ func TestBR1Sweep(t *testing.T) {
 	}
 	e := br1EngineIn(t, adv)
 	t.Logf("%-6s %8s %8s", "block", "run", "total")
-	for _, block := range br1Blocks {
+	for _, block := range sweepBlocks {
 		s, err := e.parseScriptFile(block)
 		if err != nil {
 			t.Fatal(block, err)
@@ -335,11 +341,11 @@ func TestBR1Sweep(t *testing.T) {
 		t.Logf("x%d blocks %v: %s\n  first: %+v\n  actions (all %d, last 15): %q\n  frames:\n%s", len(g), sortedInts(blocks), k, first.Spec, len(first.Actions), first.Actions[max(0, len(first.Actions)-15):], first.Frames)
 	}
 	for _, k := range keys {
-		if !slices.ContainsFunc(br1SweepKnown, func(kn struct{ Pattern, Why string }) bool { return regexp.MustCompile(kn.Pattern).MatchString(k) }) {
+		if !slices.ContainsFunc(known, func(kn struct{ Pattern, Why string }) bool { return regexp.MustCompile(kn.Pattern).MatchString(k) }) {
 			t.Errorf("new finding (x%d): %s", len(groups[k]), k)
 		}
 	}
-	for _, kn := range br1SweepKnown {
+	for _, kn := range known {
 		if !slices.ContainsFunc(keys, func(k string) bool { return regexp.MustCompile(kn.Pattern).MatchString(k) }) {
 			t.Errorf("listed finding no longer occurs: %s (%s)", kn.Pattern, kn.Why)
 		}

@@ -344,6 +344,9 @@ func (e *Engine) getCell(f *ecl.Field, r ecl.Ref) int64 {
 
 // setVar = WriteGbvm (ovr08:0C77) on a Ref.
 func (e *Engine) setVar(r ecl.Ref, v int64) {
+	if r.Field == 0 { // a literal operand as the destination (BR2: Skill(62, 1, x) names the member's place by a literal): the original's WriteGbvm writes to the address the literal is, which lies below every zone (GbvmZone 4, no case writes there)
+		return
+	}
 	f := e.varField(r)
 	if f.ReadOnly {
 		panic(fmt.Sprintf("script: %s is read-only", f.Name))
