@@ -50,3 +50,38 @@ func TestBR1PlaceMusic(t *testing.T) {
 		t.Errorf("block 17: music %q mode %q", w.Music, w.Mode)
 	}
 }
+
+// TestBR1ScriptSound: the intro's Sound(5) (in a For loop) reaches the front as the cue "5", Sound(131) as none (the old engine's
+// command 67 reports the numbers below 128).
+func TestBR1ScriptSound(t *testing.T) {
+	e := br1Engine(t)
+	e.Open("")
+	e.titleDone()
+	e.Advance()
+	var heard []string
+	note := func(out game.Outcome) {
+		for _, ev := range out.Events {
+			if s, ok := ev.(game.Sounded); ok {
+				heard = append(heard, s.Sound)
+			}
+		}
+	}
+	for _, a := range []game.Action{game.AddCharacter{Roster: 0}, game.Begin{}} {
+		out, err := e.doNow(a)
+		if err != nil {
+			t.Fatalf("%T: %v", a, err)
+		}
+		note(out)
+	}
+	for n := 0; commonOf(e.build()).Ask != nil && n < 80; n++ {
+		note(br1AnswerOut(t, e))
+	}
+	for _, h := range heard { // Sound(5) is in the intro's For loop, once a pass
+		if h != "5" {
+			t.Errorf("the intro sounded %q", h)
+		}
+	}
+	if len(heard) == 0 {
+		t.Error("the intro sounded nothing")
+	}
+}

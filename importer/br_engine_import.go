@@ -137,6 +137,7 @@ func ImportBREngine(id string, e BREXE, dos, dst string) error {
 		Symbols:      start.Symbols,
 		Art:          &start.Art,
 		Places:       start.Places,
+		ScriptSounds: brScriptSounds(),
 	}
 	if start.Walls {
 		// the 3D view's textures: buckrogers-go rules/wallindex.txt as walls/<id>.txt (chunk (value-1)/5+1, wall (value-1)%5+1); the

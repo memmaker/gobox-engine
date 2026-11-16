@@ -285,7 +285,10 @@ func br1Pages(t *testing.T, e *Engine) {
 }
 
 // br1Answer answers what is up the one way it has: a handout put away, a Delay's pause over, a page's key.
-func br1Answer(t *testing.T, e *Engine) {
+func br1Answer(t *testing.T, e *Engine) { t.Helper(); br1AnswerOut(t, e) }
+
+// br1AnswerOut is br1Answer with what the engine did.
+func br1AnswerOut(t *testing.T, e *Engine) game.Outcome {
 	t.Helper()
 	var a game.Action = game.Reply{}
 	if sc, ok := e.build().(game.Scene); ok && sc.Kind == game.SceneHandout {
@@ -293,9 +296,11 @@ func br1Answer(t *testing.T, e *Engine) {
 	} else if slices.Contains(commonOf(e.build()).Allowed.Plain, game.Action(game.ContinueAction{})) {
 		a = game.ContinueAction{}
 	}
-	if _, err := e.doNow(a); err != nil {
+	out, err := e.doNow(a)
+	if err != nil {
 		t.Fatalf("%T on %q: %v (%T, allowed %+v)", a, paneText(commonOf(e.build())), err, e.build(), commonOf(e.build()).Allowed.Plain)
 	}
+	return out
 }
 
 // br1North is gobox's step north with the square's event run.
