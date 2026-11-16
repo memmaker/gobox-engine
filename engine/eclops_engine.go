@@ -46,6 +46,10 @@ func (e *Engine) eclRun() {
 			case holdPartyMenu:
 				e.push(cont{kind: kEclResume}, cont{kind: kDrawMain})
 				e.partyMenu(true, true)
+			case holdRest: // the rest menu holds the script, which goes on once it is closed
+				e.push(cont{kind: kEclResume})
+				e.askRest()
+				e.openAsk()
 			case holdEncamp: // the script waits for camp, then exits (the watch is only for a broken rest)
 				e.push(cont{kind: kEclResume}, cont{kind: kProgramExit, n: [3]int{e.es.holdPC}})
 				e.Encamp()

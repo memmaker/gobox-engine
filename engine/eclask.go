@@ -70,6 +70,7 @@ const (
 	dTavernAsk                     // the tavern: the spin had its key
 	dTavernAgain                   // the tavern: go again or not
 	dContinueFight                 // "Continue Battle:"
+	dRestMenu                      // BR's rest menu: Rest rests a day and asks again, Exit leaves
 	dDevParlay                     // dev scene: the encounter menu's choice
 	dDevPassword                   // dev scene: the word said
 )
@@ -431,6 +432,8 @@ func (e *Engine) complete(d askDone, v ansv) {
 		e.tavernAsk()
 	case dTavernAgain:
 		e.tavernAgain(v.n)
+	case dRestMenu:
+		e.restMenuAnswered(v.n)
 	case dContinueFight:
 		e.cs.phase = fightOver
 		if v.n == 1 {

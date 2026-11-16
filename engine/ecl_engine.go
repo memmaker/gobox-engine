@@ -171,6 +171,7 @@ const (
 	holdNone      holdKind = iota
 	holdPartyMenu          // the party menu
 	holdEncamp             // camp, then the script exits
+	holdRest               // camp, then the script goes on (BR's rest menu)
 )
 
 // eclLayout: the VM needs only the code image's range, the game's (GameTables.OriginalSave).

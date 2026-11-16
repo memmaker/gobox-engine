@@ -98,7 +98,8 @@ const (
 	ProgramNone      ProgramFn = iota
 	ProgramPartyMenu           // the party menu
 	ProgramEnding              // the adventure's ending
-	ProgramCamp                // camp (pod: with its camp events)
+	ProgramCamp                // camp (pod: with its camp events); the script ends
+	ProgramRest                // the rest menu (BR explore.pas RestMenu): the script goes on afterwards
 	ProgramQuit                // leave the game
 	ProgramSaveQuit            // save, then the ending
 	ProgramUnported            // a sub-command the original has and the engine lacks: it stops the game, never silently nothing
@@ -298,9 +299,9 @@ var V4 = func() *Version {
 	// CallDuelSound and CallPause: BR's own meaning, so named separately.
 	calls := map[uint16]CallFn{11723: CallRedrawView, 49182: CallStepForward, 49176: CallWallAhead, 45571: CallSound, 26627: CallPictureAnimation}
 	return &Version{ID: 4, Base: 32768, Cmds: t, Skip: skip, Calls: calls,
-		// BR1 pO035_2DCC case 56 (buckrogers-go opMenuCall): 0 the team menu, 9 the rest menu (holds the script, which
+		// BR1 pO035_2DCC case 56 (buckrogers-go opMenuCall): 0 the team menu, 9 the rest menu (eclvm.pas PROGRAM_REST_MENU: holds the script, which
 		// goes on after it: not the Pool games' camp, which ends it)
-		Programs:  map[byte]ProgramFn{0: ProgramPartyMenu, 9: ProgramUnported},
+		Programs:  map[byte]ProgramFn{0: ProgramPartyMenu, 9: ProgramRest},
 		Behaviour: Behaviour{SetupMonsterSides: true, ReturnEndsScript: true, StoreByOperand: true, ClearExitText: true, WhoEndsNoMember: true, FarSight: true, LostDuelResult: true, ViewKept: true, MessageDelayMs: BRMessageDelayMs}}
 }()
 

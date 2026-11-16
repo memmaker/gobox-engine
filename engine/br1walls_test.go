@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"strings"
 	"testing"
 
 	"gobox/game"
@@ -177,5 +178,41 @@ func TestBR1OverlandMove(t *testing.T) {
 	}
 	if w := commonOf(e.build()).Where; w.X != 37 || w.Y != 14 {
 		t.Errorf("Where %d,%d, want the overland's square 37,14", w.X, w.Y)
+	}
+}
+
+// TestBR1RestMenu: Program(9) opens the rest menu (explore.pas RestMenu) and holds the script, which goes on after Exit.
+// Rest is a day: every okay member one hit point up (and the clock a day on) (gametime.pas RestAndHeal(1), the same as
+// rulesxxvc.RestAndHeal).
+func TestBR1RestMenu(t *testing.T) {
+	e := br1Begun(t)
+	hp := func() int { return int(e.selFact(rules.FactHP)) }
+	e.setSelFact(rules.FactHP, int64(hp()-3))
+	was := hp()
+	br1OwnBlock(t, e, 202, "    Program(9)\n    Text(\"AFTER THE REST\")\n    PressKey()")
+	menu := func() []string {
+		a := commonOf(e.build()).Ask
+		if a == nil {
+			return nil
+		}
+		return a.Replies
+	}
+	if m := menu(); len(m) != 2 || m[0] != "Rest" || m[1] != "Exit" {
+		t.Fatalf("the rest menu: %q", m)
+	}
+	if _, err := e.doNow(game.Reply{N: restMenuRest}); err != nil {
+		t.Fatal(err)
+	}
+	if hp() != was+1 { // the day on the clock (AdvanceClock) has no layout name to read here
+		t.Errorf("after a rest: hp %d (was %d)", hp(), was)
+	}
+	if m := menu(); len(m) != 2 {
+		t.Fatalf("the menu is not asked again: %q", m)
+	}
+	if _, err := e.doNow(game.Reply{N: restMenuExit}); err != nil {
+		t.Fatal(err)
+	}
+	if got := paneText(commonOf(e.build())); !strings.HasPrefix(got, "AFTER THE REST") {
+		t.Errorf("the script did not go on after Exit: %q", got)
 	}
 }

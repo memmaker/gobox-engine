@@ -821,6 +821,7 @@ const tourDone = "TourDone"
 const (
 	clockMinute = 1
 	clockTurn   = 2
+	clockDay    = 4 // gametime.pas TIME_DAY, the unit RestAndHeal advances by
 )
 
 // doorWait is the locked door waiting (PendDoor).
