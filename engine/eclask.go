@@ -92,6 +92,7 @@ const (
 	dLevel                          // its Level: the difficulty chosen
 	dSaveExists                     // SaveChar: "<file> already exists": Overwrite, Rename or Abort
 	dSaveRename                     // SaveChar's "New file name: "
+	dSaveOverwrite                  // SaveChar's "Overwrite <file>? " (the yes/no dialects)
 	dRocketMove                     // the rocket's heading, or Done
 	dDevParlay                      // dev scene: the encounter menu's choice
 	dDevPassword                    // dev scene: the word said
@@ -505,6 +506,8 @@ func (e *Engine) complete(d askDone, v ansv) {
 		e.saveExistsAnswered(d.who, v.n)
 	case dSaveRename:
 		e.saveRenamed(d.who, v.s)
+	case dSaveOverwrite:
+		e.saveOverwriteAnswered(d.who, v.n == 1)
 	case dRocketSaveQuit:
 		if !e.saveQuitAnswered(v.n) {
 			e.askRocketMenu()

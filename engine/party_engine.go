@@ -3,6 +3,7 @@ package engine
 import (
 	"fmt"
 	"gobox/adventure"
+	"gobox/ecl"
 	"gobox/rules"
 	"slices"
 	"strings"
@@ -172,12 +173,26 @@ func (e *Engine) removeMember(n int) error {
 		e.openAsk()
 		return nil
 	}
-	if e.eclVersion.Behaviour.SaveAsksOverwrite && e.fileExists(e.savePath(e.charBase(who)+".cha")) {
-		e.askChoice("", saveExistsMenu, false, false, askDone{kind: dSaveExists, who: who})
-		e.openAsk()
-		return nil // saveload.pas SaveChar: "<file> already exists", Overwrite Rename Abort save
+	return e.saveRemoving(who)
+}
+
+// saveRemoving saves who as a roster character and removes it: when the character's file exists the dialect's
+// SaveExists says what is asked first (saveload.pas SaveChar; the Remove paths of every game call it with no name).
+func (e *Engine) saveRemoving(who rules.CharID) error {
+	mode := e.eclVersion.Behaviour.SaveExists
+	if mode == ecl.SaveOverwrites || !e.fileExists(e.savePath(e.charBase(who)+".cha")) {
+		return e.saveAndRemove(who)
 	}
-	return e.saveAndRemove(who)
+	switch mode {
+	case ecl.SaveAsksMenu:
+		e.askChoice("", saveExistsMenu, false, false, askDone{kind: dSaveExists, who: who})
+	case ecl.SaveAsksYesNo:
+		q := yesNo(saveOverwritePrompt+e.charBase(who)+"? ", true) // YesNoMenu: Escape does not leave it
+		q.Default = 0                                              // No highlighted first (cotab menucore.pas, sotsb's sel 2, pod's noChoice)
+		e.askYesNo(q, false, askDone{kind: dSaveOverwrite, who: who})
+	}
+	e.openAsk()
+	return nil
 }
 
 // saveAndRemove saves who as a roster character; saved, it leaves the party (not saved: it stays).
@@ -199,9 +214,10 @@ func (e *Engine) sayErr(err error) {
 
 // SaveChar's question when the character's file exists (saveload.pas: Overwrite Rename Abort save).
 const (
-	saveExistsMenu = "~Overwrite ~Rename ~Abort"
-	saveNewName    = "New file name: "
-	saveNameMax    = 8
+	saveExistsMenu      = "~Overwrite ~Rename ~Abort"
+	saveNewName         = "New file name: "
+	saveOverwritePrompt = "Overwrite "
+	saveNameMax         = 8
 )
 
 // The places of saveExistsMenu.
@@ -222,7 +238,17 @@ func (e *Engine) saveExistsAnswered(who rules.CharID, n int) {
 	}
 }
 
-// saveRenamed gives the character the name typed (an empty one is asked for again) and saves it under it, over any file of that name.
+// saveOverwriteAnswered takes the Yes or No of the yes/no dialects: Yes saves over the file, No asks the new name.
+func (e *Engine) saveOverwriteAnswered(who rules.CharID, yes bool) {
+	if yes {
+		e.sayErr(e.saveAndRemove(who))
+		return
+	}
+	e.saveExistsAnswered(who, saveRename)
+}
+
+// saveRenamed gives the character the name typed (an empty one is asked for again) and saves it under it: the menu
+// dialect over any file of that name, the yes/no dialect asking about that file too (SaveChar's loop).
 func (e *Engine) saveRenamed(who rules.CharID, name string) {
 	if strings.TrimSpace(name) == "" {
 		e.saveExistsAnswered(who, saveRename)
@@ -230,6 +256,10 @@ func (e *Engine) saveRenamed(who rules.CharID, name string) {
 	}
 	e.selectChar(who)
 	e.setSelValue(rules.FactName, rules.Text(strings.TrimSpace(name)))
+	if e.eclVersion.Behaviour.SaveExists == ecl.SaveAsksYesNo {
+		e.sayErr(e.saveRemoving(who))
+		return
+	}
 	e.sayErr(e.saveAndRemove(who))
 }
 
