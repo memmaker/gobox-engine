@@ -217,7 +217,7 @@ func (e *Engine) turnChoices(cID rules.CharID) map[int]rules.BoardPos {
 	e.snap.targets, e.snap.hits = nil, map[int]int{}
 	for _, t := range allowed.Aimed {
 		a, ok := t.Action.(rules.Attack)
-		if !ok {
+		if !ok || a.At != nil { // a ground attack (an area weapon) aims at a square: no unit, no hit chance
 			continue
 		}
 		i := e.unit(a.Target)

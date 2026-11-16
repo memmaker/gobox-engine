@@ -27,9 +27,8 @@ import (
 // br1SweepKnown are the findings still open: Pattern is matched against "message @ top frame".
 // The test fails on a finding no pattern matches and on a pattern no finding matches.
 var br1SweepKnown = []struct{ Pattern, Why string }{
-	{`^fact rules.UnitFact: fight fact: no such character`, "sw1: under analysis"},
-	{`^sweep: a script ran # instructions on one action without asking \(block #\)`, "sw1: under analysis (block 50, replay 50 0 0 6 12139958)"},
-	{`^the scripts of block # loop without asking`, "sw1: under analysis (block 17)"},
+	{`^sweep: a script ran # instructions on one action without asking \(block #\)`, "open, sw1 unverified: a script loop of block 50 (opOnGotoGosub in a step entry) that the sweep reaches with story words it never set; replay 50 0 0 6 12138934 (changes with the engine)"},
+	{`^the scripts of block # loop without asking`, "open, vw1 (AreaKind / view kind): 17 -> Port -> block 32 whose load exits at once (ScriptBlock >= 32) keeps the scripted view kind 3 of block 17, so its move entry exits without asking; replay 17 0 0 2 1259865"},
 	{`^fact rules.FlightFact: Fact #: no character`, "open, owner presentation (vw1): the engine's missileArt is the Pool games' art; BR1's AnimateMissile (cbtacts.pas) has its own, rulesxxvc answers no FlightFact"},
 	{`^rules: rules.AddLoot: .*not ported yet`, "sw1: BR's TreasureOf(credits, count, items) goes through the Pool handler (4 fixed operands, platinum/gems/jewelry), and rulesxxvc answers no AddLoot"},
 	{`^rules: rules.GainExperience: .*not ported yet`, "sw1: BR's GainExperience (eclvm.pas EclAwardExperience), rulesxxvc answers no GainExperience"},
@@ -367,5 +366,28 @@ func TestBR1SweepReplay(t *testing.T) {
 	}
 	if f := br1SweepWalk(t, adv, sp, map[int]map[int]bool{}); f != nil {
 		t.Fatalf("%s\n%q\n%s", f.Key, f.Actions, f.Frames)
+	}
+}
+
+// br1SweepFixed are walks that once panicked and no longer do with that panic (the walk is as it was when the fix
+// went in, so a later change of the engine may move it off its path: then the fix needs a unit test of its own).
+var br1SweepFixed = []struct {
+	Spec sweepSpec
+	Was  string // the finding's text: the walk may go on to another
+	Why  string
+}{
+	{sweepSpec{16, 0, 0, 2, 14885212}, "fact rules.UnitFact: fight fact: no such character", "turnChoices asked UnitFact of a ground attack's Target (NoChar): an area weapon's aimed squares have no unit"},
+}
+
+func TestBR1SweepFixed(t *testing.T) {
+	t.Setenv("GOBOX_NOSOUND", "1")
+	adv := t.TempDir()
+	if err := importer.ImportBREngine("br1", importer.BR1EXE, filepath.Join("..", "data", "br1", "sources", "dos"), adv); err != nil {
+		t.Skip("no BR1 originals:", err)
+	}
+	for _, c := range br1SweepFixed {
+		if f := br1SweepWalk(t, adv, c.Spec, map[int]map[int]bool{}); f != nil && strings.Contains(f.Key, c.Was) {
+			t.Errorf("%+v (%s): %s\n%s", c.Spec, c.Why, f.Key, f.Frames)
+		}
 	}
 }
