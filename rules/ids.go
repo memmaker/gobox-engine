@@ -92,6 +92,10 @@ const (
 // 1e names its thief skills, core/xxvc all of XXVc.
 type Skill string
 
+// ScriptSkill is a skill as a module's scripts number it (BR: skillDefinitions' index, 1-based); the
+// ruleset reads it through the game's own numbering.
+type ScriptSkill byte
+
 // Save is a kind of saving throw. 1e has five, XXVc eight (eclbr.OffSaves);
 // Catalog says which a ruleset rolls.
 type Save string

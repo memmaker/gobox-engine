@@ -263,25 +263,44 @@ var groupAbility = map[SkillGroup]rules.Ability{
 func (r *Rules) Check(q rules.Check, rng *rules.RNG) rules.Answer {
 	switch q := q.(type) {
 	case rules.SkillRoll:
-		n, ok := skillNo(q.Skill)
-		if !ok {
-			return rules.Answer{Grade: rules.FailedBadly, Who: rules.NoChar}
-		}
-		var values []int8
-		var whom []rules.CharID
-		for _, id := range q.Whom {
-			if c := r.chars[id]; c != nil {
-				values, whom = append(values, skillValue(c, n)), append(whom, id)
-			}
-		}
-		g, i := SkillCheck(values, q.Hardness, rng)
-		a := rules.Answer{Grade: g, Yes: g >= rules.Made, Who: rules.NoChar}
-		if i >= 0 {
-			a.Who = whom[i]
-		}
-		return a
+		return r.skillRoll(q, r.stream(rng))
 	}
 	return r.sessionCheck(q, rng)
+}
+
+// skillRoll is EclSkillCheck: SelectSkillCharacter over the candidates, then its report. A script's
+// number is skillDefinitions' index, 1-based (names, groups and levels all use it).
+func (r *Rules) skillRoll(q rules.SkillRoll, rng *rules.RNG) rules.Answer {
+	n, ok := skillNo(q.Skill)
+	if q.Skill == "" {
+		n, ok = SkillNo(q.Script), q.Script >= 1 && int(q.Script) <= len(xxvc.Skills)
+	}
+	if !ok {
+		return rules.Answer{Grade: rules.FailedBadly, Who: rules.NoChar}
+	}
+	var values []int8
+	var whom []rules.CharID
+	for _, id := range q.Whom {
+		if c := r.chars[id]; c != nil {
+			values, whom = append(values, skillValue(c, n)), append(whom, id)
+		}
+	}
+	g, i := SkillCheck(values, q.Hardness, rng)
+	a := rules.Answer{Grade: g, Yes: g >= rules.Made, Who: rules.NoChar}
+	if i >= 0 {
+		a.Who = whom[i]
+	}
+	// eclvm.pas EclSkillCheck's message: the best character succeeds; else the party or the one tried fails.
+	title := xxvc.SkillTitles[n-1]
+	switch {
+	case g > rules.Failed:
+		a.Text = r.chars[a.Who].Name + " succeeds at " + title
+	case q.All:
+		a.Text = "party fails at " + title
+	case len(whom) > 0:
+		a.Text = r.chars[whom[0]].Name + " fails at " + title
+	}
+	return a
 }
 
 // Save and Load are the characters and the purse, JSON.

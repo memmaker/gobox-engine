@@ -125,6 +125,7 @@ func ImportBREngine(id string, e BREXE, dos, dst string) error {
 	}
 	tables := adventure.GameTables{
 		Dialect:      rules.DialectBR,
+		AddNPCIcon:   true, // saveload.pas AddCreatureToParty loads the NPC's CPIC icon (both games)
 		FirstBlock:   start.FirstBlock,
 		GameSet:      start.GameSet,
 		Logbook:      start.Logbook,

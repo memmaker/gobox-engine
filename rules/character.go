@@ -265,10 +265,13 @@ type (
 		Party Party
 		Spell SpellID
 	}
-	// SkillRoll: BR opSkill (skill, all, hardness).
+	// SkillRoll: BR opSkill (skill, all, hardness), eclvm.pas EclSkillCheck. The skill is named, or
+	// (Skill empty) the script's number; All: Whom is the whole party (the report says "party").
 	SkillRoll struct {
 		Whom     []CharID
 		Skill    Skill
+		Script   ScriptSkill
+		All      bool
 		Hardness Hardness
 	}
 )
@@ -284,8 +287,10 @@ func (SkillRoll) check()     {}
 
 // Answer is a Check's result. Which fields mean anything follows from the
 // Check: Low, High, Average for Census; Value for PartyStrength; Grade for
-// SkillRoll; Yes for the Has ones; Who for who succeeded or was found.
+// SkillRoll (Text: the report the original shows, "<name> succeeds at <skill>"); Yes for the Has
+// ones; Who for who succeeded or was found.
 type Answer struct {
+	Text           string
 	Yes            bool
 	Value          int32
 	Grade          Grade

@@ -45,14 +45,24 @@ func (e *Engine) LoadArea(areaID int) {
 	e.clearPrompt()
 }
 
-// FreeSteps = ovr08:0482.
+// The squares FreeSteps counts at most: the Pool's ovr08:0482 two, BR's MaxMonsterDist (eclmenu.pas) five.
+const (
+	freeStepsPool = 2
+	freeStepsFar  = 5
+)
+
+// FreeSteps = ovr08:0482 (BR eclmenu.pas MaxMonsterDist): the squares ahead before a wall.
 func (e *Engine) FreeSteps(x, y, dir int) int {
 	if e.world.In3D == 0 {
 		e.world.MonsterDist = 2
 		return 2
 	}
+	limit := freeStepsPool
+	if e.eclVersion.Behaviour.FarSight {
+		limit = freeStepsFar
+	}
 	n := 0
-	for n < 2 {
+	for n < limit {
 		if e.WallAt(x, y, dir) != 0 {
 			break
 		}

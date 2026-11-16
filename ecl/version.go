@@ -75,6 +75,8 @@ type Behaviour struct {
 	// WhoEndsNoMember: a picked member ends the "no member" state a SelectMember that matched nobody left (BR
 	// pO0D2_2F14 case 57, buckrogers-go opPickMember: noChar = false); the Pool's Who leaves it (cotab eclvm.pas EclWho does not touch characterNotFound)
 	WhoEndsNoMember bool
+	NPCSideBit      bool // AddNPC writes the side bit alone, the hostile one for monster 0x18 (por ovr04:2B7E); BR's EclAddNpc leaves the side as the record has it
+	FarSight        bool // the squares ahead counted before a wall run to 5 (BR eclmenu.pas MaxMonsterDist); otherwise to 2 (the Pool's ovr08:0482)
 	ClearExitText   bool // ClearExit empties the text pane too (BR pO035_2DCC case 66, 2837); otherwise only the view comes back (pod O040:24AE)
 	PictureAnimates bool // Picture marks the view drawn, so a wait under it cycles the picture's frames (cotab's and sotsb's b8B7D, pod's alike); otherwise only a step or Picture(255) does (POR's picDrawn, eclvm.pas:371, 1874)
 }
@@ -183,7 +185,7 @@ var V1 = func() *Version {
 		Calls: map[uint16]CallFn{0x2C90: CallRedrawView, 0x8000: CallDuelWin, 0x8001: CallDuelLose, 0xBA03: CallDuelSound,
 			0xC01E: CallStepForward, 0xC018: CallWallAhead},
 		Programs:  map[byte]ProgramFn{0: ProgramPartyMenu, 8: ProgramEnding, 9: ProgramCamp},
-		Behaviour: Behaviour{SelectMemberDrop: true, NoMonsterCombat: []CombatScreen{CombatShop, CombatTemple}}}
+		Behaviour: Behaviour{NPCSideBit: true, SelectMemberDrop: true, NoMonsterCombat: []CombatScreen{CombatShop, CombatTemple}}}
 }()
 
 // set makes byte-code command b the canonical command op with these operands.
@@ -245,7 +247,7 @@ var V3 = func() *Version {
 	// pod renumbered its routines (O040:1E4A)
 	return &Version{ID: 3, Base: 32768, Cmds: t, Skip: skip, Calls: map[uint16]CallFn{1: CallRedrawView, 2: CallStepForward, 3: CallNextFrame},
 		Programs:  map[byte]ProgramFn{0: ProgramPartyMenu, 1: ProgramSaveQuit, 2: ProgramQuit, 9: ProgramCamp},
-		Behaviour: Behaviour{SetupMonsterSides: true, OutdoorsNear: true, InputTextOperand: true, NoMonsterCombat: []CombatScreen{CombatVault, CombatTemple}, PictureAnimates: true, SymbolSetFrames: true}}
+		Behaviour: Behaviour{NPCSideBit: true, SetupMonsterSides: true, OutdoorsNear: true, InputTextOperand: true, NoMonsterCombat: []CombatScreen{CombatVault, CombatTemple}, PictureAnimates: true, SymbolSetFrames: true}}
 }()
 
 // V4 is the Buck Rogers engine's dialect (Countdown to Doomsday, Matrix Cubed).
@@ -260,12 +262,12 @@ var V4 = func() *Version {
 		b, op        byte
 		fixed, count int
 	}{
-		{12, 0x0C, 4, 0}, {29, OpShade, 2, 0}, {30, OpPartyStat, 6, 0}, {31, OpSpaceFight, 4, 0}, {34, OpSkill, 3, 0}, {35, OpSkillAll, 3, 0},
+		{12, 0x0C, 4, 0}, {29, OpShade, 2, 0}, {30, OpPartyStat, 6, 0}, {31, OpSpaceFight, 4, 0}, {34, OpSkill, 3, 0}, {35, OpSkillShow, 3, 0},
 		{39, OpTreasureOf, 2, 2}, {41, OpPressKey, 0, 0}, {44, OpYesNo, 0, 0}, {45, OpCall, 1, 0}, {46, 0x2E, 5, 0}, {49, OpMenuKeys, 2, 2},
-		{50, OpHasItem, 1, 0}, {52, 0x34, 2, 0}, {54, OpNPCJoin, 2, 0}, {55, OpLoadWalls, 3, 0}, {56, OpProgram, 1, 0}, {57, OpWho, 1, 0},
-		{58, 0x3A, 0, 0}, {59, OpNothing, 0, 0}, {60, OpNothing, 0, 0}, {61, 0x31, 0, 0}, {62, OpDump, 0, 0}, {63, OpLogbook, 2, 0}, {64, OpOp64, 2, 0},
+		{52, 0x34, 2, 0}, {55, OpLoadWalls, 3, 0}, {56, OpProgram, 1, 0}, {57, OpWho, 1, 0},
+		{58, 0x3A, 0, 0}, {59, OpNothing, 0, 0}, {60, OpNothing, 0, 0}, {61, 0x31, 0, 0}, {62, OpDump, 0, 0}, {63, OpLogbook, 2, 0}, {64, OpTakeItem, 2, 0},
 		{65, OpGainExp, 2, 0}, {66, OpClearExit, 0, 0}, {67, OpSound, 1, 0}, {68, OpNothing, 0, 0}, {69, OpWallDist, 2, 0}, {70, OpFor, 2, 0}, {71, OpNext, 0, 0},
-		{72, OpOp72, 1, 0}, {73, OpDamage6, 6, 0}, {74, OpDuel, 0, 0}, {75, OpShop, 1, 0}, {76, OpAreaKind, 2, 0},
+		{72, OpStash, 1, 0}, {73, OpSkillDamage, 6, 0}, {74, OpDuel, 0, 0}, {75, OpShop, 1, 0}, {76, OpAreaKind, 2, 0},
 	} {
 		set(&t, c.b, c.op, c.fixed, c.count)
 	}
@@ -290,7 +292,7 @@ var V4 = func() *Version {
 		// BR1 pO035_2DCC case 56 (buckrogers-go opMenuCall): 0 the team menu, 9 the rest menu (holds the script, which
 		// goes on after it: not the Pool games' camp, which ends it)
 		Programs:  map[byte]ProgramFn{0: ProgramPartyMenu, 9: ProgramUnported},
-		Behaviour: Behaviour{SetupMonsterSides: true, ReturnEndsScript: true, StoreByOperand: true, ClearExitText: true, WhoEndsNoMember: true}}
+		Behaviour: Behaviour{SetupMonsterSides: true, ReturnEndsScript: true, StoreByOperand: true, ClearExitText: true, WhoEndsNoMember: true, FarSight: true}}
 }()
 
 // Versions are the dialects by ID.

@@ -110,6 +110,11 @@ func (r *Rules) SetFact(id rules.CharID, f rules.Fact, v rules.Value) error {
 		}
 	case rules.PlainFact:
 		switch f {
+		case rules.FactControl: // the npc byte: the morale in the low seven bits, NON_PLAYER_FLAG above (EclAddNpc)
+			if isNumber {
+				c.Morale, c.NonPlayer = int(n)&(nonPlayerFlag-1), int(n)&nonPlayerFlag != 0
+				return nil
+			}
 		case rules.FactCompanion:
 			if y, ok := v.(rules.Yes); ok {
 				c.Companion = bool(y)

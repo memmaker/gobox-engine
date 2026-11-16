@@ -47,19 +47,17 @@ const (
 	OpPartyStat    byte = 0x90
 	OpSpaceFight   byte = 0x91
 	OpSkill        byte = 0x92
-	OpSkillAll     byte = 0x93
-	OpHasItem      byte = 0x94
-	OpNPCJoin      byte = 0x95
+	OpSkillShow    byte = 0x93
 	OpLogbook      byte = 0x98
-	OpOp64         byte = 0x99
+	OpTakeItem     byte = 0x99
 	OpWallDist     byte = 0x9A
 	OpFor          byte = 0x9B
 	OpNext         byte = 0x9C
-	OpOp72         byte = 0x9D
+	OpStash        byte = 0x9D
 	OpDuel         byte = 0x9E
 	OpShop         byte = 0x9F
 	OpAreaKind     byte = 0xA0
-	OpDamage6      byte = 0xA1
+	OpSkillDamage  byte = 0xA1
 	OpNothing      byte = 0xA2
 	OpLoadArea     byte = 0xA3 // LoadMap with no icons
 	OpQuest        byte = 0xA4 // a quest handed over: the adventure's Quest value
@@ -82,10 +80,9 @@ var opNames = map[byte]string{
 	OpClearExit: "ClearExit", OpPressKey: "PressKey", OpJournal: "Journal", OpYesNo: "YesNo", OpNoOp: "NoOp", OpSound: "Sound",
 	OpMenuKeys: "MenuKeys", OpFindNPC: "FindNPC", OpItemSet: "ItemSet", OpSpriteOff: "SpriteOff", OpDump: "Dump",
 	OpFindAffect: "FindAffect", OpDestroy: "DestroyItems", OpGainExp: "GainExperience", OpTreasureOf: "TreasureOf", OpShade: "Shade",
-	OpPartyStat: "PartyStat", OpSpaceFight: "SpaceFight", OpSkill: "Skill", OpSkillAll: "SkillAll", OpHasItem: "HasItem",
-	OpNPCJoin: "NPCJoin", OpLogbook: "Logbook", OpOp64: "Op64",
-	OpWallDist: "WallDistance", OpFor: "For", OpNext: "Next", OpOp72: "Op72", OpDuel: "Duel", OpShop: "Shop", OpAreaKind: "AreaKind",
-	OpDamage6: "Damage6", OpNothing: "Nothing", OpLoadArea: "LoadArea", OpQuest: "Quest", OpCastKnock: "CastKnock", OpTavernGamble: "TavernGame",
+	OpPartyStat: "PartyStat", OpSpaceFight: "SpaceFight", OpSkill: "Skill", OpSkillShow: "SkillShow", OpLogbook: "Logbook", OpTakeItem: "TakeItem",
+	OpWallDist: "WallDistance", OpFor: "For", OpNext: "Next", OpStash: "Stash", OpDuel: "Duel", OpShop: "Shop", OpAreaKind: "AreaKind",
+	OpSkillDamage: "SkillDamage", OpNothing: "Nothing", OpLoadArea: "LoadArea", OpQuest: "Quest", OpCastKnock: "CastKnock", OpTavernGamble: "TavernGame",
 }
 
 // OpName is the command's name in script text.

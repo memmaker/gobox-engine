@@ -147,6 +147,20 @@ func (r *Rules) resolveSession(a rules.Action) (o rules.Outcome, ok bool, err er
 		r.clock[u] = int(a.Value)
 	case rules.AdvanceClock:
 		r.advanceClock(int(a.Count), int(a.Unit))
+	case rules.MakeMonster: // saveload.pas AddCreatureToParty's LoadCreatureData
+		id, err := r.makeMonster(a.Of)
+		if err != nil {
+			return rules.Outcome{}, true, fmt.Errorf("MakeMonster: %w", err)
+		}
+		return rules.Outcome{Effects: []rules.Effect{rules.MonsterMade{Who: id}}}, true, nil
+	case rules.DressNPC: // no random id or portrait here: the monster as made
+		return rules.Outcome{Effects: []rules.Effect{rules.NPCDressed{Who: a.Who}}}, true, nil
+	case rules.ApplyItems: // eclvm.pas EclAddNpc: RecalcStats
+		c := r.chars[a.Who]
+		if c == nil {
+			return rules.Outcome{}, true, errNoMember
+		}
+		r.RecalcStats(c)
 	case rules.JoinParty:
 		if r.chars[a.Who] == nil {
 			return rules.Outcome{}, true, errNoMember
@@ -225,6 +239,18 @@ func (r *Rules) sessionCheck(q rules.Check, rng *rules.RNG) rules.Answer {
 		return rules.Answer{}
 	case rules.ItemTableMissing:
 		return rules.Answer{Yes: len(r.tables.Items) == 0}
+	case rules.HasItem: // eclvm.pas EclFindItem: any member, any status, the item's type
+		for _, id := range q.Whom {
+			if c := r.chars[id]; c != nil && slices.ContainsFunc(c.Items, func(ci Carried) bool {
+				t, _, ok := r.itemType(ci)
+				return ok && xxvc.ItemKinds[t.Type] == q.Item
+			}) {
+				return rules.Answer{Yes: true, Who: id}
+			}
+		}
+	case rules.MonsterKnown:
+		_, ok := r.tables.Monsters[q.ID]
+		return rules.Answer{Yes: ok}
 	case rules.CarryCount:
 		if c := r.chars[q.Who]; c != nil {
 			return rules.Answer{Value: int32(len(c.Items))}
@@ -260,6 +286,12 @@ func (r *Rules) factSession(id rules.CharID, f rules.Fact) (v rules.Value, ok bo
 		return rules.Party(slices.Clone(r.party)), true, nil
 	case rules.PurseFact:
 		return r.partyPurse(f.Loot), true, nil
+	case rules.ItemByNumber:
+		// the scripts' item number is the item type (ItemTemplate.Type), whose kind is the id (xxvc.ItemKinds)
+		if id, ok := xxvc.ItemKinds[int32(f.N)]; ok {
+			return id, true, nil
+		}
+		return nil, true, fmt.Errorf("item type %d has no kind", f.N)
 	}
 	if _, ok := f.(rules.BeastKindFact); ok {
 		return rules.BeastKind{}, true, nil // no bestiary in XXVc: no kind, the engine records none

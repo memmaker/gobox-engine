@@ -314,7 +314,7 @@ func (e *Engine) opCall() {
 			e.es.wallAhead = e.WallAt(e.posX, e.posY, e.facing)
 		}
 	case ecl.CallPause: // cotab gameDelay, sotsb pauseForMessage
-		e.askPause(int(e.msgDelay)*0xE1, askDone{})
+		e.askPause(int(e.msgDelay)*messageDelayUnit, askDone{})
 	case ecl.CallNextFrame: // pod: the picture's next frame, wrapping at its frame count
 		e.nextPictureFrame()
 	}
@@ -355,6 +355,9 @@ func (e *Engine) opClearExit() {
 	e.opExit()
 }
 
+// messageDelayUnit is one step of the message delay, the unit of a script's pause after its message.
+const messageDelayUnit = 0xE1
+
 // opGainExperience = sotsb O050:37F4 (whole party, points): the points go
 // to everyone (or the selected member), split among each one's classes.
 // Ruling S8: as given (pod's are multiplied by 100 at import), any member
@@ -369,7 +372,7 @@ func (e *Engine) opGainExperience() {
 	}
 	e.do(rules.GainExperience{Whom: whom, Points: int32(uint16(e.vm.Arg(2, e.host)))})
 	e.scriptText(true, text)
-	e.askPause(int(e.msgDelay)*0xE1, askDone{})
+	e.askPause(int(e.msgDelay)*messageDelayUnit, askDone{})
 }
 
 // opSpell = sotsb O050:3410 (spell, slot, who): who in the party first has
@@ -576,12 +579,14 @@ func (e *Engine) opAddNPC() {
 	if err := e.ruleset().SetFact(id, rules.FactControl, rules.Number(byte(e.vm.Arg(2, e.host))>>1|0x80)); err != nil {
 		panic("opAddNPC: " + err.Error())
 	}
-	side := rules.SideParty
-	if v == 0x18 {
-		side = rules.SideMonsters
-	}
-	if err := e.ruleset().SetFact(id, rules.FactSideOnly, side); err != nil {
-		panic("opAddNPC: " + err.Error())
+	if e.eclVersion.Behaviour.NPCSideBit {
+		side := rules.SideParty
+		if v == 0x18 {
+			side = rules.SideMonsters
+		}
+		if err := e.ruleset().SetFact(id, rules.FactSideOnly, side); err != nil {
+			panic("opAddNPC: " + err.Error())
+		}
 	}
 	e.applyItems(id) // 00BA:0BB8
 }
@@ -638,7 +643,7 @@ func (e *Engine) opWho() {
 // opDelay = ovr04:271F.
 func (e *Engine) opDelay() {
 	e.vm.PC++
-	e.askPause(int(e.msgDelay)*0xE1, askDone{})
+	e.askPause(int(e.msgDelay)*messageDelayUnit, askDone{})
 }
 
 // opProtection = ovr04:2E7D (base): the glyph string stored in the

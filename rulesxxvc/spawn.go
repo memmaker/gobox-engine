@@ -18,12 +18,21 @@ func SpawnHP(hp int, d Difficulty) int {
 }
 
 // Spawn is EclLoadMonster's one creature: the record InitCreature loads, a
-// hostile's HP scaled by the difficulty. The script's count is the engine's
+// hostile's HP scaled by the difficulty, appended to the team list. The script's count is the engine's
 // loop; nothing is rolled.
 func (r *Rules) Spawn(id rules.MonsterID, _ *rules.RNG) (rules.CharID, error) {
+	cid, err := r.makeMonster(id)
+	if err == nil {
+		r.party = append(r.party, cid) // EclLoadMonster appends it to the team list (partyHead); the count stays
+	}
+	return cid, err
+}
+
+// makeMonster is InitCreature: the monster's record as a character, in no list.
+func (r *Rules) makeMonster(id rules.MonsterID) (rules.CharID, error) {
 	m, ok := r.tables.Monsters[id]
 	if !ok {
-		return rules.NoChar, fmt.Errorf("Spawn: no monster %d", id)
+		return rules.NoChar, fmt.Errorf("no monster %d", id)
 	}
 	c := Character{Name: m.Name, Race: m.Race, Career: m.Career, Level: int(m.Level),
 		Scores: map[rules.Ability]int{}, HP: int(m.HP), MaxHP: int(m.HP), BaseCombat: int(m.BaseCombat), IconDimensions: int(m.IconDimensions),
@@ -65,7 +74,6 @@ func (r *Rules) Spawn(id rules.MonsterID, _ *rules.RNG) (rules.CharID, error) {
 	r.next++
 	r.chars[cid] = &c
 	r.handOut(&c)
-	r.party = append(r.party, cid) // EclLoadMonster appends it to the team list (partyHead); the count stays
 	return cid, nil
 }
 
