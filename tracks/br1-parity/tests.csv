@@ -1,0 +1,126 @@
+file,test,asserts,status,shared_tests,note
+adv,TestOpening,"new game opens on the tarmac: intro pages, officer text, heat drives the party back",covered,TestBR1Opening,
+adv,TestTurnAndWall,turning works and a wall stops a step,covered,TestBR1TurnAndWall,
+adv,TestRemove,"party menu Remove asks Overwrite, drops the member, writes a .HID file",port-open,,needs the Change menu (explore.pas CampAlterMenu P = chargen.pas DropCharacterMenu) and the party menu Remove: a new screen and a ruleset roster verb
+adv,TestNewBlock,NEW ECL loads a block and runs its init/step/after-step entries,covered,TestBR1NewBlock,
+adv,TestOverlandMove,an overland step moves one square and the clock runs,covered,TestBR1OverlandMove,
+adv,TestRocketStep,"a rocket step into the sun is undone, counter and orbit step as the Pascal",covered,TestBR1RocketStep;TestBR2RocketStep,
+adv,TestSidestep,"a step back/strafe is a step at facing+4/6/2, facing kept, a wall stops it",port-done,TestBR1SidestepTwin;TestBR1WallBump,engine/br1par_walk_test.go; also BR1 only (BR2 not run)
+adv,TestSidestepTwin,"a sidestep ends where turn+step+turn back ends, same clock, facing kept",port-done,TestBR1SidestepTwin,
+adv,TestItemSlots,"the quick team readied kit names its doll slot (armor, weapon)",port-done,TestBR1ItemSlots;TestBR2ItemSlots,FIXED rulesxxvc/session.go itemCard: Slot was empty for every BR item
+aid,TestTrainHall,Train is offered only in a training hall,port-open,,"training not ported (rulesxxvc has no TrainFact/Train; chargen.pas TrainingMenu 1151): needs level-up skill points per level, a hall flag"
+aid,TestAid,Aid offered only with First Aid and a dying ally beside; bandages the ally,port-done,TestAidOffered;TestAidBandages;TestAidByTheAI,FIXED rulesxxvc/ai.go: a computer-played team member treats patients first (combatai.pas AiMoveAttack:471)
+aid,TestTrainHallLeave,Begin from the hall clears the hall flag,port-open,,as TestTrainHall
+aimed,TestClassAimedSquares,every offered aim square is accepted by the answer,port-done,TestBR1AimKeepsFighting,
+aimed,TestClassSubAskKeepsState,"a square ask inside a fight keeps the Fighting state, offered as Aimed",port-done,TestBR1AimKeepsFighting,
+aimed,TestClassConfirmKeepsShop,the sell confirm stays Trading with an Ask and only replies allowed,differs,,"one sell question, the front's (REFACTOR sh1): no engine confirm in a BR shop; TestBR1Shop asserts no second question"
+aimed,TestClassEventsMapped,every fight event the rules emit is mapped to a play event,n/a,,the old engine's own front contract (playEvents); the shared engine publishes typed events from one place
+aimed,TestAimEnterFires,Target then Enter on the foe fires a blow; cursor starts on the shooter,covered,TestBR1Aim,
+aimed,TestClassAddCharacter,Add from the team menu grows the team,covered,TestBR1Roster,
+aimed,TestClassStateStable,two State calls are equal; nothing offered twice,port-done,TestBR1NoSilentDo;TestBR2NoSilentDo,"20 builds compared in exploring, a fight turn and a shop"
+aimed,TestClassSheetEverywhere,every member sheet is published in a fight and a shop,port-done,TestBR1SheetEverywhere;TestBR2SheetEverywhere,
+backdrop,TestBackdrop,BACK picture by the last wall set; bit 7 picks block N else N+128; sky fills,covered,TestBR1WallsBackdrop;TestBR2WallsBackdrop,
+backdrop,TestBackPairs,"each BACK file holds block N and N+128 pairs, 88x88",n/a,,"data of the originals, read by the importer (importer/walls/br1_backs.txt), not by the engine"
+backdrop,TestBackFlats,every BACK block has floor and ceiling textures that decode,covered,TestBR1WallsBackdrop,the flats are named by importer/walls/br1_backs.txt; their files by ui/backdrop tests
+battle,TestQuickFightToEnd,"Quick runs the fight to its end, foe strikes, blows equal HP lost, end page waits",covered,TestBR1QuickFight;TestBR1BattleLog;TestBR1Aim,"HP lost == damage is asserted in TestBR1Aim, not over a whole Quick fight"
+bigpic,TestBigPicture,"the opening attack scene is BIGPIC shown whole, 304x120",port-done,TestBR1BigPicture,
+bugclass,TestClassStepNotWedged,"a held step offers its follow-up (RunEvent Before, Face)",covered,TestBR1WallBump,
+bugclass,TestClassSaleFilled,every carried item in a shop has the original's offer as its Sale,covered,TestBR1Shop;TestBR1PurseInCredits,
+bugclass,TestClassBigPicRange,every BIGPIC block is in the PICTURE op range (>=112),n/a,,"data of the originals, read by the importer"
+bugclass,TestClassStreetOutside,the opening street is outside under the city sky,covered,TestBR1WallsBackdrop,
+bugclass,TestClassItemActs,"the item acts are Ready, Trade, Drop, Halve, Join",port-open,,Trade/Halve/Join: the engine offers none of Give/Halve/JoinStack for BR (play.go items()) and rulesxxvc answers no GiveItem/Halve/JoinStack (viewchar.pas UseItemMenu): a ruleset verb set and an engine offer; Ready/Unready/Drop are covered by TestBR1NoSilentDo
+bugclass,TestClassMessageCleared,a gear message is gone once the party walks on,covered,TestDropItem,
+bugclass,TestClassSurfacesTextured,every floor/ceiling/sky the view can show is a pool texture,covered,TestBR1WallsBackdrop,
+bugclass,TestCombatTilesTextured,every combat tile has a texture in its set,covered,TestBR1FightPictures;TestBR2Fight,
+bugclass,TestClassUnitArt,every fighter icon names an existing picture,covered,TestBR1FightPictures,
+char,TestRecord,"a CHRDATA record decodes (name, stats) and a new record has the fixed bytes",covered,TestConvertBRCharacter;TestBR1Roster,
+char,TestSkillBase,skill base from the record and culling,covered,TestSkillValue,
+char,TestCareerIconPastRow,"female career 5 reads the next row first byte, 25",covered,TestDefaultIcon,Rogue female 25
+combat,TestFight,a loaded monster fight played to its end is deterministic by seed,covered,TestBR1Fight;TestBR1FightSeed,
+combat,TestQuickFight,the party on Quick ends the fight,covered,TestBR1QuickFight,
+combat,TestTeamCounted,party menu picks are counted in 830; the fight draws their CHARS icon at the block size,covered,TestPartyCountActingClock;TestBR1FightPictures,
+combat,TestAttackEvents,an attack sends blows whose damage is the HP the units lost,covered,TestBR1Aim;TestBR1BattleLog,
+combatnew,TestCombatOnlyFromNew,no literal Combat in the package,n/a,,the old engine's own constructor discipline (eclbr.NewCombat)
+create,TestCreate,"creating a Tinker engineer end to end: skills, prerequisites, icon, saved record",covered,TestBR1Create;TestBR1CreateSkillPoints;TestBR2Create,
+create,TestIconIDs,a pool icon name set in creation is saved and comes back,differs,,ruling: games never assemble portraits (CLAUDE.md); BR combat icons are not in the shared icon collection (REFACTOR p2 Open)
+create,TestPointBuy,Point Buy applies race and career rules to bought bases,differs,,the original only rolls (rulesxxvc TestRollsOffered); point buy was the old remaster
+create,TestClassFreshRollDerived,"a fresh roll sheet shows AC, THAC0, movement",covered,TestBR1SheetFacts;TestBR1Create,
+create,TestSkillsEscDone,Esc on the skill screen is Done,differs,,"the skill screen is part of the draft (game.Spend, KeepCharacter asks Allotment.Unspent); no separate step to leave (TestBR1CreateSkillPoints)"
+cull,TestSkillCull,"the remaster culls skills, restores 69/70/82, shrinks career lists",differs,,"the shared engine follows the Pascal tables (xxvc_compare knownDiff, REFACTOR b2 notOffered)"
+debug,TestDebugBegin,"each test start lands in its state (shop, fight)",n/a,,"the old engine's dev starts; shared has DevAt (TestBR1NewBlock, TestScriptedPlace)"
+debug,TestShopShows,goods carry a price and the purse is the credits,covered,TestBR1Shop;TestBR1PurseInCredits,
+deskew,TestDeskewWestColumn,"on the deskewed map every west wall is one straight column, rows 1..4, post above",port-open,,"rules.Board.Straight is not built by rulesxxvc (rulesxxvc/ground.go): needs the unskewed dungeon arena of cmap.go in the BR arena builder, an engine option (Deskew)"
+dispatch,TestClassOpsPorted,every case of the original ECL dispatch has an op and the port adds none,covered,TestBR1OpsPorted;TestBR2OpsPorted,"compared with the scripts' used commands, not the Pascal dispatch list"
+dispatch,TestClassStubOps,"pause waits the game speed, sound is an event",covered,TestBR1DelayMs;TestBR1ScriptSound,
+ds,TestDSImg,the data-segment image holds the tables at their offsets,n/a,,old engine internals; the importer reads START.EXE (importer br_creation/br_space tests)
+eclops,TestItemOps,"commands 50, 64, 72, 34 (FindItem, Stash, TakeItem, Skill)",covered,TestBR1FindItem;TestBR1TakeItem;TestBR1Stash;TestBR1Skill,
+eclops,TestRestMenu,"the rest menu rests, sets the level, exits",covered,TestBR1RestMenu;TestBR2RestMenu,
+eclwalk,TestECLWalk,every command every block reaches is one the dispatch handles,covered,TestBR1LayoutResolvesEveryOperand;TestBR1OpsPorted;TestBR1Sweep,
+engaged,TestFightEngaged,a fight begun in a step tells gobox its board (play.Engaged),n/a,,the old front contract; the shared state is Fighting
+escreply,TestViewEscIsExit,Esc over the view menu names its Exit entry,n/a,,the old front contract (escReply); the sheet is the ui's
+exit,TestClassEdgeFlagBeforeStep,a step off the map flags party 725 before the step entry runs,port-open,,"the shared engine does it (engine/game_engine.go checkEdge) but a test needs a block with an open map edge: DevAt(81) in the shared import has walls on every edge square (Map walls 5; the old test read an open (15,0)); find which geo the script loads and the Pascal's edge squares"
+exit,TestClassJoinedName,a joined stack shows its new count,port-open,,needs JoinStack/Halve for BR (see TestClassItemActs)
+exit,TestClassPartyPurse,"one purse: pooling members credits on one holder, a buy spends it whoever shops",differs,,"ruling: credits are paid out at once, one purse (REFACTOR sh1); TestSetCredits, TestPurse, TestBR1Credits"
+exitstep,TestClassExitOneStep,one step off the east edge of block 81 asks to leave and Yes goes to block 80,port-open,,as TestClassEdgeFlagBeforeStep
+fightend,TestClassFightEndWaits,"every page after a fight (wipe, win) is a pending question",covered,TestBR1FledAndDown;TestBR1QuickBack,
+imports,TestGameImports,no UI imports from the game module,covered,TestImportsOnlyCore;TestPoolImportsNoRuleset,
+items,TestCalcShipped,derived bytes of the shipped characters equal the file,covered,TestBR1SheetFacts;TestRecalcStats,
+items,TestStartKit,the start kit from ITEM0.DAX gives the shipped .STF,covered,TestBR1Create;TestConvertBRCharacter,
+items,TestWarriorSpec,a Warrior picks a weapon after the name,covered,TestBR1CreateWarrior;TestWarriorSpecialization,
+jetpack,TestJetpack,"J offered only with movement, not dodging, not used, readied jetpack, wilderness; made flies, failed lurches",port-done,TestJetpackOfferedOnlyWhen;TestJetpackFlight,the rule was right; new rulesxxvc/par_jetpack_test.go
+journal,TestLogBook,71 Log Book entries; reading entry 41 keeps it; save/load of the notes,port-done,TestBR1JournalEntries;TestBR1NewBlock,save/load of the read entries rides the game save (TestBR1SaveLoadExploring does not assert it): unverified
+journal,TestLoadErrors,"a missing notes/map file is fine, other errors are the load's",n/a,,the old engine's own .lor/.map files
+journal,TestOldLoreFile,a save from before .lor keeps its log book,n/a,,the old engine's own file migration
+journey,TestJourney,"create, team, opening, fight, loot, shop, rest, save, load, resume",covered,TestBR1Create;TestBR1Opening;TestBR1Fight;TestBR1TreasureOf;TestBR1Shop;TestBR1RestMenu;TestBR1SaveLoadExploring,composed from its parts; the single-path journey is the other agent's engine/br1journey_test.go
+keyed,TestKeyedEntries,a menu string is cut into entries at every capital or digit,n/a,,"shared menus are keyed at import (TestScriptsCurrent, TestScriptExitHints); no run-time text matching"
+loadblock,TestLoadBlockMissing,a block the disk lacks is an error,n/a,,the old script library looked on every disk; shared areas are imported by id
+loot,TestLoot,"a won fight pages, take all, leave; pool coins",covered,TestLoot;TestBR1TreasureOf;TestEndFightLootRevive,
+music,TestMusicPlaces,every area trigger is in MusicPlaces and every listed one is used,covered,TestBRPlacesInMusicPlaces;TestBR2PlacesInMusicPlaces,
+music,TestAreaName,"the map area title of a block (Salvation, Gradivus, Mercury Spaceport)",port-done,TestBRPlaceNames;TestBR1AreaName,"FIXED: BR1 map showed ""Map""; places carry Name (adventure.Place.Name, BR import version 18). BR2 still has no names"
+pack,TestClassPartyPack,"one party pack of 60 slots, unreadied items leave the members, kept by save",port-open,,a ruling of the old engine (as POR pool); rulesxxvc has no PoolItems/PartyCap: needs a ruling for BR and a ruleset pack
+pack,TestClassPackStash,Stash puts the pack away with the party items,covered,TestBR1Stash,the pack part with TestClassPartyPack
+pack,TestScriptReadsPurse,a script reads the purse,covered,TestBR1Credits,
+pics,TestPics,each member states its CHARS icon,covered,TestBR1FightPictures;TestDefaultIcon,
+pics,TestDaxHeader,combat picture blocks are 24 or 48 square-ish,n/a,,"data of the originals, read by the importer"
+play,TestPlayWalkAndSave,"begin, a step by the published actions, save and load",covered,TestBR1SaveLoadExploring;TestBR2SaveLoadExploring,TestBR1WallBump for the step actions
+quiet,TestClassQuietAnswer,"with nothing asked no Enter, Yes or No is offered",port-done,TestBR1QuietAnswer,
+quit,TestQuit,Quit at the party menu ends the program,port-done,TestBR1TitleThenPartyMenu;TestBR2TitleThenPartyMenu,
+routed,TestBugClass45Routed,every act Allowed offers reaches the engine (no unrouted default),port-done,TestBR1NoSilentDo;TestBR2NoSilentDo,"FOUND+FIXED: Unready was a silent no-op (Engine.Unready sent rules.Ready, which only readies in BR), Ready/Drop/Unready in a fight panicked (rules.SetSpeed unanswered, combat.pas 273), Camp offered and panicked (CampOpen unanswered)"
+rules,TestTitleThenMenu,"the title, then the party menu with Exit to DOS; a wrong answer is refused",port-done,TestBR1TitleThenPartyMenu;TestBR2TitleThenPartyMenu,the title is the manifest Start sequence; its pictures may be empty (compared equal)
+rules,TestSeedSaves,a fresh save dir gets the shipped roster,covered,TestBR1Roster,
+savegame,TestSaveLoad,a game saved in a slot loads and resumes in its block,covered,TestBR1SaveLoadExploring;TestBR2SaveLoadExploring,NOT the original game's SAVGAMA.DAT: see TestLoadSlot
+savegame,TestLoadSlot,the list of the original saves loads one onto the team menu,port-open,,the shared engine does not read an original BR save (SAVGAMx.DAT: the area/party/aux variables + CHRDATx files); needs a BR SaveLayout (as rules1e original.go) and an importer saveimport step; the old engine read and wrote the original format
+ship,TestShipRepairs,the repair page after a fight,covered,TestRepairShip;TestBR1SpaceFightPlayed,
+shop,TestShop,"shop 1 goods, buy, sell, exit",covered,TestBR1Shop;TestBR2Shop,
+shop,TestClassShopHoldsScript,the SHOP op holds the script until Exit,covered,TestBR1Shop,
+spaceaid,TestSpaceAid,first aid in a ship fight bandages the dying member with its line,port-done,TestShipAid,"rulesxxvc/par_aid_test.go; the line is ""is bandaged"" (viewchar.pas 1004)"
+spacefight_e2e,TestSpaceFightE2E,"ECL 31 through the foe figures, after-combat, repairs, resume",covered,TestBR1SpaceFightPlayed;TestBR2SpaceFightPlayed,
+spacefight_e2e,TestSpaceScreen,the ship fight screen and its systems menu,covered,TestBR1SpaceFightScene,
+spacefight_e2e,TestSpaceSheet,"the ship sheet: range bands, known from the roll, weapons",covered,TestBR1SpaceFightSheet,
+spacefight_e2e,TestSpaceMenuEsc,Esc on the crew menu re-asks; Esc on the target menu fires untargeted,port-open,,REFACTOR p2 Open: Esc in the Target submenu; needs the engine to answer Esc from Offer.Group
+spacefight_e2e,TestSpaceNotices,coma and dying notices are status lines held for the message speed,port-done,TestShipDyingCount,"the texts and counts are ported; the old engine showed them as held status lines, the shared engine as narrated lines"
+spacefight_e2e,TestRocketSheet,the rocket R shows the own sheet beside the panel,covered,TestBR1RocketVerbs,
+spacefight_e2e,TestLootStatus,"after a ship fight the loot screen S shows the ship and ""Enemy ship destroyed.""",port-open,,postcbt.pas:762: a Looting verb for the ship sheet and its text; a new screen state
+spacefight,TestSpaceShipFigures,the ship figures in the script cells,covered,TestBR1ShipCells;TestShipCells,
+sweep,TestClassNoSilentAccept,"every offered action changes state, emits an event or errs",port-done,TestBR1NoSilentDo;TestBR2NoSilentDo,
+sweep,TestClassFormationsApart,at every distance and side layout no foe stands on a party square,covered,TestBR1GoldenPlacement;TestPlaceAllCreatures,
+texts,TestTextsFilled,every word of the text tables is set for this game,n/a,,"the shared engine has no per-game text tables: words are Go constants of rulesxxvc (an empty field cannot occur); the four long script texts in REFACTOR are a layout matter, not this test"
+throw,TestThrow,Target with a grenade asks a square and throws there; log line; flight event,port-done,TestBR1Throw;TestBR2Throw,FIXED engine/combatturn2_engine.go aimConfirm: Attack{Target: NoChar} for a bare square panicked; now Attack.At
+tileframe,TestTileFrames,"hitek and lotek maps draw every square with a loaded frame, floor walkable",covered,TestBR1FightPictures;TestBR2Fight,area 132/136 maps are not both built there: partial
+title_import,TestStartIsBR1Title,the title is the manifest Start sequence,port-done,TestBR1TitleThenPartyMenu,
+treasure,TestRobAndDamage,robbing a member of items and a damage that fells him,covered,TestTakeItems;TestBR1TakeItem;TestScriptDamage,
+under,TestUnderCloud,the tile a cloud covers is read from the clouds list,covered,TestGasCloud;TestGroundMarks,
+view,TestView,"View Character: sheet, Ready, Halve, Trade, Exit",covered,TestEquipWeaponAndArmor;TestDropItem;TestBR1SheetFacts,Halve/Trade: see TestClassItemActs
+view,TestPurge,"Purge asks twice, removes the roster file",port-open,,as TestRemove (the Change menu / DropCharacterMenu)
+view,TestTrain,"Train with the experience: question, a level, the skills",port-open,,as TestTrainHall
+view,TestModify,"Modify steps a stat, clamped; Exit restores",covered,TestBR1Modify;TestModifyMember,
+view,TestIconSelect,"the icon selector from the team menu: a body, ok",differs,,CustomizeIcon: a CHARS body picker is not built (REFACTOR cr2 Open); ruling: games never assemble portraits
+view,TestPickView,View over a script member pick opens the sheet on that member,covered,TestBR1PickMember,
+walk,TestEffectsPublished,a record's effects reach the sheet by name,n/a,,viewchar.pas DisplayChar shows no effect list in BR
+walk,TestSeenKept,walking marks the map squares and a save keeps them,covered,TestBR1SaveLoadExploring,the marks ride the game save; their equality is asserted in TestSaveCoversRules
+wallbump,TestClassWallBump,"a step into a wall is RunEvent{Before} alone, no Arrive; next key acts",port-done,TestBR1WallBump,
+wallindex,TestWallIndex,every texture the index names exists; every wall value resolves,covered,TestBR1Explore;TestBR1WallsBackdrop,texture existence by ui TestBR1Explore
+xxvc_compare,TestCompareXXVc,old skill rules against rulesxxvc over every career and skill,n/a,,the comparison harness of the port; its result is rulesxxvc TestMeetsPrerequisite (cases by hand from the Pascal)
+xxvc_compare,TestCompareInflictDamage,InflictDamage equal over HP and damage,covered,TestInflictDamage,
+xxvc_compare,TestCompareSpawnHP,loadMonster HP scaling equals SpawnHP,covered,TestSpawn,
+zz_parity,TestZZParity,writes the parity tally,n/a,,"a report writer, no assertion"
