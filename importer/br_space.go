@@ -15,12 +15,15 @@ const (
 	spaceSide       = 22 // the rocket's column and row stop at 21 (explore.pas MoveRocket)
 	spaceSunX       = 11 // C_Orbit.CENTER_X, CENTER_Y
 	spaceSunY       = 10
-	spaceSunTile    = 296 // orbitmap.pas ORBIT_TILES
-	spaceBeltTile   = 268 // OUTER_BODY_TILES
-	spaceCycle      = 224 // explore.pas PHASE_CYCLE
-	spaceStartOrbit = 2   // gameinit.pas START_ORBIT
-	spaceTicks      = 3   // MoveRocket: 3 ticks and RestAndHeal(3) a move
-	spaceTickCycle  = 32  // the tick that reaches 32 moves the bodies on a phase
+	spaceSunTile    = 296     // orbitmap.pas ORBIT_TILES
+	spaceBeltTile   = 268     // OUTER_BODY_TILES
+	spaceCycle      = 224     // explore.pas PHASE_CYCLE
+	spaceStartOrbit = 2       // gameinit.pas START_ORBIT
+	spaceTilesFile  = "8X8D0" // orbitmap.pas LoadOrbitPictures: dataSet := 0, Load8x8Set(1, ORBIT_TILE_SLOT)
+	spaceTilesBlock = 1
+	spaceShipFrame  = 87 // C_Orbit.FIRST_ROCKET_ICON
+	spaceTicks      = 3  // MoveRocket: 3 ticks and RestAndHeal(3) a move
+	spaceTickCycle  = 32 // the tick that reaches 32 moves the bodies on a phase
 	spaceDays       = 3
 )
 
@@ -33,6 +36,7 @@ func SpaceTables(ds []byte, e BREXE) *adventure.SpaceMap {
 	}
 	s := &adventure.SpaceMap{
 		Size: rules.Size{W: spaceSide, H: spaceSide}, Sun: rules.MapPos{X: spaceSunX, Y: spaceSunY}, SunTile: spaceSunTile, BeltTile: spaceBeltTile,
+		Tiles: adventure.SymbolLoad{File: spaceTilesFile, Block: spaceTilesBlock}, ShipFrame: spaceShipFrame,
 		Cycle: spaceCycle, Move: adventure.SpaceMove{Ticks: spaceTicks, TickCycle: spaceTickCycle, Days: spaceDays},
 	}
 	for i := range spacePositions {

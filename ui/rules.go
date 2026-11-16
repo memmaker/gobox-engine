@@ -777,6 +777,9 @@ func (r *frontState) cancel() game.Result {
 		return r.do(onward(game.CommonOf(ps).Allowed))
 	}
 	lone := r.aim != nil && r.ask == nil && slices.Contains(game.CommonOf(ps).Allowed.Plain, game.Action(game.Leave{}))
+	if q := game.CommonOf(ps).Ask; q != nil && q.Heading && r.ask == nil && r.aim == nil { // Esc on a heading question is its Done: Leave (its one reply is no heading)
+		return r.do(game.Leave{})
+	}
 	if q := game.CommonOf(ps).Ask; q != nil && r.ask == nil && r.aim == nil { // Esc on the rules' menu: the reply it names (its Exit, as the originals')
 		if i, ok := q.Esc.Reply(); ok && i < len(q.Replies) {
 			return r.answer(ps, game.Reply{N: i}, rules.BoardPos{})

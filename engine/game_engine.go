@@ -396,6 +396,9 @@ func (e *Engine) awaitCommand() {
 		e.DevAction = nil
 		f()
 	}
+	if e.world.Flying != 0 && e.eclWait == nil && !e.over { // the flying party waits on the rocket's menu, never on a bare map
+		e.flyBegin()
+	}
 }
 
 // commandEnd = the end of CommandInput.

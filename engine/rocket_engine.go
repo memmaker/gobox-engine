@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"strconv"
 
 	"gobox/adventure"
 	"gobox/game"
@@ -158,4 +159,23 @@ func (e *Engine) answerHeading(h game.Heading) error {
 	}
 	e.answer(h)
 	return nil
+}
+
+// spaceArt adds the system map's pictures to art: the sun's and the bodies' tiles as terrain/<id> (a body's Tile, frame id - SunTile of
+// the symbol set) and the ship as ship/<facing> (the front's clockwise heading, Where.Facing), the map's marker.
+func (e *Engine) spaceArt(art map[string]game.Picture) {
+	s := e.spaceMap()
+	if s == nil {
+		return
+	}
+	im := e.LoadPicMasked(s.Tiles.File, s.Tiles.Block, symbolMask)
+	if im == nil {
+		panic(fmt.Sprintf("the system map's tiles %s-%d are not in the art", s.Tiles.File, s.Tiles.Block))
+	}
+	for f := range im.Count {
+		art["terrain/"+strconv.Itoa(s.SunTile+f)] = gamePicture(e.picPix(im, f, false, nil))
+	}
+	for dir := range headings {
+		art["ship/"+strconv.Itoa(dir)] = gamePicture(e.picPix(im, s.ShipFrame+spaceHeading(dir), false, nil))
+	}
 }

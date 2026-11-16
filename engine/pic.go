@@ -20,6 +20,9 @@ var DOSArt atomic.Bool
 // has Amiga art (every game's import has it: por, cotab, sotsb, pod).
 func (e *Engine) amigaUp() bool { return !DOSArt.Load() && e.artFolder().Has(asset.Amiga) }
 
+// symbolMask is the colour the 8x8 symbol sets are transparent on (ovr35:003B).
+const symbolMask = 0xD
+
 // LoadSymbolSet = ovr35:003B — load 8X8D<n>.DAX block into set index,
 // masked on colour 13.
 func (e *Engine) LoadSymbolSet(l adventure.SymbolLoad) {
@@ -30,7 +33,7 @@ func (e *Engine) LoadSymbolSet(l adventure.SymbolLoad) {
 	if file == "" {
 		file = e.set.File("8X8D")
 	}
-	e.sym[l.Set] = e.LoadPicMasked(file, l.Block, 0xD)
+	e.sym[l.Set] = e.LoadPicMasked(file, l.Block, symbolMask)
 	if e.sym[l.Set] == nil {
 		e.PromptRow24(game.InkWhite, "Unable to load "+file+"-"+strconv.Itoa(l.Block))
 		e.Exit()

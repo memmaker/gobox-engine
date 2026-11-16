@@ -183,3 +183,23 @@ func TestBR1RocketSaveLoad(t *testing.T) {
 		t.Errorf("loaded into %+v, want the menu", q)
 	}
 }
+
+// TestBR1RocketArt: the front's art has the sun's and every body's tile and the ship's eight facings, each with pixels.
+func TestBR1RocketArt(t *testing.T) {
+	e := br1Flying(t)
+	art := e.Art()
+	c := commonOf(e.build())
+	for _, tile := range c.Automap.Terrain {
+		if tile == 0 {
+			continue
+		}
+		if p, ok := art["terrain/"+itoa(int64(tile))]; !ok || len(p.Pixels) == 0 {
+			t.Fatalf("no art for tile %d", tile)
+		}
+	}
+	for dir := range 8 {
+		if p, ok := art["ship/"+itoa(int64(dir))]; !ok || len(p.Pixels) == 0 {
+			t.Errorf("no ship facing %d", dir)
+		}
+	}
+}

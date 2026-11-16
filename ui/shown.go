@@ -314,7 +314,7 @@ func (p *Presenter) asksID() string {
 	}
 	return p.lay.asks.get(p.uiKey(), func() string {
 		a := p.eng.r.asking(p.state())
-		if a == nil || a.Kind == game.Continue || a.Kind == game.Choice && len(a.Options) <= 1 {
+		if a == nil || a.Kind == game.Continue || a.Kind == game.Choice && len(a.Options) <= 1 || a.Kind == game.Direction && p.board == nil { // a heading on a map (the rocket's) is asked in the text pane and answered by the arrows (Esc is Done); on a fight's board it is the board's step
 			return ""
 		}
 		id := fmt.Sprint(a.Kind, "|", a.Prompt)

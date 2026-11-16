@@ -5,18 +5,20 @@ import "gobox/rules"
 // SpaceMap is a game's system map, the map the rocket flies (BR1 explore.pas MoveRocket, orbitmap.pas): the bodies on their orbits,
 // the sun in the middle, the rules of a move. The bodies' squares are derived from the orbit step (Body), never stored.
 type SpaceMap struct {
-	Size     rules.Size     // the squares the ship ranges over (22 by 22)
-	Sun      rules.MapPos   // the centre body's square: no ship stands on it (C_Orbit.CENTER_X, CENTER_Y)
-	SunTile  int            // the sun's picture number (OrbitMap ORBIT_TILES)
-	Squares  []SpaceSquare  // every body square, orbit by orbit (GDConsts.orbitPositions)
-	Orbits   []SpaceOrbit   // the planets' orbits (orbitFirstPositions, orbitLengths, orbitStartPhases)
-	Belt     SpaceOrbit     // the last orbit, which the belt's bodies share
-	Offsets  []int          // each belt body's phase on the belt (GDConsts.outerBodyPhases)
-	BeltTile int            // added to a belt body's sprite (OrbitMap OUTER_BODY_TILES); a planet's sprite takes SunTile
-	Steps    []rules.MapPos // a heading's step, headings 0.. counterclockwise from north (GDConsts.mapStepX, mapStepY)
-	Start    int            // the square of Squares the ship starts on (GameInit START_ORBIT's body at phase 0)
-	Cycle    int            // the orbit step counts down through 0..Cycle-1 and wraps (Explore PHASE_CYCLE)
-	Move     SpaceMove
+	Size      rules.Size     // the squares the ship ranges over (22 by 22)
+	Sun       rules.MapPos   // the centre body's square: no ship stands on it (C_Orbit.CENTER_X, CENTER_Y)
+	SunTile   int            // the sun's picture number (OrbitMap ORBIT_TILES)
+	Tiles     SymbolLoad     // the 8x8 symbol set the bodies' and the ship's pictures are frames of (OrbitMap LoadOrbitPictures: data set 0, block 1)
+	ShipFrame int            // the frame of the ship pointing at heading 0; heading h is ShipFrame+h (C_Orbit.FIRST_ROCKET_ICON)
+	Squares   []SpaceSquare  // every body square, orbit by orbit (GDConsts.orbitPositions)
+	Orbits    []SpaceOrbit   // the planets' orbits (orbitFirstPositions, orbitLengths, orbitStartPhases)
+	Belt      SpaceOrbit     // the last orbit, which the belt's bodies share
+	Offsets   []int          // each belt body's phase on the belt (GDConsts.outerBodyPhases)
+	BeltTile  int            // added to a belt body's sprite (OrbitMap OUTER_BODY_TILES); a planet's sprite takes SunTile
+	Steps     []rules.MapPos // a heading's step, headings 0.. counterclockwise from north (GDConsts.mapStepX, mapStepY)
+	Start     int            // the square of Squares the ship starts on (GameInit START_ORBIT's body at phase 0)
+	Cycle     int            // the orbit step counts down through 0..Cycle-1 and wraps (Explore PHASE_CYCLE)
+	Move      SpaceMove
 }
 
 // SpaceSquare is one body square: where it is and its sprite.

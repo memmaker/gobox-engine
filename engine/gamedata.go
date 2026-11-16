@@ -48,6 +48,7 @@ func (e *Engine) overlandArt() map[string]game.Picture {
 			art[n] = gamePicture(e.charHead(id))
 		}
 	}
+	e.spaceArt(art)
 	e.ext.art, e.ext.artKey = art, k
 	return art
 }
