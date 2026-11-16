@@ -1,6 +1,7 @@
 package rulesxxvc
 
 import (
+	"errors"
 	"testing"
 
 	"gobox/rules"
@@ -24,5 +25,21 @@ func TestRecalcStats(t *testing.T) {
 	if c.AttackBonus != 9 || c.Damage[0] != (rules.Dice{N: 1, Sides: 8, Bonus: 4}) || c.ArmorClass != [2]int{12, 8} ||
 		c.Movement != 12 || c.Encumbrance != 5 {
 		t.Errorf("%+v", c)
+	}
+}
+
+// viewchar.pas 'D' Drop: a readied item is refused (Must be unreadied), a carried one leaves the list.
+func TestDropItem(t *testing.T) {
+	r := New()
+	id := r.Add(Character{Name: "w", Enabled: true, Status: StOkay})
+	c := r.chars[id]
+	c.Items = []Carried{{Ref: rules.ItemRef{ID: 1, Count: 1}, Readied: true}, {Ref: rules.ItemRef{ID: 2, Count: 1}}}
+	r.handOut(c)
+	h0, h1 := c.Items[0].Handle, c.Items[1].Handle
+	if _, err := r.Resolve(nil, rules.DropItem{Who: id, Item: h0}, nil); !errors.Is(err, rules.ErrNotNow) || len(c.Items) != 2 {
+		t.Errorf("readied: %v, %d items", err, len(c.Items))
+	}
+	if _, err := r.Resolve(nil, rules.DropItem{Who: id, Item: h1}, nil); err != nil || len(c.Items) != 1 || c.Items[0].Handle != h0 {
+		t.Errorf("dropped: %v, %+v", err, c.Items)
 	}
 }

@@ -66,6 +66,8 @@ func (r *Rules) Resolve(s rules.Situation, a rules.Action, rng *rules.RNG) (rule
 		return rules.Outcome{}, nil
 	case rules.ScriptDamage:
 		return r.scriptDamage(a, rng), nil
+	case rules.DropItem:
+		return r.dropItem(a.Who, a.Item)
 	case rules.Ready:
 		return r.ready(a.Who, a.Item, true)
 	case rules.Unready:

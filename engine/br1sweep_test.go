@@ -18,6 +18,7 @@ import (
 	"gobox/game"
 	"gobox/importer"
 	"gobox/rules"
+	"gobox/rulesxxvc"
 )
 
 // The BR1 sweep: every script block entered at several squares, each walked by a bounded random sequence of the
@@ -31,7 +32,7 @@ var br1SweepKnown = []struct{ Pattern, Why string }{
 	// (opOnGotoGosub in a step entry; replay 50 0 0 6 12138934 at commit "rulesxxvc: a move's reach"). Unverified, unexplained.
 	{`^the scripts of block # loop without asking`, "open, vw1 (AreaKind / view kind): 17 -> Port -> block 32 whose load exits at once (ScriptBlock >= 32) keeps the scripted view kind 3 of block 17, so its move entry exits without asking; replay 17 0 0 2 1259865"},
 	{`^fact rules.FlightFact: Fact #: no character`, "open, owner presentation (vw1): the engine's missileArt is the Pool games' art; BR1's AnimateMissile (cbtacts.pas) has its own, rulesxxvc answers no FlightFact"},
-	{`^rules: rules.AddLoot: .*not ported yet`, "sw1: BR's TreasureOf(credits, count, items) goes through the Pool handler (4 fixed operands, platinum/gems/jewelry), and rulesxxvc answers no AddLoot"},
+	{`^rules: rules.AddLoot: .*not ported yet`, "open, sw1 (needs an engine change): BR's TreasureOf(credits, count, items...) (eclvm.pas EclTreasure) reaches the Pool handler opTreasureOf, which reads 4 fixed operands (platinum, gems, jewelry, count) and converts by GoldBoxRates; V4 has 2 fixed. Wants a Behaviour for the coin operands, rulesxxvc AddLoot (pool credits) and AddLibraryItems (templates to the loot, newest first). The GainExperience text is also the Pool's (BR: 'Congrats. The team gains experience!')"},
 	{`^ecl: view kind # not ported`, "vw1: the rocket's view (AreaKind view kind 2)"},
 	{`^ecl: opcode #B on line # not ported`, "sh1: the Shop command"},
 	{`^LOG: script: area \d+: T_\w+\[\d+\] is past the field's \d+ entries`, "none: the entry skips the story, so the index variable (Word4C61 ...) holds 0 and the table is read past its end as the original does (engine log, TableFaults)"},
@@ -118,6 +119,9 @@ func br1SweepWalk(t testing.TB, adv string, sp sweepSpec, hit map[int]map[int]bo
 		actions = append(actions, a.label)
 		if err := a.run(e); err != nil { // a refusal is the state saying no: the walk goes on
 			actions[len(actions)-1] += " !" + err.Error()
+			if strings.Contains(err.Error(), rulesxxvc.ErrNotPorted.Error()) { // but not for an action the ruleset does not answer: that is a finding
+				sweepNotPorted[sweepDigits.ReplaceAllString(err.Error(), "#")+" @ -"]++
+			}
 		}
 	}
 	if sweepDump {
@@ -149,6 +153,10 @@ func sweepWaits(s game.State) bool {
 	}
 	return false
 }
+
+// sweepNotPorted counts the refusals that say "not ported yet", by message: actions a front sent that the ruleset
+// does not resolve (the walk goes on, so they are findings of their own).
+var sweepNotPorted = map[string]int{}
 
 // sweepDigits makes findings that differ in a number only one group.
 var sweepDigits = regexp.MustCompile(`\d+`)
@@ -277,6 +285,7 @@ func TestBR1Sweep(t *testing.T) {
 	log.SetFlags(0)
 	log.SetOutput(&logged)
 	defer log.SetOutput(os.Stderr)
+	clear(sweepNotPorted)
 	rng := &rules.RNG{State: sweepSeed}
 	hit := map[int]map[int]bool{}
 	groups := map[string][]*sweepFinding{}
@@ -291,6 +300,11 @@ func TestBR1Sweep(t *testing.T) {
 		}
 	}
 
+	for k, n := range sweepNotPorted {
+		for range n {
+			groups["REFUSED: "+k] = append(groups["REFUSED: "+k], &sweepFinding{})
+		}
+	}
 	for _, l := range strings.Split(logged.String(), "\n") {
 		if l != "" {
 			groups["LOG: "+l+" @ -"] = append(groups["LOG: "+l+" @ -"], &sweepFinding{})

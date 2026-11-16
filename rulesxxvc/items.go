@@ -2,6 +2,7 @@ package rulesxxvc
 
 import (
 	"fmt"
+	"slices"
 
 	"gobox/rules"
 	"gobox/rules/xxvc"
@@ -203,6 +204,25 @@ func (r *Rules) ready(who rules.CharID, h rules.ItemHandle, on bool) (rules.Outc
 		}
 	}
 	c.Items[i].Readied = on
+	r.RecalcStats(c)
+	return rules.Outcome{}, nil
+}
+
+// dropItem is viewchar.pas's gear menu 'D' after YesNoMenu 'Drop It?': CheckItemAvail refuses a readied item ("Must be
+// unreadied"), else CharHlp.RemoveItem takes it off the list and RecalcStats follows.
+func (r *Rules) dropItem(who rules.CharID, h rules.ItemHandle) (rules.Outcome, error) {
+	c := r.chars[who]
+	if c == nil {
+		return rules.Outcome{}, fmt.Errorf("DropItem: no character %d", who)
+	}
+	i := heldAt(c, h)
+	if i < 0 {
+		return rules.Outcome{}, fmt.Errorf("DropItem: %d carries no item %d", who, h)
+	}
+	if c.Items[i].Readied {
+		return rules.Outcome{}, rules.ErrNotNow
+	}
+	c.Items = slices.Delete(c.Items, i, i+1)
 	r.RecalcStats(c)
 	return rules.Outcome{}, nil
 }
