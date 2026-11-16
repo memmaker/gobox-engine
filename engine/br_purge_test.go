@@ -67,3 +67,41 @@ func brPurgeLast(t *testing.T, g brGame) {
 		t.Errorf("after the party was purged and the menus left: %T, want the party menu", e.build())
 	}
 }
+
+// TestBR1SaveCharExists: Remove at the party menu of a character whose file exists asks Overwrite, Rename or Abort (saveload.pas
+// SaveChar): Abort keeps it in the party, Rename saves it under the name typed, Overwrite saves it where it was.
+func TestBR1SaveCharExists(t *testing.T) { brSaveCharExists(t, gameBR1) }
+func TestBR2SaveCharExists(t *testing.T) { brSaveCharExists(t, gameBR2) }
+
+func brSaveCharExists(t *testing.T, g brGame) {
+	e := brAtPartyMenu(t, g)
+	who := e.partyIDs()[0]
+	if err := e.SaveCharacter(who, ""); err != nil {
+		t.Fatal(err)
+	}
+	remove := func() {
+		t.Helper()
+		if _, err := e.doNow(game.RemoveCharacter{Roster: 0}); err != nil {
+			t.Fatal(err)
+		}
+		if m := asked(t, e); !slices.Equal(m, []string{"Overwrite", "Rename", "Abort"}) {
+			t.Fatalf("question %q", m)
+		}
+	}
+	remove()
+	reply(t, e, 2) // Abort
+	if e.partySize() != 1 {
+		t.Fatalf("Abort removed it: party %d", e.partySize())
+	}
+	remove()
+	reply(t, e, 1) // Rename
+	if q := e.question(); q == nil || !q.Typed || q.Text != "New file name:" {
+		t.Fatalf("name question %+v", q)
+	}
+	if _, err := e.doNow(game.Reply{Text: "Zed"}); err != nil {
+		t.Fatal(err)
+	}
+	if e.partySize() != 0 || !e.fileExists(e.savePath("ZED.cha")) {
+		t.Errorf("renamed: party %d, file %v", e.partySize(), e.fileExists(e.savePath("ZED.cha")))
+	}
+}
