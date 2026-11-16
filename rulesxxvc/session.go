@@ -127,6 +127,9 @@ func (r *Rules) resolveSession(a rules.Action) (o rules.Outcome, ok bool, err er
 		// here, XXVc's effects are code (effects.go) and it has no spells.
 	case rules.LoadItemTable:
 		// No XXVc counterpart: the item templates came with the tables at Begin.
+	case rules.EndSession:
+		// 1e closes camp, the training hall and learning here. XXVc has no hall and no spells to learn; its camp
+		// holds no state of its own yet (Rest is a plain action): nothing is open to close.
 	case rules.SetSeed:
 		r.seed = rules.RNG{State: a.Seed}
 	case rules.RecordView:

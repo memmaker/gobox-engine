@@ -237,3 +237,10 @@ func TestScriptDamage(t *testing.T) {
 		t.Errorf("selected: %v %v, hit points %d", o.Effects, err, r.chars[a].HP)
 	}
 }
+
+// The party killed by a script ends the session (the engine's unwindReset): XXVc has nothing open to close.
+func TestEndSession(t *testing.T) {
+	if _, err := New().Resolve(nil, rules.EndSession{}, nil); err != nil {
+		t.Error(err)
+	}
+}

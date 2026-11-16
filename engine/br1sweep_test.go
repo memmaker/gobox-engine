@@ -27,7 +27,6 @@ import (
 // br1SweepKnown are the findings still open: Pattern is matched against "message @ top frame".
 // The test fails on a finding no pattern matches and on a pattern no finding matches.
 var br1SweepKnown = []struct{ Pattern, Why string }{
-	{`^rules: rules.EndSession: .*not ported yet`, "sw1: the party killed by a script (Damage) ends the game; rulesxxvc answers no EndSession"},
 	{`^fact rules.FlightFact: Fact 0: no character`, "open, owner presentation (vw1): the engine's missileArt is the Pool games' art; BR1's AnimateMissile (cbtacts.pas) has its own, rulesxxvc answers no FlightFact"},
 	{`^rules: rules.AddLoot: .*not ported yet`, "sw1: BR's TreasureOf(credits, count, items) goes through the Pool handler (4 fixed operands, platinum/gems/jewelry), and rulesxxvc answers no AddLoot"},
 	{`^rules: rules.GainExperience: .*not ported yet`, "sw1: BR's GainExperience (eclvm.pas EclAwardExperience), rulesxxvc answers no GainExperience"},
