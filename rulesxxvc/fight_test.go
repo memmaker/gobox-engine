@@ -62,7 +62,7 @@ func TestEndFight(t *testing.T) {
 		t.Fatal(v)
 	}
 	res := r.EndFight(f, nil)
-	if res.Exp != 50 || res.Money.Copper != 30 || res.Beaten != 1 || r.chars[a].Exp != 50 {
+	if res.Exp != 50 || res.Money.Copper != 30 || res.Beaten != 1 || r.chars[a].Exp != 50 || res.Verdict != rules.PartyWon || !res.Foes {
 		t.Errorf("%+v", res)
 	}
 	r.chars[m].Enabled, r.chars[m].Status = true, StOkay

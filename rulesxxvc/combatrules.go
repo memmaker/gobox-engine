@@ -99,7 +99,7 @@ func (r *Rules) endSolo(ids []rules.CharID) rules.FightResult {
 	c := r.chars[r.duelist]
 	if c != nil && c.Enabled && c.Status == StOkay {
 		c.Exp += total
-		res.Exp, res.Verdict = int32(total), rules.PartyWon
+		res.Exp, res.Verdict, res.Foes = int32(total), rules.PartyWon, res.Beaten > 0 // DetermineLootExp's hasOutcomeToReport
 		return res
 	}
 	res.Verdict = rules.PartyLost
@@ -323,6 +323,12 @@ func (r *Rules) EndFight(f rules.Fight, _ *rules.RNG) rules.FightResult {
 	var res rules.FightResult
 	r.pool = 0
 	verdict := r.Verdict(f)
+	res.Verdict = verdict
+	for _, id := range ids { // PostCombatCreatureCleanup: a hostile in the fight is an outcome to report (hasOutcomeToReport; the zone's preservesHostiles is not modelled)
+		if c := r.chars[id]; c != nil && !c.team() {
+			res.Foes = true
+		}
+	}
 	if verdict == rules.PartyWon {
 		var total int64
 		var enabled []*Character

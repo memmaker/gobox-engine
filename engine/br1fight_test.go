@@ -46,6 +46,9 @@ func br1FoughtIn(t *testing.T, body string, facing int, choose func(game.Fightin
 	for range br1FightCap {
 		s := e.build()
 		f, ok := s.(game.Fighting)
+		if _, back := s.(game.Assembling); back { // the party was beaten: the game ends, back at the party menu (postcbt.pas RESULT_TEAM_BEATEN)
+			return e, trace, ""
+		}
 		if !ok { // the fight is over: the results, the treasure, then the block's move entry asks again
 			if strings.HasPrefix(paneText(commonOf(s)), moveText) {
 				return e, trace, ""

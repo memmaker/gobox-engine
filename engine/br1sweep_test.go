@@ -27,7 +27,8 @@ import (
 // br1SweepKnown are the findings still open: Pattern is matched against "message @ top frame".
 // The test fails on a finding no pattern matches and on a pattern no finding matches.
 var br1SweepKnown = []struct{ Pattern, Why string }{
-	{`^sweep: a script ran # instructions on one action without asking \(block #\)`, "open, sw1 unverified: a script loop of block 50 (opOnGotoGosub in a step entry) that the sweep reaches with story words it never set; replay 50 0 0 6 12138934 (changes with the engine)"},
+	// Seen once, gone after the EndFight fix moved the walks: block 50, "a script ran N instructions on one action"
+	// (opOnGotoGosub in a step entry; replay 50 0 0 6 12138934 at commit "rulesxxvc: a move's reach"). Unverified, unexplained.
 	{`^the scripts of block # loop without asking`, "open, vw1 (AreaKind / view kind): 17 -> Port -> block 32 whose load exits at once (ScriptBlock >= 32) keeps the scripted view kind 3 of block 17, so its move entry exits without asking; replay 17 0 0 2 1259865"},
 	{`^fact rules.FlightFact: Fact #: no character`, "open, owner presentation (vw1): the engine's missileArt is the Pool games' art; BR1's AnimateMissile (cbtacts.pas) has its own, rulesxxvc answers no FlightFact"},
 	{`^rules: rules.AddLoot: .*not ported yet`, "sw1: BR's TreasureOf(credits, count, items) goes through the Pool handler (4 fixed operands, platinum/gems/jewelry), and rulesxxvc answers no AddLoot"},

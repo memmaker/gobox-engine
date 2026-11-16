@@ -27,7 +27,7 @@ func TestEndFightFled(t *testing.T) {
 		t.Fatal(v)
 	}
 	res := r.EndFight(f, nil)
-	if res.Exp != 0 || res.Money.Copper != 0 || len(res.Items) != 0 || res.Beaten != 0 {
+	if res.Exp != 0 || res.Money.Copper != 0 || len(res.Items) != 0 || res.Beaten != 0 || res.Verdict != rules.PartyFled {
 		t.Errorf("a flight paid: %+v", res)
 	}
 	if !slices.Equal(r.party, []rules.CharID{fled}) || r.memberCount != 1 || r.acting != 0 {
