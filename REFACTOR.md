@@ -473,6 +473,28 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
          overland blocks 0x19..0x1B still in the engine; rest is not the shared camp screen and
          offers no Save/Change, and no BR1 script calls Program 9 (its real entry unclear);
          the rocket's view (view kind 2) still panics; BR2 has no overland size, places or backs
+      3b. [x] cr2: the abilities are a list from the catalog (`Catalog.Abilities`, seven for XXVc
+         in the original's order; the old engines' fixed `Stats [6]int` kept in `game.SheetPage`
+         until they go); a front offers only the rolls the ruleset has; age; the skill-point
+         screen (`FieldSkills`, `CreationRules.Spend`, `game.Allotment`, `ui/allot.go`); the
+         warrior's specialization; Modify; the default combat icon (`Character.Icon`, a CHARS
+         body; BR import version 9). Open: `CustomizeIcon` (a CHARS body picker; the Pool's
+         designer composes head and body); NOTHING draws CHARS bodies on the shared engine: a
+         BR member has no combat icon in a fight; the skill screen asks career then general in
+         the original (both open at once here) and warns of unspent points; level-up skill
+         points (training not ported); the ui draws no skill group headings; Modify's HP
+         add/subtract
+      8a. [x] sw1: `TestBR1Sweep` (`engine/br1sweep_test.go`): every block entered at several
+         squares, seeded random walks of front actions, panics grouped against `br1SweepKnown`
+         (fails on a new finding and on a listed one that is gone); replay by
+         `GOBOX_SWEEP_REPLAY`; coverage 14..468 of 44..1385 instructions per block. Fixed from
+         it: `ScriptDamage`, `EndSession`, a big unit's reach, a ground attack's target,
+         `EndFight`'s verdict and foes, the solo fight's last actor, `GainExperience`,
+         `DropItem`. Still listed: `FlightFact` (a ranged shot's missile art: ends most ranged
+         fights, 15 blocks), the rocket's view (kind 2), `AddLoot` (BR's TreasureOf reaches the
+         Pool handler with other operands), block 17 -> 32 loops without asking, table reads
+         past the end where the entry skipped the story. Coverage is capped by those, by story
+         state left at its defaults, and by short random walks.
       7. [ ] e1 (B1e): the space fight, ships, jetpack, throw on the shared engine
       8. [ ] every BR1 block's entries run headless without a panic (a sweep test over the
          scripts' reachable commands, like the Pool games' sweeps); then BR2 the same
