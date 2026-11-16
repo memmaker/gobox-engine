@@ -651,6 +651,8 @@ func (e *Engine) opProgram() {
 		e.es.hold = holdRest
 	case ecl.ProgramQuit: // cotab 3, pod 2 (O040:1F1F): back to DOS; the front ends the run (game.Ended), as pod's Exit
 		e.event(game.Ended{})
+	case ecl.ProgramPartyDefeated: // cotab 3: partyDefeated := True (eclvm.pas EclProgram), as a lost fight: the VM stops, GameLoop ends, ResetGameState, back to the party menu
+		e.run.quit = true
 	case ecl.ProgramSaveQuit: // pod 1 (O043:0000): the save screen (the player picks the slot), then the ending
 		e.event(game.SaveOffered{})
 		e.ending(true)

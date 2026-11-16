@@ -97,14 +97,15 @@ const BRMessageDelayMs = 100
 type ProgramFn int
 
 const (
-	ProgramNone      ProgramFn = iota // listed, and the original does nothing for it (its case has no arm)
-	ProgramPartyMenu                  // the party menu
-	ProgramEnding                     // the adventure's ending
-	ProgramCamp                       // camp (pod: with its camp events); the script ends
-	ProgramRest                       // the rest menu (BR explore.pas RestMenu): the script goes on afterwards
-	ProgramQuit                       // leave the game
-	ProgramSaveQuit                   // save, then the ending
-	ProgramUnported                   // a sub-command the original has and the engine lacks: it stops the game, never silently nothing
+	ProgramNone          ProgramFn = iota // listed, and the original does nothing for it (its case has no arm)
+	ProgramPartyMenu                      // the party menu
+	ProgramEnding                         // the adventure's ending
+	ProgramCamp                           // camp (pod: with its camp events); the script ends
+	ProgramRest                           // the rest menu (BR explore.pas RestMenu): the script goes on afterwards
+	ProgramQuit                           // leave the game
+	ProgramPartyDefeated                  // cotab 3 (eclvm.pas EclProgram): partyDefeated := True; the script stops and the game resets to the party menu, as a lost fight does
+	ProgramSaveQuit                       // save, then the ending
+	ProgramUnported                       // a sub-command the original has and the engine lacks: it stops the game, never silently nothing
 )
 
 // CallFn is an engine routine a script CALLs, by name.
@@ -228,8 +229,8 @@ var V2 = func() *Version {
 	// none collides, so the one dialect carries both.
 	calls := map[uint16]CallFn{11792: CallRedrawView, 11723: CallRedrawView, 32768: CallDuelWin, 32769: CallDuelLose,
 		45568: CallDuelSound, 45571: CallDuelSound, 49182: CallStepForward, 49176: CallWallAhead, 26627: CallPause}
-	// PROGRAM: cotab's 0, 3 quit, 8 ending, 9 camp; sotsb uses 0 and 9
-	programs := map[byte]ProgramFn{0: ProgramPartyMenu, 3: ProgramQuit, 8: ProgramEnding, 9: ProgramCamp}
+	// PROGRAM: cotab's 0, 3 party defeated, 8 ending, 9 camp; sotsb uses 0 and 9
+	programs := map[byte]ProgramFn{0: ProgramPartyMenu, 3: ProgramPartyDefeated, 8: ProgramEnding, 9: ProgramCamp}
 	return &Version{ID: 2, Base: 32768, Cmds: t, Skip: skip, Calls: calls, Programs: programs, Behaviour: func() Behaviour { b := V1.Behaviour; b.PictureAnimates = true; return b }()}
 }()
 

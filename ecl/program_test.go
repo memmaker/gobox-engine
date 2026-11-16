@@ -17,7 +17,7 @@ func TestProgramTables(t *testing.T) {
 		none []byte             // listed codes whose case has no arm
 	}{
 		"por":   {V1, map[byte]ProgramFn{0: ProgramPartyMenu, 8: ProgramEnding, 9: ProgramCamp}, nil},
-		"cotab": {V2, map[byte]ProgramFn{0: ProgramPartyMenu, 3: ProgramQuit, 8: ProgramEnding, 9: ProgramCamp}, nil},
+		"cotab": {V2, map[byte]ProgramFn{0: ProgramPartyMenu, 3: ProgramPartyDefeated, 8: ProgramEnding, 9: ProgramCamp}, nil},
 		"pod":   {V3, map[byte]ProgramFn{0: ProgramPartyMenu, 1: ProgramSaveQuit, 2: ProgramQuit, 9: ProgramCamp}, []byte{3, 4, 5, 6, 7, 8, 10, 50, podDebugProgramMax}},
 		"br1":   {V4, map[byte]ProgramFn{0: ProgramPartyMenu, 2: ProgramQuit, 9: ProgramRest}, []byte{3}},
 	}
