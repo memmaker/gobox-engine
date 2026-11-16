@@ -386,18 +386,38 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
       - engine: `computerTurn` asks Decide/Resolve until `TurnOver` (a ruleset deciding action
         by action; 1000 steps panic), `Reach.Free` nil is no free attack, `TerrainSet` has no event
       - one generator (ruling): the dungeon arena is `rules.RNG` seeded with the block
+    - [x] B1f7 the fight's other paths (2026-11-16): `TestBR1WalkUp`, `TestBR1Approach`
+      (`engine/br1fightpaths_test.go`), `TestBR1Aim` (ranged, through the engine's aim flow;
+      `rulesxxvc/aim.go`: `AimFact`, `AimCheckFact`, only foes a line reaches in range are
+      offered; a shot uses ammunition), `TestHitFactIsTheAttacks` (one function `hitNeed` for the
+      attack and the fact, with the fight's bonuses; a pure read), `TestBR1BattleLog` (the
+      original's lines, `rulesxxvc/fightlog.go`), `TestBR1TurnUndeadNotOffered`, Guard, Delay,
+      Flee (asked first, "Got Away", the fled okay again after the fight), Quick for one member.
+      Engine: the player's turn presents its Outcome's effects as the computer's does (a ruleset
+      that queues nothing lost them: the empty battle log), `Fled` has no event, `CombatSay`'s
+      answer is presented.
+    - Open after B1f7:
+      - Quick taken back (the original's Space key clears the members' quick flag and hands the
+        turn back): the engine's `game.Manual` only reaches a ruleset through `AutoTurn` (por),
+        and XXVc's computer turns run inside one step with no pause: needs a typed action and a
+        pause between computer turns
+      - after a fled fight the Pascal removes the downed members who did not flee: not ported;
+        no experience on a full flight is not asserted
+      - a member with a gun against a melee monster loses the walk-up test's fight (accepted)
+    - Incident (2026-11-16): renamed script commands (`MenuCall`, `PickMember`) left the installed
+      BR texts unparseable (BR1 would not begin); then my instruction to tracks to refresh their
+      script copies with `rm -rf data/<game>/scripts` deleted `data/br1/scripts` and
+      `data/br2/scripts` through whole-folder symlinks. Fixed: the import key holds the dialect's
+      command words (`TestKeyHoldsCommandWords`), BR import version 2, `foldwt.sh` never links a
+      game folder whole, every game re-imported.
     - Open after B1f6:
       - RULED (2026-11-16): credits after a fight are paid out at once, the Pool games' way
         (`BankLoot`), for BR too; no "how many credits will you take" step
       - not compared with the oracle: turn order, experience, loot, placement, the arenas; the
         tests do not assert a win beyond "the monsters left the party list" (they stay after a
         loss); the battle log was empty in the runs
-      - `AimFact`, `AimCheckFact` unanswered (ranged aim, maneuver keys unproven); a walk-up and
-        approaching monsters are not in a test; `HitFact` ignores the fight's hit bonuses and
-        recalculates the defender's armour, then restores it
       - BR's rolls follow `rules.RNG`, not the original's sequence: goldens against the old BR
         engine are to be regenerated with the old engine patched to this generator
-      - `TurnUndead` is asked on a key with no neutral guard (not hit by the tests)
     - [x] the shared-`data/` hazard: `foldwt.sh new` copies each game's `scripts/` into the track
       (the rest of `data/` stays linked); a track's test import rewrites only its own copy.
       After a layout change lands, main's `data/<game>/scripts` is rewritten by main's next test
