@@ -399,6 +399,8 @@ func commonOf(s game.State) game.Common {
 		return s.Common
 	case game.Over:
 		return s.Common
+	case game.ShipFight:
+		return s.Common
 	}
 	return game.Common{}
 }

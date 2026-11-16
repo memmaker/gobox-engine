@@ -371,8 +371,12 @@ func TestBR1SweepReplay(t *testing.T) {
 		t.Skip("GOBOX_SWEEP_REPLAY not set")
 	}
 	t.Setenv("GOBOX_NOSOUND", "1")
+	g := gameBR1
+	if os.Getenv("GOBOX_SWEEP_GAME") == gameBR2.ID { // GOBOX_SWEEP_GAME=br2 replays a BR2 finding
+		g = gameBR2
+	}
 	adv := t.TempDir()
-	if err := importer.ImportBREngine("br1", importer.BR1EXE, filepath.Join("..", "data", "br1", "sources", "dos"), adv); err != nil {
+	if err := importer.ImportBREngine(g.ID, g.EXE, g.dos(), adv); err != nil {
 		t.Fatal(err)
 	}
 	entries := sweepEntriesN
