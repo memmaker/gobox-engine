@@ -13,7 +13,7 @@ import (
 func TestArtSwitch(t *testing.T) {
 	s := start{Adventure: "../../data/cotab", Data: "../../data/cotab/sources"}
 	s.Capture.Dev.Saves = t.TempDir()
-	l, err := playPool(s)
+	l, err := playPool(s, hosts[ruleset1e])
 	if err != nil {
 		t.Skip(err)
 	}

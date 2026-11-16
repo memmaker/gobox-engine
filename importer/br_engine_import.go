@@ -35,6 +35,8 @@ type brStart struct {
 	Art adventure.ArtNames
 	// PictureSets: pO124_02D0 reads these PIC blocks from PIC7..9 whatever the disk (rules/eclops.go picOf in BR1, smallPic in BR2).
 	PictureSets map[int]rules.Set
+	// Data: the front's data (gamedata.json) beyond the series and id; nil: not moved over from the old front yet (BR2).
+	Data func(id string) game.Data
 	// Logbook: the journal's titles (importer/br1/journal, from the printed Log Book); nil: none yet.
 	Logbook *adventure.Logbook
 }
@@ -57,7 +59,7 @@ var (
 var brStarts = map[string]brStart{
 	"br1": {FirstBlock: 16, GameSet: 1, FirstBigPicture: 112, CodeBase: 32768, CodeSize: 9217, Symbols: brSymbols, PictureSets: brPictureSets,
 		Art:     adventure.ArtNames{CombatSprites: "COMSPR", Title: "TITLE"}, // br1Start's TITLE
-		Logbook: &adventure.Logbook{Box: "Log Book", Title: "Log Entry "}},
+		Logbook: &adventure.Logbook{Box: "Log Book", Title: "Log Entry "}, Data: br1GameData},
 	// BR2: buckrogers2-go rules/adv.go:147,161 (block 16), :158 (disk 1), eclops.go:239 (112), buckrogers2-re eclvm.pas:42,48. The
 	// Logbook stays unset: buckrogers2-go has no rules/journal to take the titles from (open: BR2's journal).
 	"br2": {FirstBlock: 16, GameSet: 1, FirstBigPicture: 112, CodeBase: 32768, CodeSize: 9217, Symbols: brSymbols, PictureSets: brPictureSets,
@@ -66,7 +68,7 @@ var brStarts = map[string]brStart{
 
 // ImportBREngine is ImportBR plus what the shared engine reads from an adventure folder (engine.New, Init): the game's
 // full script layout in place of ImportBR's partial one (the scripts re-imported with it), gametables.json and gamedata.json.
-// Only tests call it; it is not in the registry or `gobox import`. It replaces ImportBR when the BR engines go (REFACTOR.md B1g).
+// Tests and `gobox import -shared` call it (Game.ImportShared); the default import stays ImportBR. It replaces ImportBR when the BR engines go (REFACTOR.md B1g).
 // A game without a full layout or a start entry in brStarts is an error.
 //
 // Not written yet: sound.json (no layout of BR1's sound tables), portraits.json, the walls (BR has no WALLDEF).
@@ -106,7 +108,11 @@ func ImportBREngine(id string, e BREXE, dos, dst string) error {
 		}
 	}
 	data := filepath.Join(dst, adventure.DataDir)
-	if err := adventure.WriteGameData(data, game.Data{Series: brSeries, ID: id}); err != nil {
+	front := game.Data{Series: brSeries, ID: id}
+	if start.Data != nil {
+		front = start.Data(id)
+	}
+	if err := adventure.WriteGameData(data, front); err != nil {
 		return err
 	}
 	tables := adventure.GameTables{

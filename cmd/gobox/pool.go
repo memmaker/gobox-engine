@@ -13,6 +13,7 @@ import (
 	"slices"
 
 	"gobox/audio"
+	"gobox/buck"
 	"gobox/engine"
 	"gobox/game"
 	"gobox/importer"
@@ -25,8 +26,28 @@ import (
 // the engine sees it.
 const tps = 120
 
-// playPool starts the game of the adventure folder s.Adventure.
-func playPool(s start) (ui.Launch, error) {
+// host is what a ruleset's shared-engine launch differs by: the host package's
+// constructor and what it hands the engine of the player's options.
+type host struct {
+	new      func(adv, data string) (*engine.Engine, error)
+	settings func(h ui.HostOptions, f importer.Folder) rules.Settings // nil: the ruleset has no player options
+	record   bool                                                     // the manifest must declare the character record layout
+}
+
+// hosts is the one place a ruleset selects its host (a manifest's Ruleset).
+var hosts = map[string]host{
+	ruleset1e: {
+		new:    pool.New,
+		record: true,
+		settings: func(h ui.HostOptions, f importer.Folder) rules.Settings {
+			return pool.Settings{PathSearch: h.PathSearch, Combat4e: h.Combat4e && f.Combat4e}.Rules()
+		},
+	},
+	rulesetXXVc: {new: buck.New},
+}
+
+// playPool starts the game of the adventure folder s.Adventure on host hs.
+func playPool(s start, hs host) (ui.Launch, error) {
 	s.Explore = s.Explore || s.Capture.Slot != "" // -slot starts play from that save (Explore reads it), -explore or not
 
 	host := &ui.HostSettings // the shared settings in use; ui.Play loads them from SETTINGS.JSON
@@ -34,11 +55,11 @@ func playPool(s start) (ui.Launch, error) {
 	if err != nil {
 		return ui.Launch{}, err
 	}
-	if f.Record == rules.NoRecord {
+	if hs.record && f.Record == rules.NoRecord {
 		return ui.Launch{}, fmt.Errorf("adventure %s: manifest has no character record layout: re-import it", f.Dir)
 	}
 	host.FullIntro = f.Manifest.Start != nil && f.Manifest.Start.Full // the adventure's default
-	eng, err := pool.New(s.Adventure, s.Data)
+	eng, err := hs.new(s.Adventure, s.Data)
 	if err != nil {
 		return ui.Launch{}, err
 	}
@@ -66,7 +87,9 @@ func playPool(s start) (ui.Launch, error) {
 		eng.QuickSearch.Store(h.QuickSearch)
 		eng.DaySky.Store(h.DaySky)
 		eng.FullIntro.Store(h.FullIntro && !s.Explore)
-		eng.HandIn(pool.Settings{PathSearch: h.PathSearch, Combat4e: h.Combat4e && f.Combat4e}.Rules())
+		if hs.settings != nil {
+			eng.HandIn(hs.settings(h, f))
+		}
 		eng.Dasp.Store(h.Dasp)
 		if !ui.TwoMusics() { // else the Music option picks a release's music (HostOptions.DOSMusic), and there are no recordings
 			eng.SetSoundtrack(h.Soundtrack)

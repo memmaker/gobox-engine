@@ -47,7 +47,7 @@ const itemWordSize = 21
 // registerBR registers adventure id (br1, br2) with title, its START.EXE and
 // its title sequence start (Game.Start).
 func registerBR(id, title string, e BREXE, start func(dos string) (*adventure.Sequence, error)) {
-	Register(Game{ID: id, Title: title, Ruleset: "rulesxxvc", Sources: BRSources, Version: 3 /* 3: a monster's isCompanion, npc byte and READIED items in the tables (xxvc.Monster); 2: the script commands Program (was MenuCall) and Who (was PickMember); 1: the credits' Colour a game.Ink (gobox C1) */, Start: start, Import: func(dos, dst string) error { return ImportBR(id, e, dos, dst) }})
+	Register(Game{ID: id, Title: title, Ruleset: "rulesxxvc", Sources: BRSources, Version: 3 /* 3: a monster's isCompanion, npc byte and READIED items in the tables (xxvc.Monster); 2: the script commands Program (was MenuCall) and Who (was PickMember); 1: the credits' Colour a game.Ink (gobox C1) */, Start: start, Import: func(dos, dst string) error { return ImportBR(id, e, dos, dst) }, ImportShared: func(dos, dst string) error { return ImportBREngine(id, e, dos, dst) }})
 }
 
 // ImportBR writes adventure id's folder dst from the DOS originals in dos.

@@ -98,3 +98,30 @@ func TestImportBREngineUnknownGame(t *testing.T) {
 		t.Error("a game without a full layout: want an error")
 	}
 }
+
+// TestRunSharedBR1: `gobox import -shared br1` (RunWith) writes the folder ImportBREngine writes, its manifest the default
+// import's, and the front's data in gamedata.json (br1GameData); a game without a shared import is an error.
+func TestRunSharedBR1(t *testing.T) {
+	_, dos, _ := br1Blocks(t)
+	root := t.TempDir()
+	if err := RunWith("br1", dos, root, true); err != nil {
+		t.Fatal(err)
+	}
+	f, err := Read(filepath.Join(root, "br1"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if f.Ruleset != "rulesxxvc" || f.Manifest.Start == nil {
+		t.Errorf("manifest: ruleset %q, start %v", f.Ruleset, f.Manifest.Start)
+	}
+	d, err := adventure.ReadGameData(f.Dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if d.Series != brSeries || d.ID != "br1" || d.Border == nil || len(d.PartyMenu) != len(brPartyMenu) || d.Coin == "" || len(d.DaxMask) == 0 || len(d.QuickParty) != 6 {
+		t.Errorf("gamedata.json lacks the front's data: %+v", d)
+	}
+	if err := RunWith("por", dos, root, true); err == nil {
+		t.Error("por has no shared import")
+	}
+}

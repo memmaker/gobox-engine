@@ -80,6 +80,9 @@ type Game struct {
 	// Import writes the folder's files from the originals in dir src into
 	// dir dst (empty, existing).
 	Import func(src, dst string) error
+	// ImportShared is Import for the shared engine (gobox import -shared; nil: the game has none).
+	// ponytail: temporary, until the old Buck Rogers engines go (REFACTOR.md item 9) and Import is this.
+	ImportShared func(src, dst string) error
 	// Start and End give the title and end sequences from the originals in
 	// dir src (nil func or nil Sequence: none); Fixed is one known without them.
 	Start, End func(src string) (*adventure.Sequence, error)
@@ -142,7 +145,10 @@ func IDs() []string {
 // the folder's entries but Kept, and adds its text font to root's font
 // pool (asset.FontPoolDir); the manifest is written last, so a failed
 // import leaves no valid folder.
-func Run(id, src, root string) error {
+func Run(id, src, root string) error { return RunWith(id, src, root, false) }
+
+// RunWith is Run, with shared: the game's ImportShared writes the folder.
+func RunWith(id, src, root string, shared bool) error {
 	g, ok := games[id]
 	if !ok {
 		return fmt.Errorf("import: no game %q (have %s)", id, strings.Join(IDs(), ", "))
@@ -158,7 +164,14 @@ func Run(id, src, root string) error {
 	if err := emptyBut(dst); err != nil {
 		return err
 	}
-	if err := g.Import(src, dst); err != nil {
+	imp := g.Import
+	if shared {
+		if g.ImportShared == nil {
+			return fmt.Errorf("import %s: no import for the shared engine", id)
+		}
+		imp = g.ImportShared
+	}
+	if err := imp(src, dst); err != nil {
 		return fmt.Errorf("import %s: %w", id, err)
 	}
 	if err := importSaves(dst, g.Record); err != nil {
@@ -260,16 +273,17 @@ func Main(args []string) error {
 	fs := flag.NewFlagSet("import", flag.ContinueOnError)
 	out := fs.String("out", "data", "the games' data directory")
 	amiga := fs.Bool("amiga", false, "<originals> are the Amiga .adf disks: convert them into <out>/<game>/"+AmigaDir+" (a step of its own, before the DOS import, which reads them)")
+	shared := fs.Bool("shared", false, "dev, temporary until the old Buck Rogers engines go: write the folder the shared engine plays (gobox -shared)")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
 	if fs.NArg() != 2 {
-		return fmt.Errorf("usage: import [-out dir] [-amiga] <game> <originals>; games: %s", strings.Join(IDs(), ", "))
+		return fmt.Errorf("usage: import [-out dir] [-amiga] [-shared] <game> <originals>; games: %s", strings.Join(IDs(), ", "))
 	}
 	if *amiga {
 		return ImportAmiga(fs.Arg(0), fs.Arg(1), *out)
 	}
-	return Run(fs.Arg(0), fs.Arg(1), *out)
+	return RunWith(fs.Arg(0), fs.Arg(1), *out, *shared)
 }
 
 // SameTree reports the first difference between the files under a and the
