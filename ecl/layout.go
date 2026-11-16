@@ -168,6 +168,26 @@ func (l *Layout) find(a int, routine bool) (Ref, error) {
 // Field is the Field r names.
 func (l *Layout) Field(r Ref) *Field { return &l.Fields[r.Field-1] }
 
+// Flat is r with an index that passes its field's end (Ref.Plus: a table's base and the index a command adds) resolved
+// the way the original's memory is: one flat array of addresses, so the cell is the one of the field that holds the address
+// (BR2 area1's `V_4B00[&V_7F7B]`, zone 0's cells[$4B00..$4EFF] indexed by address). r itself when its index is inside its field,
+// its field is not memory the layout lays out by address (a constant table of the script's code) or no field holds the address.
+func (l *Layout) Flat(r Ref) Ref {
+	if r.Field == 0 {
+		return r
+	}
+	f := l.Field(r)
+	if f.routine() || f.Owner == OwnerConst || (r.Index >= 0 && r.Index < f.Len) {
+		return r
+	}
+	g, err := l.find(f.From+r.Index, false)
+	if err != nil || l.Field(g).Owner == OwnerConst {
+		return r
+	}
+	g.As = r.As
+	return g
+}
+
 // With is l and over together: an area's layout over the game's. A field of
 // one may not overlap a field of the other, nor share its name, except that
 // an over field marked Replaces takes the place of the l field with exactly

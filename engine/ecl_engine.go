@@ -222,9 +222,9 @@ type holdKind int
 // eclHost is what the shared VM asks of the game.
 type eclHost struct{ e *Engine }
 
-func (h eclHost) Get(r ecl.Ref) int64 { return h.e.getVar(r) }
+func (h eclHost) Get(r ecl.Ref) int64 { return h.e.getVar(h.e.vm.Script.Layout.Flat(r)) }
 
-func (h eclHost) Set(r ecl.Ref, v int64) { h.e.setVar(r, v) } // cut to the field's width
+func (h eclHost) Set(r ecl.Ref, v int64) { h.e.setVar(h.e.vm.Script.Layout.Flat(r), v) } // cut to the field's width; a table write past its field lands where the original's flat memory has the address (ecl.Layout.Flat)
 
 func (h eclHost) Text(r ecl.Ref) string { return h.e.getText(r) }
 

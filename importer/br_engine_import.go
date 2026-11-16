@@ -154,6 +154,19 @@ func ImportBREngine(id string, e BREXE, dos, dst string) error {
 	if err := os.WriteFile(g, full, 0o644); err != nil {
 		return err
 	}
+	areas, err := fs.Glob(embeddedScripts(id), "layout/area*.txt") // the area layouts over the game's (BR2 area 1's)
+	if err != nil {
+		return err
+	}
+	for _, a := range areas {
+		b, err := fs.ReadFile(embeddedScripts(id), a)
+		if err != nil {
+			return err
+		}
+		if err := os.WriteFile(filepath.Join(scripts, a), b, 0o644); err != nil {
+			return err
+		}
+	}
 	if _, err := ecl.Import(ecl.V4, orig.DAXSource(l), os.DirFS(scripts), scripts, ecl.FoldGates, nil); err != nil {
 		return err
 	}

@@ -1,0 +1,59 @@
+# BR2 area 1 (the debug block) script layout over the game's: from len width owner name [readonly].
+# Area 1's variable editor pokes a typed offset: SaveTable base $4B00 + offset (eclvm.pas EclSaveTable: WriteGbvm(base + offset)), offsets 257..999 for
+# its guard `<= 256 exits`, so any byte of zone 0 (types.pas TZone0.cells[$4B00..$4EFF]) can be written. The game layout names the bytes some script uses;
+# these are the others (the records' *Tail arrays and unused cells): no script reads them, so the value a poke leaves there is seen by no one, and they are
+# the script's scratch (local) rather than saved state. ecl.Layout.Flat resolves the table write to them.
+4B01 127 byte local Zone0Gap4B01
+4B81 4 byte local Zone0Gap4B81
+4B9F 6 byte local Zone0Gap4B9F
+4BA7 4 byte local Zone0Gap4BA7
+4BAC 10 byte local Zone0Gap4BAC
+4BB9 1 byte local Zone0Gap4BB9
+4BBB 3 byte local Zone0Gap4BBB
+4BC0 3 byte local Zone0Gap4BC0
+4BC6 1 byte local Zone0Gap4BC6
+4BCA 2 byte local Zone0Gap4BCA
+4BCE 24 byte local Zone0Gap4BCE
+4BEA 6 byte local Zone0Gap4BEA
+4BF3 8 byte local Zone0Gap4BF3
+4C27 1 byte local Zone0Gap4C27
+4C39 2 byte local Zone0Gap4C39
+4C3C 4 byte local Zone0Gap4C3C
+4C46 1 byte local Zone0Gap4C46
+4C4F 5 byte local Zone0Gap4C4F
+4C70 1 byte local Zone0Gap4C70
+4C7B 1 byte local Zone0Gap4C7B
+4C85 1 byte local Zone0Gap4C85
+4C90 3 byte local Zone0Gap4C90
+4C94 1 byte local Zone0Gap4C94
+4C96 14 byte local Zone0Gap4C96
+4CAC 12 byte local Zone0Gap4CAC
+4CBC 6 byte local Zone0Gap4CBC
+4CC4 1 byte local Zone0Gap4CC4
+4CC7 5 byte local Zone0Gap4CC7
+4CCE 8 byte local Zone0Gap4CCE
+4CDC 4 byte local Zone0Gap4CDC
+4CE1 1 byte local Zone0Gap4CE1
+4CE3 3 byte local Zone0Gap4CE3
+4CE7 7 byte local Zone0Gap4CE7
+4CF4 2 byte local Zone0Gap4CF4
+4CF8 5 byte local Zone0Gap4CF8
+4CFF 23 byte local Zone0Gap4CFF
+4D17 1 byte local Zone0Gap4D17
+4D19 1 byte local Zone0Gap4D19
+4D1B 1 byte local Zone0Gap4D1B
+4D1D 1 byte local Zone0Gap4D1D
+4D1F 1 byte local Zone0Gap4D1F
+4D21 29 byte local Zone0Gap4D21
+4D3F 1 byte local Zone0Gap4D3F
+4D42 2 byte local Zone0Gap4D42
+4D45 1 byte local Zone0Gap4D45
+4D48 2 byte local Zone0Gap4D48
+4D4B 33 byte local Zone0Gap4D4B
+4D6D 1 byte local Zone0Gap4D6D
+4D6F 1 byte local Zone0Gap4D6F
+4D71 1 byte local Zone0Gap4D71
+4D73 3 byte local Zone0Gap4D73
+4D77 5 byte local Zone0Gap4D77
+4D7D 4 byte local Zone0Gap4D7D
+4D82 382 byte local Zone0Gap4D82
