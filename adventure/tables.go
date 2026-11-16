@@ -10,34 +10,35 @@ import (
 
 // GameTables is the game's data the Engine shows, handed in by the game at New.
 type GameTables struct {
-	PortraitHead, PortraitBody []rules.PortraitPic  // portrait number -> its picture, 1-based ([0] unused)
-	Script                     *ecl.Version         `json:"-"` // the game's ECL dialect; nil: the first engine's (V1)
-	ScriptSounds               map[byte]ScriptSound // the Sound command's numbers (pod: 2..14 digitized, 128+n song n); one not listed plays DefaultSound
-	DefaultSound               *ScriptSound         // what a number ScriptSounds does not list plays; nil: nothing
-	AddNPCIcon                 bool                 // AddNPC loads the NPC's combat icon (sotsb, pod; not cotab)
-	Reserve                    Reserve              // the reserve every scripted fight gets (pod); zero: none
-	Dialect                    rules.Dialect        // the game's script byte-code dialect (ReadGameTables sets Script from it)
-	TreasureSets               [][]int32            // ItemSet's sets: set number -> its library item ids (pod: 1..11; [0] unused)
-	ScriptFixes                []ecl.Fix            // the game's decompiler special cases (ecl.Library.Fixes): the import's, for the texts' key
-	Quests                     []QuestDef           // the quest journal's quests (POR: the commissions); none: an empty journal
-	OriginalSave               rules1e.SaveLayout   // the game's SAVGAMx.DAT format (the original-save import)
-	PurseWhos                  []PurseWho           // the Who commands that spend the party's one purse (POR: the inn, the tavern)
-	Symbols                    []SymbolLoad         // the 8x8 symbol sets Init loads; nil: the first engine's (DefaultSymbols: POR, sotsb, cotab)
-	Art                        *ArtNames            // the pictures the Engine loads by role; nil: none (every import writes its own)
-	MapLabels                  []MapLabel           // the maps' fixed labels (POR: New Phlan's buildings); none: none
-	Music                      *AreaMusic           // the soundtrack by area (POR's); nil: none
-	MonsterSet                 rules.Set            // the set whose MON and CPIC archives hold the monsters (sotsb, pod: 1); 0: the current set (POR, cotab: the disk)
-	Walls                      *WallTextures        // the 3D view's remastered wall textures; nil: none
-	GameSet                    rules.Set            // the set the party menu's game starts in (DS:5376: POR 3; cotab, sotsb, pod 2)
-	FirstBlock                 int                  // the ECL block a new game starts on, with no last block saved (POR 0, cotab 1, sotsb 17, pod 16)
-	Logbook                    *Logbook             // the Logbook command's book (BR); nil: the game has none
-	PictureSets                map[int]rules.Set    // a PIC block kept in another set's file than the one in play (BR1 pO124_02D0: 62 in PIC9); nil: none
-	BigPictures                BigPictures          // the Picture command's whole-screen BIGPIC pictures; zero: none (POR)
-	OverlandSteps              rules.Size           // MapX and MapY range over 0..W-1 and 0..H-1 on the overland, which is the whole map (BR1: 38 by 15, Area[195], [196]); zero: the Pool's window of the map (16 by 36, shifted by the view)
-	Places                     []Place              // the area blocks' own places (the front's music trigger); none: none
-	Space                      *SpaceMap            // the rocket's system map (BR1); nil: the game has none (the Pool games, BR2 yet)
-	Overland                   []OverlandBlock      // the script blocks that are the overland's maps (POR's three wildernesses); none: none (the others' scripts say AreaKind)
-	NoRemainsBlocks            []int                // the script blocks whose arena clutter has no remains (POR combatst.pas SprinkleRareFeatures: eclScriptId <> 10); none: none
+	PortraitHead, PortraitBody []rules.PortraitPic    // portrait number -> its picture, 1-based ([0] unused)
+	Script                     *ecl.Version           `json:"-"` // the game's ECL dialect; nil: the first engine's (V1)
+	ScriptSounds               map[byte]ScriptSound   // the Sound command's numbers (pod: 2..14 digitized, 128+n song n); one not listed plays DefaultSound
+	DefaultSound               *ScriptSound           // what a number ScriptSounds does not list plays; nil: nothing
+	AddNPCIcon                 bool                   // AddNPC loads the NPC's combat icon (sotsb, pod; not cotab)
+	Reserve                    Reserve                // the reserve every scripted fight gets (pod); zero: none
+	Dialect                    rules.Dialect          // the game's script byte-code dialect (ReadGameTables sets Script from it)
+	TreasureSets               [][]int32              // ItemSet's sets: set number -> its library item ids (pod: 1..11; [0] unused)
+	ScriptFixes                []ecl.Fix              // the game's decompiler special cases (ecl.Library.Fixes): the import's, for the texts' key
+	Quests                     []QuestDef             // the quest journal's quests (POR: the commissions); none: an empty journal
+	OriginalSave               rules1e.SaveLayout     // the game's SAVGAMx.DAT format (the original-save import)
+	PurseWhos                  []PurseWho             // the Who commands that spend the party's one purse (POR: the inn, the tavern)
+	Symbols                    []SymbolLoad           // the 8x8 symbol sets Init loads; nil: the first engine's (DefaultSymbols: POR, sotsb, cotab)
+	Art                        *ArtNames              // the pictures the Engine loads by role; nil: none (every import writes its own)
+	MapLabels                  []MapLabel             // the maps' fixed labels (POR: New Phlan's buildings); none: none
+	Music                      *AreaMusic             // the soundtrack by area (POR's); nil: none
+	MonsterSet                 rules.Set              // the set whose MON and CPIC archives hold the monsters (sotsb, pod: 1); 0: the current set (POR, cotab: the disk)
+	Walls                      *WallTextures          // the 3D view's remastered wall textures; nil: none
+	GameSet                    rules.Set              // the set the party menu's game starts in (DS:5376: POR 3; cotab, sotsb, pod 2)
+	FirstBlock                 int                    // the ECL block a new game starts on, with no last block saved (POR 0, cotab 1, sotsb 17, pod 16)
+	Programs                   map[byte]ecl.ProgramFn // PROGRAM codes this game's original handles otherwise than its dialect's table (sotsb shares cotab's dialect: its EclProgram has no 3 and no 8); nil: none
+	Logbook                    *Logbook               // the Logbook command's book (BR); nil: the game has none
+	PictureSets                map[int]rules.Set      // a PIC block kept in another set's file than the one in play (BR1 pO124_02D0: 62 in PIC9); nil: none
+	BigPictures                BigPictures            // the Picture command's whole-screen BIGPIC pictures; zero: none (POR)
+	OverlandSteps              rules.Size             // MapX and MapY range over 0..W-1 and 0..H-1 on the overland, which is the whole map (BR1: 38 by 15, Area[195], [196]); zero: the Pool's window of the map (16 by 36, shifted by the view)
+	Places                     []Place                // the area blocks' own places (the front's music trigger); none: none
+	Space                      *SpaceMap              // the rocket's system map (BR1); nil: the game has none (the Pool games, BR2 yet)
+	Overland                   []OverlandBlock        // the script blocks that are the overland's maps (POR's three wildernesses); none: none (the others' scripts say AreaKind)
+	NoRemainsBlocks            []int                  // the script blocks whose arena clutter has no remains (POR combatst.pas SprinkleRareFeatures: eclScriptId <> 10); none: none
 }
 
 // OverlandBlock is a script block that is an overland map: outdoors (not 3D) its start leaves the view

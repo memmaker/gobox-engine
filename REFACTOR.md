@@ -549,6 +549,33 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
          BR2; `cmd/gobox -shared br2` untested; the old BR2 engine's `play.go`, `shop.go`,
          `loot.go`, `combatturn.go` only sampled for differences
 
+      7f. [x] b3: the two Pascals differ only in creation and skills (the old Go BR2 engine's other
+         differences were its own remaster choices): `xxvc.Tables.Creation` (start level 2/7,
+         skill points, cap, fixed hit-point gain, experience and combat tables and BR2's initial
+         skills read from START.EXE; BR import version 17); `TestBR2Create`; BR2 play tests
+         (`engine/br2play_test.go`: fight, shop, rest, save/load, rocket, ship fight) sharing
+         BR1's helpers; `ui/br2_test.go`; `cmd/gobox -shared br2`; BR2's layout names the rocket
+         and ship cells. Fixed: a ramming foe's dodge question carried no `Confirm` (the ship
+         fight hung; BR1 too). Open: BR2 overland untested (no block found that sets view kind
+         4); `notOffered` skills are a table in `rulesxxvc`, not read per game from the EXE;
+         the Pascals' logic differences in combat, cbtacts, combatai, postcbt, explore, eclvm,
+         shipcbt, saveload not classified; maximum level and level-up training not ported
+      10a. [x] pc1: POR's overland blocks and no-remains block are adventure data
+         (`GameTables.Overland`, `NoRemainsBlocks`; the other Pool games no longer get POR's view
+         modes on blocks 0x19..0x1B); POR's platinum text fix-ups are import script fixes (POR
+         import version 11; the training hall notice's recording re-rendered under its new key);
+         an unlisted PROGRAM code panics, every dialect's table pinned to its Pascal
+         (`ecl/program_test.go`; BR2's Program 2 quits); ONE way to take Quick back
+         (`rules.TakeBack` answered by both rulesets; `AutoTurn.Key` gone; Alt-M is
+         `rules.QuickMagic`, offered only where `CanQuickMagic`); R2f: `rules/adnd.go` is gone,
+         AD&D names live in `rules1e`, member script fields are the ruleset's data
+         (`Catalog.ScriptFields`), `PartyHasScout`/`PartyCanKnock` replace the engine naming a
+         class and a spell. And: sotsb's own PROGRAM codes (`GameTables.Programs`: 3 and 8 do
+         nothing as its Pascal; they quit and ended the game; sotsb import version 24). Open:
+         cotab's Program 3 is "party defeated, exit the script" in its Pascal and a quit here;
+         `walldefRecorded`'s block 10 quirk stays in the engine; one key slot during computer
+         play (the Pascal takes the first key, we the last)
+
       8. [ ] every BR1 block's entries run headless without a panic (a sweep test over the
          scripts' reachable commands, like the Pool games' sweeps); then BR2 the same
       9. [ ] B1g: `cmd/gobox` plays BR1 and BR2 from data folders only; the BR engines and repos

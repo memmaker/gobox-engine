@@ -2,6 +2,7 @@ package importer
 
 import (
 	"gobox/adventure"
+	"gobox/ecl"
 	"gobox/rules"
 	"gobox/rules1e"
 )
@@ -19,7 +20,10 @@ var GameTables = adventure.GameTables{
 	FirstBlock:  17,                                             // firstBlock
 	BigPictures: adventure.BigPictures{First: 112, Framed: 121}, // O050:08A8
 	Dialect:     rules.DialectCOTAB,
-	AddNPCIcon:  true,
+	// sotsb-re eclvm.pas EclProgram has arms 0 and 9 only: cotab's 3 (the party defeated) and 8 (the ending) do nothing here
+	// (area 3's intro runs Program(3) and goes on).
+	Programs:   map[byte]ecl.ProgramFn{3: ecl.ProgramNone, 8: ecl.ProgramNone},
+	AddNPCIcon: true,
 	ScriptSounds: map[byte]adventure.ScriptSound{
 		soundDuelA: {Cue: rules.CueStep},
 		soundDuelB: {Cue: rules.CueFireball},

@@ -632,7 +632,10 @@ func (e *Engine) opProgram() {
 		e.selectChar(e.run.savedSel)
 		e.run.restoreSel = false
 	}
-	fn, listed := e.eclVersion.Programs[v]
+	fn, listed := e.game().Programs[v] // the game's own, where its original differs from the dialect's
+	if !listed {
+		fn, listed = e.eclVersion.Programs[v]
+	}
 	if !listed {
 		panic(fmt.Sprintf("ecl: program %d on line %d is not in the dialect's table (list it, ProgramNone if the original ignores it)", v, e.vm.Script.Code[e.vm.PC].Line))
 	}

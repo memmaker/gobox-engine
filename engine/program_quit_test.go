@@ -4,6 +4,7 @@ import (
 	"gobox/adventure"
 	"gobox/ecl"
 	"gobox/game"
+	"gobox/importer"
 	"gobox/rules"
 	"slices"
 	"testing"
@@ -138,4 +139,21 @@ func TestProgramUnlistedPanics(t *testing.T) {
 		}
 	}()
 	program(200)
+}
+
+// TestProgramOfTheGame: a game's own PROGRAM codes (GameTables.Programs) come before its dialect's: sotsb shares
+// cotab's dialect, where 3 quits, but its EclProgram has no arm for 3 (its intro runs Program(3) and goes on).
+func TestProgramOfTheGame(t *testing.T) {
+	e := quickStarted(t)
+	e.eclVersion = ecl.V2
+	tables := importer.GameTables // sotsb's
+	e.given = &tables
+	e.events = nil
+	e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Args: []ecl.Arg{{N: 3}}}}, Layout: e.vm.Script.Layout}
+	e.vm.PC = 0
+	e.vm.Fetch()
+	e.opProgram()
+	if slices.Contains(e.events, game.Event(game.Ended{})) {
+		t.Fatal("sotsb's Program 3 ended the game")
+	}
 }

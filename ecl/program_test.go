@@ -36,7 +36,7 @@ func TestProgramTables(t *testing.T) {
 	if _, ok := V3.Programs[podDebugProgramMax+1]; ok {
 		t.Error("pod: a code the debug menu cannot type is listed")
 	}
-	// sotsb shares V2: its Pascal has arms 0 and 9 only, its scripts pass 3 (a quit in V2: a divergence from sotsb-re, listed in the hand-back)
+	// sotsb shares V2: its Pascal has arms 0 and 9 only; its own codes are adventure data (importer GameTables.Programs: 3 and 8 do nothing)
 	call := regexp.MustCompile(`\bProgram\((\d+)\)`)
 	for _, g := range []struct {
 		name string
