@@ -97,7 +97,7 @@ func (e *RuleState) ItemName(c *Character, it *Item, readied bool) {
 // ItemStats (extra): Angband-style stats after the name, "(1d8) " for a
 // weapon's base damage (its magic plus stays in the name), "[6] " for the
 // armour class points armour, a shield or bracers give, the known plus
-// counted in (Bracers +4 are [4]).
+// counted in (Bracers +4 are <4>).
 func (e *RuleState) ItemStats(it *Item) string {
 	typ := it.Type
 	s := ""
@@ -111,7 +111,7 @@ func (e *RuleState) ItemStats(it *Item) string {
 		s += ") "
 	}
 	if b := e.Base(typ); b.AcPoints() > 0 {
-		s += "[" + strconv.Itoa(b.AcBetter()+int(e.KnownPlus(it))) + "] "
+		s += "<" + strconv.Itoa(b.AcBetter()+int(e.KnownPlus(it))) + "> "
 	}
 	return s
 }

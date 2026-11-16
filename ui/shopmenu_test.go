@@ -47,3 +47,36 @@ func TestTempleMenuFromAllowed(t *testing.T) {
 		t.Errorf("Pool sends %v", a)
 	}
 }
+
+// TestShopAppraiseIdentify: the shop offers Appraise while the party has
+// gems or jewelry and Identify while it carries an item the shop can
+// identify, neither otherwise.
+func TestShopAppraiseIdentify(t *testing.T) {
+	for _, c := range []struct {
+		name string
+		edit func(*game.Trading)
+		want []string
+	}{
+		{"neither", func(*game.Trading) {}, []string{"Buy", "View", "Exit"}},
+		{"gems", func(s *game.Trading) { s.Purse = map[string]int{game.Gems: 1} }, []string{"Buy", "View", "Appraise", "Exit"}},
+		{"jewelry", func(s *game.Trading) { s.Purse = map[string]int{game.Jewelry: 1} }, []string{"Buy", "View", "Appraise", "Exit"}},
+		{"unknown item", func(s *game.Trading) {
+			s.Party[0].Items = []game.Item{{Name: "Ring", Handle: 7}}
+			s.Unknown = []game.ItemRef{{Member: 0, Item: 7}}
+		}, []string{"Buy", "View", "Identify", "Exit"}},
+	} {
+		s := shopState()
+		c.edit(&s)
+		g, _ := playGame(s)
+		p := &Presenter{}
+		p.SetEngine(g)
+		_, rows := p.shopItems()
+		var got []string
+		for _, r := range rows {
+			got = append(got, r.Text)
+		}
+		if !slices.Equal(got, c.want) {
+			t.Errorf("%s: %v, want %v", c.name, got, c.want)
+		}
+	}
+}
