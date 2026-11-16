@@ -68,7 +68,7 @@ func (r *Rules) lootFact(id rules.CharID, f rules.Fact) (rules.Value, bool, erro
 				return nil, true, err
 			}
 			t := r.tables.Items[ref.ID]
-			return rules.ItemCard{Item: f.Item, Name: strings.Join(it.NameWords, " "), Type: t.Type, Count: it.Count, Price: it.Price,
+			return rules.ItemCard{Item: f.Item, Name: strings.Join(it.NameWords, " "), Type: t.Type, Count: it.Count, Price: int32(r.shopPrice(ref)),
 				Kind: ref.ID, Weight: t.Weight, Identified: it.Identified, Tab: string(it.Kind)}, true, nil
 		}
 	}

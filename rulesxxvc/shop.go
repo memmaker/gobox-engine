@@ -95,28 +95,50 @@ func (r *Rules) spend(id rules.CharID, price rules.Copper) bool {
 	return true
 }
 
+// stockShop is EclShop: the pile (the loot's: availableItems) becomes list a.List's templates, a template that
+// is no item (EMPTY_TEMPLATE, absent from the tables) left out, the newest pushed first (the lists' last entry
+// heads the pile; the pile lists in handle order, so it is handed its handles last entry first). The terms are
+// kept for the prices. Not a list of the tables: an error.
+func (r *Rules) stockShop(a rules.StockShop) (rules.Outcome, error) {
+	list, ok := r.tables.ShopLists[a.List]
+	if !ok {
+		return rules.Outcome{}, fmt.Errorf("StockShop: no list %d", a.List)
+	}
+	clear(r.loot)
+	r.shopTerms = a.Terms
+	for _, id := range slices.Backward(list) {
+		if _, ok := r.tables.Items[id]; ok {
+			r.lootHandle(rules.ItemRef{ID: id})
+		}
+	}
+	return rules.Outcome{}, nil
+}
+
 // shopPrice is shop.pas ItemPrice after ShopBuyItemSelection raises a value
 // of 0 to 1: the value times the zone's priceMultiplier sixteenths (0: the
 // value itself).
-func (r *Rules) shopPrice(ref rules.ItemRef, terms rules.ShopTerms) rules.Copper {
+func (r *Rules) shopPrice(ref rules.ItemRef) rules.Copper {
 	v := rules.Copper(max(r.tables.Items[ref.ID].Value, 1))
-	if terms.PriceMultiplier == 0 {
+	if r.shopTerms.PriceMultiplier == 0 {
 		return v
 	}
-	return v * rules.Copper(terms.PriceMultiplier) / 16
+	return v * rules.Copper(r.shopTerms.PriceMultiplier) / 16
 }
 
-// buy is Shop.ShopBuyMenu's purchase of goods g at its shop price.
-func (r *Rules) buy(who rules.CharID, g rules.ShopItem, terms rules.ShopTerms) (rules.Outcome, error) {
+// buy is Shop.ShopBuyMenu's purchase of the pile's piece h at its shop price.
+func (r *Rules) buy(who rules.CharID, h rules.ItemHandle) (rules.Outcome, error) {
 	c := r.chars[who]
 	if c == nil {
 		return rules.Outcome{}, fmt.Errorf("Buy: no character %d", who)
 	}
-	price := r.shopPrice(g.Item, terms)
-	if price > r.Purse(who) {
-		return rules.Outcome{Effects: []rules.Effect{rules.Narrated{Text: "Not enough Money."}}}, nil
+	ref, ok := r.loot[h]
+	if !ok {
+		return rules.Outcome{}, fmt.Errorf("Buy: no goods %d", h)
 	}
-	ref := g.Item
+	price := r.shopPrice(ref)
+	if price > r.Purse(who) {
+		return rules.Outcome{Effects: []rules.Effect{rules.Narrated{Text: "Not enough Money."}, rules.Refused{Who: who, Why: rules.NoMoney}}}, nil
+	}
 	if ref.Count == 0 {
 		ref.Count = r.tables.Items[ref.ID].Quantity
 	}
@@ -127,7 +149,7 @@ func (r *Rules) buy(who rules.CharID, g rules.ShopItem, terms rules.ShopTerms) (
 		if ref.Count > 0 {
 			article = ""
 		}
-		o.Effects = append(o.Effects, rules.Narrated{Text: c.Name + " buys " + article + r.itemName(ref)})
+		o.Effects = append(o.Effects, rules.Traded{Who: who, Item: h}, rules.Narrated{Text: c.Name + " buys " + article + r.itemName(ref)})
 	}
 	return o, nil
 }
@@ -181,7 +203,7 @@ func (r *Rules) sell(who rules.CharID, h rules.ItemHandle, confirmed bool) (rule
 	} else {
 		c.Coins += price // creditTotal, the seller's own
 	}
-	return rules.Outcome{Effects: []rules.Effect{rules.Narrated{Text: text}}}, nil
+	return rules.Outcome{Effects: []rules.Effect{rules.Traded{Who: who, Item: h, Sold: true}, rules.Narrated{Text: text}}}, nil
 }
 
 // itemName is the item's name words (PrintItemString).
@@ -239,7 +261,7 @@ func (r *Rules) reload(a rules.Reload) (rules.Outcome, error) {
 	if a.Kind != rules.ReloadClip && a.Kind != rules.ReloadFill {
 		return rules.Outcome{}, fmt.Errorf("Reload: kind %d", a.Kind)
 	}
-	i := slices.IndexFunc(c.Items, func(x Carried) bool { return x.Slot == a.Item })
+	i := heldAt(c, a.Item)
 	if i < 0 {
 		return rules.Outcome{}, fmt.Errorf("Reload: %d carries no item %d", a.Who, a.Item)
 	}

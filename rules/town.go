@@ -96,8 +96,16 @@ type OpenHall struct {
 type CloseHall struct{}
 
 // StockShop names the wares for no one and prices a free one at a piece,
-// and sounds the door.
-type StockShop struct{}
+// and sounds the door. A ruleset whose shops sell a numbered list (BR's
+// EclShop) stocks List's wares, priced by Terms; the Pool's script put its
+// wares in the treasure before (List 0).
+type StockShop struct {
+	List  ShopListID
+	Terms ShopTerms
+}
+
+// ShopListID numbers a shop's item list as the script asks for it (0: none).
+type ShopListID int32
 
 func (OpenHall) action() {}
 

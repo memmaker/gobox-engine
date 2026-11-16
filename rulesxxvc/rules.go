@@ -85,7 +85,8 @@ func (c *Character) team() bool { return c.Side != rules.SideMonsters }
 // at Begin (core.Campaign.Tables, an xxvc.Tables).
 type Rules struct {
 	pool      rules.Copper                       // poolCredits: the credits the beaten left, until BankLoot
-	loot      map[rules.ItemHandle]rules.ItemRef // FightResult.Items' handles (lootHandle)
+	loot      map[rules.ItemHandle]rules.ItemRef // FightResult.Items' handles (lootHandle); in a shop the pile it sells (stockShop)
+	shopTerms rules.ShopTerms                    // the open shop's pricing (StockShop)
 	nextItem  rules.ItemHandle                   // the last carried item's handle (handOut)
 	chars     map[rules.CharID]*Character
 	order     []rules.CharID // join order: the first member takes the purse

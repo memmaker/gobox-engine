@@ -442,6 +442,6 @@ func (r *Rules) itemCard(c *Character, h rules.ItemHandle) (rules.ItemCard, erro
 		return rules.ItemCard{}, err
 	}
 	t := r.tables.Items[ci.Ref.ID]
-	return rules.ItemCard{Item: h, Name: strings.Join(it.NameWords, " "), Type: t.Type, Count: it.Count, Price: it.Price,
+	return rules.ItemCard{Item: h, Name: strings.Join(it.NameWords, " "), Type: t.Type, Count: it.Count, Price: it.Price, Sale: r.sellPrice(ci),
 		Kind: ci.Ref.ID, Weight: t.Weight, Readied: ci.Readied, Identified: it.Identified, Tab: string(it.Kind)}, nil
 }

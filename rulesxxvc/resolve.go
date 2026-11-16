@@ -48,6 +48,18 @@ func (r *Rules) Resolve(s rules.Situation, a rules.Action, rng *rules.RNG) (rule
 		return rules.Outcome{}, nil
 	case rules.SkillDamage:
 		return r.skillDamage(a, rng), nil
+	case rules.StockShop:
+		return r.stockShop(a)
+	case rules.Buy:
+		return r.buy(a.Who, a.Item)
+	case rules.Sell:
+		return r.sell(a.Who, a.Item, false)
+	case rules.Reload:
+		return r.reload(a)
+	case rules.Confirmed:
+		if a, ok := a.Action.(rules.Sell); ok {
+			return r.sell(a.Who, a.Item, true)
+		}
 	case rules.Ready:
 		return r.ready(a.Who, a.Item, true)
 	case rules.Unready:
@@ -71,23 +83,6 @@ func (r *Rules) Resolve(s rules.Situation, a rules.Action, rng *rules.RNG) (rule
 			return r.takeItem(s, a)
 		case rules.TakeMoney:
 			return r.takeMoney(s, a)
-		}
-	case rules.Shopping:
-		switch a := a.(type) {
-		case rules.Buy:
-			g := slices.IndexFunc(s.Goods, func(g rules.ShopItem) bool { return g.Handle == a.Item })
-			if g < 0 {
-				return rules.Outcome{}, fmt.Errorf("Buy: no goods %d", a.Item)
-			}
-			return r.buy(a.Who, s.Goods[g], s.Terms)
-		case rules.Sell:
-			return r.sell(a.Who, a.Item, false)
-		case rules.Reload:
-			return r.reload(a)
-		case rules.Confirmed:
-			if a, ok := a.Action.(rules.Sell); ok {
-				return r.sell(a.Who, a.Item, true)
-			}
 		}
 	}
 	return rules.Outcome{}, fmt.Errorf("Resolve %T in %T: %w", a, s, ErrNotPorted)

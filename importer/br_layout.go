@@ -15,7 +15,7 @@ const brLayout = `# Buck Rogers script layout (gobox ecl/script Layout, Partial)
 4BE6 1 byte game AreaKind  # zone0 areaKind (BR2 areaType): $A2, $A8 Venus or Mars wilderness -> FightTerms.Area
 7EE3 1 byte game SkipsCombatItems  # zone1: 1 keeps the fallen's items from treasure -> FightTerms.NoItemLoot
 7EE6 1 byte game RevivesParty  # zone1: non-zero stands the downed party up with 1 HP -> FightTerms.RevivesParty
-7F6D 1 byte game PriceMultiplier  # zone1 priceMultiplier: sixteenths of an item's value a shop asks, 0 the value -> Shopping.Terms.PriceMultiplier
+7F6D 1 byte game PriceMultiplier  # zone1 priceMultiplier: sixteenths of an item's value a shop asks, 0 the value -> StockShop.Terms.PriceMultiplier
 `
 
 // WriteBRLayout writes brLayout into a scripts folder (the adventure's, the

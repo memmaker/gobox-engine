@@ -237,7 +237,7 @@ type (
 	} // BR
 	Reload struct {
 		Who  CharID
-		Item ItemSlot
+		Item ItemHandle
 		Kind ReloadKind
 	} // BR
 	Train struct {

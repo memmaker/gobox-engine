@@ -50,7 +50,7 @@ const itemWordSize = 21
 // registerBR registers adventure id (br1, br2) with title, its START.EXE and
 // its title sequence start (Game.Start).
 func registerBR(id, title string, e BREXE, start func(dos string) (*adventure.Sequence, error)) {
-	Register(Game{ID: id, Title: title, Ruleset: "rulesxxvc", Sources: BRSources, Version: 5 /* 5: the shop's item lists (xxvc.Tables.ShopLists); 4: the script commands FindItem (was HasItem), AddNPC (was NPCJoin), SkillShow, TakeItem, Stash, SkillDamage; 3: a monster's isCompanion, npc byte and READIED items in the tables (xxvc.Monster); 2: the script commands Program (was MenuCall) and Who (was PickMember); 1: the credits' Colour a game.Ink (gobox C1) */, Start: start, Import: func(dos, dst string) error { return ImportBR(id, e, dos, dst) }, ImportShared: func(dos, dst string) error { return ImportBREngine(id, e, dos, dst) }})
+	Register(Game{ID: id, Title: title, Ruleset: "rulesxxvc", Sources: BRSources, Version: 6 /* 6: the layout comment names StockShop.Terms; 5: the shop's item lists (xxvc.Tables.ShopLists); 4: the script commands FindItem (was HasItem), AddNPC (was NPCJoin), SkillShow, TakeItem, Stash, SkillDamage; 3: a monster's isCompanion, npc byte and READIED items in the tables (xxvc.Monster); 2: the script commands Program (was MenuCall) and Who (was PickMember); 1: the credits' Colour a game.Ink (gobox C1) */, Start: start, Import: func(dos, dst string) error { return ImportBR(id, e, dos, dst) }, ImportShared: func(dos, dst string) error { return ImportBREngine(id, e, dos, dst) }})
 }
 
 // ImportBR writes adventure id's folder dst from the DOS originals in dos.
@@ -282,12 +282,12 @@ const shopLists = 16
 // ShopLists is the shop item lists from the data segment ds: list number (1..16) -> the templates it stocks,
 // in the original's order (itemListEntries from itemListStarts, itemListCounts of them; an entry is an
 // ITEM0 template number, the ID of xxvc.Tables.Items).
-func ShopLists(ds []byte, e BREXE) map[xxvc.ShopListID][]rules.ItemID {
+func ShopLists(ds []byte, e BREXE) map[rules.ShopListID][]rules.ItemID {
 	starts, counts, entries := ds[e.ShopLists:], ds[e.ShopLists+shopLists:], ds[e.ShopLists+2*shopLists-1:] // entries[1] is the first entry
-	m := map[xxvc.ShopListID][]rules.ItemID{}
+	m := map[rules.ShopListID][]rules.ItemID{}
 	for n := range shopLists {
 		for i := range int(counts[n]) {
-			m[xxvc.ShopListID(n+1)] = append(m[xxvc.ShopListID(n+1)], rules.ItemID(entries[int(starts[n])+i]))
+			m[rules.ShopListID(n+1)] = append(m[rules.ShopListID(n+1)], rules.ItemID(entries[int(starts[n])+i]))
 		}
 	}
 	return m

@@ -25,12 +25,6 @@ type (
 		Party   Party
 		NoMagic bool
 	}
-	// Shopping: a shop is open with the adventure's goods.
-	Shopping struct {
-		Party Party
-		Goods []ShopItem
-		Terms ShopTerms
-	}
 	// AtTemple: services for money.
 	AtTemple struct {
 		Party    Party
@@ -68,17 +62,10 @@ type HallTerms struct {
 	Free    bool      // training costs nothing and asks no experience (the debug switch)
 }
 
-// ShopTerms is the zone's pricing a ruleset prices goods by (BR zone1
-// priceMultiplier, sixteenths of the value).
+// ShopTerms is the zone's pricing a ruleset prices a shop's goods by, handed in with StockShop (BR zone1
+// priceMultiplier, sixteenths of the value; 0: the value).
 type ShopTerms struct {
 	PriceMultiplier int32
-}
-
-// ShopItem is what the adventure's shop sells, at its prices.
-type ShopItem struct {
-	Handle    ItemHandle // names the good (Buy's Item); the engine gives each its own
-	Item      ItemRef
-	Buy, Sell Copper
 }
 
 // ServicePrice is a temple service at this temple's price.
@@ -176,7 +163,6 @@ func (Assembling) situation()  {}
 func (Creating) situation()    {}
 func (Adventuring) situation() {}
 func (Camping) situation()     {}
-func (Shopping) situation()    {}
 func (AtTemple) situation()    {}
 func (Training) situation()    {}
 func (Looting) situation()     {}

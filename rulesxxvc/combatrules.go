@@ -429,7 +429,8 @@ func (r *Rules) lootHandle(ref rules.ItemRef) rules.ItemHandle {
 	if r.loot == nil {
 		r.loot = map[rules.ItemHandle]rules.ItemRef{}
 	}
-	h := rules.ItemHandle(len(r.loot) + 1)
+	r.nextItem++ // one numbering with the carried items' (handOut): a member's item never shadows a pile piece
+	h := r.nextItem
 	r.loot[h] = ref
 	return h
 }

@@ -247,7 +247,7 @@ func TestEngineQuestions(t *testing.T) {
 		{"Credits", rules.CoinFact{Coin: xxvc.Credits}, id, rules.Number(250)},
 		{"Purse", rules.PurseFact{}, rules.NoChar, rules.Purse{Copper: 250}}, // the party's: Buck's own; the hireling has not joined
 		{"Loot", rules.PurseFact{Loot: true}, rules.NoChar, rules.Purse{}},
-		{"ItemCard", rules.ItemCardFact{Item: 1}, id, rules.ItemCard{Item: 1, Name: "Laser Pistol", Count: 1, Price: 30, Kind: seamItem, Weight: 4,
+		{"ItemCard", rules.ItemCardFact{Item: 1}, id, rules.ItemCard{Item: 1, Name: "Laser Pistol", Count: 1, Price: 30, Sale: 15, Kind: seamItem, Weight: 4,
 			Readied: true, Identified: true, Tab: string(rules.KindWeapon)}},
 	}
 	for _, c := range facts {
