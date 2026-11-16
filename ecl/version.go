@@ -81,9 +81,11 @@ type Behaviour struct {
 	LostDuelResult  bool // a lost solo fight leaves the combat result at 0x80, the team beaten (BR postcbt.pas DetermineCombatResults); the Pool's leaves it 0
 	FarSight        bool // the squares ahead counted before a wall run to 5 (BR eclmenu.pas MaxMonsterDist); otherwise to 2 (the Pool's ovr08:0482)
 	// RemoveNPCDrops: the party menu's Remove on a non-player character (control byte at NON_PLAYER_FLAG) is the Drop question, not a save (BR chargen.pas MainMenu 'R': DropCharacterMenu; cotab's does the same, not ported: the Pool must not change)
-	RemoveNPCDrops  bool
-	BeginClearsHall bool // the party menu's Begin zeroes the training mask (cotab chargen.pas:262, sotsb :304, pod :229, BR MainMenu); POR's never assigns it
-	ClearExitText   bool // ClearExit empties the text pane too (BR pO035_2DCC case 66, 2837); otherwise only the view comes back (pod O040:24AE)
+	RemoveNPCDrops bool
+	// SaveAsksOverwrite: saving a character whose file exists asks Overwrite, Rename or Abort (BR saveload.pas SaveChar); cotab's and sotsb's ask Overwrite yes or no (Rename on No), POR's and POD's never ask: not set for them, the Pool must not change
+	SaveAsksOverwrite bool
+	BeginClearsHall   bool // the party menu's Begin zeroes the training mask (cotab chargen.pas:262, sotsb :304, pod :229, BR MainMenu); POR's never assigns it
+	ClearExitText     bool // ClearExit empties the text pane too (BR pO035_2DCC case 66, 2837); otherwise only the view comes back (pod O040:24AE)
 	// ViewKept: a block's start keeps the view kind (3D view or overland) until the script's AreaKind command says otherwise (BR eclmenu.pas EclInit leaves the interface state alone); otherwise the start sets the 3D view (the Pool's ovr08:01B6)
 	ViewKept bool
 	// MessageDelayMs is the pause of one step of the game's message speed in ms (BR textrend.pas PauseOnly: Delay(messageSpeed * 100)); 0: the Pool's (the engine's messageDelayUnit)
@@ -324,7 +326,7 @@ var V4 = func() *Version {
 		// goes on after it: not the Pool games' camp, which ends it)
 		// 2 quits (BR2's PROGRAM_QUIT; BR1's Pascal ignores 2 and its scripts pass 0 and 3 only), 3 is ignored by both
 		Programs:  map[byte]ProgramFn{0: ProgramPartyMenu, 2: ProgramQuit, 3: ProgramNone, 9: ProgramRest},
-		Behaviour: Behaviour{BeginClearsHall: true, RemoveNPCDrops: true, SetupMonsterSides: true, ReturnEndsScript: true, StoreByOperand: true, ClearExitText: true, WhoEndsNoMember: true, FarSight: true, LostDuelResult: true, ViewKept: true, CreditsTreasure: true, MessageDelayMs: BRMessageDelayMs}}
+		Behaviour: Behaviour{BeginClearsHall: true, RemoveNPCDrops: true, SaveAsksOverwrite: true, SetupMonsterSides: true, ReturnEndsScript: true, StoreByOperand: true, ClearExitText: true, WhoEndsNoMember: true, FarSight: true, LostDuelResult: true, ViewKept: true, CreditsTreasure: true, MessageDelayMs: BRMessageDelayMs}}
 }()
 
 // Versions are the dialects by ID.

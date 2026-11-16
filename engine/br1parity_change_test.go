@@ -174,6 +174,9 @@ func brPartyRemove(t *testing.T, g brGame) {
 	if _, err := e.doNow(game.RemoveCharacter{Roster: 0}); err != nil {
 		t.Fatal(err)
 	}
+	if e.fileExists(file) { // the character's file exists: SaveChar asks (saveload.pas)
+		reply(t, e, saveOverwrite)
+	}
 	if e.partySize() != 0 || !e.fileExists(file) || !slices.Contains(e.BuildCharList(), name) {
 		t.Errorf("removed: party %d, file %v, listed %v", e.partySize(), e.fileExists(file), slices.Contains(e.BuildCharList(), name))
 	}

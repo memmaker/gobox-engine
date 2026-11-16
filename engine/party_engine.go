@@ -5,6 +5,7 @@ import (
 	"gobox/adventure"
 	"gobox/rules"
 	"slices"
+	"strings"
 )
 
 // rosterSel is the member the roster highlights: SelectCharacter's
@@ -171,11 +172,65 @@ func (e *Engine) removeMember(n int) error {
 		e.openAsk()
 		return nil
 	}
-	if err := e.SaveCharacter(who, ""); err != nil {
-		return err // not saved: the character stays in the party
+	if e.eclVersion.Behaviour.SaveAsksOverwrite && e.fileExists(e.savePath(e.charBase(who)+".cha")) {
+		e.askChoice("", saveExistsMenu, false, false, askDone{kind: dSaveExists, who: who})
+		e.openAsk()
+		return nil // saveload.pas SaveChar: "<file> already exists", Overwrite Rename Abort save
 	}
+	return e.saveAndRemove(who)
+}
+
+// saveAndRemove saves who as a roster character; saved, it leaves the party (not saved: it stays).
+func (e *Engine) saveAndRemove(who rules.CharID) error {
+	if err := e.SaveCharacter(who, ""); err != nil {
+		return err
+	}
+	e.selectChar(who)
 	e.RemoveSelected(false, true)
 	return nil
+}
+
+// sayErr shows an error as the message line (the character stays in the party).
+func (e *Engine) sayErr(err error) {
+	if err != nil {
+		e.say(err.Error())
+	}
+}
+
+// SaveChar's question when the character's file exists (saveload.pas: Overwrite Rename Abort save).
+const (
+	saveExistsMenu = "~Overwrite ~Rename ~Abort"
+	saveNewName    = "New file name: "
+	saveNameMax    = 8
+)
+
+// The places of saveExistsMenu.
+const (
+	saveOverwrite = iota
+	saveRename
+)
+
+// saveExistsAnswered takes the answer: Overwrite saves, Rename asks the new name, Abort leaves the character where it is.
+func (e *Engine) saveExistsAnswered(who rules.CharID, n int) {
+	switch n {
+	case saveOverwrite:
+		e.sayErr(e.saveAndRemove(who))
+	case saveRename:
+		e.ext.printed = saveNewName
+		e.askLine(saveNameMax, false, askDone{kind: dSaveRename, who: who})
+		e.openAsk()
+	}
+}
+
+// saveRenamed gives the character the name typed (an empty one is asked for again) and saves it under it, over any file of that name.
+func (e *Engine) saveRenamed(who rules.CharID, name string) {
+	if strings.TrimSpace(name) == "" {
+		e.saveExistsAnswered(who, saveRename)
+		return
+	}
+	e.selectChar(who)
+	e.setSelValue(rules.FactName, rules.Text(strings.TrimSpace(name)))
+	e.sayErr(e.saveAndRemove(who))
 }
 
 // QuitGame = the party menu's Quit (the player confirmed).
