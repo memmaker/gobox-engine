@@ -4,6 +4,7 @@ import (
 	"slices"
 
 	"gobox/adventure"
+	"gobox/asset"
 	"gobox/game"
 	"gobox/rules"
 )
@@ -105,6 +106,7 @@ func (e *Engine) mapWalls() game.MapWalls {
 		return game.MapWalls{}
 	}
 	w := game.MapWalls{Side: make([][][4]int, rules.AreaSize), Pool: pool, Floor: wt.Floor, Sky: wt.Sky}
+	e.backLook(&w, wt) // the area's own look is over the picture's
 	if a := wt.Area(e.set, int(e.world.Geo)); a != nil {
 		if a.Floor != "" {
 			w.Floor = a.Floor
@@ -123,4 +125,33 @@ func (e *Engine) mapWalls() game.MapWalls {
 		}
 	}
 	return w
+}
+
+// backBlockHigh is the BACK picture block offset of the roofless view: BACK<set>.DAX holds each picture in
+// a pair, block N shown where the party's map cell has bit 7 (inside) and block N+128 otherwise
+// (view3d.pas DrawBackdrop, LoadBackdrop).
+const backBlockHigh = 128
+
+// backLook is the BACK picture over the view and its flats (the game's WallTextures.Backs; none: nothing
+// is changed): the picture of the last wall set loaded, the flats of that picture, or of the set's
+// no-picture look where the picture does not exist.
+func (e *Engine) backLook(w *game.MapWalls, wt *adventure.WallTextures) {
+	if len(wt.Backs) == 0 {
+		return
+	}
+	block := e.gs.backBlock
+	if e.MapCell(e.posX, e.posY) <= 0x7F {
+		block += backBlockHigh
+	}
+	look := wt.Back(e.set, adventure.BackNone)
+	if im := e.loadPic(e.set.File("BACK"), block, asset.NoMask); im != nil {
+		p := framePicture(im, 0, -1)
+		w.Backdrop = &p
+		if l := wt.Back(e.set, block); l != nil {
+			look = l
+		}
+	}
+	if look != nil {
+		w.Floor, w.Sky = look.Floor, look.Sky
+	}
 }

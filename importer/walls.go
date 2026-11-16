@@ -1,8 +1,10 @@
 package importer
 
 import (
+	"cmp"
 	"embed"
 	"fmt"
+	"slices"
 	"strings"
 
 	"gobox/adventure"
@@ -51,7 +53,38 @@ func wallTextures(id, floor, sky string) *adventure.WallTextures {
 	if b, err := wallFiles.ReadFile("walls/" + id + "_areas.txt"); err == nil {
 		w.Areas = areaLooks(id, string(b))
 	}
+	if b, err := wallFiles.ReadFile("walls/" + id + "_backs.txt"); err == nil {
+		w.Backs = backLooks(id, string(b))
+	}
 	return w
+}
+
+// backLooks reads walls/<id>_backs.txt, the flats of each BACK picture, a
+// line a picture: SET BLOCK FLOOR SKY (buckrogers-go rules/gamewalls.go
+// backFlats, blocks with the same picture share names). Each set also gets
+// its BackNone look, the one of a view without a picture (the original's sky
+// fill over the ground): its first sky_* pair, else its first pair
+// (gamewalls.go diskSky).
+func backLooks(id, text string) []adventure.BackLook {
+	var out []adventure.BackLook
+	none := map[rules.Set]adventure.BackLook{}
+	for _, l := range strings.Split(strings.TrimSpace(text), "\n") {
+		b := adventure.BackLook{}
+		if _, err := fmt.Sscan(l, &b.Set, &b.Block, &b.Floor, &b.Sky); err != nil || b.Block < 0 {
+			panic(fmt.Sprintf("walls/%s_backs.txt: %q: %v", id, l, err))
+		}
+		out = append(out, b)
+		if n, ok := none[b.Set]; !ok || (!strings.HasPrefix(n.Sky, "sky_") && strings.HasPrefix(b.Sky, "sky_")) {
+			none[b.Set] = adventure.BackLook{Set: b.Set, Block: adventure.BackNone, Floor: b.Floor, Sky: b.Sky}
+		}
+	}
+	for _, n := range none {
+		out = append(out, n)
+	}
+	slices.SortFunc(out, func(a, b adventure.BackLook) int {
+		return cmp.Or(cmp.Compare(a.Set, b.Set), cmp.Compare(a.Block, b.Block))
+	})
+	return out
 }
 
 // areaLooks reads walls/<id>_areas.txt, the areas' own looks, a line a

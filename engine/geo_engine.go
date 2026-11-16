@@ -27,6 +27,7 @@ func (e *Engine) LoadWalldef(block, slot int) {
 	if !rules.ValidWallSlot(slot) {
 		return
 	}
+	e.gs.backBlock = block // view3d.pas LoadWallSet: LoadBackdrop(fileId), the last set loaded shows its BACK picture
 	chunks := 1
 	if w, _ := rules.ParseWalldef(e.gdata().geoBlock(e.set.File("WALLDEF"), block)); len(w.Sets) > 1 {
 		chunks = len(w.Sets)
@@ -64,6 +65,7 @@ func (e *Engine) LoadGeo(n int) {
 const geoSize = rules.GeoSize // GEO block: 2-byte header + 4 planes
 
 type geoState struct {
-	geo      rules.Map // DS:6A5C
-	areaKind byte      // DS:84DC: 0 or 0xA = map edges are solid
+	geo       rules.Map // DS:6A5C
+	areaKind  byte      // DS:84DC: 0 or 0xA = map edges are solid
+	backBlock int       // the BACK<set> picture block of the last wall set loaded (view3d.pas LoadBackdrop); on a load the walls reload in slot order
 }

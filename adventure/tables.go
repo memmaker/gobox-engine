@@ -53,6 +53,31 @@ type WallTextures struct {
 	Floor, Sky string
 	Walls      []WallTexture
 	Areas      []AreaLook // the areas' own flats and scenery
+	Backs      []BackLook // the flats by BACK picture (a game whose view paints a picture over the flats)
+}
+
+// BackNone is the BackLook block of a view with no BACK picture (the sky fill over the ground).
+const BackNone = -1
+
+// BackLook is the flats (pool floor_<Floor>, ceiling_<Sky>) of BACK<Set>.DAX
+// picture Block, the one the view shows (view3d.pas LoadBackdrop: the last
+// loaded wall set's block, + 128 where the party's map cell has no bit 7);
+// BackNone: the set's look where no picture exists. A sky_* ceiling is an
+// outdoor sky over the horizon; any other is tiled overhead.
+type BackLook struct {
+	Set        rules.Set
+	Block      int
+	Floor, Sky string
+}
+
+// Back is the look of BACK picture block of set set; nil: none.
+func (w *WallTextures) Back(set rules.Set, block int) *BackLook {
+	for i := range w.Backs {
+		if w.Backs[i].Set == set && w.Backs[i].Block == block {
+			return &w.Backs[i]
+		}
+	}
+	return nil
 }
 
 // AreaLook is GEO block Geo of set Set's own 3D view look: its flats
