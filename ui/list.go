@@ -77,7 +77,7 @@ func (p *Presenter) drawList(dst *gpu.Image, glyph func(byte) [8]byte, k float64
 	}
 	p.menuBar(dst, p.menuRects, n, min(n, listRows), &l.top, sel, k)
 	if i := p.listLine(); i >= 0 && p.askList()[i].Spell != 0 && len(p.menuRects) > 0 {
-		p.drawSpellTip(dst, p.askList()[i].Spell, k, cx)
+		p.drawTip(dst, mapTips(p.askList(), func(r FrontEntry) []string { return spellTip(r.Spell) }), i, k, cx)
 	}
 }
 

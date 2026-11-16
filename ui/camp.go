@@ -365,19 +365,19 @@ func (p *Presenter) drawCamp(dst *gpu.Image, glyph func(byte) [8]byte, k float64
 	p.menuGrey = false
 	p.menuBar(dst, p.menuRects, n, len(lines), &c.top, &c.sel, k)
 	if (p.spellList() || len(p.learning()) > 0) && c.sel < len(c.ids) && len(p.menuRects) > 0 {
-		p.drawSpellTip(dst, c.ids[c.sel], k, cx)
+		p.drawTip(dst, mapTips(c.ids, spellTip), c.sel, k, cx)
 	}
 	if pp := p.powerPick(); pp != nil && c.sel < len(pp.Options) && len(p.menuRects) > 0 {
-		p.drawTip(dst, WrapWords(pp.Options[c.sel].Tip, 36), k, cx)
+		p.drawTip(dst, mapTips(pp.Options, func(o game.PowerOption) []string { return WrapWords(o.Tip, 36) }), c.sel, k, cx)
 	}
 }
 
-// drawSpellTip draws spell id's rules under the spell list (above it when
-// they do not fit), on its own image: the card tip has the tip's.
-func (p *Presenter) drawSpellTip(dst *gpu.Image, id int, k float64, cx int) {
+// spellTip is spell id's rules as the tip's lines (nil: none).
+func spellTip(id int) []string {
 	if id > 0 && id < len(spellRules) {
-		p.drawTip(dst, WrapWords(spellRules[id], 36), k, cx)
+		return WrapWords(spellRules[id], 36)
 	}
+	return nil
 }
 
 // selectOutline marks picture r: fill paints a frame of light green t
@@ -390,10 +390,25 @@ func selectOutline(r image.Rectangle, t int, fill func(image.Rectangle, color.RG
 	fill(image.Rect(r.Max.X-t, r.Min.Y, r.Max.X, r.Max.Y), c)
 }
 
-// drawTip draws lines in the spell tip's box under (or over) the menu.
-func (p *Presenter) drawTip(dst *gpu.Image, lines []string, k float64, cx int) {
-	if lines == nil {
+// mapTips is the tip of each of a list's lines.
+func mapTips[T any](l []T, tip func(T) []string) [][]string {
+	tips := make([][]string, len(l))
+	for i, x := range l {
+		tips[i] = tip(x)
+	}
+	return tips
+}
+
+// drawTip draws tips[sel] in the spell tip's box under the menu, or over
+// it when the list's longest tip would not fit under it: the box keeps
+// its side as the selection moves.
+func (p *Presenter) drawTip(dst *gpu.Image, tips [][]string, sel int, k float64, cx int) {
+	if sel < 0 || sel >= len(tips) || tips[sel] == nil {
 		return
+	}
+	lines, rows := tips[sel], 0
+	for _, t := range tips {
+		rows = max(rows, len(t))
 	}
 	box := p.menuRects[0]
 	for _, r := range p.menuRects {
@@ -401,7 +416,7 @@ func (p *Presenter) drawTip(dst *gpu.Image, lines []string, k float64, cx int) {
 	}
 	h := int(k) * 8 * (len(lines) + 2)
 	top := box.Max.Y + int(k)*16
-	if top+h > p.listFloor(dst) {
+	if top+int(k)*8*(rows+2) > p.listFloor(dst) {
 		top = max(0, box.Min.Y-int(k)*32-h)
 	}
 	p.tipImg, p.tipBuf, p.spellTipImg, p.spellTipBuf = p.spellTipImg, p.spellTipBuf, p.tipImg, p.tipBuf
@@ -477,7 +492,7 @@ func (p *Presenter) campBack() {
 // campKeys are the camp screen's hotkeys: none on the spell lists (the
 // digits would land in the counts), the rest as every menu.
 func (p *Presenter) campKeys(items []MenuRow) []byte {
-	if s := p.camp.screen; s == campMemorize || s == campLevel || s == campScribe {
+	if p.spellList() || len(p.learning()) > 0 || p.powerPick() != nil { // the lines are names: no hotkeys
 		return make([]byte, len(items))
 	}
 	return RowKeys(items)

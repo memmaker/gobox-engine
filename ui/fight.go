@@ -525,9 +525,9 @@ func (p *Presenter) drawPickList(dst *gpu.Image, glyph func(byte) [8]byte, k flo
 	switch {
 	case p.pickSel < 0 || len(p.menuRects) == 0:
 	case p.maneuvering():
-		p.drawTip(dst, WrapWords(p.fightView.Turn.Maneuvers[p.pickSel].Tip, 36), k, cx)
+		p.drawTip(dst, mapTips(p.fightView.Turn.Maneuvers, func(m game.TurnManeuver) []string { return WrapWords(m.Tip, 36) }), p.pickSel, k, cx)
 	default:
-		p.drawSpellTip(dst, p.pickList()[p.pickSel].ID, k, cx)
+		p.drawTip(dst, mapTips(p.pickList(), func(sp Spell) []string { return spellTip(sp.ID) }), p.pickSel, k, cx)
 	}
 }
 

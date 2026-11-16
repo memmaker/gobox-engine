@@ -331,6 +331,10 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 	}
 	if trade.Training != nil && mode == game.ModeTraining {
 		add(game.CloseTraining{}) // the training box's Exit (and Esc), back to the hall's menu, over any question the box asks
+		// the new spell a magic-user's training owes
+		for _, sp := range trade.Training.Learn {
+			add(game.Learn{Spell: sp.ID})
+		}
 	}
 	if q := e.ask(mode, pending, door); q != nil && sceneless(shown) { // a question over the state: its replies and only them (bug class 18)
 		if q.Typed || q.Number {
