@@ -17,8 +17,9 @@ import (
 // one state each (and one with every quest word set), so each distinct branch is entered; nothing is told by hand.
 
 const (
-	sweepParty     = 4 // roster characters added through the party menu before Begin (the party menu's limit): a stronger party outlives more fights
-	sweepStatesMax = 8 // states a block is entered in
+	sweepParty       = 4  // roster characters added through the party menu before Begin (the party menu's limit): a stronger party outlives more fights
+	sweepStatesMax   = 8  // states a block is entered in (the default sweep)
+	sweepHeavyStates = 40 // and in the heavy sweep
 )
 
 // sweepCell is a layout cell a state sets before the block is entered.
@@ -31,86 +32,144 @@ var (
 	sweepCmpLeft  = regexp.MustCompile(`\b(ScriptBlock|Word[0-9A-F]{4})\s*(==|!=|>=|<=|<|>)\s*(\d+)\b`)
 	sweepCmpRight = regexp.MustCompile(`\b(\d+)\s*(==|!=|>=|<=|<|>)\s*(ScriptBlock|Word[0-9A-F]{4})\b`)
 	sweepMasked   = regexp.MustCompile(`\b(Word[0-9A-F]{4})\s*&\s*(\d+)\b`)
+	sweepWrite    = regexp.MustCompile(`\b(ScriptBlock|Word[0-9A-F]{4})\s*=\s*(\d+)\b`) // a constant written: ` == ` and the others do not match
+	sweepNewECL   = regexp.MustCompile(`\bNewECL\((\d+)\)`)
 )
 
-// sweepLoadEntry is the text of a script's load entry.
-func sweepLoadEntry(text string) string {
-	_, rest, ok := strings.Cut(text, "on load {")
-	if !ok {
-		return ""
-	}
-	if i := strings.Index(rest, "\non "); i >= 0 {
-		rest = rest[:i]
-	}
-	return rest
+// sweepStory is what the scripts' text says about the story: per block the persistent words it compares with a constant (in any
+// entry or routine) and the words it sets to a constant, and the blocks that call NewECL for it. Quest words are the words
+// the scripts keep across blocks (Word4C80 ...: the original's game record); ScriptBlock is the block left.
+type sweepStory struct {
+	tests  map[int]map[string][]int64
+	writes map[int]map[string][]int64
+	preds  map[int][]int // block -> the blocks whose scripts call NewECL for it
 }
 
-// sweepStatesOf derives the entry states of a block: the first is the default (no cell set).
-func sweepStatesOf(t testing.TB, adv string, block int) [][]sweepCell {
+var sweepStories = map[string]*sweepStory{}
+
+func sweepStoryOf(t testing.TB, adv string) *sweepStory {
 	t.Helper()
-	b, err := os.ReadFile(filepath.Join(adv, "scripts", "area"+strconv.Itoa(block)+".txt"))
-	if err != nil {
-		t.Fatal(err)
+	if st := sweepStories[adv]; st != nil {
+		return st
 	}
-	var blocks []int64 // ScriptBlock values, as compared and next to them
-	words := map[string][]int64{}
-	add := func(name string, v int64) {
-		if name == "ScriptBlock" {
-			for _, d := range []int64{-1, 0, 1} {
-				if w := v + d; w > 0 && w < 256 && !slices.Contains(blocks, w) {
-					blocks = append(blocks, w)
+	st := &sweepStory{tests: map[int]map[string][]int64{}, writes: map[int]map[string][]int64{}, preds: map[int][]int{}}
+	add := func(m map[int]map[string][]int64, block int, name string, v int64) {
+		if m[block] == nil {
+			m[block] = map[string][]int64{}
+		}
+		if !slices.Contains(m[block][name], v) {
+			m[block][name] = append(m[block][name], v)
+		}
+	}
+	for _, block := range br1Blocks {
+		b, err := os.ReadFile(filepath.Join(adv, "scripts", "area"+strconv.Itoa(block)+".txt"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, line := range strings.Split(string(b), "\n") {
+			if strings.HasPrefix(strings.TrimSpace(line), "#") {
+				continue
+			}
+			for _, m := range sweepCmpLeft.FindAllStringSubmatch(line, -1) {
+				v, _ := strconv.ParseInt(m[3], 10, 64)
+				add(st.tests, block, m[1], v)
+			}
+			for _, m := range sweepCmpRight.FindAllStringSubmatch(line, -1) {
+				v, _ := strconv.ParseInt(m[1], 10, 64)
+				add(st.tests, block, m[3], v)
+			}
+			for _, m := range sweepMasked.FindAllStringSubmatch(line, -1) {
+				v, _ := strconv.ParseInt(m[2], 10, 64)
+				add(st.tests, block, m[1], v)
+			}
+			for _, m := range sweepWrite.FindAllStringSubmatch(line, -1) {
+				v, _ := strconv.ParseInt(m[2], 10, 64)
+				add(st.writes, block, m[1], v)
+			}
+			for _, m := range sweepNewECL.FindAllStringSubmatch(line, -1) {
+				to, _ := strconv.Atoi(m[1])
+				if !slices.Contains(st.preds[to], block) {
+					st.preds[to] = append(st.preds[to], block)
 				}
 			}
-		} else if v != 0 && !slices.Contains(words[name], v) { // 0 is the default state
-			words[name] = append(words[name], v)
 		}
 	}
-	for _, line := range strings.Split(sweepLoadEntry(string(b)), "\n") {
-		if !strings.HasPrefix(strings.TrimSpace(line), "if ") {
-			continue
+	sweepStories[adv] = st
+	return st
+}
+
+// sweepStatesOf derives the entry states of a block, the first the default (no cell set), at most max:
+//   - as after each block that calls NewECL for it: ScriptBlock that block, and the words that block sets to a constant and
+//     this one compares with, at those constants (the story as that block leaves it);
+//   - each ScriptBlock value the block compares with, and next to it;
+//   - each persistent word at each constant the block compares with (anywhere in it, every entry and routine);
+//   - every word at its largest constant: the story told as far as the block asks.
+func sweepStatesOf(t testing.TB, adv string, block, max int) [][]sweepCell {
+	t.Helper()
+	st := sweepStoryOf(t, adv)
+	chain := [][]sweepCell{}
+	tested := st.tests[block]
+	for _, from := range st.preds[block] {
+		cells := []sweepCell{{"ScriptBlock", int64(from)}}
+		names := make([]string, 0, len(st.writes[from]))
+		for n := range st.writes[from] {
+			names = append(names, n)
 		}
-		for _, m := range sweepCmpLeft.FindAllStringSubmatch(line, -1) {
-			v, _ := strconv.ParseInt(m[3], 10, 64)
-			add(m[1], v)
+		sort.Strings(names)
+		for _, n := range names {
+			if n == "ScriptBlock" || len(tested[n]) == 0 {
+				continue
+			}
+			vs := slices.Clone(st.writes[from][n])
+			slices.Sort(vs)
+			cells = append(cells, sweepCell{n, vs[len(vs)-1]}) // the last value the story gives it there
 		}
-		for _, m := range sweepCmpRight.FindAllStringSubmatch(line, -1) {
-			v, _ := strconv.ParseInt(m[1], 10, 64)
-			add(m[3], v)
-		}
-		for _, m := range sweepMasked.FindAllStringSubmatch(line, -1) {
-			v, _ := strconv.ParseInt(m[2], 10, 64)
-			add(m[1], v)
+		chain = append(chain, cells)
+	}
+	states := [][]sweepCell{}
+	var blocks []int64 // ScriptBlock values, as compared and next to them
+	for _, v := range tested["ScriptBlock"] {
+		for _, d := range []int64{-1, 0, 1} {
+			if w := v + d; w > 0 && w < 256 && !slices.Contains(blocks, w) {
+				blocks = append(blocks, w)
+			}
 		}
 	}
 	slices.Sort(blocks)
-	names := make([]string, 0, len(words))
-	for n := range words {
-		names = append(names, n)
-	}
-	sort.Strings(names)
-	states := [][]sweepCell{nil}
 	for _, v := range blocks {
 		states = append(states, []sweepCell{{"ScriptBlock", v}})
 	}
+	names := make([]string, 0, len(tested))
+	for n := range tested {
+		if n != "ScriptBlock" {
+			names = append(names, n)
+		}
+	}
+	sort.Strings(names)
 	var story []sweepCell
 	for _, n := range names {
-		slices.Sort(words[n])
-		for _, v := range words[n] {
-			states = append(states, []sweepCell{{n, v}})
+		vs := slices.Clone(tested[n])
+		slices.Sort(vs)
+		for _, v := range vs {
+			if v != 0 { // 0 is the default state
+				states = append(states, []sweepCell{{n, v}})
+			}
 		}
-		story = append(story, sweepCell{n, words[n][len(words[n])-1]})
+		story = append(story, sweepCell{n, vs[len(vs)-1]})
 	}
 	if len(story) > 1 {
-		states = append(states, story) // the story told as far as the entry asks
+		states = append(states, story) // the story told as far as the block asks
 	}
-	if len(states) > sweepStatesMax {
-		thin := make([][]sweepCell, sweepStatesMax)
+	chain = chain[:min(len(chain), max/2)] // the story's own entries first, then the rest thinned evenly
+	room := max - 1 - len(chain)
+	if len(states) > room {
+		thin := make([][]sweepCell, room)
 		for i := range thin {
-			thin[i] = states[i*len(states)/sweepStatesMax]
+			thin[i] = states[i*len(states)/room]
 		}
 		states = thin
 	}
-	return states
+	return append(append([][]sweepCell{nil}, chain...), states...)
 }
 
 // sweepApply sets a state's cells on the engine (before the block is entered).

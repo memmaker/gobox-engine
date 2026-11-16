@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"gobox/ecl"
 	"gobox/game"
@@ -100,8 +101,11 @@ func sweepExec(e *Engine, t sweepTok) error {
 		}
 		_, err := e.Do(game.RunEvent{})
 		return err
-	case tokEngineStep:
-		e.Step()
+	case tokEngineStep: // the engine's own pace until it asks the player (the computers' turns, one after the other: Step would build the state after each)
+		for n := 0; n < sweepPaceMost && e.pace() == PaceFight; n++ {
+			e.CombatStep()
+		}
+		e.rebuild()
 		return nil
 	case tokPress: // what the state waits for: its Continue, its Leave, else the engine's own pace
 		al := sweepCommon(e.State()).Allowed
@@ -188,12 +192,16 @@ const (
 // sweepInstructionBudget bounds the instructions one token may run.
 const sweepInstructionBudget = 200000
 
-// sweepSameMost is how many times in a row a walk may repeat a Face or a step: a step that fails is marked shut, so a longer
-// run is a walk going nowhere.
+// sweepSameMost is how many map tokens in a row may change neither the square nor the facing: a step that fails is marked shut,
+// so a longer run is a walk going nowhere.
 const sweepSameMost = 12
 
-// sweepRunsFightCap bounds the answers of one fight.
-const sweepFightCap = br1FightCap
+// sweepPaceMost bounds the computers' turns one pace token runs.
+const sweepPaceMost = 64
+
+// sweepFightCap bounds the tokens of one fight (a pace token runs up to sweepPaceMost turns of the computers): a fight that does
+// not end in them is a finding.
+const sweepFightCap = 80
 
 // sweepRun is one run in progress.
 type sweepRun struct {
@@ -215,7 +223,14 @@ type sweepRun struct {
 	ran     int
 	hop     *sweepHop
 	blocked map[[3]int]bool // x, y, side: a step there did not move the party
-	same    int             // the same Face or step token in a row: a walk that goes nowhere
+	stuck   int             // map tokens in a row that moved nobody and turned nobody: a walk going nowhere
+	prev    *sweepSpot      // where the party stood when the last map token was chosen
+}
+
+// sweepSpot is a square and a facing.
+type sweepSpot struct {
+	At     image.Point
+	Facing int
 }
 
 // sweepHop is a step toward a square: where it was taken from.
@@ -254,18 +269,24 @@ type sweepWorld struct {
 	diverged  int
 	wedged    map[int]int // walks given up for going nowhere, by block
 	notPorted map[string]int
+	heavy     bool                  // GOBOX_SWEEP=heavy
+	work      int                   // the work the runs have taken
+	took      map[int]time.Duration // how long a block took
+	over      map[sweepPos]int      // where runs ended with the game over (the party menu again): the last script place run
+	workCap   int
+	statesMax int            // the most entry states of a block
 	tokenCap  int            // the most tokens of a run
 	fightCap  int            // the most fights of a run
 	seen      map[string]int // the states' types the policy met
 }
 
 func newSweepWorld(adv string, heavy bool) *sweepWorld {
-	w := &sweepWorld{adv: adv, tokenCap: sweepRunTokens, fightCap: sweepRunFights, states: map[int][][]sweepCell{}, facing: map[int]bool{}, hit: map[int]map[int]bool{},
+	w := &sweepWorld{adv: adv, workCap: sweepWorkCap, tokenCap: sweepRunTokens, fightCap: sweepRunFights, statesMax: sweepStatesMax, states: map[int][][]sweepCell{}, facing: map[int]bool{}, hit: map[int]map[int]bool{},
 		taken: map[sweepPos]map[int]bool{}, sched: map[sweepPos]map[int]bool{}, offered: map[sweepPos]int{},
 		queue: map[int][]sweepItem{}, maps: map[sweepKey]*sweepMap{}, groups: map[string][]*sweepFinding{},
-		lost: map[sweepPos]int{}, won: map[sweepPos]int{}, runs: map[int]int{}, wedged: map[int]int{}, notPorted: map[string]int{}, seen: map[string]int{}}
+		lost: map[sweepPos]int{}, won: map[sweepPos]int{}, took: map[int]time.Duration{}, over: map[sweepPos]int{}, runs: map[int]int{}, wedged: map[int]int{}, notPorted: map[string]int{}, seen: map[string]int{}}
 	if heavy {
-		w.tokenCap, w.fightCap = sweepHeavyTokens, sweepHeavyFights
+		w.heavy, w.workCap, w.tokenCap, w.fightCap, w.statesMax = true, sweepHeavyWork, sweepHeavyTokens, sweepHeavyFights, sweepHeavyStates
 	}
 	return w
 }
@@ -289,6 +310,7 @@ func sweepCommon(s game.State) game.Common {
 // run plays one item on a new engine; a panic is the finding returned.
 func (w *sweepWorld) run(t testing.TB, it sweepItem) (f *sweepFinding) {
 	r := &sweepRun{w: w, t: t, item: it, visits: map[sweepPos]int{}, blocked: map[[3]int]bool{}}
+	defer func() { w.work += len(r.toks) + sweepFightWork*r.fights }()
 	defer func() {
 		if p := recover(); p != nil {
 			f = &sweepFinding{Item: it, Toks: r.toks, Tail: r.tail}
@@ -303,7 +325,11 @@ func (w *sweepWorld) run(t testing.TB, it sweepItem) (f *sweepFinding) {
 				if !after || l == "" || strings.HasPrefix(l, "\t") || !strings.Contains(l, "gobox/") || strings.Contains(l, "sweepRun") || strings.Contains(l, "sweepWorld") {
 					continue
 				}
-				frame := l[:strings.LastIndex(l, "(")]
+				cut := strings.LastIndex(l, "(")
+				if cut < 0 {
+					continue
+				}
+				frame := l[:cut]
 				if top == "" {
 					top = frame
 				}
@@ -316,12 +342,12 @@ func (w *sweepWorld) run(t testing.TB, it sweepItem) (f *sweepFinding) {
 	}()
 	en := it.Entry
 	if w.states[en.Block] == nil {
-		w.states[en.Block] = sweepStatesOf(t, w.adv, en.Block)
+		w.states[en.Block] = sweepStatesOf(t, w.adv, en.Block, w.statesMax)
 		w.facing[en.Block] = sweepReadsFacing(t, w.adv, en.Block)
 	}
 	r.e = br1BeginWith(t, br1EngineIn(t, w.adv), sweepParty)
 	e := r.e
-	e.vm.Trace = r.trace
+	r.wrapOps(e.vm)
 	e.push(cont{kind: kStepEnd})
 	e.facing = en.Facing
 	e.DevAtWith(en.Block, en.X, en.Y, func() { sweepApply(t, e, w.states[en.Block][en.State]) })
@@ -346,14 +372,6 @@ func (w *sweepWorld) run(t testing.TB, it sweepItem) (f *sweepFinding) {
 				break
 			}
 		}
-		if n := len(r.toks); n > 0 && tok == r.toks[n-1] && (tok.Kind == tokFace || tok.Kind == tokStep) {
-			if r.same++; r.same > sweepSameMost {
-				w.wedged[en.Block]++
-				break
-			}
-		} else {
-			r.same = 0
-		}
 		r.toks = append(r.toks, tok)
 		r.ran = 0
 		if err := sweepExec(e, tok); err != nil && strings.Contains(err.Error(), rulesxxvc.ErrNotPorted.Error()) { // a refusal is the state saying no; an action the ruleset does not answer is a finding
@@ -369,7 +387,10 @@ func (w *sweepWorld) run(t testing.TB, it sweepItem) (f *sweepFinding) {
 
 func (w *sweepWorld) add(f *sweepFinding) { w.groups[f.Key] = append(w.groups[f.Key], f) }
 
-func (r *sweepRun) trace(vm *ecl.VM, _ int) {
+// exec is the instruction about to run (every command the engine runs goes through the VM's op table, wrapped by
+// wrapOps; a command an If skips never does, and the commands with no operands, If and Exit among them, do): the
+// coverage and the places the sweep reports are of these.
+func (r *sweepRun) exec(vm *ecl.VM) {
 	if vm.Script == nil {
 		return
 	}
@@ -385,6 +406,18 @@ func (r *sweepRun) trace(vm *ecl.VM, _ int) {
 	r.last = sweepPos{vm.Script.Area, vm.Cur()}
 	if r.tail = append(r.tail, r.last.String()); len(r.tail) > 40 {
 		r.tail = r.tail[1:]
+	}
+}
+
+// wrapOps makes every command of the VM's op table note itself first.
+func (r *sweepRun) wrapOps(vm *ecl.VM) {
+	for b, op := range vm.Ops {
+		if op != nil {
+			vm.Ops[b] = func(vm *ecl.VM, h ecl.Host) {
+				r.exec(vm)
+				op(vm, h)
+			}
+		}
 	}
 }
 
@@ -509,7 +542,8 @@ func (r *sweepRun) choose(s game.State) (sweepTok, bool) {
 			return sweepTok{}, false
 		}
 		return r.step(v)
-	case game.Assembling, game.Over:
+	case game.Assembling, game.Over: // the game is over: a script ended it, or nobody is left
+		r.w.over[r.last]++
 		return sweepTok{}, false
 	}
 	if playAllows(s, game.ContinueAction{}) {
@@ -604,6 +638,16 @@ func (r *sweepRun) step(x game.Exploring) (sweepTok, bool) {
 		return sweepTok{}, false
 	}
 	at := image.Pt(x.Where.X, x.Where.Y)
+	here := sweepSpot{at, x.Where.Facing}
+	if r.prev != nil && *r.prev == here { // the last Face or step changed nothing
+		if r.stuck++; r.stuck > sweepSameMost {
+			r.w.wedged[r.item.Entry.Block]++
+			return sweepTok{}, false
+		}
+	} else {
+		r.stuck = 0
+	}
+	r.prev = &here
 	faces := []int{0, 2, 4, 6}
 	needFacing := r.w.facing[r.item.Entry.Block]
 	if r.hop != nil && at == r.hop.From { // the step did not move the party: that side is shut
@@ -697,4 +741,85 @@ const sweepEntriesMost = 3
 func (m *sweepMap) entryTried(p image.Point) bool {
 	_, ok := m.entered[p]
 	return ok
+}
+
+// runBlock sweeps one entry block's world: its entry states first, then the work list in the order it was made, until
+// it is empty, its work or (heavy) its time is used up.
+func (w *sweepWorld) runBlock(t testing.TB, block int) {
+	if w.states[block] == nil {
+		w.states[block] = sweepStatesOf(t, w.adv, block, w.statesMax)
+		w.facing[block] = sweepReadsFacing(t, w.adv, block)
+	}
+	for s := range w.states[block] {
+		w.push(sweepItem{Entry: sweepEntry{Block: block, State: s}})
+	}
+	began := time.Now()
+	defer func() { w.took[block] = time.Since(began) }()
+	until := began.Add(sweepHeavyTime)
+	for len(w.queue[block]) > 0 && w.work < w.workCap && time.Now().Before(until) {
+		it := w.queue[block][0]
+		w.queue[block] = w.queue[block][1:]
+		w.runs[block]++
+		if f := w.run(t, it); f != nil {
+			w.add(f)
+		}
+	}
+}
+
+// sweepMerge is the report's world: what the blocks' worlds hit, took, found.
+func sweepMerge(adv string, heavy bool, ws []*sweepWorld) *sweepWorld {
+	m := newSweepWorld(adv, heavy)
+	for _, w := range ws {
+		for b, h := range w.hit {
+			if m.hit[b] == nil {
+				m.hit[b] = map[int]bool{}
+			}
+			for i := range h {
+				m.hit[b][i] = true
+			}
+		}
+		for pos, n := range w.offered {
+			m.offered[pos] = max(m.offered[pos], n)
+			if m.taken[pos] == nil {
+				m.taken[pos] = map[int]bool{}
+			}
+			for i := range w.taken[pos] {
+				m.taken[pos][i] = true
+			}
+		}
+		for pos, n := range w.lost {
+			m.lost[pos] += n
+		}
+		for pos, n := range w.won {
+			m.won[pos] += n
+		}
+		for pos, n := range w.over {
+			m.over[pos] += n
+		}
+		for k, g := range w.groups {
+			m.groups[k] = append(m.groups[k], g...)
+		}
+		for b, n := range w.runs {
+			m.runs[b] += n
+		}
+		for b, q := range w.queue {
+			m.queue[b] = append(m.queue[b], q...)
+		}
+		for b, n := range w.wedged {
+			m.wedged[b] += n
+		}
+		for k, n := range w.notPorted {
+			m.notPorted[k] += n
+		}
+		for k, n := range w.seen {
+			m.seen[k] += n
+		}
+		for b, d := range w.took {
+			m.took[b] = d
+		}
+		m.dropped += w.dropped
+		m.diverged += w.diverged
+		m.work += w.work
+	}
+	return m
 }

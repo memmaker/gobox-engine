@@ -58,6 +58,10 @@ func TestBR1Journey(t *testing.T) {
 		t.Fatalf("after the intro: %T %+v", e.build(), x.Where)
 	}
 
+	if playAllows(x, game.MakeCamp{}) { // explore.pas MapMainMenu's dungeon menu: Move, Area, View, Save, Change, Look; the rest is Program(9)'s
+		t.Fatal("BR's dungeon menu offers a camp")
+	}
+
 	// the dying officer
 	if err := br1North(e); err != nil {
 		t.Fatal(err)

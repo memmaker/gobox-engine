@@ -6,9 +6,13 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
+	"runtime/debug"
 	"slices"
 	"sort"
+	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -25,17 +29,24 @@ import (
 // br1SweepKnown are the findings still open: Pattern is matched against "message @ top frame".
 // The test fails on a finding no pattern matches and on a pattern no finding matches.
 var br1SweepKnown = []struct{ Pattern, Why string }{
-	// Seen once, gone after the EndFight fix moved the walks: block 50, "a script ran N instructions on one action"
-	// (opOnGotoGosub in a step entry; replay 50 0 0 6 12138934 at commit "rulesxxvc: a move's reach"). Unverified, unexplained.
+	{`^sweep: a fight did not end in # answers`, "open, owner rulesxxvc combat + the engine's fight flow: BR's ground combat ends 15 rounds after the last attack (combat.pas CombatMain: combatRound >= combatEndRound; cbtacts.pas MakeAttack: combatEndRound := combatRound + C_Combat.IDLE_ROUNDS; combatst.pas CombatStart; both Bytes). rulesxxvc.Verdict never tests it (its own ponytail note) so a fight in which nobody can reach anybody (block 67: Gennie gun defences that do not move, a party member kiting on Quick) goes on for ever. Needs a fourth Verdict (the idle end: no Continue Battle question, the result by DetermineCombatResults: won when a member is okay) and the two counters in Rules. Replay: the finding's line"},
 	{`^LOG: script: area \d+: T_\w+\[\d+\] is past the field's \d+ entries`, "none: the entry skips the story, so the index variable (Word4C61 ...) holds 0 and the table is read past its end as the original does (engine log, TableFaults)"},
 }
 
 const (
-	sweepRunsPerBlock = 60                // runs a block gets by default
-	sweepDeadline     = 100 * time.Second // the default run's time
-	sweepHeavyRuns    = 100000
-	sweepHeavyTime    = 30 * time.Minute
+	sweepWorkCap   = 20000           // the work one block's runs may take by default: tokens and, for each fight, sweepFightWork more
+	sweepHeavyWork = 1 << 30         // the heavy sweep's: the work list, or its time
+	sweepHeavyTime = 8 * time.Minute // what a block gets in the heavy sweep
+	sweepFightWork = 40
 )
+
+// sweepWorkers is how many blocks are swept at once (GOBOX_SWEEP_WORKERS; the cores, less two).
+func sweepWorkers() int {
+	if n, err := strconv.Atoi(os.Getenv("GOBOX_SWEEP_WORKERS")); err == nil && n > 0 {
+		return n
+	}
+	return max(1, min(8, runtime.NumCPU()-2))
+}
 
 // sweepDigits makes findings that differ in a number only one group.
 var sweepDigits = regexp.MustCompile(`\d+`)
@@ -55,36 +66,32 @@ func TestBR1Sweep(t *testing.T) {
 	if err := importer.ImportBREngine("br1", importer.BR1EXE, dos, adv); err != nil {
 		t.Fatal(err)
 	}
-	perBlock, limit := sweepRunsPerBlock, sweepDeadline
-	if os.Getenv("GOBOX_SWEEP") == "heavy" {
-		perBlock, limit = sweepHeavyRuns, sweepHeavyTime
-	}
-	var logged strings.Builder // what the engine logs (a script that did not resolve a field...) is a finding too
+	heavy := os.Getenv("GOBOX_SWEEP") == "heavy"
+	defer debug.SetGCPercent(debug.SetGCPercent(400)) // the runs allocate a great deal that dies at once: fewer collections
+	var logged strings.Builder                        // what the engine logs (a script that did not resolve a field...) is a finding too
 	log.SetFlags(0)
 	log.SetOutput(&logged)
 	defer log.SetOutput(os.Stderr)
-	w := newSweepWorld(adv, os.Getenv("GOBOX_SWEEP") == "heavy")
+	sweepStoryOf(t, adv) // read once, before the blocks go in parallel
+	// Each entry block is a world of its own (its work list, its replies taken, its map explored), run one run after the
+	// other, so a block's runs are the same on every sweep; the blocks run side by side and the worlds are merged for the report.
+	workers := sweepWorkers()
+	sem := make(chan struct{}, workers)
+	ws := make([]*sweepWorld, len(br1Blocks))
+	var wg sync.WaitGroup
 	start := time.Now()
-	for _, block := range br1Blocks {
-		for s := range sweepStatesOf(t, adv, block) {
-			w.push(sweepItem{Entry: sweepEntry{Block: block, State: s}})
-		}
+	for i, block := range br1Blocks {
+		ws[i] = newSweepWorld(adv, heavy)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+			ws[i].runBlock(t, block)
+		}()
 	}
-	for progress := true; progress && time.Since(start) < limit; {
-		progress = false
-		for _, block := range br1Blocks {
-			if w.runs[block] >= perBlock || len(w.queue[block]) == 0 {
-				continue
-			}
-			it := w.queue[block][0]
-			w.queue[block] = w.queue[block][1:]
-			w.runs[block]++
-			if f := w.run(t, it); f != nil {
-				w.add(f)
-			}
-			progress = true
-		}
-	}
+	wg.Wait()
+	w := sweepMerge(adv, heavy, ws)
 	elapsed := time.Since(start)
 	for k, n := range w.notPorted {
 		for range n {

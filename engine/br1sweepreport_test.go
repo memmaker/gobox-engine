@@ -1,9 +1,11 @@
 package engine
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -37,7 +39,7 @@ func sweepIsCondition(op byte) bool {
 
 func sweepIsMenu(op byte) bool {
 	switch op {
-	case ecl.OpHMenu, ecl.OpVMenu, ecl.OpMenuKeys, ecl.OpYesNo, ecl.OpOnGoto, ecl.OpOnGosub:
+	case ecl.OpHMenu, ecl.OpVMenu, ecl.OpMenuKeys, ecl.OpYesNo:
 		return true
 	}
 	return false
@@ -73,6 +75,8 @@ func sweepRegions(t testing.TB, w *sweepWorld, s *ecl.Script, block int, lines [
 		}
 		return ""
 	}
+	var srcs [][]int // per region: the instructions that lead into it
+	regionOf := map[int]int{}
 	for i := 0; i < len(s.Code); {
 		if hit[i] {
 			i++
@@ -82,35 +86,67 @@ func sweepRegions(t testing.TB, w *sweepWorld, s *ecl.Script, block int, lines [
 		for j < len(s.Code) && !hit[j] && !target[j] {
 			j++
 		}
-		r := sweepRegion{Block: block, From: i, To: j - 1}
 		var sources []int
 		sources = append(sources, from[i]...)
 		if i > 0 && !sweepTerminal(s.Code[i-1].Op) {
 			sources = append(sources, i-1)
 		}
-		isEntry := false
-		for _, ev := range s.Events {
-			isEntry = isEntry || ev == i
+		if i > 1 && sweepIsCondition(s.Code[i-2].Op) { // an If skips the command after it when it does not hold: the one after that is where it goes on
+			sources = append(sources, i-2)
 		}
-		switch reached := []int{}; {
-		case len(sources) == 0 && !isEntry:
+		for _, ev := range s.Events {
+			if ev == i {
+				sources = append(sources, -1) // an entry point
+			}
+		}
+		for k := i; k < j; k++ {
+			regionOf[k] = len(out)
+		}
+		out = append(out, sweepRegion{Block: block, From: i, To: j - 1})
+		srcs = append(srcs, sources)
+		i = j
+	}
+	done := make([]bool, len(out))
+	var resolve func(n int, busy map[int]bool)
+	resolve = func(n int, busy map[int]bool) {
+		if done[n] {
+			return
+		}
+		busy[n] = true
+		r := &out[n]
+		sources := srcs[n]
+		var reached []int
+		for _, src := range sources {
+			if src == -1 || hit[src] {
+				reached = append(reached, src)
+			}
+		}
+		switch {
+		case len(sources) == 0:
 			r.Class, r.Reason = "no jump leads here", "no instruction jumps or falls into it"
-		default:
+		case len(reached) == 0: // every way in starts in another region: it is behind that one's reason
+			root := -1
 			for _, src := range sources {
-				if hit[src] {
-					reached = append(reached, src)
+				if m := regionOf[src]; !busy[m] {
+					root = m
+					break
 				}
 			}
-			if len(reached) == 0 {
-				r.Class, r.Reason = "behind unreached code", "every way in starts at an instruction never run"
+			if root < 0 {
+				r.Class, r.Reason = "behind unreached code", "its ways in start in itself (a loop never entered)"
 				break
 			}
+			resolve(root, busy)
+			r.Class, r.Reason = out[root].Class, out[root].Reason+fmt.Sprintf(" [nested, via instr %d]", out[root].From)
+		case reached[0] == -1:
+			r.Class, r.Reason = "entry point never run", "an entry of the script that no run called"
+		default:
 			src := reached[0]
 			op, text := s.Code[src].Op, lineText(src)
 			switch {
 			case sweepIsCondition(op):
 				if wd := sweepQuestWord.FindString(text); wd != "" {
-					r.Class, r.Reason = "behind a quest word", "if "+text+" (word "+wd+")"
+					r.Class, r.Reason = "behind a quest word", text+" ("+sweepWordNote(t, w, wd, text)+")"
 				} else {
 					r.Class, r.Reason = "behind a condition", text
 				}
@@ -118,24 +154,26 @@ func sweepRegions(t testing.TB, w *sweepWorld, s *ecl.Script, block int, lines [
 				r.Class, r.Reason = "behind a fight not won", text
 			case sweepIsMenu(op):
 				r.Class, r.Reason = "behind a reply not taken", text
+			case op == ecl.OpOnGoto || op == ecl.OpOnGosub: // goto [labels][index]: the index never took the value that leads here
+				r.Class, r.Reason = "behind a computed jump", text
 			default:
-				r.Class, r.Reason = "after "+sweepOpName(op), text
+				r.Class, r.Reason = "after a command that goes on elsewhere", text
 			}
 		}
-		out = append(out, r)
-		i = j
+		done[n] = true
+	}
+	for n := range out {
+		resolve(n, map[int]bool{})
 	}
 	return out
 }
-
-func sweepOpName(op byte) string { return strconv.Itoa(int(op)) }
 
 // sweepReport logs the coverage table, the unreached regions by class and the fights.
 func sweepReport(t *testing.T, w *sweepWorld, elapsed time.Duration) {
 	e := br1EngineIn(t, w.adv)
 	run, total := 0, 0
 	t.Logf("sweep: %v, %d runs, %d dropped from the work list, wedged walks by block %v", elapsed.Round(time.Second), sumRuns(w), w.dropped, w.wedged)
-	t.Logf("%-6s %8s %8s %5s %6s %6s", "block", "run", "total", "%", "runs", "left")
+	t.Logf("%-6s %8s %8s %5s %6s %6s %6s", "block", "run", "total", "%", "runs", "left", "secs")
 	classes := map[string]int{}
 	byClass := map[string][]sweepRegion{}
 	for _, block := range br1Blocks {
@@ -149,7 +187,7 @@ func sweepReport(t *testing.T, w *sweepWorld, elapsed time.Duration) {
 		}
 		n := len(w.hit[block])
 		run, total = run+n, total+len(s.Code)
-		t.Logf("%-6d %8d %8d %4d%% %6d %6d", block, n, len(s.Code), 100*n/max(len(s.Code), 1), w.runs[block], len(w.queue[block]))
+		t.Logf("%-6d %8d %8d %4d%% %6d %6d %6.0f", block, n, len(s.Code), 100*n/max(len(s.Code), 1), w.runs[block], len(w.queue[block]), w.took[block].Seconds())
 		for _, r := range sweepRegions(t, w, s, block, strings.Split(string(b), "\n")) {
 			classes[r.Class] += r.To - r.From + 1
 			byClass[r.Class] = append(byClass[r.Class], r)
@@ -165,7 +203,11 @@ func sweepReport(t *testing.T, w *sweepWorld, elapsed time.Duration) {
 		t.Logf("unreached, %s: %d instructions in %d regions", c, classes[c], len(byClass[c]))
 		rs := byClass[c]
 		sort.Slice(rs, func(i, j int) bool { return rs[i].To-rs[i].From > rs[j].To-rs[j].From })
-		for _, r := range rs[:min(len(rs), 6)] {
+		top := 6 // the heavy sweep lists the most
+		if w.heavy {
+			top = 60
+		}
+		for _, r := range rs[:min(len(rs), top)] {
 			t.Logf("    block %d instr %d..%d: %s", r.Block, r.From, r.To, r.Reason)
 		}
 	}
@@ -173,6 +215,14 @@ func sweepReport(t *testing.T, w *sweepWorld, elapsed time.Duration) {
 	for pos, n := range w.lost {
 		lostN += n
 		t.Logf("lost fight at %v: %d times, won %d", pos, n, w.won[pos])
+	}
+	overs := make([]sweepPos, 0, len(w.over))
+	for pos := range w.over {
+		overs = append(overs, pos)
+	}
+	sort.Slice(overs, func(i, j int) bool { return w.over[overs[i]] > w.over[overs[j]] })
+	for _, pos := range overs[:min(len(overs), 12)] {
+		t.Logf("game over after script place %v: %d runs", pos, w.over[pos])
 	}
 	never := 0
 	for pos, n := range w.offered {
@@ -190,4 +240,45 @@ func sumRuns(w *sweepWorld) (n int) {
 		n += r
 	}
 	return n
+}
+
+// sweepWordNote says where the story sets the word a condition compares: the constants it is compared with, and for each
+// the blocks whose scripts set it to that constant ("never set to it by any script": only the engine or a computation can).
+func sweepWordNote(t testing.TB, w *sweepWorld, word, text string) string {
+	st := sweepStoryOf(t, w.adv)
+	var parts []string
+	seen := map[int64]bool{}
+	note := func(v int64) {
+		if seen[v] {
+			return
+		}
+		seen[v] = true
+		var by []int
+		for _, b := range br1Blocks {
+			if slices.Contains(st.writes[b][word], v) {
+				by = append(by, b)
+			}
+		}
+		if len(by) == 0 {
+			parts = append(parts, fmt.Sprintf("%s vs %d: no script sets it to %d", word, v, v))
+		} else {
+			parts = append(parts, fmt.Sprintf("%s vs %d: set to it by blocks %v", word, v, by))
+		}
+	}
+	for _, m := range sweepCmpLeft.FindAllStringSubmatch(text, -1) {
+		if m[1] == word {
+			v, _ := strconv.ParseInt(m[3], 10, 64)
+			note(v)
+		}
+	}
+	for _, m := range sweepCmpRight.FindAllStringSubmatch(text, -1) {
+		if m[3] == word {
+			v, _ := strconv.ParseInt(m[1], 10, 64)
+			note(v)
+		}
+	}
+	if len(parts) == 0 {
+		return "word " + word
+	}
+	return strings.Join(parts, "; ")
 }
