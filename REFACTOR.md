@@ -593,6 +593,26 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
          STUCK in a ship fight (no allowed action, no question; replay 2 14 6 6 10032243 3).
          Many `covered` rows were matched by topic, not line by line.
 
+      9b. [x] sv1 + tn1: the audit's open rows closed except two. sv1: cotab's Program 3 is
+         `ecl.ProgramPartyDefeated` (a lost fight's path, not a quit); BR layouts bind `LeftMap`
+         and `SymbolSet` (block 81 read the wrong GEO set; edge exits work); the deskewed arena
+         for XXVc (`rules.StraightX` shared); Esc in the ship fight's Target menu fires
+         untargeted (shipcbt.pas 1137; `Offer.EscFor`); the BR2 sweep's STUCK was the test
+         helper. tn1: BR training hall on the Pool's hall and the creation's allotment sheet
+         (`Creation.MaxLevel`, level-up budgets; `rules.PicksOwed`, `Draft.Rise`); the Change
+         menu (Order, Purge, Level; `engine/change_engine.go`); party menu P = Purge, R = Remove
+         as gdconsts.pas (they were swapped); Trade/Halve/Join as the ruleset's offers
+         (`rules.Handling`; the Pool offers none); the old engine's party pack is not in the
+         Pascal (differs); Train was refused through Do in every game (the party menu's
+         question covered the hall); `Behaviour.BeginClearsHall` (not POR). BR import version
+         21. gate: 30 minute test timeout. OPEN: an ORIGINAL BR save (SAVGAMA.DAT, 2901 bytes:
+         layout known from saveload.pas 608..800; needs a typed hand-off for the ship record
+         and clock, which the ruleset holds, and the interfaceState -> view mapping); the ship
+         fight's loot/status screen (postcbt.pas 735..794), Blink/Blast, the character view,
+         `TreatInjuries` (not ported for ground fights either); SaveChar's
+         Overwrite/Rename/Abort; BR's party-menu Remove of an NPC; an empty party after a purge
+         ends the game (the Pascal does nothing: unverified); `FreeTraining` ignored.
+
       8. [ ] every BR1 block's entries run headless without a panic (a sweep test over the
          scripts' reachable commands, like the Pool games' sweeps); then BR2 the same
       9. [ ] B1g: `cmd/gobox` plays BR1 and BR2 from data folders only; the BR engines and repos
