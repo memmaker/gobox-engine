@@ -82,12 +82,9 @@ func (p *Presenter) drawGeneric(dst *gpu.Image, note Note) Rect {
 	if t := p.typingAsk(); t != nil && t.Prompt != "" { // a typed answer (a name after the sheet): its question and line, never an invisible question
 		p.drawTyping(dst, note, math.Max(1, math.Floor(k)), cx, 0)
 	}
-	if m := p.askMenu(); m != nil && len(m.Commands) == 1 && !p.choosing() && p.typingAsk() == nil && p.askList() == nil && (strings.TrimSpace(m.Prompt) != "" || len(art) == 0 && th == 0) { // "press Enter": nothing to pick, the prompt alone above the text; a bare "press Enter" not over a page's picture or text (as over the 3D view)
+	if m := p.askMenu(); m != nil && len(m.Commands) == 1 && p.pressText() != "" && (strings.TrimSpace(m.Prompt) != "" || len(art) == 0 && th == 0) { // "press Enter": nothing to pick, the prompt alone above the text; a bare "press Enter" not over a page's picture or text (as over the 3D view)
 		mk := math.Max(1, math.Floor(k))
-		text := strings.TrimSpace(m.Prompt)
-		if text == "" {
-			text = m.Commands[0].Text
-		}
+		text := p.pressText()
 		p.drawMenu(dst, note.Glyph, "", []string{text}, nil, nil, -1, mk, cx, int(float64(b.Dy()-int(th))/2)-int(mk*12))
 	}
 	return Rect{0, 0, float64(b.Dx()), float64(b.Dy())}

@@ -548,13 +548,13 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 			top = max(top, picBottom+int(pk*4))
 		}
 		p.drawMenu(dst, note.Glyph, "", lines, keys, nil, p.sel, mk, cx, top)
-	} else if m := p.askMenu(); m != nil && len(m.Commands) == 0 && strings.TrimSpace(m.Prompt) != "" && !shown { // a message with no choice ("You found some loot!"), no text box to hold it: the prompt alone until a key, under the picture
+	} else if text := p.pressText(); text != "" && !shown { // a message with no choice ("You found some loot!"), or a bare key wait, no text box to hold it: the prompt alone until a key, under the picture; never an invisible wait
 		p.menu = false
 		top := b.Dy()/2 - int(mk*12)
 		if picBottom > 0 {
 			top = max(top, picBottom+int(pk*4))
 		}
-		p.drawMenu(dst, note.Glyph, "", []string{strings.TrimSpace(m.Prompt)}, nil, nil, -1, mk, cx, top)
+		p.drawMenu(dst, note.Glyph, "", []string{text}, nil, nil, -1, mk, cx, top)
 	} else if p.askMenu() == nil { // "press a key" prompts: nothing to show (the original's prompt line stays off the remastered screens)
 		p.menu = false
 	} else if p.menu && menuID(p.askMenu()) != p.menuFor { // the menu the popup was opened for is gone (answered): the next one opens on its own key
@@ -637,6 +637,19 @@ func (p *Presenter) OptionsMouse(x, y int, left, right bool, wheel float64) {
 		}
 	}
 	p.pointOptions(line, left, right, int(math.Copysign(math.Ceil(math.Abs(wheel)), wheel)))
+}
+
+// pressText is what a wait with nothing to pick shows: its prompt, else
+// its one answer ("" : not such a wait).
+func (p *Presenter) pressText() string {
+	m := p.askMenu()
+	if m == nil || len(m.Commands) > 1 || p.choosing() || p.typingAsk() != nil || p.askList() != nil {
+		return ""
+	}
+	if t := strings.TrimSpace(m.Prompt); t != "" || len(m.Commands) == 0 {
+		return t
+	}
+	return m.Commands[0].Text
 }
 
 // noChoice reports a question with one answer ("press enter to continue"):
