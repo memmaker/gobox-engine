@@ -32,7 +32,6 @@ var br1SweepKnown = []struct{ Pattern, Why string }{
 	{`^the scripts of block # loop without asking`, "open, vw1 (AreaKind / view kind): 17 -> Port -> block 32 whose load exits at once (ScriptBlock >= 32) keeps the scripted view kind 3 of block 17, so its move entry exits without asking; replay 17 0 0 2 1259865"},
 	{`^fact rules.FlightFact: Fact #: no character`, "open, owner presentation (vw1): the engine's missileArt is the Pool games' art; BR1's AnimateMissile (cbtacts.pas) has its own, rulesxxvc answers no FlightFact"},
 	{`^rules: rules.AddLoot: .*not ported yet`, "sw1: BR's TreasureOf(credits, count, items) goes through the Pool handler (4 fixed operands, platinum/gems/jewelry), and rulesxxvc answers no AddLoot"},
-	{`^rules: rules.GainExperience: .*not ported yet`, "sw1: BR's GainExperience (eclvm.pas EclAwardExperience), rulesxxvc answers no GainExperience"},
 	{`^ecl: view kind # not ported`, "vw1: the rocket's view (AreaKind view kind 2)"},
 	{`^ecl: opcode #B on line # not ported`, "sh1: the Shop command"},
 	{`^LOG: script: area \d+: T_\w+\[\d+\] is past the field's \d+ entries`, "none: the entry skips the story, so the index variable (Word4C61 ...) holds 0 and the table is read past its end as the original does (engine log, TableFaults)"},

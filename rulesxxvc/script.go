@@ -152,3 +152,13 @@ func (r *Rules) scriptDamage(a rules.ScriptDamage, rng *rules.RNG) rules.Outcome
 	}
 	return o
 }
+
+// gainExperience is eclvm.pas EclAwardExperience's award: each of Whom (the party, or the current character) that
+// is enabled gains the points (the message is the engine's).
+func (r *Rules) gainExperience(a rules.GainExperience) {
+	for _, id := range a.Whom {
+		if c := r.chars[id]; c != nil && c.Enabled {
+			c.Exp += int64(a.Points)
+		}
+	}
+}

@@ -257,3 +257,17 @@ func TestSoloCombatLastActorMonster(t *testing.T) {
 		t.Errorf("%+v exp %d", res, r.chars[duelist].Exp)
 	}
 }
+
+// eclvm.pas EclAwardExperience: only an enabled member gains the points.
+func TestGainExperience(t *testing.T) {
+	r := New()
+	a, b := member("a", 10, 0, 0, 0), member("b", 10, 0, 0, 0)
+	b.Enabled = false
+	ia, ib := r.Add(a), r.Add(b)
+	if _, err := r.Resolve(nil, rules.GainExperience{Whom: rules.Party{ia, ib}, Points: 350}, nil); err != nil {
+		t.Fatal(err)
+	}
+	if r.chars[ia].Exp != 350 || r.chars[ib].Exp != 0 {
+		t.Errorf("exp %d %d, want 350 0", r.chars[ia].Exp, r.chars[ib].Exp)
+	}
+}

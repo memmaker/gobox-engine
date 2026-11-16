@@ -61,6 +61,9 @@ func (r *Rules) Resolve(s rules.Situation, a rules.Action, rng *rules.RNG) (rule
 		if a, ok := a.Action.(rules.Sell); ok {
 			return r.sell(a.Who, a.Item, true)
 		}
+	case rules.GainExperience:
+		r.gainExperience(a)
+		return rules.Outcome{}, nil
 	case rules.ScriptDamage:
 		return r.scriptDamage(a, rng), nil
 	case rules.Ready:
