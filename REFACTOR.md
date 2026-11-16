@@ -396,13 +396,32 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
       Engine: the player's turn presents its Outcome's effects as the computer's does (a ruleset
       that queues nothing lost them: the empty battle log), `Fled` has no event, `CombatSay`'s
       answer is presented.
-    - Open after B1f7:
-      - Quick taken back (the original's Space key clears the members' quick flag and hands the
-        turn back): the engine's `game.Manual` only reaches a ruleset through `AutoTurn` (por),
-        and XXVc's computer turns run inside one step with no pause: needs a typed action and a
-        pause between computer turns
-      - after a fled fight the Pascal removes the downed members who did not flee: not ported;
-        no experience on a full flight is not asserted
+    - [x] B1f8 goldens from the old BR engine (2026-11-16): `buckrogers-go` branch
+      `golden/one-rng` (never merged) draws every roll from `rules.RNG`; its dump is
+      `rulesxxvc/testdata/oldengine/` (README: commit, draw sites, the regenerate command).
+      `TestBR1GoldenArena`, `TestBR1GoldenMap` (11 places identical), placement (120 cases
+      identical; the old engine's probe misses a unit already on a square: recorded, the Pascal
+      and `rulesxxvc` see it), `TestBR1GoldenFight` (1 of 4 fights equal to its end; 3 pinned
+      where they diverge, round 1 or 2). Fixed against the Pascal: monsters spawn with their
+      items readied, companions' morale flag imported (`xxvc.Monster` fields; BR import
+      version 3), clones' item order, the swings reset at a turn's start.
+    - [x] B1f9 Quick taken back and the fled fight's end (2026-11-16): `rules.TakeBack`
+      (`rulesxxvc`: every non-companion member's quick flag cleared, the actor handed back with
+      initiative 20; the engine resolves it once before a computer turn's first decided action,
+      a whole-turn ruleset still gets `AutoTurn.Key`), `TestBR1QuickBack`, `TestTakeBack`; after a
+      fled fight the members who did not flee are removed with their items (postcbt.pas
+      TEAM_FLED), no experience, no loot: `TestEndFightFled`, `TestBR1FledAndDown`.
+    - Open after B1f9:
+      - `rules1e` still takes the key in `AutoTurn.Key` (its poll inside the turn and "act again
+        at once" differ; `TakeBack` is in `notAnswered`): two ways for the engine to say "take
+        back" until that is verified against the Pool Pascal; no Pool test sends `game.Manual`
+        in a real fight
+      - XXVc: the key is polled once per computer turn, the original also between a turn's moves;
+        `Decide` runs before `TakeBack` (the original polls first); no `isOutOfPlay` (a
+        surrendered companion is not excluded)
+      - the three diverging golden fights, `Unit.Damage` (wrong attack slot) and `HitFact`
+        (a stale attacker bonus): track d1
+      - not in a golden: wilderness fights, leadership/morale rolls in isolation
       - a member with a gun against a melee monster loses the walk-up test's fight (accepted)
     - Incident (2026-11-16): renamed script commands (`MenuCall`, `PickMember`) left the installed
       BR texts unparseable (BR1 would not begin); then my instruction to tracks to refresh their
