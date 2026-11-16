@@ -16,6 +16,7 @@ func init() {
 	eclOps[ecl.OpStash] = (*Engine).opStash
 	eclOps[ecl.OpSkillDamage] = (*Engine).opSkillDamage
 	eclOps[ecl.OpDuel] = (*Engine).opDuel
+	eclOps[ecl.OpShop] = (*Engine).opShop
 }
 
 // opWallDistance = BR eclvm.pas EclDistanceAhead (result, direction 0..3): the squares from the party's
@@ -123,6 +124,19 @@ func (e *Engine) opSkillDamage() {
 
 // soloCombat is run.duelMode (DS:84D4) of a fight only the selected member takes part in.
 const soloCombat = 1
+
+// opShop = BR eclvm.pas EclShop (list): the shop stocked from item list `list` of the game's tables, at the layout's
+// PriceMultiplier (zone 1, sixteenths of a value); the script waits until the party leaves.
+func (e *Engine) opShop() {
+	e.vm.ReadArgs(1)
+	stock := rules.StockShop{List: rules.ShopListID(byte(e.vm.Arg(1, e.host)))}
+	if r, ok := e.layoutField(fieldPriceMult); ok {
+		stock.Terms.PriceMultiplier = int32(e.host.Get(r))
+	}
+	e.takeover()
+	e.push(cont{kind: kOpCombatEnd})
+	e.openShop(stock)
+}
 
 // opDuel = BR eclvm.pas EclSoloCombat: Combat with only the selected member fighting. The ruleset
 // disables the others for the fight (FightTerms.Duel) and settles only the duelist after it.

@@ -63,7 +63,7 @@ func TestBuySell(t *testing.T) {
 		t.Fatalf("overloaded: %d items, coins %d, %v", len(c.Items), c.Coins, o.Effects)
 	}
 	sell := rules.Sell{Who: who, Item: c.Items[0].Handle}
-	if card, _ := r.itemCard(c, c.Items[0].Handle); card.Sale != 3*100 {
+	if card, _ := r.itemCard(c, c.Items[0].Handle); card.Sale.Copper != 3*100 {
 		t.Errorf("the card's sale %d", card.Sale)
 	}
 	if o, _ := r.Resolve(nil, sell, nil); o.Confirm == "" || c.Coins != 25 {
@@ -119,5 +119,28 @@ func TestReload(t *testing.T) {
 	c.Items[1].Ref.Count, c.Coins = 5, 49
 	if r.Resolve(nil, rules.Reload{Who: who, Item: 2, Kind: rules.ReloadClip}, nil); c.Items[1].Ref.Count != 5 || c.Coins != 49 {
 		t.Fatal("reloaded without the money")
+	}
+}
+
+// TestReloadOffers: the counter offers a clip and a fill of a missile weapon that is not full, at ammoPrices, in the shop's phase only.
+func TestReloadOffers(t *testing.T) {
+	r := New()
+	r.Begin(rules.Campaign{Tables: xxvc.Tables{
+		ItemTypes:  []xxvc.ItemType{{}, {Slot: xxvc.SlotWeapon, WeaponClass: xxvc.Laser}},
+		Items:      map[rules.ItemID]xxvc.ItemTemplate{1: {Type: 1, NotJoinable: true}},
+		AmmoPrices: map[int32]rules.Copper{1: 7}}}, rules.Options{})
+	who := r.Add(Character{Name: "w", Enabled: true, Items: []Carried{{Slot: 1, Ref: rules.ItemRef{ID: 1, Count: 225}}}})
+	s := rules.Reloading{Who: who, Item: r.chars[who].Items[0].Handle}
+	if len(r.Allowed(s).Offers) != 0 {
+		t.Fatal("offered outside the shop")
+	}
+	r.Resolve(nil, rules.EnterPhase{Phase: rules.PhaseShop}, nil)
+	got := r.Allowed(s).Offers
+	if len(got) != 2 || got[0].Price != 7 || got[1].Price != 21 || got[0].Action != (rules.Reload{Who: who, Item: s.Item, Kind: rules.ReloadClip}) {
+		t.Fatalf("offers %+v", got)
+	}
+	r.chars[who].Items[0].Ref.Count = 250
+	if len(r.Allowed(s).Offers) != 0 {
+		t.Fatal("offered for a full weapon")
 	}
 }

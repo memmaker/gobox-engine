@@ -39,7 +39,8 @@ func (r *Rules) Resolve(s rules.Situation, a rules.Action, rng *rules.RNG) (rule
 		r.bankLoot()
 		return rules.Outcome{}, nil
 	case rules.EnterPhase:
-		return rules.Outcome{}, nil // the engine's phase: no XXVc rule differs by it
+		r.phase = a.Phase // the shop sells, buys and reloads only in its phase
+		return rules.Outcome{}, nil
 	case rules.TakeItems:
 		r.takeItems(a)
 		return rules.Outcome{}, nil
@@ -109,6 +110,8 @@ func (r *Rules) Allowed(s rules.Situation) rules.Allowed {
 			return rules.Allowed{}
 		}
 		return r.shipAllowed(s)
+	case rules.Reloading:
+		return r.reloadOffers(s)
 	case rules.Camping:
 		return rules.Allowed{Offers: []rules.Offer{{Action: rules.Rest{Minutes: MinutesPerDay}, Name: "Rest"}}}
 	}

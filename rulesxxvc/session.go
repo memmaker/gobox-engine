@@ -326,6 +326,10 @@ func (r *Rules) factSession(id rules.CharID, f rules.Fact) (v rules.Value, ok bo
 		return rules.TrainCard{}, true, nil // no training: it never rises
 	case rules.DamageFact:
 		return rules.Text(diceText(r.nextDamageNow(c, r.fight[id]))), true, nil
+	case rules.InventoryFact: // what the shop's screens ask: a shop buys while its phase is up; no one is hired
+		return rules.InventoryView{Member: slices.Index(r.party, id), Sell: r.phase == rules.PhaseShop, Switch: r.phase != rules.PhaseFight}, true, nil
+	case rules.IdentifiableFact:
+		return rules.Handles(nil), true, nil // no shop identifies anything: items are known
 	case rules.ListedFact:
 		if f.Goods {
 			return nil, false, nil
@@ -442,6 +446,7 @@ func (r *Rules) itemCard(c *Character, h rules.ItemHandle) (rules.ItemCard, erro
 		return rules.ItemCard{}, err
 	}
 	t := r.tables.Items[ci.Ref.ID]
-	return rules.ItemCard{Item: h, Name: strings.Join(it.NameWords, " "), Type: t.Type, Count: it.Count, Price: it.Price, Sale: r.sellPrice(ci),
+	return rules.ItemCard{Item: h, Name: strings.Join(it.NameWords, " "), Type: t.Type, Count: it.Count, Price: it.Price, Sale: rules.Purse{Copper: uint64(r.sellPrice(ci))}, // credits are Copper
+
 		Kind: ci.Ref.ID, Weight: t.Weight, Readied: ci.Readied, Identified: it.Identified, Tab: string(it.Kind)}, nil
 }

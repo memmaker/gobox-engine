@@ -51,6 +51,16 @@ type UsingItem struct {
 
 func (UsingItem) situation() {}
 
+// Reloading: Who's Item in the shop's ammunition counter. Allowed lists
+// what the shop sells for it (Reload, a Clip and a Fill with the price),
+// none when no ammunition is sold for it here.
+type Reloading struct {
+	Who  CharID
+	Item ItemHandle
+}
+
+func (Reloading) situation() {}
+
 // Fit asks whether Who is fit to act (Yes; por's Okay, [6C00]).
 type Fit struct{ Who CharID }
 
@@ -149,9 +159,9 @@ type ItemCard struct {
 	Words               []string
 	Hidden              string   // its real name while unidentified
 	Look, LookPlain     []string // against the item in its slot; alone
-	Sale                Copper
-	Scribing            bool // someone was to scribe from the scroll
-	Scribe              bool // Who may scribe its first spell
+	Sale                Purse    // what a shop pays for it, in the ruleset's own coins
+	Scribing            bool     // someone was to scribe from the scroll
+	Scribe              bool     // Who may scribe its first spell
 	Scroll              []ScrollSpell
 	Casts               int32 // the spell id its own use casts (por item +0x3D, decoded at import)
 }

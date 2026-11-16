@@ -303,7 +303,7 @@ func (r *Rules) itemCard(c *Character, it *Item) rules.ItemCard {
 	s := r.S
 	s.ItemName(c, it, false)
 	g := rules.ItemCard{Item: r.Handle(it), Name: it.Name(), Readied: it.Readied != 0, Identified: !it.Unknown(), Price: int32(it.Price), Weight: int32(it.Weight),
-		Type: int32(it.Type), Kind: s.iconKind(it), Count: int32(it.Count), Usable: s.Usable(it), Sale: rules.Copper(it.SellValue()), Words: s.wordNames(it), Casts: int32(it.Spells[1])}
+		Type: int32(it.Type), Kind: s.iconKind(it), Count: int32(it.Count), Usable: s.Usable(it), Sale: salePurse(it.SellValue()), Words: s.wordNames(it), Casts: int32(it.Spells[1])}
 	if c != nil {
 		g.CannotUse = !s.CanUseItem(c, it)
 		g.Look = s.ItemLines(it, s.ReadiedLike(c, it))
@@ -482,4 +482,11 @@ func (s *RuleState) takeScroll(c *Character, it *Item) {
 	if s.readsScroll(c, it) {
 		it.Hidden = 0
 	}
+}
+
+// salePurse is a sale's worth in the Gold Box coins (200 copper to the gold).
+func salePurse(copper uint32) rules.Purse {
+	var p rules.Purse
+	p.AddCopper(uint64(copper), rules.GoldBoxRates)
+	return p
 }

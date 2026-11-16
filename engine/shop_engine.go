@@ -16,13 +16,17 @@ func (e *Engine) shopBrowse() {
 
 // Shop = ovr07:053E: the script waits on the shop (PendShop) until the
 // party leaves (Leave).
-func (e *Engine) Shop() {
+func (e *Engine) Shop() { e.openShop(rules.StockShop{}) }
+
+// openShop opens the shop stocked as stock tells the rules (the Pool's script has put its wares in the
+// treasure: no list; BR's Shop names a list).
+func (e *Engine) openShop(stock rules.StockShop) {
 	e.songMusic(adventure.SongShop, 0) // extra
 	greeting := e.paneCopy()           // extra: the merchant's greeting comes back after each redraw (the original cleared it)
 	e.setPhase(rules.PhaseShop)
 	e.DrawMainScreen()
 	e.keepPane(greeting)
-	e.must(rules.StockShop{})
+	e.must(stock)
 	e.pw.greeting = greeting
 	e.wait(PendShop)
 }

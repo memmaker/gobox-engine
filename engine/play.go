@@ -572,6 +572,9 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 				}
 				for _, it := range m.Items {
 					add(game.Sell{Member: n, Item: it.Handle})
+					for _, o := range e.ruleset().Allowed(rules.Reloading{Who: e.partyIDs()[n], Item: it.Handle}).Offers { // the ammunition the ruleset sells for it
+						add(game.Reload{Member: n, Item: it.Handle, Fill: o.Action.(rules.Reload).Kind == rules.ReloadFill})
+					}
 				}
 			}
 			for k, sv := range trade.Services {
@@ -1446,17 +1449,15 @@ func (e *Engine) itemDo(a game.Action, native func(func() error) error) (bool, e
 			return nil
 		})
 	case game.Buy: // the Buy list opens for the buy and closes after: the state stays Trading
-		return true, native(func() error {
-			return e.browsing(a.Member, func() error {
-				gold := e.purse(false).Gold
-				if err := e.Buy(a.Item); err != nil {
-					return err
-				}
-				return refuseIf(e.purse(false).Gold == gold, e.ext.note)
-			})
-		})
+		return true, native(func() error { return e.browsing(a.Member, func() error { return e.Buy(a.Item) }) })
 	case game.Sell:
-		return true, native(func() error { return e.browsing(a.Member, func() error { return e.sell(a.Item) }) })
+		return true, native(func() error { return e.runCall(pendingCall{kind: callSell, member: a.Member, item: a.Item}) })
+	case game.Reload:
+		kind := rules.ReloadClip
+		if a.Fill {
+			kind = rules.ReloadFill
+		}
+		return true, native(func() error { return e.reload(a.Member, a.Item, kind) })
 	case game.Identify:
 		return true, native(func() error { return e.identify(a.Member, a.Item) })
 	case game.Appraise: // values one; with one valued, keeps or sells it

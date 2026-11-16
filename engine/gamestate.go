@@ -165,6 +165,9 @@ func (e *Engine) goodsState() []game.Item {
 	return goods
 }
 
+// identifyFee is the Pool shop's price to identify an item (core's Identify, ovr07; the rules take it at IdentifyItem).
+const identifyFee = 200
+
 // tradeState is the shop or temple the script waits on (e.pending) and the
 // training hall while it is open, as Trading.
 func (e *Engine) tradeState(mode game.Mode, cm game.Common) game.Trading {
@@ -175,7 +178,7 @@ func (e *Engine) tradeState(mode game.Mode, cm game.Common) game.Trading {
 		for i := range goods {
 			goods[i].Price = int(e.shopPrice(int32(goods[i].Price), e.itemCard(rules.NoChar, goods[i].Handle).Count))
 		}
-		t.Goods, t.Buys, t.Offers, t.Identify = goods, true, e.offers(cm.Selected), 200
+		t.Goods, t.Buys, t.Offers = goods, true, e.offers(cm.Selected)
 		identified := e.snap.identIt
 		for i, id := range e.partyIDs() {
 			l := e.listedItems(id)
@@ -187,6 +190,9 @@ func (e *Engine) tradeState(mode game.Mode, cm game.Common) game.Trading {
 			if identified != rules.NoItem && slices.Contains(e.fact(id, rules.IdentifiableFact{}).(rules.Handles), identified) {
 				t.Known = &game.ItemRef{Member: i, Item: identified}
 			}
+		}
+		if len(t.Unknown) > 0 || t.Known != nil { // the shop identifies only where the ruleset lists items it can (IdentifiableFact)
+			t.Identify = identifyFee
 		}
 	case PendTemple:
 		for i := 0; ; i++ {
@@ -278,7 +284,7 @@ func (e *Engine) itemsState(id rules.CharID) []game.Item {
 		card := e.itemCard(id, h)
 		g := gameItem(h, card)
 		g.Wrong = g.Kind != "misc" && card.CannotUse
-		g.Sale = map[string]int{game.Gold: int(card.Sale / 200), game.Copper: int(card.Sale % 200)}
+		g.Sale = purseMoney(card.Sale)
 		if len(card.Scroll) > 0 {
 			g.Spell, g.Scribe = int(card.Scroll[0].Number), card.Scribe
 		}

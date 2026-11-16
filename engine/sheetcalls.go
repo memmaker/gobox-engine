@@ -215,15 +215,26 @@ func (e *Engine) drop(h rules.ItemHandle) error {
 	return err
 }
 
-// sell sells item h where the inventory sells (the shop's; confirmed).
-func (e *Engine) sell(h rules.ItemHandle) error {
+// sell sells item h where the inventory sells (the shop's). A ruleset that asks first (Outcome.Confirm: BR's
+// "I'll give you N credits...") has the question asked (askSure: Yes sells, sure); sure: it was asked.
+func (e *Engine) sell(h rules.ItemHandle, member int, sure bool) error {
 	cID, h := e.carriedBy(h)
 	if h == rules.NoItem || !e.inventoryView(cID).Sell {
 		return rules.ErrNotNow
 	}
-	o, err := e.ruleset().Resolve(nil, rules.Sell{Who: cID, Item: h}, nil)
+	var a rules.Action = rules.Sell{Who: cID, Item: h}
+	if sure {
+		a = rules.Confirmed{Action: a}
+	}
+	o, err := e.ruleset().Resolve(nil, a, nil)
+	if err != nil {
+		return err
+	}
+	if o.Confirm != "" {
+		return e.askSure(o.Confirm, pendingCall{kind: callSell, member: member, item: h})
+	}
 	e.traded(o, "Sold!")
-	return err
+	return nil
 }
 
 // Buy buys ware h of the shop's (Inventory.Wares).
@@ -233,23 +244,61 @@ func (e *Engine) Buy(h rules.ItemHandle) error {
 	}
 	card := e.itemCard(rules.NoChar, h)
 	o, err := e.ruleset().Resolve(nil, rules.Buy{Who: e.selected(), Item: h, Price: e.shopPrice(card.Price, card.Count)}, nil)
-	e.traded(o, "Bought!")
-	return err
+	if err != nil {
+		return err
+	}
+	return refuseIf(!e.traded(o, "Bought!"), e.ext.note)
 }
 
-// traded says done when the trade went through (core.Traded), or the
-// refusal of a purse that could not pay.
-func (e *Engine) traded(o rules.Outcome, done string) {
+// traded shows what a trade came to and says whether it went through (rules.Traded). The ruleset's own words
+// (Narrated) are shown when it gives some: as the note, or, when the trade did not go through, as its refusal;
+// else the engine's: done, or "Not enough Money." for a purse that could not pay.
+func (e *Engine) traded(o rules.Outcome, done string) (through bool) {
+	var told string
+	noMoney := false
 	for _, f := range o.Effects {
 		switch f := f.(type) {
 		case rules.Traded:
-			e.say(done)
+			through = true
+		case rules.Narrated:
+			told = f.Text
 		case rules.Refused:
-			if f.Why == rules.NoMoney {
-				e.refuse("Not enough Money.")
-			}
+			noMoney = noMoney || f.Why == rules.NoMoney
 		}
 	}
+	switch {
+	case told != "" && through:
+		e.say(told)
+	case told != "":
+		e.refuse(told)
+	case through:
+		e.say(done)
+	case noMoney:
+		e.refuse("Not enough Money.")
+	}
+	return through
+}
+
+// reload buys the ammunition of kind for member n's item h, as the ruleset offers it (Reloading): not offered, ErrNotNow.
+func (e *Engine) reload(n int, h rules.ItemHandle, kind rules.ReloadKind) error {
+	if !e.waiting(PendShop) || n < 0 || n >= e.partySize() {
+		return rules.ErrNotNow
+	}
+	id := e.partyIDs()[n]
+	want := rules.Reload{Who: id, Item: h, Kind: kind}
+	if !slices.ContainsFunc(e.ruleset().Allowed(rules.Reloading{Who: id, Item: h}).Offers, func(o rules.Offer) bool { return o.Action == want }) {
+		return rules.ErrNotNow
+	}
+	o, err := e.ruleset().Resolve(nil, want, nil)
+	if err != nil {
+		return err
+	}
+	for _, f := range o.Effects {
+		if t, ok := f.(rules.Narrated); ok {
+			e.say(t.Text)
+		}
+	}
+	return nil
 }
 
 // UseItem = ovr20:1A8A (item): item h casts the scroll's spell or its own

@@ -678,6 +678,7 @@ type (
 	Reload struct {
 		Member int
 		Item   rules.ItemHandle
+		Fill   bool // fill the weapon (false: one clip)
 	}
 	Train         struct{ Member int }
 	Heal          struct{ Service, Member int }

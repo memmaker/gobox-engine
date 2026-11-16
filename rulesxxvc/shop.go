@@ -250,6 +250,33 @@ func (r *Rules) ammoValues(ci Carried, t xxvc.ItemTemplate, kind rules.ReloadKin
 	return amount, capacity, r.tables.AmmoPrices[t.Type] * rules.Copper(clips)
 }
 
+// reloadOffers is the ammunition counter's offer for who's item (Reloading): in the shop's phase, a clip and a fill
+// of a reloadable weapon that is not full, each with its price.
+func (r *Rules) reloadOffers(s rules.Reloading) rules.Allowed {
+	c := r.chars[s.Who]
+	if c == nil || r.phase != rules.PhaseShop {
+		return rules.Allowed{}
+	}
+	i := heldAt(c, s.Item)
+	if i < 0 {
+		return rules.Allowed{}
+	}
+	t, ok := r.reloadable(c.Items[i])
+	if !ok {
+		return rules.Allowed{}
+	}
+	var offers []rules.Offer
+	for _, k := range []struct {
+		kind rules.ReloadKind
+		name string
+	}{{rules.ReloadClip, "Clip"}, {rules.ReloadFill, "Fill"}} {
+		if _, capacity, cost := r.ammoValues(c.Items[i], t, k.kind); c.Items[i].Ref.Count < capacity {
+			offers = append(offers, rules.Offer{Action: rules.Reload{Who: s.Who, Item: s.Item, Kind: k.kind}, Price: uint64(cost), Coin: rules.CoinCopper, Name: k.name})
+		}
+	}
+	return rules.Allowed{Offers: offers}
+}
+
 // reload is ShopAmmoMenu's 'C' (a clip) or 'F' (a fill): a full weapon is
 // "Already full"; the price comes from who's credits, the pool covering what
 // they lack, else "Not enough Money"; the rounds go in, up to the capacity.

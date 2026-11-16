@@ -16,6 +16,7 @@ const (
 	fieldLoopCounter = "LoopCounter"     // FOR/NEXT's counter (Buck Rogers); the Pool games have none
 	fieldLoopLimit   = "LoopLimit"       // FOR/NEXT's limit (Buck Rogers); the Pool games have none
 	fieldPriceScale  = "PriceScale"      // the shops' price factor (cotab, sotsb, pod); POR has none
+	fieldPriceMult   = "PriceMultiplier" // the shop's price in sixteenths of a value (Buck Rogers), in the ruleset's unit: handed to it with StockShop
 	fieldScriptBlock = "ScriptBlock"     // the block whose move entry last ran (Buck Rogers: its start script still reads the block left, a loaded game its own); the Pool games have none
 	fieldWildTerrain = "WildTerrain"     // the adventure's terrain number for a fight outdoors (BR zone0 wildernessTerrain, Area[183]); the engine only carries it to the rules
 	fieldTravelKind  = "TravelKind"      // the place's traits (rules.PlaceTraits, canonical; BR keeps its areaKind byte, enc=BrTravelKind); no traits while FacingOrRaw reads the eight-way facing (Buck Rogers); the Pool games have none
@@ -78,7 +79,7 @@ func (e *Engine) runMoveEntry() {
 // BoundFields are the canonical script field names the engine gives a meaning: a game's
 // layout names a field so when, and only when, it has that field (each game's layout test).
 func BoundFields() []string {
-	names := []string{fieldLastBlock, fieldRemainder, fieldLoopCounter, fieldLoopLimit, fieldPriceScale, fieldScriptBlock, fieldTravelKind, fieldVault, fieldWildTerrain, fieldHours, tourDone}
+	names := []string{fieldLastBlock, fieldRemainder, fieldLoopCounter, fieldLoopLimit, fieldPriceScale, fieldPriceMult, fieldScriptBlock, fieldTravelKind, fieldVault, fieldWildTerrain, fieldHours, tourDone}
 	for n := range (&Engine{}).newEngineFields() {
 		names = append(names, n)
 	}
