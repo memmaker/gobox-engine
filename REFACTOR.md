@@ -613,6 +613,37 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
          Overwrite/Rename/Abort; BR's party-menu Remove of an NPC; an empty party after a purge
          ends the game (the Pascal does nothing: unverified); `FreeTraining` ignored.
 
+      9c. [x] j1 + os1. j1: `TestBR1Journey` (create, Begin, opening, first fight, loot, save,
+         load into a fresh engine, rest, shop); a `TravelKind` write selects the screen
+         (eclmenu.pas WriteGbvm); NewECL notes the block left in `ScriptBlock` (EclNewEcl):
+         the old loop finding in 50/80/94 is gone; the SYSTEMATIC sweep for both games
+         (breadth-first map, every reply of every question as a replayed work item, story entry
+         states, exact coverage, a report of what is unreached and why; default BR1 38% in
+         26 s, BR2 41% in 42 s; heavy 52% / 48%); a ground fight ends 15 rounds after the last
+         attack (`rules.FightIdle`; combat.pas, both games). os1: an ORIGINAL BR save loads
+         (`importer/br_origsave.go`: one table of every byte, a nonzero unplaced byte fails;
+         typed hand-off `rulesxxvc.OriginalGame`; BR import version 22); Remove of an NPC asks
+         Drop, a purge of the last member keeps the party menu (`Behaviour.RemoveNPCDrops`);
+         SaveChar asks Overwrite/Rename/Abort (`Behaviour.SaveAsksOverwrite`). The audit has ONE
+         open row (TestLootStatus). OPEN:
+         - BUG: after a ship fight the engine writes 0 won / 1 lost into `FightState`, which is
+           postCombatMode (4D7C; 1 = BOARDED): area34 `if 1 == FightState {NewECL(52)}` boards
+           on a LOSS and never on a boarding; `SpaceOwnShip` (4BBA, shipCombatOutcome) is never
+           written
+         - cotab's and sotsb's Pascals ask Overwrite (yes/no, rename on No) on Remove and
+           cotab's asks Drop for an NPC: not enabled for them (the agent called the Pool
+           "frozen": wrong, the original decides)
+         - BR1 block 50's step entry loops when `63 & Cell` is past its 26-entry jump table
+           (the Pascal's ON GOTO falls through too: suspect the sweep's map set, as block 81's)
+         - BR2 block 1's variable editor writes element 256 of the 256-element `Word4B00`
+         - `TreatInjuries` (postcbt.pas 513..634: a resumable antidote question, a results
+           page); the ship fight's loot/status screen (only with postCombatMode bit 7, which no
+           shipped BR1 script sets), Blink/Blast (needs shipPictures sizes as importer data),
+           View's Ship/Character submenu (shipcbt.pas 1173)
+         - the clock and Difficulty script cells stay unbound; no real mid-game original save
+           tried; a sweep run that takes Purge was not examined; `TestBR1SweepFixed` was dropped
+           on the belief that `TestBR1Throw` covers its fix
+
       8. [ ] every BR1 block's entries run headless without a panic (a sweep test over the
          scripts' reachable commands, like the Pool games' sweeps); then BR2 the same
       9. [ ] B1g: `cmd/gobox` plays BR1 and BR2 from data folders only; the BR engines and repos
