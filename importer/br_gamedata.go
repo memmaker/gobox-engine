@@ -1,6 +1,9 @@
 package importer
 
-import "gobox/game"
+import (
+	"gobox/game"
+	"gobox/rules/xxvc"
+)
 
 // The front's data of BR1 (game.Data's declarative fields). The values are
 // buckrogers-go presentdata/data.go's (the front's data of the old engine,
@@ -54,14 +57,14 @@ var brMusicPlaces = []string{"neo-chicago", "salvation", "derelict", "space", "a
 	"ship-boarding", "mars-surface", "mars-gradivus", "venus-surface", "venus-base", "mercury", "spaceport", "mariposa-doomsday"}
 
 // brQuickParty is the Quick Start team: one of each career, a second Warrior up front (buckrogers-go rules/quickstart.go
-// QuickParty; BR draws combat icons, so Head and Body stay empty).
+// QuickParty, quickWeapon, quickGeneral; BR draws combat icons, so Head and Body stay empty).
 var brQuickParty = []game.QuickPick{
-	{Race: "Desert Runner", Gender: "Male", Class: "Warrior", Need: map[string]int{"str": 17, "con": 16}, Name: "Rook"},
-	{Race: "Mercurian", Gender: "Female", Class: "Warrior", Need: map[string]int{"str": 15, "dex": 16}, Name: "Kade"},
-	{Race: "Terran", Gender: "Male", Class: "Rocket Jock", Need: map[string]int{"dex": 16, "int": 13}, Name: "Ace"},
-	{Race: "Martian", Gender: "Female", Class: "Rogue", Need: map[string]int{"dex": 16, "cha": 14}, Name: "Vex"},
-	{Race: "Tinker", Gender: "Female", Class: "Engineer", Need: map[string]int{"tch": 17, "int": 12}, Name: "Gizmo"},
-	{Race: "Venusian", Gender: "Male", Class: "Medic", Need: map[string]int{"wis": 16, "int": 14}, Name: "Doc"},
+	{Race: "Desert Runner", Gender: "Male", Class: "Warrior", Need: map[string]int{"str": 17, "con": 16}, Name: "Rook", Weapon: xxvc.ItemIDLaserRifle, Skill: xxvc.FirstAid},
+	{Race: "Mercurian", Gender: "Female", Class: "Warrior", Need: map[string]int{"str": 15, "dex": 16}, Name: "Kade", Weapon: xxvc.ItemIDMonoSword, Skill: xxvc.FirstAid},
+	{Race: "Terran", Gender: "Male", Class: "Rocket Jock", Need: map[string]int{"dex": 16, "int": 13}, Name: "Ace", Skill: xxvc.FirstAid},
+	{Race: "Martian", Gender: "Female", Class: "Rogue", Need: map[string]int{"dex": 16, "cha": 14}, Name: "Vex", Skill: xxvc.FirstAid},
+	{Race: "Tinker", Gender: "Female", Class: "Engineer", Need: map[string]int{"tch": 17, "int": 12}, Name: "Gizmo", Skill: xxvc.RepairWeapon},
+	{Race: "Venusian", Gender: "Male", Class: "Medic", Need: map[string]int{"wis": 16, "int": 14}, Name: "Doc", Skill: xxvc.Notice},
 }
 
 // br1GameData is BR1's game.Data for gamedata.json. Not here: Art (json:"-": the engine builds the terrain and

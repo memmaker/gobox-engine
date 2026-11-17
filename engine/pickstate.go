@@ -52,10 +52,7 @@ func (e *Engine) iconEditorState(edit *iconEdit) *game.IconEditor {
 	amiga := e.iconAmiga()
 	k := &game.IconEditor{Large: c.Size == 2, Custom: c.PNG != nil, IconPNG: c.PNG}
 	if sheet := e.artNames().MemberIcons; sheet != "" { // a whole picture (BR1: CustomizeIcon picks one of CHARS): its two poses, nothing to compose
-		k.Whole = true
-		for p := range 2 {
-			k.Poses[p] = framePicture(e.memberIcon(c.Body, p), 0, int(e.artNames().IconMask))
-		}
+		k.Whole, k.Poses = true, e.memberIconPoses(c.Body)
 		return k
 	}
 	for p := range 2 {

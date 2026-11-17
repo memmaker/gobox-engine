@@ -15,12 +15,12 @@ import (
 // quickPicks are template q's creation picks (race, gender, class and
 // alignment as the ruleset knows them); a template naming what the ruleset
 // lacks is a bug of the game's data.
-func (e *Engine) quickPicks(q game.QuickPick) map[rules.FieldID]int {
-	o, err := e.ruleset().Resolve(nil, rules.PickKind{Race: q.Race, Gender: q.Gender, Class: q.Class, Align: q.Align}, nil)
+func (e *Engine) quickPicks(q game.QuickPick) rules.Picked {
+	o, err := e.ruleset().Resolve(nil, rules.PickKind{Race: q.Race, Gender: q.Gender, Class: q.Class, Align: q.Align, Weapon: q.Weapon, Skill: q.Skill}, nil)
 	if err != nil {
 		panic(fmt.Sprintf("quick party %s: %v", q.Name, err))
 	}
-	return o.Effects[0].(rules.Picked).Picks
+	return o.Effects[0].(rules.Picked)
 }
 
 // QuickStart creates the Data.QuickParty members and puts them in the party

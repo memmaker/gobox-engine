@@ -1047,6 +1047,8 @@ type FrameCell struct {
 // portrait names, sprites series "pool", kind "portraits", e.g. "head_003").
 type QuickPick struct {
 	Race, Gender, Class, Align string
+	Weapon                     rules.ItemID // XXVc: the warrior's weapon specialization (rules.PickKind; 0: none)
+	Skill                      rules.Skill  // XXVc: the general skill bought ("": none)
 	Need                       map[string]int
 	Name                       string
 	Head, Body                 string

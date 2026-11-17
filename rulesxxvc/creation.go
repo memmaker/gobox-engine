@@ -294,8 +294,10 @@ const quickRerolls = 2000
 
 func (creation) QuickRerolls() int { return quickRerolls }
 
-// pickKind is the creation picks of the race, gender and career named (rules.PickKind); XXVc has no alignment.
-func pickKind(a rules.PickKind) (rules.Outcome, error) {
+// pickKind is the creation picks of the race, gender and career named (rules.PickKind); XXVc has no alignment. A
+// warrior's Weapon is its specialization; the points go (buckrogers-go quickSkills) to every career skill, and to the
+// general Skill and the general skills the career starts with.
+func (r *Rules) pickKind(a rules.PickKind) (rules.Outcome, error) {
 	race := slices.IndexFunc(pickRaces, func(r rules.Race) bool { return xxvc.RaceNames[r] == a.Race })
 	gender := slices.IndexFunc(pickGenders, func(g rules.Sex) bool { return xxvc.GenderNames[g] == a.Gender })
 	career := slices.IndexFunc(pickCareers, func(c rules.Class) bool { return xxvc.CareerNames[c] == a.Class })
@@ -303,7 +305,30 @@ func pickKind(a rules.PickKind) (rules.Outcome, error) {
 		return rules.Outcome{}, fmt.Errorf("rulesxxvc: no kind %+v", a)
 	}
 	picks := map[rules.FieldID]int{fieldRace: race, fieldGender: gender, fieldCareer: career}
-	return rules.Outcome{Effects: []rules.Effect{rules.Picked{Picks: picks}}}, nil
+	c := creation{r: r}
+	kind := pickCareers[career]
+	if a.Weapon != 0 {
+		w := slices.Index(c.specializable(), a.Weapon)
+		if w < 0 || kind != xxvc.Warrior {
+			return rules.Outcome{}, fmt.Errorf("rulesxxvc: no weapon specialization %d for a %s", a.Weapon, a.Class)
+		}
+		picks[fieldSpecialization] = w
+	}
+	careerList, general := skillLists(kind)
+	start := startingSkills(r.tables.Creation, kind)
+	spend := map[rules.FieldID][]int{}
+	for o := range careerList {
+		spend[fieldCareerSkills] = append(spend[fieldCareerSkills], o)
+	}
+	for o, n := range general {
+		if n == skillNumber(a.Skill) || start.Level(n) > 0 {
+			spend[fieldGeneralSkills] = append(spend[fieldGeneralSkills], o)
+		}
+	}
+	if a.Skill != "" && !slices.Contains(general, skillNumber(a.Skill)) {
+		return rules.Outcome{}, fmt.Errorf("rulesxxvc: no general skill %q for a %s", a.Skill, a.Class)
+	}
+	return rules.Outcome{Effects: []rules.Effect{rules.Picked{Picks: picks, Spend: spend}}}, nil
 }
 
 // SetScore keeps ability a at v as ModifyCharacterMenu's Add and Subtract do: at most its race's adjustment + 18, at

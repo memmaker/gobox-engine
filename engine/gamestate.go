@@ -547,9 +547,7 @@ func (e *Engine) iconState(id rules.CharID, m *game.Member) {
 		off = 0x40
 	}
 	if e.artNames().MemberIcons != "" { // a whole picture: the sheet's poses, no head and body to compose
-		for p := range m.IconPoses {
-			m.IconPoses[p] = framePicture(e.memberIcon(ic.Body, p), 0, int(e.artNames().IconMask))
-		}
+		m.IconPoses = e.memberIconPoses(ic.Body)
 		return
 	}
 	m.Icon, m.IconColors = map[string]int{"head": ic.Head + off, "body": ic.Body + off}, nil

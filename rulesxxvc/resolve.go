@@ -26,7 +26,7 @@ func (r *Rules) Resolve(s rules.Situation, a rules.Action, rng *rules.RNG) (rule
 		r.options.Difficulty = a.Level
 		return rules.Outcome{}, nil
 	case rules.PickKind:
-		return pickKind(a)
+		return r.pickKind(a)
 	case rules.SetIconPics: // CharGen's CustomizeIcon: the icon is a body in CHARS.DAX, nothing else
 		c := r.chars[a.Who]
 		if c == nil {

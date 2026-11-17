@@ -58,6 +58,18 @@ func begin(r rules.CreationRules, rng *rules.RNG, picks map[rules.FieldID]int) (
 			d.SetField(f.ID, d.D.Picks[f.ID])
 		}
 	}
+	set := map[rules.FieldID]bool{}
+	for again := true; again; { // a field a pick opens (XXVc: a warrior's weapon) takes its pick too, once
+		again = false
+		for _, f := range d.Fields {
+			if p, ok := picks[f.ID]; ok && f.Kind == rules.FieldChoice && !set[f.ID] && d.D.Picks[f.ID] != p {
+				set[f.ID] = true
+				d.SetField(f.ID, p)
+				again = true
+				break
+			}
+		}
+	}
 	d.sizeSkills()
 	if d.D.Sheet.Scores == nil {
 		if err := d.Roll(rules.RollFull); err != nil {
@@ -218,6 +230,21 @@ func QuickParty(r rules.CreationRules, rng *rules.RNG) ([]rules.CharID, error) {
 		for i := 0; i < r.QuickRerolls() && !meets(d.D, t.Need); i++ {
 			if err := d.Roll(rules.RollFull); err != nil {
 				return out, err
+			}
+		}
+		var points []rules.FieldID // the sheet's order: one points field may open another's options
+		for _, f := range d.Fields {
+			points = append(points, f.ID)
+		}
+		for _, f := range points { // a point on each in turn while any goes (buckrogers-go quickSkills)
+			opts := t.Spend[f]
+			for more := len(opts) > 0; more; {
+				more = false
+				for _, o := range opts {
+					if d.Spend(f, o, 1) == nil {
+						more = true
+					}
+				}
 			}
 		}
 		d.D.Name, d.D.Head, d.D.Body, d.D.Icon.Head, d.D.Icon.Body = t.Name, t.Head, t.Body, t.IconHead, t.IconBody

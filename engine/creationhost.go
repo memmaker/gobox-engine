@@ -55,9 +55,10 @@ func (h creationHost) QuickParty() []rules.Template {
 			}
 			need[a] = int32(v)
 		}
+		p := h.e.quickPicks(qp)
 		out = append(out, rules.Template{
-			Picks: h.e.quickPicks(qp),
-			Name:  qp.Name, Head: rules.PicID(qp.Head), Body: rules.PicID(qp.Body), Need: need,
+			Picks: p.Picks, Spend: p.Spend,
+			Name: qp.Name, Head: rules.PicID(qp.Head), Body: rules.PicID(qp.Body), Need: need,
 		})
 	}
 	return out

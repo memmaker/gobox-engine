@@ -165,6 +165,7 @@ func IconEditor(k *game.IconEditor, palette []color.RGBA, own game.Member, ink *
 		}
 	}
 	if ed.Whole { // one of the game's pictures: it can only be picked
+		ed.Poses = wholePoses(k.Poses)
 		ed.Weapon = cell(wc, previewRow, wc+3, previewRow)
 		ed.Head, ed.Size, ed.Names, ed.Parts, ed.Palette = CellRect{}, CellRect{}, CellRect{}, CellRect{}, CellRect{}
 	}

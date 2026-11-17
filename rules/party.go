@@ -112,14 +112,21 @@ type ForgetParty struct{}
 // option's place) of a kind named as the game's data names it (Race,
 // Gender, Class, Align); the Outcome holds Picked. Error: a name the
 // ruleset does not know.
-type PickKind struct{ Race, Gender, Class, Align string }
+type PickKind struct {
+	Race, Gender, Class, Align string
+	Weapon                     ItemID // XXVc: the warrior's weapon specialization (0: none)
+	Skill                      Skill  // XXVc: the general skill the points go to ("": none)
+}
 
 func (ForgetParty) action() {}
 
 func (PickKind) action() {}
 
 // Picked is the creation picks PickKind asked.
-type Picked struct{ Picks map[FieldID]int }
+type Picked struct {
+	Picks map[FieldID]int
+	Spend map[FieldID][]int // the points fields' options to spend on, a point each in turn until none goes (nil: none)
+}
 
 func (Picked) effect() {}
 

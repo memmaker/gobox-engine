@@ -535,7 +535,9 @@ func testDropOnce(t *testing.T, mk func(*testing.T) *Engine) {
 }
 
 // TestQuickAll: Quick for the whole party (Shift-U, the bar's Quick All) is
-// offered and taken: every party member goes to the computer.
+// offered and taken: every party member goes to the computer, so the fight
+// plays on to its end with no member's turn asked (a won fight ends there,
+// no "Continue Battle:", and its end takes the party off Quick).
 func TestQuickAll(t *testing.T) {
 	e := partyTurnScene(t)
 	if !slices.Contains(fighting(e).Allowed.Plain, game.Action(game.Quick{All: true})) {
@@ -544,9 +546,14 @@ func TestQuickAll(t *testing.T) {
 	if _, err := e.doNow(game.Quick{All: true}); err != nil {
 		t.Fatalf("Quick All: %v", err)
 	}
-	for _, c := range e.state().Party {
-		if c.Side == rules1e.SideParty && c.Control < 0x80 && c.Auto == 0 {
-			t.Errorf("%s not on Quick after Quick All", c.Name())
+	if s := e.build(); myTurn(s) {
+		t.Fatalf("a member's turn asked after Quick All (%T)", s)
+	}
+	if _, ok := e.build().(game.Fighting); ok {
+		for _, c := range e.state().Party {
+			if c.Side == rules1e.SideParty && c.Control < 0x80 && c.Auto == 0 {
+				t.Errorf("%s not on Quick after Quick All", c.Name())
+			}
 		}
 	}
 }

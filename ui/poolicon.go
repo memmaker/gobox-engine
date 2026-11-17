@@ -221,11 +221,8 @@ func PickIcon(own game.Member, head, body string) image.Image {
 // memberPoses are own's combat icon in its two poses (the pool's first
 // while nothing is picked).
 func memberPoses(own game.Member) (out [2]image.Image) {
-	if own.IconPoses[0].Pixels != nil { // the game's whole picture
-		for pose, pic := range own.IconPoses {
-			out[pose] = posePicture(pic)
-		}
-		return out
+	if own.IconPoses[0].File != "" { // the game's whole picture
+		return wholePoses(own.IconPoses)
 	}
 	m := subject(own)
 	h, b := memberIcon(m)
@@ -238,19 +235,14 @@ func memberPoses(own game.Member) (out [2]image.Image) {
 	return out
 }
 
-// posePicture is a game's icon pose as an image, in the EGA's colours where it has no palette (nil: none).
-func posePicture(pic game.Picture) image.Image {
-	if pic.Pixels == nil || pic.W == 0 {
-		return nil
+// wholePoses are a game's whole-picture icon poses (Member.IconPoses, IconEditor.Poses) as images, from the DAX cache.
+func wholePoses(poses [2]game.Picture) (out [2]image.Image) {
+	for pose, pic := range poses {
+		if pic.File != "" {
+			out[pose] = picImage(drawnPicture(pic), egaInk)
+		}
 	}
-	if pic.Palette != nil {
-		return PalettedRGBA(pic.Pixels, pic.W, pic.Palette)
-	}
-	var ink [16]color.RGBA
-	for i := range ink {
-		ink[i] = asset.EGARGBA(i)
-	}
-	return IndexedRGBA(pic.Pixels, pic.W, pic.Clear, &ink)
+	return out
 }
 
 // iconImage is the pool icon of head and body in pose, as an image (nil: none).

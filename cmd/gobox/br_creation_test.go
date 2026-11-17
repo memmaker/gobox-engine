@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"gobox/buck"
-	"gobox/game"
 	"gobox/engine"
+	"gobox/game"
 	"gobox/ui"
 )
 
@@ -38,7 +38,7 @@ func TestBR1QuickStart(t *testing.T) {
 		t.Fatalf("party of %d, want 6", len(party))
 	}
 	for _, m := range party {
-		if m.IconPoses[0].Pixels == nil {
+		if m.IconPoses[0].File == "" {
 			t.Errorf("%s has no combat icon", m.Name)
 		}
 	}
@@ -65,7 +65,7 @@ func TestBR1IconPick(t *testing.T) {
 		if as.Draft == nil {
 			t.Fatalf("no creation sheet: state %T", eng.State())
 		}
-		return as.Draft.IconPoses[0].Pixels != nil
+		return as.Draft.IconPoses[0].File != ""
 	}
 	for _, k := range []uint16{'p', 'c', 'I', 'B', biosRight, '\r', 'K'} {
 		if k == 'I' && draftIcon() {

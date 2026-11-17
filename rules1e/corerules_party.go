@@ -143,6 +143,9 @@ func (r *Rules) resolveParty(a rules.Action) (rules.Outcome, bool, error) {
 			s.GainExperience(c, a.Points)
 		}
 	case rules.PickKind:
+		if a.Weapon != 0 || a.Skill != "" {
+			return rules.Outcome{}, true, fmt.Errorf("PickKind %+v: no weapon or skill picks in AD&D creation", a)
+		}
 		k, err := kindNamed(a)
 		if err != nil {
 			return rules.Outcome{}, true, err

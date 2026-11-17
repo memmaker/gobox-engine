@@ -199,3 +199,15 @@ func (e *Engine) memberIconByte(id rules.PicID) (byte, bool) {
 	}
 	return 0, false
 }
+
+// memberIconPoses are icon block's two poses as references into the member icons' sheet: the front loads them (its
+// DAX cache, the game's mask), the state carries no pixels.
+func (e *Engine) memberIconPoses(block int) (out [2]game.Picture) {
+	if block < 0 { // none picked yet (rulesxxvc noIcon)
+		return out
+	}
+	for p := range out {
+		out[p] = game.Picture{File: e.artNames().MemberIcons, Block: block + p*memberIconAction}
+	}
+	return out
+}

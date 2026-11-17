@@ -134,6 +134,7 @@ type Template struct {
 	Head, Body         PicID
 	IconHead, IconBody PicID
 	Need               map[Ability]int32 // rerolled until these are met (POR quickPick.good)
+	Spend              map[FieldID][]int // the points spent after the rolls (Picked.Spend)
 }
 
 // IconSize is the built combat icon's size (POR IconSize 1, 2).

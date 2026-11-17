@@ -38,6 +38,13 @@ var Careers = []rules.Class{RocketJock, Medic, Warrior, Engineer, Rogue, Scout}
 
 const BattleTactics rules.Skill = "battle-tactics" // BR skill 31 (combat.go tactics)
 
+// The general skills the Quick Start team buys (buckrogers-go quickGeneral).
+const (
+	FirstAid     rules.Skill = "first-aid"
+	RepairWeapon rules.Skill = "repair-weapon"
+	Notice       rules.Skill = "notice"
+)
+
 // Skills are the 84 skills by number: Skills[n-1] is skill n (skillDefinitions,
 // TCharacter.skillLevels' index).
 var Skills = []rules.Skill{
