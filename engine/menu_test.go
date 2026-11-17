@@ -13,7 +13,7 @@ func TestItemStats(t *testing.T) {
 	e.state().Items[2].Protection = rules1e.AcGiven | 1                                   // type 2: shield 1
 	e.state().Items[3].Protection = rules1e.AcGiven | (rules1e.AcTen + 7)                 // type 3: plate mail 7
 	e.state().Items[4].Protection = rules1e.AcGiven | rules1e.AcTen                       // type 4: bracers 0
-	for typ, want := range []string{"", "(2d4+1) ", "[1] ", "[7] ", "[0] "} {
+	for typ, want := range []string{"", "(2d4+1) ", "<1> ", "<7> ", "<0> "} {
 		if s := e.state().ItemStats(&rules1e.Item{Type: rules1e.ItemType(typ)}); s != want {
 			t.Errorf("type %d: %q, want %q", typ, s, want)
 		}
@@ -23,7 +23,7 @@ func TestItemStats(t *testing.T) {
 		plus   int8
 		hidden byte
 		want   string
-	}{{4, 4, 0, "[4] "}, {4, 4, 1, "[0] "}, {3, 2, 0, "[9] "}, {2, 1, 0, "[2] "}, {1, 3, 0, "(2d4+1) "}} {
+	}{{4, 4, 0, "<4> "}, {4, 4, 1, "<0> "}, {3, 2, 0, "<9> "}, {2, 1, 0, "<2> "}, {1, 3, 0, "(2d4+1) "}} {
 		if s := e.state().ItemStats(&rules1e.Item{Type: c.typ, Plus: byte(c.plus), Hidden: c.hidden}); s != c.want {
 			t.Errorf("type %d %+d hidden %d: %q, want %q", c.typ, c.plus, c.hidden, s, c.want)
 		}

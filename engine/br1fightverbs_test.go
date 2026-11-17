@@ -171,9 +171,10 @@ func TestBR1Flee(t *testing.T) {
 		}
 	}
 	br1Turns(t, e, f, br1FleeChoice(t, e), func(s game.State) bool { _, ok := s.(game.Fighting); return !ok })
-	log := strings.Join(e.ext.log.lines, "|")
-	if strings.Count(log, "Got Away") < len(members) {
-		t.Errorf("%d members, log %q", len(members), e.ext.log.lines)
+	for _, id := range members {
+		if !e.ext.log.out[id] {
+			t.Errorf("member %d not out of the fight, log %q", id, e.ext.log.lines)
+		}
 	}
 	if got := len(e.partyIDs()); got != len(members) {
 		t.Errorf("party list %d, want the %d members (the monster left it)", got, len(members))
@@ -190,6 +191,7 @@ func TestBR1Flee(t *testing.T) {
 func TestBR1FleeOne(t *testing.T) {
 	e, f := br1AtTurn(t, br1FarFight, br1FarFacing)
 	runner := f.Field.Turn
+	runnerID := e.unitID(runner) // looked up while it is on the board
 	flee := br1FleeChoice(t, e)
 	onBoard := func(s game.State) bool {
 		ff, ok := s.(game.Fighting)
@@ -213,8 +215,8 @@ func TestBR1FleeOne(t *testing.T) {
 	if !ok {
 		t.Fatalf("the fight ended with one member fled: %T", e.build())
 	}
-	if !strings.Contains(strings.Join(e.ext.log.lines, "|"), "Got Away") {
-		t.Errorf("log %q", e.ext.log.lines)
+	if !e.ext.log.out[runnerID] {
+		t.Errorf("the runner %d is not out of the fight, log %q", runnerID, e.ext.log.lines)
 	}
 	if len(s.Field.Units) < 2 {
 		t.Errorf("%d units left on the board, want the other member and the monster", len(s.Field.Units))
