@@ -25,6 +25,23 @@ func (r *Rules) Resolve(s rules.Situation, a rules.Action, rng *rules.RNG) (rule
 	case rules.SetDifficulty: // explore.pas CampDifficultyMenu: zone0 difficulty := the level picked
 		r.options.Difficulty = a.Level
 		return rules.Outcome{}, nil
+	case rules.SetIconPics: // CharGen's CustomizeIcon: the icon is a body in CHARS.DAX, nothing else
+		c := r.chars[a.Who]
+		if c == nil {
+			return rules.Outcome{}, errNoMember
+		}
+		if a.Pics.Head != 0 || a.Pics.Size != 1 || a.Pics.Colours != ([rules.IconParts]rules.IconColour{}) || a.Pics.PNG != nil {
+			return rules.Outcome{}, errIconBodyOnly
+		}
+		c.Icon = a.Pics.Body
+		return rules.Outcome{}, nil
+	case rules.ResetIcon: // SetDefaultIcon
+		c := r.chars[a.Who]
+		if c == nil {
+			return rules.Outcome{}, errNoMember
+		}
+		c.Icon = defaultIcon(c.Race, c.Sex, c.Career, rng)
+		return rules.Outcome{}, nil
 	case rules.GiveItem:
 		return r.giveItem(a)
 	case rules.Halve:

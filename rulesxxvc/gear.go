@@ -11,6 +11,9 @@ import (
 // splits a stack, Join takes in the others of its kind (the stack limit is maxStack, the carry limit
 // maxCarriedItems; shop.go joinItem).
 
+// errIconBodyOnly: a BR1 icon is a CHARS.DAX body only (no head, size, colours or PNG).
+var errIconBodyOnly = errors.New("rulesxxvc: the icon is a body only")
+
 var errNoItem = errors.New("rulesxxvc: the member carries no such item")
 
 // The gear menu's words (viewchar.pas PrintBottomLine, in UseItemMenu's actions).
