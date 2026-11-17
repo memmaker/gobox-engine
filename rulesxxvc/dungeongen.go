@@ -301,7 +301,8 @@ const (
 // laid from its walls. The generator is seeded with the ECL script's id (ReseedRandom(eclId)), so one script draws
 // the same sequence: seed is that stream's start; the call's own stream is not touched (RestoreRandom).
 // straight (Board.Straight) is the deskewed arena: the same squares with the skew taken out (rules.StraightX) and their
-// walls one square thick, laid over the original's pieces before the scatter (rules1e's squareWalls).
+// walls one square thick, laid on the bare floor before the scatter (rules1e's squareWalls); the original's skewed pieces
+// are not laid.
 func buildDungeonArena(place rules.PlaceTraits, walls rules.MapSides, partyAt rules.BoardPos, seed uint32, straight bool) *[arenaRows][arenaCols]rules.TerrainID {
 	d := &dungeonArena{rng: &rules.RNG{State: seed}, straight: straight}
 	floor := rules.TerrainID(floorHitek)
@@ -325,8 +326,8 @@ func buildDungeonArena(place rules.PlaceTraits, walls rules.MapSides, partyAt ru
 			}
 		}
 	}
-	if straight { // the structure of every square, the straight walls over it, then the scatter on the floor left (the draws keep the original's order)
-		d.eachSquare(func() { d.layStructure(walls, partyAt) })
+	if straight { // the straight walls, then the scatter on the floor left (the draws keep the original's order); the original's
+		// skewed wall pieces (layStructure, no draws) are not laid: off the straight walls' lines they stood as leftovers
 		d.squareWalls(walls, partyAt, floor)
 		d.eachSquare(func() { d.scatterSquare(walls, partyAt, place) })
 		return &d.cells
@@ -352,7 +353,7 @@ const (
 	straightPost  = 40
 )
 
-// squareWalls (extra, Deskew) lays the straight board's walls over the original's pieces, before the scatter: one
+// squareWalls (extra, Deskew) lays the straight board's walls on the bare floor, before the scatter: one
 // square thick with square corners. A square's west wall is its block's first column, its north wall the first row, a
 // door the two middle squares between posts (rules1e's squareWalls, the same cells with this game's tiles).
 func (d *dungeonArena) squareWalls(walls rules.MapSides, partyAt rules.BoardPos, floor rules.TerrainID) {
@@ -363,10 +364,8 @@ func (d *dungeonArena) squareWalls(walls rules.MapSides, partyAt rules.BoardPos,
 		switch {
 		case doorway: // the open middle of a door: no piece of the original stands in it
 			d.cells[y][x] = floor
-		case wall: // a piece of the original's already there is replaced: the column is one tile (the old test's)
+		case wall: // the column is one tile (the old test's)
 			d.cells[y][x] = rules.TerrainID(pv + 1)
-		case terrainRow(d.cells[y][x]).cost == impassable: // an original piece with no wall here
-			d.cells[y][x] = floor
 		}
 	}
 	edge := func(x, y, dir int) int { return wallBetween(walls, partyAt.Y, x, y, dir) }

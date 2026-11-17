@@ -47,3 +47,37 @@ func TestDeskewWestColumn(t *testing.T) {
 		t.Error("the skewed arena shows the straight column")
 	}
 }
+
+// TestDeskewNoSkewedPieces: the straight arena holds none of the original's skewed wall pieces (layStructure's terrains
+// that are no straight wall and no scatter): off the straight walls' lines they stood on the board as leftovers. Detects
+// the class: anything on the straight board drawn from the skewed layout.
+func TestDeskewNoSkewedPieces(t *testing.T) {
+	var m rules.Map
+	for i := range 0x200 {
+		m.Plane[i] = 0x11
+	}
+	party := rules.BoardPos{X: 8, Y: 8}
+	const place = rules.TraitScatterTiles
+	pieces := func(lay func(d *dungeonArena)) map[rules.TerrainID]bool {
+		d := &dungeonArena{rng: &rules.RNG{State: 1}}
+		lay(d)
+		got := map[rules.TerrainID]bool{}
+		for y := range d.cells {
+			for _, c := range d.cells[y] {
+				got[c] = true
+			}
+		}
+		return got
+	}
+	skewed := pieces(func(d *dungeonArena) { d.eachSquare(func() { d.layStructure(&m, party) }) })
+	scatter := pieces(func(d *dungeonArena) { d.eachSquare(func() { d.scatterSquare(&m, party, place) }) })
+	straight := buildDungeonArena(place, &m, party, 1, true)
+	for y := range straight {
+		for x, c := range straight[y] {
+			wall := c == straightWest+1 || c == straightNorth+1 || c == straightPost+1
+			if skewed[c] && !wall && !scatter[c] {
+				t.Fatalf("%d,%d: terrain %d is a skewed wall piece", x, y, c)
+			}
+		}
+	}
+}
