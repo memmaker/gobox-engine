@@ -86,14 +86,13 @@ func turnOptions(c *game.Combat, d game.Data) []game.Option {
 	return slices.Insert(slices.Clone(ops), at, game.Option{Label: cmp.Or(d.Texts["View"], "View"), Key: k, Do: game.ViewMember{Member: viewSelected}})
 }
 
-// tilePicture is the tile name's art a as a picture to make, the series
-// sprite of that name when a has no picture.
+// tilePicture is the tile name's art a as a picture to make; a series sprite of that name (a remastered tile: BR's
+// <sheet>_tile_<frame>) replaces it, as a series mesh replaces the tile on the board.
 func tilePicture(name string, a game.Picture) Picture {
-	pc := pix(a)
-	if im := asset.SpriteImage(Series, "combat", name); a.File == "" && pc.Pix == nil && im != nil { // a series sprite
-		pc.Img = im
+	if im := asset.SpriteImage(Series, "combat", name); im != nil {
+		return Picture{Img: im}
 	}
-	return pc
+	return pix(a)
 }
 
 // boardOf is the fight c as the tabletop draws it, its pictures made: the
