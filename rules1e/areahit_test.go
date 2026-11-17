@@ -65,3 +65,24 @@ func TestAreaHitsAllItShows(t *testing.T) {
 		}
 	}
 }
+
+// TestPorSpellAreas: POR's area spells take the area por-re's spellTable
+// gives them (gdconsts.pas, the area byte: its low nibble the mode, 8..E an
+// area of radius mode&7), and spellAim offers it (Area = radius+1). All 67
+// area bytes matched the Pascal on 2026-11-17.
+func TestPorSpellAreas(t *testing.T) {
+	e := &RuleState{Tables: &POR}
+	e.Fight.On = true
+	r := &Rules{S: e}
+	for _, w := range []struct {
+		n    int
+		area int // the Pascal's area byte
+	}{{1, 10}, {2, 10}, {21, 9}, {34, 9}, {41, 9}, {46, 9}, {47, 11}, {48, 10}, {50, 9}, {51, 8}, {55, 10}} {
+		if got := e.SpellData(w.n, 0); int(got) != w.area {
+			t.Errorf("spell %d: area byte %d, the Pascal's %d", w.n, got, w.area)
+		}
+		if a := r.spellAim(SpellIDs[w.n]); a.Kind != rules.SpellAimArea || a.Area != w.area&7+1 {
+			t.Errorf("spell %d %s: aim %+v, want area %d", w.n, SpellIDs[w.n], a, w.area&7+1)
+		}
+	}
+}
