@@ -409,11 +409,15 @@ func (r *Rules) EndFight(f rules.Fight, _ *rules.RNG) rules.FightResult {
 	return res
 }
 
-// dropMonsters takes the hostile characters out of the party list and the ruleset (PostCombatCreatureCleanup).
+// dropMonsters takes the creatures loaded for the fight out of the party list and the ruleset (PostCombatCreatureCleanup):
+// every one past the party's count, friendly companions too, is out of play (InitCreatureCombatData) and leaves, as do
+// hostiles anywhere in the list.
 func (r *Rules) dropMonsters() {
+	n := 0
 	r.party = slices.DeleteFunc(r.party, func(id rules.CharID) bool {
+		n++
 		c := r.chars[id]
-		gone := c != nil && !c.team()
+		gone := c != nil && (n > int(r.memberCount) || !c.team())
 		if gone {
 			delete(r.chars, id)
 		}
