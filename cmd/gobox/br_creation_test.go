@@ -60,23 +60,31 @@ func TestBR1IconPick(t *testing.T) {
 			f.Key('\r')
 		}
 	}
-	draftIcon := func() bool {
+	draftIcon := func() game.Picture {
 		as, _ := eng.State().(game.Assembling)
 		if as.Draft == nil {
 			t.Fatalf("no creation sheet: state %T", eng.State())
 		}
-		return as.Draft.IconPoses[0].File != ""
+		return as.Draft.IconPoses[0]
 	}
+	var first game.Picture
 	for _, k := range []uint16{'p', 'c', 'I', 'B', biosRight, '\r', 'K'} {
-		if k == 'I' && draftIcon() {
-			t.Fatal("the draft has an icon before one is picked (SetDefaultIcon comes with Keep)")
-		}
 		f.Key(k)
 		for range 30 {
 			f.Frame(1280, 800)
 		}
+		switch k {
+		case 'c':
+			if first = draftIcon(); first.File == "" {
+				t.Fatal("the fresh draft has no icon (SetDefaultIcon's for its kind)")
+			}
+		case 'I':
+			if ed := game.CommonOf(eng.State()).IconEditor; ed == nil || ed.Poses[0].Block != first.Block {
+				t.Fatalf("the icon screen's first open does not show the draft's icon %+v: %+v", first, ed)
+			}
+		}
 	}
-	if !draftIcon() {
-		t.Error("the picked icon is not the draft's")
+	if got := draftIcon(); got.File == "" || got.Block == first.Block {
+		t.Errorf("the picked icon is not the draft's: %+v, the default %+v", got, first)
 	}
 }

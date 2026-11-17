@@ -41,6 +41,7 @@ func (r *Rules) draftOf(id rules.CharID) (rules.Draft, error) {
 	}}
 	d.Sheet = r.Sheet(id)
 	d.Sheet.Sex = c.Sex
+	d.Icon = r.icon(c.Icon)
 	d.MinHP = hpMinimum(c.Career, c.Level, c.Scores[rules.Constitution])
 	d.MaxHP = hpMaximum(c.Career, c.Level, c.Scores[rules.Constitution])
 	return d, nil

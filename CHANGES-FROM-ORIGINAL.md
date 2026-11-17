@@ -19,6 +19,7 @@ Felix: "Just keep a documentation on what has changed where." One row per bug fi
 | Charisma lookup | all four | per game | `max(3, min(cha, maxCharisma))` | 14 | decided |
 | ROB's item chance | POR | EclRob read var 2 (the money percent) for each item's chance | var 3, as all 14 script ROBs give it (0 none, 255 all) | U1 | por-re 11eb406, por-go 03178bc |
 | Movement on the sheet under Slow, Haste | POR | shown doubled under Slow, halved under Haste | the real movement; Pascal fix lands with viewchar (src/pure) | U5 | por-go 54c4549 (comment); Pascal pending |
+| Default combat icon | BR1 | SetDefaultIcon at Keep (a Desert Runner's drawn then) | set when the race, gender or career is picked, so the sheet and the icon screen show it from the start; the Desert Runner's draw comes then | Felix 2026-11-17 | (this) |
 | Continue Battle: | all four | the foes gone, the round's end asks "Continue Battle:" Y/N (ovr09:0971); Yes plays on with nobody to fight | no question: the won fight ends | Felix 2026-11-17 | (this) |
 
 ## Port's own, not ruled: Felix to confirm

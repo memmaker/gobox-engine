@@ -174,6 +174,7 @@ func (c creation) Enforce(d rules.Draft, f rules.FieldID, o int, rng *rules.RNG)
 	d.Sheet.Race, d.Sheet.Sex = pickRaces[d.Picks[fieldRace]], pickGenders[d.Picks[fieldGender]]
 	career := pickCareers[d.Picks[fieldCareer]]
 	d.Sheet.Classes = rules.ClassSet{career}
+	d.Icon = c.r.icon(defaultIcon(d.Sheet.Race, d.Sheet.Sex, career, rng)) // SetDefaultIcon for the kind picked, on the sheet from the start (the original sets it at Keep)
 	if f != fieldGender || d.Sheet.Scores == nil {
 		d.Sheet.Age = int32(rules.RNGDice(rng, 1, ageDie) + ageBase) // age := RollDice(1, 6) + 18, before the abilities are rolled
 		rollAbilities(c.r.tables.Creation, &d, rng)
@@ -379,9 +380,6 @@ func (c creation) Draft(of rules.CharID) (rules.Draft, error) {
 	return rules.Draft{Picks: map[rules.FieldID]int{fieldRace: 0, fieldGender: 0, fieldCareer: 0}}, nil
 }
 
-// noIcon is a sheet's draft's icon before one is picked: SetDefaultIcon draws it at Keep.
-const noIcon = -1
-
 // draftIcon is the CHARS body d's icon names (false: none picked).
 func (r *Rules) draftIcon(d rules.Draft) (int, bool) {
 	if d.Icon.Body == "" || r.pics == nil {
@@ -394,9 +392,14 @@ func (r *Rules) draftIcon(d rules.Draft) (int, bool) {
 
 // iconOf is c's icon as a draft holds it.
 func (r *Rules) iconOf(c *Character) rules.Icon {
+	return r.icon(c.Icon)
+}
+
+// icon is CHARS body b as a draft holds it.
+func (r *Rules) icon(b int) rules.Icon {
 	ic := rules.Icon{Size: rules.IconSmall}
-	if c.Icon != noIcon && r.pics != nil {
-		_, ic.Body = r.pics.IconPics(rules.Pics{IconBody: byte(c.Icon), IconSize: 1})
+	if r.pics != nil {
+		_, ic.Body = r.pics.IconPics(rules.Pics{IconBody: byte(b), IconSize: 1})
 	}
 	return ic
 }
@@ -473,13 +476,10 @@ func (r *Rules) draftCharacter(d rules.Draft, kit bool) (Character, error) {
 	if d.Sheet.Skills != nil {          // then what EditSkills left
 		c.Skills = levelsOfDraft(d)
 	}
-	switch body, ok := r.draftIcon(d); {
-	case ok: // picked on the sheet (CustomizeIcon, there after Keep)
+	if body, ok := r.draftIcon(d); ok { // the draft's: SetDefaultIcon's when its kind was picked (Enforce), or the player's
 		c.Icon = body
-	case kit: // the character kept: SetDefaultIcon after the skills
+	} else { // a draft that names none (Quick Start's): SetDefaultIcon after the skills
 		c.Icon = defaultIcon(race, d.Sheet.Sex, career, r.stream(nil))
-	default: // the sheet's draft: SetDefaultIcon only comes with Keep
-		c.Icon = noIcon
 	}
 	if kit { // then BuildAmmoItems
 		for _, a := range freeAmmo { // each at the head of the list

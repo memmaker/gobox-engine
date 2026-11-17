@@ -247,7 +247,10 @@ func QuickParty(r rules.CreationRules, rng *rules.RNG) ([]rules.CharID, error) {
 				}
 			}
 		}
-		d.D.Name, d.D.Head, d.D.Body, d.D.Icon.Head, d.D.Icon.Body = t.Name, t.Head, t.Body, t.IconHead, t.IconBody
+		d.D.Name, d.D.Head, d.D.Body = t.Name, t.Head, t.Body
+		if t.IconHead != "" || t.IconBody != "" { // a template naming none keeps the ruleset's default (the draft's)
+			d.D.Icon.Head, d.D.Icon.Body = t.IconHead, t.IconBody
+		}
 		_, id, err := d.Keep()
 		if err != nil {
 			return out, err
