@@ -77,18 +77,10 @@ func (e *Engine) stepFight() bool {
 			return false
 		case fightEnd:
 			e.cs.phase = fightRound
-			if e.endRound() {
-				if e.ruleset().Verdict(e.fight()) == rules.PartyWon { // ovr09:0971: the foes gone, "Continue Battle:" (Yes plays on)
-					e.cs.phase = fightAsk
-					e.askYesNo(yesNo("Continue Battle:", true), false, askDone{kind: dContinueFight}) // ovr09:099E asks through ovr26:10D1, Y/N only
-					e.openAsk()
-					return false
-				}
+			if e.endRound() { // the foes gone: over, no "Continue Battle:" (ovr09:0971's Y/N cut, CHANGES-FROM-ORIGINAL)
 				e.cs.phase = fightOver
 				return true
 			}
-		case fightAsk: // the question is up
-			return false
 		}
 	}
 }
@@ -398,7 +390,6 @@ const (
 	fightTurn                    // the next one to act
 	fightEnd                     // the round ends
 	fightOver                    // the battle is over
-	fightAsk                     // "Continue Battle:" is up (ovr09:0971)
 )
 
 const (

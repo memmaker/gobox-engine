@@ -71,7 +71,6 @@ const (
 	dTavernSpun                     // the tavern: the wager is taken, the spin told
 	dTavernAsk                      // the tavern: the spin had its key
 	dTavernAgain                    // the tavern: go again or not
-	dContinueFight                  // "Continue Battle:"
 	dRestMenu                       // BR's rest menu: Rest rests a day and asks again, Exit leaves
 	dShipMenu                       // the ship fight's crew menu: the place chosen
 	dShipGroup                      // a submenu of it: the offer chosen
@@ -520,11 +519,6 @@ func (e *Engine) complete(d askDone, v ansv) {
 		}
 	case dRocketMove:
 		e.rocketMoved(v.n)
-	case dContinueFight:
-		e.cs.phase = fightOver
-		if v.n == 1 {
-			e.cs.phase = fightRound
-		}
 	default:
 		e.devAnswered(d, v) // the dev scenes' answers (not in -tags nodev)
 	}

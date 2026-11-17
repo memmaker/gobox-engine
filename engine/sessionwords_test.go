@@ -28,7 +28,6 @@ var sessionWant = map[string]string{
 	"camp":           "phase 2 camp true hall false inParty false",
 	"afterCamp":      "phase 0 camp false hall false inParty false",
 	"fight":          "phase 5 camp false hall false inParty false",
-	"winAsk":         "phase 5 camp false hall false inParty false",
 	"afterFight":     "phase 6 camp false hall false inParty false",
 	"afterFightSeen": "6",
 	"shop":           "phase 1 camp false hall false inParty false",
@@ -81,14 +80,10 @@ func TestSessionWordsPhases(t *testing.T) {
 
 	e = devFirstTurn(t, "winfight", false)
 	for range 300 {
-		if q := commonOf(e.build()).Ask; q != nil && q.Text == "Continue Battle:" {
+		if _, ok := e.build().(game.Fighting); !ok { // won: the fight ends (no Continue Battle:)
 			break
 		}
 		e.doNow(game.Quick{})
-	}
-	sessionCheck(t, "winAsk", phaseLine(e))
-	if q := commonOf(e.build()).Ask; q != nil {
-		e.doNow(no(q))
 	}
 	seen := ""
 	for range 200 {

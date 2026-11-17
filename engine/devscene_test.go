@@ -225,56 +225,38 @@ func endTurn(t *testing.T, e *Engine) game.Outcome {
 	return o
 }
 
-// TestContinueBattle: the foes gone and the party standing, the round's end
-// asks ovr09's "Continue Battle:" (0971) inside the fight (Fighting, its
-// Ask a strict yes/no): Yes plays on and asks again, No ends the fight.
-func TestContinueBattle(t *testing.T) {
+// TestWonFightEnds: the foes gone and the party standing, the round's end
+// ends the fight; ovr09's "Continue Battle:" (0971) is cut, nothing asks.
+func TestWonFightEnds(t *testing.T) {
 	e := devFirstTurn(t, "meleefight", false)
 	for i := 1; i <= e.state().Ncomb; i++ {
 		if c := e.state().CombatantSlots[i-1]; c != nil && c.Side != 0 {
 			c.Okay, c.Status = 0, rules1e.StatusDead
 		}
 	}
-	ask := func() *game.Question {
-		t.Helper()
-		for range 60 {
-			s := e.build()
-			if q := commonOf(s).Ask; q != nil {
-				if _, ok := s.(game.Fighting); q.Text != "Continue Battle:" || !ok {
-					t.Fatalf("asked %q in %T", q.Text, s)
-				}
-				if !q.YesNo || !q.NoEsc || !q.NoPick { // ovr26:10D1 loops on Y/N
-					t.Fatalf("Continue Battle: %+v", q)
-				}
-				return q
-			}
-			if !myTurn(s) {
-				t.Fatalf("at rest in %T with nothing to do", s)
-			}
-			endTurn(t, e)
+	for range 60 {
+		s := e.build()
+		if _, ok := s.(game.Fighting); !ok {
+			return
 		}
-		t.Fatal("no Continue Battle:")
-		return nil
+		if q := commonOf(s).Ask; q != nil {
+			t.Fatalf("asked %q", q.Text)
+		}
+		if !myTurn(s) {
+			t.Fatalf("at rest in %T with nothing to do", s)
+		}
+		endTurn(t, e)
 	}
-	e.doNow(yes(ask()))
-	if _, ok := e.build().(game.Fighting); !ok {
-		sc, _ := e.build().(game.Scene)
-		t.Fatalf("Yes ended the fight: %T %q %q phase %v flag %d", e.build(), sc.Text, commonOf(sc).Text, e.cs.phase, e.phase)
-	}
-	e.doNow(no(ask()))
-	if _, ok := e.build().(game.Fighting); ok {
-		t.Fatal("No left the fight up")
-	}
+	t.Fatal("the won fight did not end")
 }
 
 // TestDevWinFight: -dev winfight is winnable by fighting: Quick for the
-// party (the computer attacks) beats its one 1-hp foe, and the round's end
-// asks "Continue Battle:" (ovr09:0971), live-reachable.
+// party (the computer attacks) beats its one 1-hp foe, and the fight ends.
 func TestDevWinFight(t *testing.T) {
 	e := devFirstTurn(t, "winfight", false)
 	for range 300 {
 		s := e.build()
-		if q := commonOf(s).Ask; q != nil && q.Text == "Continue Battle:" {
+		if _, ok := s.(game.Fighting); !ok {
 			return
 		}
 		if !myTurn(s) {
@@ -282,7 +264,7 @@ func TestDevWinFight(t *testing.T) {
 		}
 		e.doNow(game.Quick{})
 	}
-	t.Fatal("winfight: no Continue Battle:")
+	t.Fatal("winfight: not won")
 }
 
 // TestPartyWipeEnds: a lost fight ("The monsters rejoice", ovr06:1527 with

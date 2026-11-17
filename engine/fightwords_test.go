@@ -95,8 +95,7 @@ func TestFightWordsEnd(t *testing.T) {
 	e := devFirstTurn(t, "winfight", false)
 	for range 300 {
 		s := e.build()
-		if q := commonOf(s).Ask; q != nil && q.Text == "Continue Battle:" {
-			e.doNow(no(q))
+		if _, ok := s.(game.Fighting); !ok { // won: the fight ends (no Continue Battle:)
 			break
 		}
 		e.doNow(game.Quick{})
