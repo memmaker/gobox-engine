@@ -8,8 +8,9 @@ import (
 )
 
 // Props (modes flat, extrude, block): a series' combat/props.json maps a tile name to how its decoration
-// draws: {"mode":"flat"|"extrude"|"mesh", "trunk":["<tile name>", ...]}.
-// flat lies on the floor, extrude stands as its extruded sprite, mesh is a
+// draws: {"mode":"flat"|"extrude"|"mesh"|"floor", "trunk":["<tile name>", ...]}.
+// flat lies on the floor, extrude stands as its extruded sprite, floor draws
+// the plain floor alone (a piece of the original's drawn wall a model replaces), mesh is a
 // glTF from Meshes (a tile with one is mesh listed or not). A listed
 // extrude crown's trunk tiles: when one is south of it, the trunk stands
 // under the crown and its own square is floor. Unlisted tiles are inferred.
@@ -22,7 +23,7 @@ type propJSON struct {
 
 // propSet is props.json by tile index.
 type propSet struct {
-	mode  [256]string // "flat" or "extrude"; "": inferred
+	mode  [256]string // "flat", "extrude", "block", "slab" or "floor"; "": inferred
 	trunk [256][]int  // the tiles a crown stands on (nil: the inferred rule)
 	top   [256]int    // a block's top atlas slot (0: its side picture)
 	back  [256]string // a model's backrest side (props.json "back"); "": it keeps its heading

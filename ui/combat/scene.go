@@ -48,6 +48,8 @@ const slabH = 1.5
 // says which itself: extrude stands, flat lies, block is a cube in its own picture.
 func kindOf(s Square, walls int, empty, cut func(int) bool, ps *propSet) kind {
 	switch {
+	case ps.modeOf(s.Tile) == "floor":
+		return plain
 	case ps.modeOf(s.Tile) == "block":
 		return block
 	case ps.modeOf(s.Tile) == "slab":
