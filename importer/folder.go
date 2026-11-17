@@ -14,6 +14,9 @@ import (
 	"gobox/asset"
 )
 
+// ErrStale is why Read rejects a folder written by an older import: importing its originals again fixes it.
+var ErrStale = errors.New("import it again")
+
 // Folder is an imported adventure folder: where it is and its manifest.
 type Folder struct {
 	Dir string
@@ -34,11 +37,11 @@ func Read(dir string) (Folder, error) {
 	}
 	switch {
 	case m.Format != Format:
-		return Folder{}, fmt.Errorf("%s: manifest format %d, want %d (import it again)", dir, m.Format, Format)
+		return Folder{}, fmt.Errorf("%s: manifest format %d, want %d: %w", dir, m.Format, Format, ErrStale)
 	case m.ID != filepath.Base(dir):
 		return Folder{}, fmt.Errorf("%s: manifest names %q", dir, m.ID)
 	case games[m.ID].Version != m.Version && games[m.ID].ID != "":
-		return Folder{}, fmt.Errorf("%s: written by %s's import version %d, want %d (import it again)", dir, m.ID, m.Version, games[m.ID].Version)
+		return Folder{}, fmt.Errorf("%s: written by %s's import version %d, want %d: %w", dir, m.ID, m.Version, games[m.ID].Version, ErrStale)
 	case m.Ruleset == "":
 		return Folder{}, fmt.Errorf("%s: manifest names no ruleset", dir)
 	}

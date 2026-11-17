@@ -17,6 +17,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -86,6 +87,11 @@ func main() {
 	s.Capture = captureOf()
 	s.Seed = resolveSeed(*seed, len(s.Capture.Keys) > 0, time.Now())
 
+	if want := flag.Arg(0); want != "" {
+		if err := reimportStale(*root, want); err != nil {
+			log.Fatal(err)
+		}
+	}
 	folders, skipped, err := importer.List(*root)
 	if err != nil {
 		log.Fatal(err)
@@ -114,6 +120,22 @@ func main() {
 	}
 }
 
+// reimportStale imports game again from its folder's own DOS originals when an older import wrote the folder;
+// any other folder is left as it is.
+func reimportStale(root, game string) error {
+	dir := filepath.Join(root, game)
+	_, err := importer.Read(dir)
+	if !errors.Is(err, importer.ErrStale) {
+		return nil
+	}
+	originals := filepath.Join(dir, "sources", "dos")
+	if _, statErr := os.Stat(originals); statErr != nil {
+		return fmt.Errorf("%w; no originals at %s: gobox import -out %s %s <originals>", err, originals, root, game)
+	}
+	log.Printf("%v: importing %s again from %s", err, game, originals)
+	return importer.Main([]string{"-out", root, game, originals})
+}
+
 // resolveSeed is the dice seed of a run: flag (-seed) when it is >= 0, else
 // 1 for a scripted run (so each prefix's shot is the same game), else the clock now.
 func resolveSeed(flag int64, scripted bool, now time.Time) uint64 {
@@ -135,7 +157,7 @@ func pick(playable []importer.Folder, want string) (importer.Folder, bool) {
 				return f, true
 			}
 		}
-		fmt.Fprintf(os.Stderr, "no game %q\n", want)
+		fmt.Fprintf(os.Stderr, "no game %q (playable: %s; any folder not listed is named above)\n", want, strings.Join(ids(playable), ", "))
 		return importer.Folder{}, false
 	}
 	for i, f := range playable {
@@ -148,4 +170,13 @@ func pick(playable []importer.Folder, want string) (importer.Folder, bool) {
 		return importer.Folder{}, false
 	}
 	return playable[n-1], true
+}
+
+// ids is the folders' game IDs, in their order.
+func ids(folders []importer.Folder) []string {
+	out := make([]string, len(folders))
+	for i, f := range folders {
+		out[i] = f.ID
+	}
+	return out
 }
