@@ -20,7 +20,7 @@ func (e *Engine) printState(t *testing.T) string {
 		list = append(list, fmt.Sprintf("%+v", *n))
 	}
 	return fmt.Sprintf("%x|%v|%v|sel%d|loot%v|fx%d|%v|%v|%v|%v|%v|%v|%+v|%v|%v", blob, e.vars, e.locals, e.sel, e.lootSeen, len(e.fx),
-		list, e.spellIDs, e.ext.labels, e.ext.battleLog, e.ext.panel, e.ext.note, e.snap.strike, e.ext.noteAt, e.events)
+		list, e.spellIDs, e.ext.labels, e.ext.log.lines, e.ext.panel, e.ext.note, e.snap.strike, e.ext.noteAt, e.events)
 }
 
 // TestBuildReadsOnly (REFACTOR G2b): build changes nothing persistent.

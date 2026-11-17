@@ -122,10 +122,11 @@ type extras struct {
 	noteAt     time.Time
 
 	// journal.go
-	printed   string       // the text window's text since it was cleared
-	battleLog []string     // the combat messages of this battle (Log)
-	noteSent  time.Time    // the note's noteAt when result last sent it
-	panel     rules.CharID // whose line the combat status row shows
+	printed  string       // the text window's text since it was cleared
+	log      ledger       // the battle's log (battlelog.go)
+	narrated string       // the rules' last line (Narrated), More joined on, as the note says it
+	noteSent time.Time    // the note's noteAt when result last sent it
+	panel    rules.CharID // whose line the combat status row shows
 }
 
 // preStep is a step's pre-step script run ahead of its Arrive.

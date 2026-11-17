@@ -529,10 +529,7 @@ func (r *frontState) combat(f game.Fighting) *game.Combat {
 		}
 	}
 	t := &game.Turn{Unit: b.Turn, Aim: r.aim != nil, Moves: b.Moves, Casting: b.Casting, Weapon: b.Weapon, Missile: b.Missile}
-	c.Turn, c.Panel, c.Log = t, b.Turn, r.log
-	if slices.ContainsFunc(f.Text, func(l string) bool { return strings.TrimSpace(l) != "" }) { // the rules' message pane is the fight's log; a blank one never hides the blows
-		c.Log = f.Text
-	}
+	c.Turn, c.Panel, c.Log = t, b.Turn, f.Field.Log
 	if r.aim != nil {
 		c.Marks = r.aim.ats
 		if cs, ok := r.aim.Action.(game.Cast); ok {
@@ -1184,24 +1181,12 @@ func (r *frontState) outcome(a game.Action, out game.Outcome, err error) game.Re
 	}
 	r.ask, r.moves, r.aim = nil, nil, nil
 	r.seq++
-	_, fight := r.g.State().(game.Fighting)
-	if !fight {
-		r.log = nil
-	}
 	for _, e := range out.Events {
 		switch e := e.(type) {
 		case game.Refused:
 			r.note = game.Note{Text: e.Why, At: time.Now()}
 		case game.Refreshed:
 			r.refreshed = newRefreshed(e)
-		case game.Narrated:
-			if fight {
-				r.log = append(r.log, e.Text)
-			}
-		case game.Said:
-			if fight {
-				r.log = append(r.log, e.Who+": "+e.Text)
-			}
 		}
 	}
 	return game.Result{Events: eventsAt(out.Events, r.speed*speedStepMs, r.engaged)}

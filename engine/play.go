@@ -126,7 +126,7 @@ func (e *Engine) stateOf(mode game.Mode, pending *game.Question, pg *textPage, d
 		f := game.Fighting{Common: cm}
 		if b := combat; b != nil {
 			f.Field = game.Battlefield{Size: b.Size, Squares: b.Squares, Tiles: b.Tiles, FloorTile: b.FloorTile,
-				Clouds: b.Effects, Round: b.Round, Dungeon: b.Dungeon}
+				Clouds: b.Effects, Round: b.Round, Dungeon: b.Dungeon, Log: b.Log}
 			if t := b.Turn; t != nil {
 				f.Field.Turn, f.Field.Moves, f.Field.Casting, f.Field.Weapon, f.Field.Missile, f.Field.Maneuvers = t.Unit, t.Moves, t.Casting, t.Weapon, t.Missile, t.Maneuvers
 			}

@@ -19,9 +19,10 @@ func (e *Engine) event(ev game.Event) {
 func (e *Engine) pushCombat() {
 	e.setPhase(rules.PhaseFight)
 	e.present() // what the last fight left
-	e.ext.battleLog, e.ext.panel = nil, rules.NoChar
+	e.ext.panel = rules.NoChar
 	e.cs = combatState{}
 	e.combatSetup()
+	e.logStart()
 	if f, ok := e.build().(game.Fighting); ok { // the board before the first turn: the step's fight events play from it
 		e.event(game.Engaged{At: f})
 	}

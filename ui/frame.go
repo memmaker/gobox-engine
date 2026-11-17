@@ -34,7 +34,6 @@ type UI struct {
 	rest       time.Duration         // camp's rest still to go, a chunk per Step (PaceRest)
 	walk       *walking              // the auto-walk under way, a square per walkPace (PaceWalk)
 	seq        uint64                // counts the changes: the front redraws on a new one
-	log        []string              // the fight's message log, from the outcomes' text
 	levels     map[string]savedLevel // gobox's slot files' party levels, by file (saveLevel)
 	note       game.Note             // the status line's toast: the last refusal
 	refreshed  *refreshed            // camp's Fix just done: what its box says (the Presenter's fixMoment takes it)

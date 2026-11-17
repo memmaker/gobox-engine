@@ -298,12 +298,12 @@ func (e *RuleState) Strike(a, b *Character, w Wield) (hit bool) {
 	}
 	if !e.AttackHits(a, b, w, need) {
 		e.Sound(string(rules.CueMiss))
-		e.attackText(a, b, mode, 0, 0, 0)
+		e.attackText(a, b, w, mode, 0, 0, 0)
 		return false
 	}
 	e.Sound(e.hitEvent(b, "hit"))
 	e.DamageRoll(a, b, w, 1)
-	e.attackText(a, b, mode, int(e.Rv.Damage), int(e.Rv.Damage), 1)
+	e.attackText(a, b, w, mode, int(e.Rv.Damage), int(e.Rv.Damage), 1)
 	return true
 }
 

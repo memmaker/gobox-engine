@@ -208,8 +208,8 @@ func TestBR1FightSeed(t *testing.T) {
 	if stopA != stopB || !slices.Equal(a, b) {
 		t.Errorf("two plays differ:\n%q (%s)\n%q (%s)", a, stopA, b, stopB)
 	}
-	if len(eA.ext.battleLog) == 0 || !slices.Equal(eA.ext.battleLog, eB.ext.battleLog) {
-		t.Errorf("the battle logs differ:\n%q\n%q", eA.ext.battleLog, eB.ext.battleLog)
+	if len(eA.ext.log.lines) == 0 || !slices.Equal(eA.ext.log.lines, eB.ext.log.lines) {
+		t.Errorf("the battle logs differ:\n%q\n%q", eA.ext.log.lines, eB.ext.log.lines)
 	}
 }
 

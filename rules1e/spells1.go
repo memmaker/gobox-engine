@@ -648,6 +648,7 @@ func (e *RuleState) SpellEffect(spell SpellID) { e.spellEffect(spell) }
 // spellEffect runs the effect of spell: the DS:6B84 table of spell
 // procedures spellTableInit filled, a switch on the spell here.
 func (e *RuleState) spellEffect(spell SpellID) {
+	defer e.harmBy(e.SpellCaster, e.SpellName(int(spell)))()
 	switch spell {
 	case SpBless:
 		e.spellBless()

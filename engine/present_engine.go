@@ -11,8 +11,15 @@ import (
 // present applies the effects recorded and not yet shown, then fx, in order.
 func (e *Engine) present(fx ...rules.Effect) {
 	pending := append(e.takePending(), fx...)
+	fight := e.phase == rules.PhaseFight && e.ext.log.marks != nil
 	for _, f := range pending {
 		e.apply(f)
+		if fight {
+			e.logEffect(f)
+		}
+	}
+	if fight && len(pending) > 0 {
+		e.reconcile(true)
 	}
 }
 
@@ -34,17 +41,13 @@ func (e *Engine) takePending() []rules.Effect {
 // apply shows one effect.
 func (e *Engine) apply(f rules.Effect) {
 	switch f := f.(type) {
-	case rules.Narrated: // in a fight: the battle log (Log) and the window's note
-		if f.More && len(e.ext.battleLog) > 0 {
-			l := &e.ext.battleLog[len(e.ext.battleLog)-1]
-			*l = rules.LogJoin(*l, f.Text)
-			return
-		}
-		e.ext.battleLog = append(e.ext.battleLog, f.Text)
+	case rules.Narrated: // the window's note (the battle log is the typed ledger, battlelog.go)
 		if f.More {
-			return
+			e.ext.narrated = rules.LogJoin(e.ext.narrated, f.Text)
+		} else {
+			e.ext.narrated = f.Text
 		}
-		e.say(f.Text)
+		e.say(e.ext.narrated)
 	case rules.Turned: // the presenter turns the icon (the original's combatTurn)
 		e.event(game.Turned{Unit: int(f.Unit), Facing: int(f.Facing)})
 	case rules.Casting:
@@ -53,7 +56,7 @@ func (e *Engine) apply(f rules.Effect) {
 	case rules.Shot:
 		shown, delay := e.missileArt(f)
 		ev := game.Shot{From: int(f.From), Start: f.Start, To: f.To, StepMs: delay} // the original's pace: 10 pointed, 20 tumbling, 50 spinning, 30 a spell
-		if shown && e.spr != nil {                                  // the original's art choice, the frame the sprite holds
+		if shown && e.spr != nil {                                                  // the original's art choice, the frame the sprite holds
 			ev.Art = gamePicture(e.picPix(e.spr, 0, false, nil))
 		}
 		e.event(ev)
@@ -97,6 +100,7 @@ func (e *Engine) apply(f rules.Effect) {
 		e.event(ev)
 
 	case rules.Fled: // the unit left the board: the ruleset's GroundFact/UnitsFact no longer hold it, read at each state build
+	case rules.Used: // the battle log's (logEffect): its effects follow as their own
 	case rules.TerrainSet: // the board is the ruleset's, read as GroundFact at each state build: no event to play (a corpse's terrain)
 	default:
 		panic(fmt.Sprintf("present: an effect with no presentation: %T", f))

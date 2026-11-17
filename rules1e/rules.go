@@ -67,8 +67,26 @@ type AffectHandler func(e *RuleState, c *Character, a *Affect, flag byte)
 // name for the id (Tables.Affects, with the game's affectVariants).
 func (e *RuleState) callAffect(typ AffectType, c *Character, a *Affect, flag byte) {
 	if h := affectHandler[e.T().Affects[typ]]; h != nil {
+		if name, named := e.affectName(typ); named { // a named affect going off harms by its name; an unnamed one (a weapon's, a group's) keeps the cause it runs under
+			defer e.harmBy(nil, name)()
+		}
 		h(e, c, a, flag)
 	}
+}
+
+// harmCause is what harms now: who (nil none) and by what (Struck's From
+// and By).
+type harmCause struct {
+	from *Character
+	by   string
+}
+
+// harmBy makes from's by the cause of the harm until the returned func
+// restores the one before (a spell's effect, an affect's handler).
+func (e *RuleState) harmBy(from *Character, by string) (restore func()) {
+	was := e.harm
+	e.harm = harmCause{from: from, by: by}
+	return func() { e.harm = was }
 }
 
 // CallAffect is callAffect for the games' parity tests of their handlers.
@@ -419,7 +437,7 @@ func (e *RuleState) KillCharacter(c *Character, status byte, msg string) {
 		c.HP = 0
 	}
 	if status != StatusRunning { // a flight is EvFled (tryFlee)
-		e.factFell(c)
+		e.factFell(c, msg)
 	}
 	e.Cpos[idx].Size = 0 // DS:5F2A + 4*idx
 	e.CombatRedrawMap()

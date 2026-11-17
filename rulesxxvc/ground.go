@@ -388,6 +388,7 @@ func (r *Rules) groundAttack(f rules.Fight, id rules.CharID, c *Character, s *co
 	} else {
 		o.Effects = append(o.Effects, rules.Narrated{Text: c.Name + " throws a grenade..."})
 	}
+	o.Effects = append(o.Effects, rules.Used{From: unitOf(id), What: r.itemName(ci.Ref)})
 	// ATTACK_ROLL_ATTACKER's BLIND lowers c's armour until its next
 	// RecalcStats; every attack on c recalculates first, so it changes nothing.
 	r.RecalcStats(c)
@@ -476,7 +477,7 @@ func (r *Rules) groundAttack(f rules.Fight, id rules.CharID, c *Character, s *co
 			saved = rollSave(d, pk.save, 0, rng)
 		}
 		if damage > 0 {
-			o.Effects = append(o.Effects, r.inflictNonWeapon(c, did, d, damage, pk.reduction, saved)...)
+			o.Effects = append(o.Effects, r.inflictNonWeapon(c, id, did, d, damage, pk.reduction, r.itemName(ci.Ref), saved)...)
 		}
 		if d.Enabled && pk.effect > 0 && r.addEffect(d, c, Effect{ID: pk.effect, Minutes: minutes}, saved && pk.reduction == saveCancels) {
 			o.Effects = append(o.Effects, rules.Narrated{Text: d.Name + " is " + effectStatusNames[pk.effect]})
@@ -581,7 +582,7 @@ func (r *Rules) layCloud(b *rules.Board, kind int, to rules.BoardPos, zeroG bool
 // inflictNonWeapon is FxEngine.InflictNonWeaponDamage from attacker a:
 // COND_NON_WEAPON_DAMAGE (IMMUNE_TO_HEAT_AND_PLASMA against a's readied heat
 // or plasma weapon, UNKILLABLE's cap), then a made save cancels or halves.
-func (r *Rules) inflictNonWeapon(a *Character, did rules.CharID, d *Character, damage int, red saveReduction, saved bool) []rules.Effect {
+func (r *Rules) inflictNonWeapon(a *Character, aid, did rules.CharID, d *Character, damage int, red saveReduction, by string, saved bool) []rules.Effect {
 	if _, _, wty, armed := r.readied(a, xxvc.SlotWeapon); armed && hasEffect(d, EffImmuneToHeatAndPlasma) &&
 		(wty.WeaponClass == xxvc.Heat || wty.WeaponClass == xxvc.Plasma) {
 		damage = 0
@@ -600,7 +601,7 @@ func (r *Rules) inflictNonWeapon(a *Character, did rules.CharID, d *Character, d
 	if damage <= 0 || !d.Enabled {
 		return nil
 	}
-	out := []rules.Effect{rules.Struck{Unit: unitOf(did), Damage: int32(damage)}}
+	out := []rules.Effect{rules.Struck{Unit: unitOf(did), Damage: int32(damage), From: unitOf(aid), By: by}}
 	if InflictDamage(d, damage) {
 		ds := r.fight[did]
 		if ds != nil {

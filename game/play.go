@@ -291,6 +291,7 @@ type Battlefield struct {
 	Weapon    *Weapon        // the turn's weapon in hand (its icon on Attack), nil none
 	Missile   *Weapon        // its ranged weapon readied, nil none
 	Maneuvers []TurnManeuver // the rule set's maneuvers, by DoManeuver ID
+	Log       []string       // the battle log: every change of the fight, oldest first
 }
 
 // SceneKind says what a Scene is.

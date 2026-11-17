@@ -99,8 +99,9 @@ func (e *RuleState) largeBlow(bl blow, w *Item) blow {
 
 // attackText = ovr14:02F9 (att, vic, kind, damage, shown, hit): the attack text. kind 1 is
 // a plain hit, 2 a backstab, 3 a kill of a helpless target; damage is
-// applied, shown printed; hit 0 is a miss.
-func (e *RuleState) attackText(a, b *Character, kind, damage, shown, hit int) {
+// applied, shown printed; hit 0 is a miss. with (extra) is the blow's
+// weapon, for the Attacked fact.
+func (e *RuleState) attackText(a, b *Character, with Wield, kind, damage, shown, hit int) {
 	var s string
 	switch kind {
 	case 2:
@@ -111,7 +112,7 @@ func (e *RuleState) attackText(a, b *Character, kind, damage, shown, hit int) {
 		s = "Attacks"
 	}
 	e.CombatSay(a, s, true)
-	e.factAttack(a, b, hit != 0, shown&0xFF)
+	e.factAttack(a, b, with, hit != 0, shown&0xFF)
 	s = ""
 	if kind == 1 {
 		s = "(from behind) "
@@ -522,7 +523,7 @@ func (e *RuleState) attackSlots(a, b *Character, with Wield, w int) (done bool) 
 		}
 		e.SlotShots[acb.AttackSlot]++
 		slay := (int(b.HP) + 5) & 0xFF
-		e.attackText(a, b, 3, slay, slay, 1) // fixed: the original passed shown 1 (its text never prints it); the Attacked fact showed a kill as 1 point
+		e.attackText(a, b, with, 3, slay, slay, 1) // fixed: the original passed shown 1 (its text never prints it); the Attacked fact showed a kill as 1 point
 		e.removeInvisibility(a)
 		for s := 1; s <= 2; s++ {
 			a.Attacks[s-1] = 0
@@ -569,7 +570,7 @@ func (e *RuleState) attackSlots(a, b *Character, with Wield, w int) (done bool) 
 					e.Sound(e.hitEvent(b, "hit")) // extra: the weapon-hit sound (the original's bump is barely audible)
 					any = true
 					e.DamageRoll(a, b, with, s)
-					e.attackText(a, b, mode, int(e.Rv.Damage), int(e.Rv.Damage), 1)
+					e.attackText(a, b, with, mode, int(e.Rv.Damage), int(e.Rv.Damage), 1)
 					if b.Okay != 0 && e.Rules().Special(e, a) {
 						e.AffectGroup(a, s+1)
 					}
@@ -581,7 +582,7 @@ func (e *RuleState) attackSlots(a, b *Character, with Wield, w int) (done bool) 
 		}
 		if !any {
 			e.Sound(string(rules.CueMiss))
-			e.attackText(a, b, mode, 0, 0, 0)
+			e.attackText(a, b, with, mode, 0, 0, 0)
 		}
 		done = true
 		for s := 1; s <= 2; s++ {

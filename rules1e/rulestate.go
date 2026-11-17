@@ -33,6 +33,7 @@ type RuleState struct {
 	CurSpell                        SpellID                       // DS:681B spell being cast
 	spellKept                       bool                          // extra: the effect gave the spell back (Stone to Flesh on one not stoned, out of combat)
 	areaSpell                       byte                          // DS:6820
+	harm                            harmCause                     // extra: what harms now (Struck's From, By), for the battle log
 	castIn3D                        bool                          // extra: the cast in hand is in a 3D area (CastReply.In3D, the fight's Terms)
 	spellValue, spellValue2         byte                          // DS:4844/4845 spell scratch; DS:4845
 	turnValue, modMoves, AffectVeto byte                          // DS:681A speed value, 681D, 681E affect scratch; DS:681D/681E

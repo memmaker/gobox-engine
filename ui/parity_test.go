@@ -284,9 +284,10 @@ func TestRestChunkCap(t *testing.T) {
 	}
 }
 
-// TestCombatLogNote: the fight's text builds the log; a refusal is the toast.
+// TestCombatLogNote: the log is the engine's (Battlefield.Log), never the
+// fight's text; a refusal is the toast.
 func TestCombatLogNote(t *testing.T) {
-	f := &fake{st: game.Fighting{}, out: game.Outcome{Events: []game.Event{game.Narrated{Text: "Hits!"}, game.Refused{Why: "no"}}}}
+	f := &fake{st: game.Fighting{Field: game.Battlefield{Log: []string{"Hits!"}}}, out: game.Outcome{Events: []game.Event{game.Narrated{Text: "Said"}, game.Refused{Why: "no"}}}}
 	r := newRules(f, game.Data{})
 	r.send(game.EndTurn{})
 	if s := shownOf(r); !slices.Equal(s.Combat.Log, []string{"Hits!"}) || s.Note.Text != "no" {

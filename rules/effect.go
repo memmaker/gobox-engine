@@ -32,10 +32,13 @@ type (
 		Unit   UnitID
 		Facing Facing
 	}
+	// Attacked is From's blow at To; With is its means as the rules name
+	// it (the weapon, the monster's attack; "" bare hands or unnamed).
 	Attacked struct {
 		From, To UnitID
 		Hit      bool
 		Damage   int32
+		With     string
 	}
 	// Shot is something flying from Start to To: a missile (Item) or a
 	// spell or power (Spell); From is who stands at Start (NoChar: a bolt
@@ -51,16 +54,31 @@ type (
 		Spell SpellID
 		Ats   []BoardPos
 	}
+	// Struck is harm without a blow: By names what did it (a spell, an
+	// affect going off; "" unnamed), From who (0 none: a trap, a cloud's).
 	Struck struct {
 		Unit   UnitID
 		Damage int32
+		From   UnitID
+		By     string
 	}
 	Healed struct {
 		Unit CharID
 		HP   int32
 	}
-	Fell struct{ Unit UnitID }
+	// Fell: Unit is down or out; Why is the rules' word for it ("Surrenders";
+	// "" a plain fall).
+	Fell struct {
+		Unit UnitID
+		Why  string
+	}
 	Fled struct{ Unit CharID }
+	// Used: From set off What, an item or ability (a thrown grenade), for
+	// the battle log; its effects follow as their own.
+	Used struct {
+		From UnitID
+		What string
+	}
 	// Left: no room on the board; the unit is gone from the fight and the party.
 	Left struct{ Unit CharID }
 	// Placed puts a unit on the board: a summons, a Dimension Door.
@@ -160,6 +178,7 @@ func (PartyHealed) effect()     {}
 func (RestInterrupted) effect() {}
 func (Fell) effect()            {}
 func (Fled) effect()            {}
+func (Used) effect()            {}
 func (Left) effect()            {}
 func (Placed) effect()          {}
 func (CloudOn) effect()         {}

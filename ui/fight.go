@@ -667,13 +667,12 @@ type fightSource struct {
 	aim     *squareAim
 	ats     int
 	cursor  rules.BoardPos
-	log     int
 }
 
 // fightSource is the source of the fight now.
 func (p *Presenter) fightSource() fightSource {
 	r := p.eng.r
-	k := fightSource{version: p.eng.r.build(), aim: r.aim, cursor: r.cursor, log: len(r.log)}
+	k := fightSource{version: p.eng.r.build(), aim: r.aim, cursor: r.cursor}
 	if r.aim != nil {
 		k.ats = len(r.aim.ats)
 	}

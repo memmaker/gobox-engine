@@ -15,7 +15,7 @@ func br1PlayStepwise(t *testing.T, e *Engine, each func(game.State) (stop bool))
 	for range br1FightCap {
 		s := e.build()
 		if _, ok := s.(game.Fighting); !ok {
-			t.Fatalf("the fight ended: %T, log %q", s, e.ext.battleLog)
+			t.Fatalf("the fight ended: %T, log %q", s, e.ext.log.lines)
 		}
 		if each(s) {
 			return

@@ -191,28 +191,24 @@ func TestBR1BattleLog(t *testing.T) {
 	if stop != "" {
 		t.Fatal(stop)
 	}
-	log := e.ext.battleLog
-	hitting := regexp.MustCompile(`^(.+) (?:\(from behind\) )?Hitting for (\d+) points? of damage$`)
-	miss := regexp.MustCompile(`^(.+) (?:\(from behind\) )?and Misses$`)
+	log := e.ext.log.lines
+	hitting := regexp.MustCompile(`^(.+) hits (.+) for (\d+)$`)
+	miss := regexp.MustCompile(`^(.+) misses (.+)$`)
 	attacks, hits, downs := 0, 0, 0
-	for i := 0; i < len(log); i++ {
+	for i, l := range log {
 		switch {
-		case strings.HasSuffix(log[i], " Attacks") || strings.HasSuffix(log[i], " -Backstabs-"):
+		case hitting.MatchString(l):
 			attacks++
-			if i+1 >= len(log) || !hitting.MatchString(log[i+1]) && !miss.MatchString(log[i+1]) {
-				t.Fatalf("an attack line is not followed by its result: %q", log[i:min(i+2, len(log))])
-			}
-			if hitting.MatchString(log[i+1]) {
-				hits++
-			}
-			i++
-		case strings.Contains(log[i], " goes down"):
+			hits++
+		case miss.MatchString(l):
+			attacks++
+		case strings.Contains(l, " goes down"):
 			downs++
 			if !hitting.MatchString(log[i-1]) {
-				t.Errorf("%q does not follow a hit: %q", log[i], log[i-1])
+				t.Errorf("%q does not follow a hit: %q", l, log[i-1])
 			}
-		default:
-			t.Errorf("unexpected line %q", log[i])
+		default: // every hit's harm is on its line: no unexplained change
+			t.Errorf("unexpected line %q", l)
 		}
 	}
 	if attacks < 4 || hits == 0 || downs == 0 {

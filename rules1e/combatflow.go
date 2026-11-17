@@ -2,6 +2,7 @@ package rules1e
 
 import (
 	"gobox/rules"
+	"strings"
 	"testing"
 )
 
@@ -24,11 +25,16 @@ func (e *RuleState) Pause(ms int, key bool) {
 
 // factAttack records a's swing at b: a hit's harm is shown (Attacked's
 // Damage), so the ApplyDamage it causes adds no Struck (present).
-func (e *RuleState) factAttack(a, b *Character, hit bool, shown int) {
+func (e *RuleState) factAttack(a, b *Character, with Wield, hit bool, shown int) {
 	if !e.Fight.On {
 		return
 	}
-	e.Emit(rules.Attacked{From: unit(e.CombatIndex(a)), To: unit(e.CombatIndex(b)), Hit: hit, Damage: int32(shown)})
+	means := ""
+	if it := with.Weapon; it != nil {
+		e.ItemName(a, it, false)
+		means = strings.TrimSpace(it.Name())
+	}
+	e.Emit(rules.Attacked{From: unit(e.CombatIndex(a)), To: unit(e.CombatIndex(b)), Hit: hit, Damage: int32(shown), With: means})
 }
 
 // factHarm records c's harm: a spell's, a trap's; a hit's own is its Attacked.
@@ -36,15 +42,19 @@ func (e *RuleState) factHarm(c *Character, dmg int) {
 	if !e.Fight.On {
 		return
 	}
-	e.Emit(rules.Struck{Unit: unit(e.CombatIndex(c)), Damage: int32(dmg)})
+	from := rules.UnitID(0)
+	if f := e.harm.from; f != nil {
+		from = unit(e.CombatIndex(f))
+	}
+	e.Emit(rules.Struck{Unit: unit(e.CombatIndex(c)), Damage: int32(dmg), From: from, By: e.harm.by})
 }
 
-// factFell records c's fall.
-func (e *RuleState) factFell(c *Character) {
+// factFell records c's fall, why ("" a plain fall).
+func (e *RuleState) factFell(c *Character, why string) {
 	if !e.Fight.On {
 		return
 	}
-	e.Emit(rules.Fell{Unit: unit(e.CombatIndex(c))})
+	e.Emit(rules.Fell{Unit: unit(e.CombatIndex(c)), Why: why})
 }
 
 // FightState is the fight's part of the rule state: whether one is up, the

@@ -96,8 +96,8 @@ func brThrow(t *testing.T, g brGame) {
 	if err := e.TurnChoice(TurnAct{Verb: VerbAim, X: at.X, Y: at.Y}, false); err != nil {
 		t.Fatal(err)
 	}
-	if !slices.ContainsFunc(e.ext.battleLog, func(l string) bool { return strings.Contains(l, "throws a grenade") }) {
-		t.Errorf("no throw in the log %q", e.ext.battleLog)
+	if !slices.ContainsFunc(e.ext.log.lines, func(l string) bool { return strings.Contains(l, " uses ") }) {
+		t.Errorf("no throw in the log %q", e.ext.log.lines)
 	}
 	if !slices.ContainsFunc(e.events, func(ev game.Event) bool { _, ok := ev.(game.Shot); return ok }) {
 		t.Error("the throw's flight is no event")

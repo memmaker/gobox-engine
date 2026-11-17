@@ -158,7 +158,7 @@ func (e *RuleState) combatRemoveUnder(c, at *Character) {
 	}
 	idx := e.CombatIndex(c)
 	x, y := e.CombatX(at), e.CombatY(at)
-	e.factFell(c)
+	e.factFell(c, "")
 	if c.Combat.Extra == 0 && e.Nbodies+1 < len(e.Bodies) {
 		e.Nbodies++
 		b := &e.Bodies[e.Nbodies]
