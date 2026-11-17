@@ -122,7 +122,7 @@ func (e *Engine) pixOf(im *asset.Image, f int, flip bool, ground int) Picture {
 		switch {
 		case p == asset.Clear || int(p) == ground:
 			p = asset.Clear
-		case p > asset.Clear && p < asset.AmigaBase:
+		case p > asset.Clear && p < asset.AmigaBase && im.Palette == nil: // EGA's; a VGA picture's own colours stay
 			p &= 15
 		}
 		out[i-i%w+x] = p

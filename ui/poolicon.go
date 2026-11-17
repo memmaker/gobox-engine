@@ -252,7 +252,7 @@ func iconImage(h, b string, colors []byte, pose int) image.Image {
 		return nil
 	}
 	if pic.Palette != nil {
-		return PalettedRGBA(pic.Pix, pic.PixW, pic.Palette)
+		return PalettedRGBA(pic.Pix, pic.PixW, maskOf(pic), pic.Palette)
 	}
 	var ink [16]color.RGBA
 	for i := range ink {

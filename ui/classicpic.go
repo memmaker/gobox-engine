@@ -48,7 +48,7 @@ func pixImage(pc Picture, ink [16]color.RGBA) image.Image {
 	}
 	var m *image.RGBA
 	if pc.Palette != nil {
-		m = PalettedRGBA(pc.Pix, pc.PixW, pc.Palette)
+		m = PalettedRGBA(pc.Pix, pc.PixW, k.mask, pc.Palette)
 	} else {
 		m = IndexedRGBA(pc.Pix, pc.PixW, k.mask, &ink)
 	}

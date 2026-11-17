@@ -27,11 +27,12 @@ func IndexedRGBA(pix []uint8, w, mask int, ink *[16]color.RGBA) *image.RGBA {
 	return out
 }
 
-// PalettedRGBA is pix, w wide, as indices into pal (alpha 0 is transparent).
-func PalettedRGBA(pix []uint8, w int, pal []color.RGBA) *image.RGBA {
+// PalettedRGBA is pix, w wide, as indices into pal (alpha 0 is transparent), mask (-1: none) left out as IndexedRGBA
+// leaves it: a VGA palette's own entry at the mask index is opaque.
+func PalettedRGBA(pix []uint8, w, mask int, pal []color.RGBA) *image.RGBA {
 	out := image.NewRGBA(image.Rect(0, 0, w, len(pix)/w))
 	for i, p := range pix {
-		if int(p) < len(pal) {
+		if int(p) != mask && int(p) < len(pal) {
 			out.SetRGBA(i%w, i/w, pal[p])
 		}
 	}
@@ -50,18 +51,23 @@ func PixelsOf(p game.Picture) Picture {
 	return f
 }
 
+// maskOf is p's transparent index, -1: none.
+func maskOf(p Picture) int {
+	if p.Mask == nil {
+		return -1
+	}
+	return int(*p.Mask)
+}
+
 // Converted is p with Img made from its Pix (p itself without Pix).
 func (p Picture) Converted(ink *[16]color.RGBA) Picture {
 	if p.Pix == nil || p.Img != nil {
 		return p
 	}
+	mask := maskOf(p)
 	if p.Palette != nil {
-		p.Img = PalettedRGBA(p.Pix, p.PixW, p.Palette)
+		p.Img = PalettedRGBA(p.Pix, p.PixW, mask, p.Palette)
 		return p
-	}
-	mask := -1
-	if p.Mask != nil {
-		mask = int(*p.Mask)
 	}
 	p.Img = IndexedRGBA(p.Pix, p.PixW, mask, ink)
 	return p

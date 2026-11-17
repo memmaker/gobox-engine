@@ -138,7 +138,7 @@ func IconEditor(k *game.IconEditor, palette []color.RGBA, own game.Member, ink *
 		head, body := memberIcon(m)
 		if pic, ok := poolIcon(head, body, cs, p, false); ok && !k.Custom && !k.Whole && head != "" {
 			if pic.Palette != nil {
-				ed.Poses[p] = PalettedRGBA(pic.Pix, pic.PixW, pic.Palette)
+				ed.Poses[p] = PalettedRGBA(pic.Pix, pic.PixW, maskOf(pic), pic.Palette)
 			} else {
 				ed.Poses[p] = IndexedRGBA(pic.Pix, pic.PixW, -1, ink)
 			}
@@ -146,7 +146,7 @@ func IconEditor(k *game.IconEditor, palette []color.RGBA, own game.Member, ink *
 			ed.Poses[p] = ownPose(k.IconPNG, p, false)
 		} else if po := k.Poses[p]; po.Pixels != nil && po.W > 0 {
 			if po.Palette != nil {
-				ed.Poses[p] = PalettedRGBA(po.Pixels, po.W, po.Palette)
+				ed.Poses[p] = PalettedRGBA(po.Pixels, po.W, po.Clear, po.Palette)
 			} else {
 				ed.Poses[p] = IndexedRGBA(po.Pixels, po.W, po.Clear, ink)
 			}
