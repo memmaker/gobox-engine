@@ -36,9 +36,12 @@ type Previewer interface{ Preview(a Action) Preview }
 
 // Preview is what an aim at a square would take (Previewer): the squares
 // its area covers, the squares of who it hits and of the allies it passes
-// over (Bless beside a foe). Empty: no area, the square alone.
+// over (Bless beside a foe). Empty: no area, the square alone. Why is the
+// rules' word on a square the aim may not take ("Out of range: ..."; ""
+// none or taken), for the note when it is picked.
 type Preview struct {
 	Area, Hit, Skipped []rules.BoardPos
+	Why                string
 }
 
 // Tuning is the part of the shared engine settings a game outside gobox reads.

@@ -702,12 +702,27 @@ type aimOf struct {
 // own offer and check as the aim itself runs them. Gobox offers only
 // these: none is no target in reach.
 func (e *Engine) aimSquares(b *game.Combat, a aimOf) []rules.BoardPos {
-	c := e.unitID(b.Turn.Unit)
+	c, o := e.aimOffer(b, a)
+	return slices.DeleteFunc(inRange(b, o.Range), func(at rules.BoardPos) bool { return e.aimCheck(c, o, a, at) != "" })
+}
+
+// aimWhy is the rules' word on aiming a at the square at, as aimSquares
+// asks it ("": taken).
+func (e *Engine) aimWhy(b *game.Combat, a aimOf, at rules.BoardPos) string {
+	c, o := e.aimOffer(b, a)
+	return e.aimCheck(c, o, a, at)
+}
+
+// aimOffer is the rules' offer for a by the turn's fighter c.
+func (e *Engine) aimOffer(b *game.Combat, a aimOf) (c rules.CharID, o rules.AimOffer) {
+	c = e.unitID(b.Turn.Unit)
 	e.as(e.sel)
-	o := e.fact(c, rules.AimFact{Range: a.rng, ShowRange: a.showRange, FoesOnly: a.foesOnly, Ranged: a.ranged}).(rules.AimOffer)
-	return slices.DeleteFunc(inRange(b, o.Range), func(at rules.BoardPos) bool {
-		return e.fact(c, rules.AimCheckFact{Near: o.Near, At: at, Range: o.Range, ShowRange: a.showRange, Ground: a.ground, Ranged: a.ranged}).(rules.AimCheck).Why != ""
-	})
+	return c, e.fact(c, rules.AimFact{Range: a.rng, ShowRange: a.showRange, FoesOnly: a.foesOnly, Ranged: a.ranged}).(rules.AimOffer)
+}
+
+// aimCheck is the rules' check of a at at within offer o ("": taken).
+func (e *Engine) aimCheck(c rules.CharID, o rules.AimOffer, a aimOf, at rules.BoardPos) string {
+	return e.fact(c, rules.AimCheckFact{Near: o.Near, At: at, Range: o.Range, ShowRange: a.showRange, Ground: a.ground, Ranged: a.ranged}).(rules.AimCheck).Why
 }
 
 // allows: the state publishes a (Plain by value; Aimed by its action with

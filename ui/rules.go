@@ -1039,6 +1039,10 @@ func turnsCast(offered, a game.Action) bool {
 // noTargetsText is the note for an aimed action with nothing to aim at.
 const noTargetsText = "No reachable targets"
 
+// notTargetText is the note on a square an aim does not take when the
+// game gives no word why.
+const notTargetText = "Not a target"
+
 // noTargets refuses an aimed action that has no target in reach: a note,
 // no aim, the game not asked.
 func (r *frontState) noTargets() game.Result {
@@ -1054,7 +1058,13 @@ func (r *frontState) aimAt(at rules.BoardPos) game.Result {
 		r.cursor = at
 		return game.Result{}
 	}
-	if !slices.Contains(m.Squares, at) { // not offered: the aim stays, no word (the original's Center)
+	if !slices.Contains(m.Squares, at) { // not offered: the aim stays, the rules' word why as the note
+		why := notTargetText
+		if pv, ok := r.g.(game.Previewer); ok {
+			why = cmp.Or(pv.Preview(withAts(m.Action, []rules.BoardPos{at})).Why, why)
+		}
+		r.note = game.Note{Text: why, At: time.Now()}
+		r.seq++
 		return game.Result{}
 	}
 	if m.byUnit != nil {

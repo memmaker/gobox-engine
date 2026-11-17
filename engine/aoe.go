@@ -53,7 +53,7 @@ func (e *Engine) Preview(a game.Action) game.Preview {
 		return game.Preview{}
 	}
 	var spell rules.SpellID
-	aoe, at := 0, rules.BoardPos{}
+	aoe, at, why := 0, rules.BoardPos{}, ""
 	switch a := a.(type) {
 	case game.Aim:
 		if e.cs.aim == nil || e.ext.aoe == 0 {
@@ -68,10 +68,14 @@ func (e *Engine) Preview(a game.Action) game.Preview {
 			return game.Preview{}
 		}
 		spell = e.spellID(a.Spell)
-		if aim := e.fact(e.selected(), rules.SpellAimFact{Spell: spell}).(rules.SpellAim); aim.Kind == rules.SpellAimArea {
+		aim := e.fact(e.selected(), rules.SpellAimFact{Spell: spell}).(rules.SpellAim)
+		if aim.Kind == rules.SpellAimArea {
 			aoe = aim.Area
 		}
 		at = a.Ats[0]
+		if b := e.fightState(); b != nil && b.Turn != nil {
+			why = e.aimWhy(b, aimOf{rng: aim.Range, foesOnly: aim.FoesOnly, ground: aim.Kind == rules.SpellAimArea}, at)
+		}
 	case game.DoManeuver:
 		if len(a.Ats) != 1 {
 			return game.Preview{}
@@ -84,10 +88,10 @@ func (e *Engine) Preview(a game.Action) game.Preview {
 		at = a.Ats[0]
 	}
 	if aoe == 0 {
-		return game.Preview{}
+		return game.Preview{Why: why}
 	}
 	p := e.areaAt(spell, aoe, at)
-	return game.Preview{Area: slices.Clone(p.Area), Hit: slices.Clone(p.Hit), Skipped: slices.Clone(p.Skipped)}
+	return game.Preview{Area: slices.Clone(p.Area), Hit: slices.Clone(p.Hit), Skipped: slices.Clone(p.Skipped), Why: why}
 }
 
 func (e *Engine) aoeUnmark() { e.snap.marks, e.snap.area, e.snap.skipped = nil, nil, nil }
