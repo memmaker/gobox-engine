@@ -92,7 +92,8 @@ const brIconMask = 8
 var brCombatTiles = []adventure.TileLoad{
 	{File: "MARSCOM", Block: 1, First: 1, Last: 51, When: rules.TraitWilderness | rules.TraitTerrainShift, Floor: adventure.TileFloor{Kind: adventure.FloorCommonest}},
 	{File: "VENUSCOM", Block: 1, First: 1, Last: 51, When: rules.TraitWilderness, Unless: rules.TraitTerrainShift, Floor: adventure.TileFloor{Kind: adventure.FloorCommonest}},
-	{File: "LOTEK", Block: 1, First: 0, Last: 52, When: rules.TraitLowTech, Unless: rules.TraitWilderness, Floor: adventure.TileFloor{Kind: adventure.FloorCode, Code: 7}},
+	{File: "LOTEK", Block: 1, First: 0, Last: 52, When: rules.TraitLowTech, Unless: rules.TraitWilderness, Floor: adventure.TileFloor{Kind: adventure.FloorCode, Code: 7},
+		Overrun: adventure.TileOverrun{File: "HITEK", From: 52}}, // a 52-frame block: the 53rd tile is memory past it, hitek's frame 52 (buckrogers-go 554b26f)
 	{File: "HITEK", Block: 1, First: 0, Last: 52, Unless: rules.TraitWilderness | rules.TraitLowTech, Floor: adventure.TileFloor{Kind: adventure.FloorCode, Code: 45}},
 }
 

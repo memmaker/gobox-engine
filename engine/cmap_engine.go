@@ -27,6 +27,13 @@ func (e *Engine) LayTiles(l adventure.TileLoad) {
 			copy(t.Alt.Frame(l.First+f), im.Alt.Frame(f))
 		}
 	}
+	if o := l.Overrun; o.File != "" {
+		if past := e.LoadPic(o.File, e.tileBlock(l)); past != nil && past.BPP == t.BPP {
+			for f := o.From; f <= l.Last && f < past.Count && l.First+f < t.Count; f++ {
+				copy(t.Frame(l.First+f), past.Frame(f))
+			}
+		}
+	}
 }
 
 // tileBlock is l's block number in the game's present state.

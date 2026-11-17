@@ -2,8 +2,10 @@ package engine
 
 import (
 	"io/fs"
+	"slices"
 	"testing"
 
+	"gobox/adventure"
 	"gobox/asset"
 )
 
@@ -30,5 +32,25 @@ func TestBR1CombatArtNames(t *testing.T) {
 	}
 	if models == 0 {
 		t.Error("no tile of the fight has its model")
+	}
+}
+
+// TestBR1LotekOverrun: lotek's tile 52, past its 52-frame block, is hitek's frame 52 (the memory the original reads past
+// the block) in pixels and in name, so its sprite and model are found.
+func TestBR1LotekOverrun(t *testing.T) {
+	e, _ := br1AtTurn(t, br1FarFight, br1FarFacing)
+	i := slices.IndexFunc(e.artNames().PlaceTiles, func(l adventure.TileLoad) bool { return l.File == "LOTEK" })
+	if i < 0 {
+		t.Fatal("no LOTEK place sheet")
+	}
+	l := e.artNames().PlaceTiles[i]
+	e.sqrpaci[0] = blankTiles()
+	e.LayTiles(l)
+	const slot = 52
+	if !slices.Equal(e.sqrpaci[0].Frame(l.First+slot), e.LoadPic("HITEK", l.Block).Frame(slot)) {
+		t.Error("lotek tile 52 is not hitek's frame 52")
+	}
+	if n := sheetTileName(l, l.First+slot); n != "hitek_tile_052" {
+		t.Errorf("lotek tile 52 named %q, want hitek_tile_052", n)
 	}
 }

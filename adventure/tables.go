@@ -237,6 +237,22 @@ type TileLoad struct {
 	From               TileFrom          `json:",omitempty"`
 	When, Unless       rules.PlaceTraits `json:",omitempty"` // PlaceTiles: laid when the place has all of When and none of Unless
 	Floor              TileFloor         `json:",omitzero"`  // PlaceTiles: the plain floor the remastered board tiles every floor square with
+	Overrun            TileOverrun       `json:",omitzero"`  // the frames past File's block's end, up to Last, that the original reads from memory past it
+}
+
+// TileOverrun is where a TileLoad's frames from From on come from: the same block of File, a sheet that shares the
+// layout of the memory the original reads past its own block ("": none, those tiles stay blank).
+type TileOverrun struct {
+	File string `json:",omitempty"`
+	From int    `json:",omitempty"` // the first frame past the block's end
+}
+
+// Sheet is the file frame f of the load comes from.
+func (l TileLoad) Sheet(f int) string {
+	if l.Overrun.File != "" && f >= l.Overrun.From {
+		return l.Overrun.File
+	}
+	return l.File
 }
 
 // TileFloor is which tile a PlaceTiles sheet's plain floor is.

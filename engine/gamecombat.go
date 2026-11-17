@@ -141,7 +141,7 @@ func gameWeapon(w *rules.ItemCard) *game.Weapon {
 // sheetTileName is tile slot i's name as a frame of the place sheet l, the name the series' combat art (sprites, meshes,
 // props.json) knows it by: <file>_tile_<frame>.
 func sheetTileName(l adventure.TileLoad, i int) string {
-	return fmt.Sprintf("%s_tile_%03d", strings.ToLower(l.File), i-l.First)
+	return fmt.Sprintf("%s_tile_%03d", strings.ToLower(l.Sheet(i-l.First)), i-l.First)
 }
 
 // floorTile is the name of the place sheet l's plain floor on board b ("": none).
