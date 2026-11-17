@@ -18,15 +18,7 @@ func (e *Engine) markSeen() {
 	if e.viewMode != 1 {
 		return
 	}
-	if e.ext.seen == nil {
-		e.ext.seen = map[int]*[256]uint8{}
-	}
-	k := e.areaKey()
-	m := e.ext.seen[k]
-	if m == nil {
-		m = &[256]uint8{}
-		e.ext.seen[k] = m
-	}
+	m := e.seenMap()
 	x, y := e.posX, e.posY
 	if !rules.OnMap(x, y) {
 		return
@@ -134,4 +126,24 @@ type preStep struct {
 	x, y, side int    // the square and the way (0 2 4 6) of the step
 	ran        bool   // the script ran
 	hold       uint16 // its HoldMove, for the step
+}
+
+// seeWholeMap marks every square of the current map seen (DevScene "seen").
+func (e *Engine) seeWholeMap() {
+	m := e.seenMap()
+	for i := range m {
+		m[i] = max(m[i], seenSeen)
+	}
+}
+
+// seenMap is the current map's seen record, made on first use.
+func (e *Engine) seenMap() *[256]uint8 {
+	if e.ext.seen == nil {
+		e.ext.seen = map[int]*[256]uint8{}
+	}
+	k := e.areaKey()
+	if e.ext.seen[k] == nil {
+		e.ext.seen[k] = &[256]uint8{}
+	}
+	return e.ext.seen[k]
 }

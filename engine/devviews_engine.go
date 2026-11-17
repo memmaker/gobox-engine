@@ -20,6 +20,8 @@ import (
 // (snap ... game SLOT KEYS SCENE) and puts it up, or nil.
 func (e *Engine) DevScene(name string) func() {
 	switch name {
+	case "seen": // every square of the map seen, so a scripted walk may auto-walk anywhere (auto-walk keeps to seen squares)
+		return e.seeWholeMap
 	case "shop":
 		return func() {
 			e.fixture(rules.FixtureShop, rules.NoChar)

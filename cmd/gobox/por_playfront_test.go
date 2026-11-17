@@ -64,6 +64,7 @@ func TestPlayFrontWalk(t *testing.T) {
 	seed := uint32(7)
 	eng.FixedSeed = &seed
 	eng.Explore = true
+	eng.DevAction = eng.DevScene("seen") // auto-walk keeps to seen squares (e9c58085)
 	data := eng.Data()
 	g := ui.NewGame(eng, data)
 	g.Open("")

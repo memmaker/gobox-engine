@@ -42,7 +42,7 @@ func pictures(v reflect.Value, f func(game.Picture)) {
 
 // TestFightPicturesResolve (BUG-CLASSES 43): every Picture a fight's State
 // carries resolves: pixels, or a DAX File and Block with a non-empty block,
-// or a sprite Name; every tile name is in Art(). The dev fights start through
+// or a sprite Name or one in Art(); every tile name is in Art(). The dev fights start through
 // addMonsters, the load opcode's own (opLoadMonster, eclops.go).
 func TestFightPicturesResolve(t *testing.T) {
 	for _, sc := range []string{"combat", "missile", "castfight", "wildcombat", "meleefight"} {
@@ -75,7 +75,7 @@ func TestFightPicturesResolve(t *testing.T) {
 						if f := ref.File(p.File); f == nil || len(f.BlockShared(p.Block)) == 0 && p.Block >= 0 {
 							t.Fatalf("%s: %s block %d does not resolve", sc, p.File, p.Block)
 						}
-					case asset.SpriteImage("pool", "combat", p.Name) == nil && asset.SpriteImage("pool", "icon", p.Name) == nil:
+					case asset.SpriteImage("pool", "combat", p.Name) == nil && asset.SpriteImage("pool", "icon", p.Name) == nil && !inArt(e.Art(), p.Name): // a cover is an Art() tile by name (a3635a4b)
 						t.Errorf("%s: sprite %q does not resolve", sc, p.Name)
 					}
 				})
@@ -97,4 +97,10 @@ func TestFightPicturesResolve(t *testing.T) {
 			}
 		}
 	}
+}
+
+// inArt: name is one of art's pictures.
+func inArt(art map[string]game.Picture, name string) bool {
+	_, ok := art[name]
+	return ok
 }
