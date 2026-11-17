@@ -3,15 +3,16 @@ package ui
 import (
 	"slices"
 	"testing"
-	"time"
 
 	"gobox/engine"
 	"gobox/game"
 	"gobox/pool"
 )
 
-// hallFront is POR's Front walked into New Phlan's training hall: its party
-// menu up over the 3D view (skipped when POR is not imported).
+// hallFront is POR's Front in the training hall (the engine's "hall" dev
+// scene): its party menu up over the 3D view (skipped when POR is not
+// imported). Walking there is not this test's: auto-walk goes only over
+// squares seen (TestWalkKnownWays), a fresh town has three.
 func hallFront(t *testing.T) (*Front, *engine.Engine) {
 	eng, err := pool.New("../data/por", "../data/por/sources")
 	if err != nil {
@@ -19,51 +20,24 @@ func hallFront(t *testing.T) (*Front, *engine.Engine) {
 	}
 	eng.Cfg.SaveDir = t.TempDir()
 	seed := uint32(7)
-	eng.FixedSeed = &seed
-	eng.Explore = true
+	eng.FixedSeed, eng.Explore = &seed, true
+	eng.FullIntro.Store(false)
+	eng.DevAction = eng.DevScene("hall")
 	data := eng.Data()
 	f := NewFront(NewGame(eng, data), data)
 	f.Start("")
-	for range 20 {
+	f.Frame(flowW, flowH)
+	f.Game.SequenceDone("intro")
+	f.Game.TitleDone()
+	f.Game.Settle()
+	for range 10 {
 		f.Frame(flowW, flowH)
+		f.Tick()
 	}
-	g := f.Game.Game
-	for i := 0; g.Mode() == game.ModeTitle && i < 5; i++ {
-		g.TitleDone()
+	if as, ok := eng.State().(game.Assembling); !ok || !as.Where.Hall {
+		t.Fatalf("no hall: %T", eng.State())
 	}
-	clock := time.Now() // each WalkStep is a square: the walk's pace by a clock of its own, not the wall's
-	g.r.now = func() time.Time { clock = clock.Add(walkPace); return clock }
-	for y := range 16 {
-		for x := range 16 {
-			if !g.WalkTo(x, y) {
-				continue
-			}
-			for i := 0; i < 100 && g.Pace() == game.PaceWalk; i++ {
-				g.WalkStep()
-			}
-			for i := 0; i < 20; i++ {
-				st := eng.State()
-				if as, ok := st.(game.Assembling); ok && as.Where.Hall {
-					for range 10 {
-						f.Frame(flowW, flowH)
-					}
-					return f, eng
-				}
-				if _, ok := st.(game.Exploring); ok {
-					break
-				}
-				if r := g.Send(game.Leave{}); r.Err != nil {
-					al := game.CommonOf(st).Allowed.Plain
-					if len(al) == 0 {
-						break
-					}
-					g.Send(al[len(al)-1])
-				}
-			}
-		}
-	}
-	t.Fatal("no hall reached")
-	return nil, nil
+	return f, eng
 }
 
 // The hall's party menu (class: a presenter rule call naming "the selected

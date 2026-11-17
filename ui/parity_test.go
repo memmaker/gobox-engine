@@ -195,9 +195,9 @@ func TestParity(t *testing.T) {
 			}},
 		{"adventure on town loot", game.Looting{Common: game.Common{Adventure: true}}, game.Data{}, nil, nil,
 			func(s shown, _ game.Result) bool { return s.Flags.Adventure }},
-		{"fight log from text", game.Fighting{Common: game.Common{Text: []string{"YOU GET INTO A BRAWL."}}}, game.Data{}, nil, nil,
-			func(s shown, _ game.Result) bool {
-				return slices.Equal(s.Combat.Log, []string{"YOU GET INTO A BRAWL."})
+		{"fight log not from text", game.Fighting{Common: game.Common{Text: []string{"YOU GET INTO A BRAWL."}}, Field: game.Battlefield{Log: []string{"ARIN HITS"}}}, game.Data{}, nil, nil,
+			func(s shown, _ game.Result) bool { // the engine's ledger, never the message pane (4c970d4a)
+				return slices.Equal(s.Combat.Log, []string{"ARIN HITS"})
 			}},
 		{"aimed attack", game.Fighting{Common: game.Common{Allowed: game.Allowed{Aimed: []game.Aimed{{Action: game.Attack{}, Squares: []rules.BoardPos{{X: 2, Y: 3}}}}}}}, game.Data{VerbOrder: []string{"Attack", "Aim"}}, // the series names Aim: no extra verb for it
 			[]any{game.Attack{}, game.Aim{At: rules.BoardPos{X: 2, Y: 3}}}, []game.Action{game.Attack{At: &rules.BoardPos{X: 2, Y: 3}}},

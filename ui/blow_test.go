@@ -8,8 +8,8 @@ import (
 )
 
 // TestBlowShows: a blow the game reports (Attacked, Narrated) reaches the
-// front as a swing, a hit, its damage and the line, and the fight's text
-// pane keeps the line even when the game's own Text is blank.
+// front as a swing, a hit, its damage and the line. The battle log is the
+// engine's (Battlefield.Log, TestCombatLogNote), never built from the events.
 func TestBlowShows(t *testing.T) {
 	fight := game.Fighting{Common: game.Common{Text: []string{""}, Allowed: game.Allowed{Plain: []game.Action{game.Attack{Target: 2}}}},
 		Field: game.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true}}}}
@@ -30,9 +30,6 @@ func TestBlowShows(t *testing.T) {
 	}
 	if !slices.Contains(kinds, game.EvAttack) || !slices.Contains(kinds, game.EvHit) || dmg != 5 || !line {
 		t.Fatalf("events %+v", evs)
-	}
-	if c := g.combat(); c == nil || !slices.Contains(c.Log, "ARIN HITS FOR 5") {
-		t.Fatalf("log %v", c != nil)
 	}
 }
 
