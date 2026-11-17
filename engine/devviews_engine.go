@@ -13,6 +13,7 @@ import (
 	"gobox/game"
 	"gobox/rules"
 	"os"
+	"slices"
 )
 
 // DevScene returns a routine that sets up one screen for a headless check
@@ -94,6 +95,7 @@ func (e *Engine) DevScene(name string) func() {
 				open = func() {
 					e.pushCombat()
 					e.do(rules.DevPlace{Melee: name != "fleefight"})
+					e.reEngage() // the fight plays from the placed board, not pushCombat's
 					if name == "winfight" || name == "losefight" {
 						e.fixture(map[string]rules.FixtureID{"winfight": rules.FixtureWinFight, "losefight": rules.FixtureLoseFight}[name], rules.NoChar)
 					}
@@ -375,6 +377,17 @@ func (e *Engine) devCont(c cont) {
 		e.do(rules.DevTreasure{})
 		e.push(cont{kind: kDrawMain})
 		e.lootMenu()
+	}
+}
+
+// reEngage replaces the fight's Engaged with the board as it stands: a dev
+// fixture that places the units after pushCombat (DevPlace) would else
+// leave the presenter its stale squares, every blow a lunge from there.
+func (e *Engine) reEngage() {
+	e.present()
+	e.events = slices.DeleteFunc(e.events, func(ev game.Event) bool { _, ok := ev.(game.Engaged); return ok })
+	if f, ok := e.build().(game.Fighting); ok {
+		e.event(game.Engaged{At: f})
 	}
 }
 
