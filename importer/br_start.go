@@ -90,11 +90,14 @@ const brIconMask = 8
 // the sheet's block 1 from tile slot: marscom (Mars wilderness $A8: a wilderness with the terrain shift) and venuscom (the
 // other wilderness) 52 tiles from 1, lotek ($88, $82) and hitek (all else) 53 from 0.
 var brCombatTiles = []adventure.TileLoad{
-	{File: "MARSCOM", Block: 1, First: 1, Last: 51, When: rules.TraitWilderness | rules.TraitTerrainShift},
-	{File: "VENUSCOM", Block: 1, First: 1, Last: 51, When: rules.TraitWilderness, Unless: rules.TraitTerrainShift},
-	{File: "LOTEK", Block: 1, First: 0, Last: 52, When: rules.TraitLowTech, Unless: rules.TraitWilderness},
-	{File: "HITEK", Block: 1, First: 0, Last: 52, Unless: rules.TraitWilderness | rules.TraitLowTech},
+	{File: "MARSCOM", Block: 1, First: 1, Last: 51, When: rules.TraitWilderness | rules.TraitTerrainShift, Floor: adventure.TileFloor{Kind: adventure.FloorCommonest}},
+	{File: "VENUSCOM", Block: 1, First: 1, Last: 51, When: rules.TraitWilderness, Unless: rules.TraitTerrainShift, Floor: adventure.TileFloor{Kind: adventure.FloorCommonest}},
+	{File: "LOTEK", Block: 1, First: 0, Last: 52, When: rules.TraitLowTech, Unless: rules.TraitWilderness, Floor: adventure.TileFloor{Kind: adventure.FloorCode, Code: 7}},
+	{File: "HITEK", Block: 1, First: 0, Last: 52, Unless: rules.TraitWilderness | rules.TraitLowTech, Floor: adventure.TileFloor{Kind: adventure.FloorCode, Code: 45}},
 }
+
+// The Floor values are buckrogers-go rules/combatturn.go floorCode (hitek 45, frame 34; lotek 7) and bareGround (open
+// country: the map's commonest walkable tile, marscom 004 or 020/021, venuscom 006/007).
 
 // brMissilePace is AnimateMissile's local.pace := 10.
 const brMissilePace = 10

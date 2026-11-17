@@ -24,7 +24,7 @@ func (e *Engine) markPicture(m rules.SquareMark) game.Picture {
 // else the tile covering it for a while (a cloud, a body: Cover), by name.
 func (e *Engine) coverPicture(q rules.Square) game.Picture {
 	if q.Cover > 0 {
-		return game.Picture{Name: combatTileArt(e.artNames().TileOf(q.Cover - 1))}
+		return game.Picture{Name: e.combatTileArt(e.artNames().TileOf(q.Cover - 1))}
 	}
 	return e.markPicture(q.Mark)
 }

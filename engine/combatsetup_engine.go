@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"gobox/adventure"
 	"gobox/game"
 	"gobox/rules"
 	"slices"
@@ -52,20 +53,28 @@ func (e *Engine) combatMapSetup() {
 // layPlaceTiles is LoadCombatTileSet's sheet by the place (the game's PlaceTiles): the arena's tiles are a fresh set with
 // the sheet laid in it, in the sheet's own colours.
 func (e *Engine) layPlaceTiles() {
-	traits, _ := e.placeTraits()
-	for _, l := range e.artNames().PlaceTiles {
-		if !l.Fits(traits) {
-			continue
-		}
-		im := e.LoadPic(l.File, l.Block)
-		if im == nil {
-			panic(fmt.Sprintf("combat tiles: no %s block %d in the art", l.File, l.Block))
-		}
-		e.sqrpaci[0] = blankTiles()
-		e.sqrpaci[0].Palette = im.Palette
-		e.LayTiles(l)
+	l, ok := e.placeTiles()
+	if !ok {
 		return
 	}
+	im := e.LoadPic(l.File, l.Block)
+	if im == nil {
+		panic(fmt.Sprintf("combat tiles: no %s block %d in the art", l.File, l.Block))
+	}
+	e.sqrpaci[0] = blankTiles()
+	e.sqrpaci[0].Palette = im.Palette
+	e.LayTiles(l)
+}
+
+// placeTiles is the PlaceTiles sheet the place takes (false: none).
+func (e *Engine) placeTiles() (adventure.TileLoad, bool) {
+	traits, _ := e.placeTraits()
+	for _, l := range e.artNames().PlaceTiles {
+		if l.Fits(traits) {
+			return l, true
+		}
+	}
+	return adventure.TileLoad{}, false
 }
 
 // loadMemberIcons loads each party unit's whole-picture icon (saveload.pas LoadCharIconAnim: the sheet's block the record's

@@ -79,8 +79,14 @@ func (e *Engine) combatTiles() []Picture {
 	return px
 }
 
-// combatTileArt is tile i's name in Art().
-func combatTileArt(i int) string { return "combat/tile/" + strconv.Itoa(i) }
+// combatTileArt is tile i's name in Art() and the fight's Tiles: a place sheet's frame by the name the series' combat art
+// (sprites, meshes, props.json) knows it by, <file>_tile_<frame>; any other tile by its slot.
+func (e *Engine) combatTileArt(i int) string {
+	if l, ok := e.placeTiles(); ok && i >= l.First && i <= l.First+l.Last {
+		return sheetTileName(l, i)
+	}
+	return "combat/tile/" + strconv.Itoa(i)
+}
 
 // picPix is frame f of im (or its DOS twin) as View pixels in the screen's
 // current palette (Ink; combat swaps colours 0 and 8), mirrored with

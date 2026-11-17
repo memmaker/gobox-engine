@@ -236,7 +236,23 @@ type TileLoad struct {
 	Block, First, Last int
 	From               TileFrom          `json:",omitempty"`
 	When, Unless       rules.PlaceTraits `json:",omitempty"` // PlaceTiles: laid when the place has all of When and none of Unless
+	Floor              TileFloor         `json:",omitzero"`  // PlaceTiles: the plain floor the remastered board tiles every floor square with
 }
+
+// TileFloor is which tile a PlaceTiles sheet's plain floor is.
+type TileFloor struct {
+	Kind FloorKind `json:",omitempty"`
+	Code int       `json:",omitempty"` // FloorCode: the terrain value whose tile it is
+}
+
+// FloorKind is how a TileFloor is found.
+type FloorKind int
+
+const (
+	FloorNone      FloorKind = iota // no plain floor: bare ground
+	FloorCode                       // the tile of terrain value Code
+	FloorCommonest                  // the map's commonest walkable tile (open country, where the terrain picks the ground)
+)
 
 // TileOf is the tile terrain value t draws.
 func (a ArtNames) TileOf(t int) int {

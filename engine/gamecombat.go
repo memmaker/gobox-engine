@@ -2,8 +2,11 @@ package engine
 
 import (
 	"cmp"
+	"fmt"
+	"gobox/adventure"
 	"math"
 	"slices"
+	"strings"
 
 	"gobox/game"
 	"gobox/rules"
@@ -51,9 +54,12 @@ func (e *Engine) fightState() *game.Combat {
 	for i, p := range b.TilePix { // their pictures are Art()'s (overlandArt)
 		n := ""
 		if p.Pix != nil {
-			n = combatTileArt(i)
+			n = e.combatTileArt(i)
 		}
 		c.Tiles = append(c.Tiles, n)
+	}
+	if sheet, ok := e.placeTiles(); ok {
+		c.FloorTile = e.floorTile(sheet, b)
 	}
 	for i, f := range b.Effects {
 		c.Effects = append(c.Effects, game.Effect{X: int(math.Round(f.X * 3)), Y: int(math.Round(f.Y * 3)), Art: gamePicture(b.EffectPix[i])})
@@ -130,4 +136,37 @@ func gameWeapon(w *rules.ItemCard) *game.Weapon {
 		return nil
 	}
 	return &game.Weapon{Name: w.Name, Type: int(w.Type), Base: w.Kind, Words: w.Words, Look: w.Look, Rules: w.Rules}
+}
+
+// sheetTileName is tile slot i's name as a frame of the place sheet l, the name the series' combat art (sprites, meshes,
+// props.json) knows it by: <file>_tile_<frame>.
+func sheetTileName(l adventure.TileLoad, i int) string {
+	return fmt.Sprintf("%s_tile_%03d", strings.ToLower(l.File), i-l.First)
+}
+
+// floorTile is the name of the place sheet l's plain floor on board b ("": none).
+func (e *Engine) floorTile(l adventure.TileLoad, b *Battle) string {
+	slot := -1
+	switch l.Floor.Kind {
+	case adventure.FloorCode:
+		slot = e.artNames().TileOf(l.Floor.Code)
+	case adventure.FloorCommonest:
+		n := map[int]int{}
+		for y := range b.Ground {
+			for _, q := range b.Ground[y] {
+				if !q.Wall {
+					n[e.artNames().TileOf(q.Tile)]++
+				}
+			}
+		}
+		for t, c := range n {
+			if slot < 0 || c > n[slot] || c == n[slot] && t < slot { // ties: the lower tile, so the pick never hangs on map order
+				slot = t
+			}
+		}
+	}
+	if slot < l.First || slot > l.First+l.Last {
+		return ""
+	}
+	return sheetTileName(l, slot)
 }

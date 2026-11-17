@@ -30,7 +30,7 @@ func (e *Engine) overlandArt() map[string]game.Picture {
 	// anew while a board is still shown (a step's events playing) has them
 	for i, p := range e.combatTiles() {
 		if p.Pix != nil {
-			art[combatTileArt(i)] = gamePicture(p)
+			art[e.combatTileArt(i)] = gamePicture(p)
 		}
 	}
 	if im := e.icons[9][0]; im != nil {
