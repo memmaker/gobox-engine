@@ -285,8 +285,26 @@ func (creation) Minimums(d rules.Draft) map[rules.Ability]int32 {
 	return out
 }
 
-func (creation) QuickParty() []rules.Template { return nil }
-func (creation) QuickRerolls() int            { return 0 }
+// QuickParty is the game data's ready-made team (gamedata QuickParty, buckrogers-go rules/quickstart.go).
+func (c creation) QuickParty() []rules.Template { return c.host.QuickParty() }
+
+// quickRerolls: Quick Start rolls a member at most this often until its Need is met (buckrogers-go quickCreate: after
+// 2000 the roll stands).
+const quickRerolls = 2000
+
+func (creation) QuickRerolls() int { return quickRerolls }
+
+// pickKind is the creation picks of the race, gender and career named (rules.PickKind); XXVc has no alignment.
+func pickKind(a rules.PickKind) (rules.Outcome, error) {
+	race := slices.IndexFunc(pickRaces, func(r rules.Race) bool { return xxvc.RaceNames[r] == a.Race })
+	gender := slices.IndexFunc(pickGenders, func(g rules.Sex) bool { return xxvc.GenderNames[g] == a.Gender })
+	career := slices.IndexFunc(pickCareers, func(c rules.Class) bool { return xxvc.CareerNames[c] == a.Class })
+	if race < 0 || gender < 0 || career < 0 || a.Align != "" {
+		return rules.Outcome{}, fmt.Errorf("rulesxxvc: no kind %+v", a)
+	}
+	picks := map[rules.FieldID]int{fieldRace: race, fieldGender: gender, fieldCareer: career}
+	return rules.Outcome{Effects: []rules.Effect{rules.Picked{Picks: picks}}}, nil
+}
 
 // SetScore keeps ability a at v as ModifyCharacterMenu's Add and Subtract do: at most its race's adjustment + 18, at
 // least + 3 and at least the career's minimum. Constitution brings the hit points into the range it allows.
@@ -334,6 +352,28 @@ func (c creation) Draft(of rules.CharID) (rules.Draft, error) {
 		return c.r.draftOf(of)
 	}
 	return rules.Draft{Picks: map[rules.FieldID]int{fieldRace: 0, fieldGender: 0, fieldCareer: 0}}, nil
+}
+
+// noIcon is a sheet's draft's icon before one is picked: SetDefaultIcon draws it at Keep.
+const noIcon = -1
+
+// draftIcon is the CHARS body d's icon names (false: none picked).
+func (r *Rules) draftIcon(d rules.Draft) (int, bool) {
+	if d.Icon.Body == "" || r.pics == nil {
+		return 0, false
+	}
+	var p rules.Pics
+	r.pics.SetPics(d, &p)
+	return int(p.IconBody), p.Pool.IconBody == ""
+}
+
+// iconOf is c's icon as a draft holds it.
+func (r *Rules) iconOf(c *Character) rules.Icon {
+	ic := rules.Icon{Size: rules.IconSmall}
+	if c.Icon != noIcon && r.pics != nil {
+		_, ic.Body = r.pics.IconPics(rules.Pics{IconBody: byte(c.Icon), IconSize: 1})
+	}
+	return ic
 }
 
 // insertDraft makes the character d describes and holds it outside the roster order and the purse (a sheet's draft,
@@ -408,8 +448,15 @@ func (r *Rules) draftCharacter(d rules.Draft, kit bool) (Character, error) {
 	if d.Sheet.Skills != nil {          // then what EditSkills left
 		c.Skills = levelsOfDraft(d)
 	}
-	if kit { // the character kept: SetDefaultIcon after the skills, then BuildAmmoItems
+	switch body, ok := r.draftIcon(d); {
+	case ok: // picked on the sheet (CustomizeIcon, there after Keep)
+		c.Icon = body
+	case kit: // the character kept: SetDefaultIcon after the skills
 		c.Icon = defaultIcon(race, d.Sheet.Sex, career, r.stream(nil))
+	default: // the sheet's draft: SetDefaultIcon only comes with Keep
+		c.Icon = noIcon
+	}
+	if kit { // then BuildAmmoItems
 		for _, a := range freeAmmo { // each at the head of the list
 			c.Items = slices.Insert(c.Items, 0, Carried{Ref: rules.ItemRef{ID: a.Item, Count: a.Quantity}, Readied: true})
 		}

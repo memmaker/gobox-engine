@@ -33,6 +33,9 @@ var poolPrefix = map[string]string{"portraithead": "head_", "portraitbody": "bod
 func (g classicGame) OpenPicker(kind int) bool {
 	g.p.pool = nil
 	pp, has := poolPicks[kind]
+	if ed := game.CommonOf(g.Game.r.g.State()).IconEditor; ed != nil && ed.Whole && kind == PickWeapon { // the game's own whole icons, not pool parts
+		has = false
+	}
 	if !has { // the game's own pictures; a portrait or icon part comes from the shared pool, the game is not asked
 		return g.Game.OpenPicker(kind)
 	}

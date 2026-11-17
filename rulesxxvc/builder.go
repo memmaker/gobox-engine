@@ -16,5 +16,6 @@ func Builder(src rules.Source, host rules.CreationHost) (rules.Rules, rules.Crea
 	}
 	r := New()
 	r.Begin(rules.Campaign{Tables: t}, rules.Options{})
+	r.pics = host
 	return r, creation{r: r, host: host}
 }

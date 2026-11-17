@@ -341,6 +341,7 @@ type Picker struct {
 // same index space as Picture.Pixels.
 type IconEditor struct {
 	Large, Custom bool       // Custom: the poses are a dropped PNG (IconPNG), no parts or colours
+	Whole         bool       // the icon is one whole picture of the game's (BR1's CHARS): PickWeapon picks it, no head, size, colours or PNG
 	Poses         [2]Picture // ready and action poses (Pixels nil: none)
 	IconPNG       []byte     // Custom: the PNG's bytes (gobox cuts its poses)
 	Colour        [6][2]int  // each part's two colour numbers (0..15)
@@ -394,6 +395,7 @@ type Member struct {
 	Portrait                             Picture
 	Dropped                              []byte         // the member's own PNG portrait's bytes (dropped on the sheet), drawn in place of the pool head; nil none
 	Icon                                 map[string]int // icon designer choices as numbers
+	IconPoses                            [2]Picture     // a whole-picture icon (BR1's CHARS): its ready and action poses (Pixels nil: composed from Icon)
 	PortraitHeadID, PortraitBodyID       string         // gobox's opaque shared-pool picks, one pool name each ("head_NNN", "body_NNN"); the game only stores and states them back ("": none, gobox falls back to Portrait)
 	IconHeadID, IconBodyID               string         // likewise the combat icon's ("combat_head_NNN", "combat_body_NNN"; "": none, gobox falls back to Icon)
 	BaseStats                            map[string]int // stats before magic and age

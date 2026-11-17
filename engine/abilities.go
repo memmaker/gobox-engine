@@ -15,8 +15,15 @@ func (e *Engine) abilityKey(a rules.Ability) string {
 	return e.ruleset().Catalog().AbilityNames[a].Key()
 }
 
+// strengthPercentKey is the state's key for the exceptional strength (game.StatKeys, Member.Str00): not one of the
+// Catalog's abilities, the extra its Strength carries.
+const strengthPercentKey = "str00"
+
 // abilityByKey is the ability the state's key names.
 func (e *Engine) abilityByKey(key string) (rules.Ability, bool) {
+	if key == strengthPercentKey {
+		return rules.StrengthPercent, true
+	}
 	cat := e.ruleset().Catalog()
 	for _, a := range cat.Abilities {
 		if cat.AbilityNames[a].Key() == key {

@@ -60,7 +60,7 @@ var brQuickParty = []game.QuickPick{
 	{Race: "Mercurian", Gender: "Female", Class: "Warrior", Need: map[string]int{"str": 15, "dex": 16}, Name: "Kade"},
 	{Race: "Terran", Gender: "Male", Class: "Rocket Jock", Need: map[string]int{"dex": 16, "int": 13}, Name: "Ace"},
 	{Race: "Martian", Gender: "Female", Class: "Rogue", Need: map[string]int{"dex": 16, "cha": 14}, Name: "Vex"},
-	{Race: "Tinker", Gender: "Female", Class: "Engineer", Need: map[string]int{"tech": 17, "int": 12}, Name: "Gizmo"},
+	{Race: "Tinker", Gender: "Female", Class: "Engineer", Need: map[string]int{"tch": 17, "int": 12}, Name: "Gizmo"},
 	{Race: "Venusian", Gender: "Male", Class: "Medic", Need: map[string]int{"wis": 16, "int": 14}, Name: "Doc"},
 }
 

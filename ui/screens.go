@@ -709,6 +709,8 @@ func (p *Presenter) spots() []spot {
 		}
 		if ed.Custom {
 			at(ed.Remove, 'R', send(ActIconRemove, 0))
+		} else if ed.Whole {
+			at(ed.Weapon, 'B', click(ed.Weapon.X1, ed.Weapon.Y1))
 		} else {
 			at(ed.Head, 'H', click(ed.Head.X1, ed.Head.Y1))
 			at(ed.Weapon, 'W', click(ed.Weapon.X1, ed.Weapon.Y1))

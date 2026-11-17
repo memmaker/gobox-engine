@@ -707,6 +707,10 @@ func (c *cellPage) iconEditor(ed *FrontIconEditor) {
 		c.str(ed.Remove.X1, ed.Remove.Y1, inkGreen, "Remove")
 		return
 	}
+	if ed.Whole { // one of the game's pictures: it can only be picked
+		c.str(ed.Weapon.X1, ed.Weapon.Y1, inkGreen, "Body")
+		return
+	}
 	c.str(ed.Head.X1, ed.Head.Y1, inkGreen, "Head")
 	c.str(ed.Weapon.X1, ed.Weapon.Y1, inkGreen, "Weapon")
 	size := "small"
@@ -757,6 +761,14 @@ func iconClick(ed *FrontIconEditor, cx, cy int) (Action, bool) {
 		return Action{}, false
 	}
 	head, weapon := Action{Kind: ActPicker, N: PickIconHead}, Action{Kind: ActPicker, N: PickWeapon}
+	if ed.Whole { // the Body word or the poses: the game's pictures
+		for _, r := range append([]CellRect{ed.Weapon}, ed.PoseAt[:]...) {
+			if in(r) {
+				return weapon, true
+			}
+		}
+		return Action{}, false
+	}
 	switch {
 	case in(ed.Head):
 		return head, true

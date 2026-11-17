@@ -26,6 +26,7 @@ var savedState = map[string]string{
 	"phase":     "the engine's (EnterPhase): entered again when a loaded game's loop starts",
 	"hall":      "the party menu's training hall: no game is saved under it",
 	"shopTerms": "a shop's (StockShop): set each time a script opens one; a loaded game opens it again",
+	"pics":      "the engine's, given at Builder",
 }
 
 // TestSaveCoversRules: every field of Rules is saved or has its reason in savedState, and the saved ones come back through

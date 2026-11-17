@@ -276,6 +276,7 @@ type FrontIconEditor struct {
 	Part, Shade        int              // the swatch the palette sets
 	Colour             [6][2]int        // each part's two colour numbers (the swatches)
 	Custom             bool             // the poses are a dropped PNG: no parts or colours, only Remove (ActIconRemove)
+	Whole              bool             // the icon is one of the game's whole pictures: only Weapon, worded Body (PickWeapon)
 	Remove             CellRect         // the Remove word, when Custom
 	Swatch             [6][2]color.RGBA // each part's two colours as they show
 	PaletteInk         [16]color.RGBA   // each palette cell's colour as it shows

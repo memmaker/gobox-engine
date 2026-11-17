@@ -202,7 +202,7 @@ func TestDefaultIcon(t *testing.T) {
 	d := newDraft(t, c, 0, 0, slices.Index(pickCareers, xxvc.Warrior), 2)
 	sheet, _ := c.r.draftCharacter(d, false)
 	kept, _ := c.r.draftCharacter(d, true)
-	if sheet.Icon != 0 || kept.Icon != 3 {
+	if sheet.Icon != noIcon || kept.Icon != 3 { // the sheet's draft has none until Keep's SetDefaultIcon
 		t.Errorf("icons: sheet %d, kept %d", sheet.Icon, kept.Icon)
 	}
 }

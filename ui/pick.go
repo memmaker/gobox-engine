@@ -109,7 +109,7 @@ func IconEditor(k *game.IconEditor, palette []color.RGBA, own game.Member, ink *
 	const previewRow, previewCols, partCol, swatchCol, paletteCol = 2, 2, 2, 12, 2
 	wc, pr := previewCols+2*(9*sc+2), previewRow+9*sc+2
 	cell := func(x1, y1, x2, y2 int) CellRect { return CellRect{X1: x1, Y1: y1, X2: x2, Y2: y2} }
-	ed := &FrontIconEditor{Large: k.Large, Custom: k.Custom,
+	ed := &FrontIconEditor{Large: k.Large, Custom: k.Custom, Whole: k.Whole,
 		Head: cell(wc, previewRow, wc+5, previewRow), Weapon: cell(wc, previewRow+1, wc+5, previewRow+1),
 		Size:  cell(wc, previewRow+2, wc+9, previewRow+2),
 		Names: cell(partCol, pr, swatchCol-1, pr+5), Parts: cell(swatchCol, pr, swatchCol+4, pr+5),
@@ -136,7 +136,7 @@ func IconEditor(k *game.IconEditor, palette []color.RGBA, own game.Member, ink *
 		x := previewCols + (9*sc+2)*p
 		ed.PoseAt[p] = cell(x, previewRow, x+9*sc-1, previewRow+9*sc-1)
 		head, body := memberIcon(m)
-		if pic, ok := poolIcon(head, body, cs, p, false); ok && !k.Custom && head != "" {
+		if pic, ok := poolIcon(head, body, cs, p, false); ok && !k.Custom && !k.Whole && head != "" {
 			if pic.Palette != nil {
 				ed.Poses[p] = PalettedRGBA(pic.Pix, pic.PixW, pic.Palette)
 			} else {
@@ -163,6 +163,10 @@ func IconEditor(k *game.IconEditor, palette []color.RGBA, own game.Member, ink *
 		for s := range 2 {
 			ed.Swatch[i][s] = look(c[s])
 		}
+	}
+	if ed.Whole { // one of the game's pictures: it can only be picked
+		ed.Weapon = cell(wc, previewRow, wc+3, previewRow)
+		ed.Head, ed.Size, ed.Names, ed.Parts, ed.Palette = CellRect{}, CellRect{}, CellRect{}, CellRect{}, CellRect{}
 	}
 	if ed.Custom { // a dropped PNG takes no parts or colours: it can only go
 		ed.Remove = cell(wc, previewRow, wc+5, previewRow)

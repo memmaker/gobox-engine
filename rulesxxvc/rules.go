@@ -86,6 +86,7 @@ func (c *Character) team() bool { return c.Side != rules.SideMonsters }
 // Rules is the XXVc ruleset of BR1 and BR2: core.Rules. The game's tables come
 // at Begin (core.Campaign.Tables, an xxvc.Tables).
 type Rules struct {
+	pics      rules.CreationHost                 // the engine's picture ids of the CHARS icons (a draft's Icon.Body); nil: New's, no engine
 	pool      rules.Copper                       // poolCredits: the credits the beaten left, until BankLoot
 	loot      map[rules.ItemHandle]rules.ItemRef // FightResult.Items' handles (lootHandle); in a shop the pile it sells (stockShop)
 	phase     rules.Phase                        // the engine's (EnterPhase)

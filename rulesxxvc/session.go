@@ -363,6 +363,8 @@ func (r *Rules) factSession(id rules.CharID, f rules.Fact) (v rules.Value, ok bo
 		return rules.PoolPics{}, true, nil // no pool pictures held
 	case rules.PortraitFact:
 		return rules.Portrait{}, true, nil // no portrait numbers held
+	case rules.DraftIconFact:
+		return r.iconOf(c), true, nil
 	case rules.IconPicsFact:
 		return rules.IconPics{Body: c.Icon, Size: 1}, true, nil // the body in CHARS.DAX; no heads or colours
 	case rules.BookFact:

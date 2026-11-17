@@ -354,7 +354,10 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 		}
 		add(game.ClosePicker{})
 	}
-	if cm.IconEditor != nil {
+	switch ed := cm.IconEditor; {
+	case ed != nil && ed.Whole: // one of the game's pictures: picked from its sheet, nothing to compose
+		add(game.OpenPicker{Kind: PickWeapon}, game.EndIcon{}, game.EndIcon{Keep: true})
+	case ed != nil:
 		add(game.IconSize{}, game.IconColour{}, game.IconRemove{}, game.IconPNG{}, game.EndIcon{}, game.EndIcon{Keep: true})
 	}
 	switch shown {

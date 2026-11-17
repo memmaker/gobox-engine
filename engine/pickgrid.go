@@ -21,6 +21,7 @@ type picker struct {
 	pic          func(i int) (im *asset.Image, mask int) // picture i (nil: none)
 	labels       []string                                // the pictures' names (saved characters)
 	chars        []rules.CharID                          // ... the characters (core.NoChar where the files are gone)
+	blocks       []int                                   // PickWeapon: the sheet's icon blocks (memberIconBlocks)
 	ask          string                                  // asked before a pick (%s: the label)
 
 	state *game.Picker // pickState's pictures, built once (nil: again)
@@ -39,6 +40,13 @@ func (e *Engine) OpenPicker(kind int) bool {
 		return e.LoadPic(heads[n].Set.File("HEAD"), int(heads[n].Id)), -1
 	}
 	switch kind {
+	case PickWeapon: // a game of whole-picture icons: the sheet's (BR1: CustomizeIcon's CHARS list); the Pool's parts are gobox's pool
+		blocks := e.memberIconBlocks()
+		if e.iconEd == nil || len(blocks) == 0 {
+			return false
+		}
+		p = &picker{n: len(blocks), blocks: blocks, cur: max(0, slices.Index(blocks, e.iconPics(e.iconEd.who).Body))}
+		p.pic = func(i int) (*asset.Image, int) { return e.memberIcon(p.blocks[i], 0), int(e.artNames().IconMask) }
 	case PickAdd, PickForget, PickAddFrom:
 		// pickSaved (extra): the Add and Forget lists are cards, the head of
 		// the character's portrait (a dropped PNG fitted into its place) with
@@ -84,6 +92,9 @@ func (e *Engine) Pick(i int) (done bool) {
 	}
 	p.cur, p.state = i, nil
 	switch p.kind {
+	case PickWeapon:
+		e.editIcon(func(ic *rules.IconPics) { ic.Body = p.blocks[i] })
+		done = true
 	case PickAdd:
 		done = e.addSaved(p, i)
 	case PickAddFrom:
@@ -149,4 +160,42 @@ func (e *Engine) addForeign(p *picker, i int) bool {
 		return count > 5 || e.memberCount() > 7
 	}
 	return e.memberCount() > 7
+}
+
+// memberIconBlocks are the ready poses of the whole-picture member icons' sheet (artNames.MemberIcons, BR1's CHARS:
+// blocks under 0x80, each with its action pose 0x80 on), as the art has them.
+func (e *Engine) memberIconBlocks() []int {
+	if e.artNames().MemberIcons == "" {
+		return nil
+	}
+	var out []int
+	for b := range memberIconAction {
+		if e.memberIcon(b, 0) != nil {
+			out = append(out, b)
+		}
+	}
+	return out
+}
+
+// memberIconAction is how far a member icon's action pose follows its ready one in the sheet (LoadIconPic: block+0x80).
+const memberIconAction = 0x80
+
+// memberIcon is pose p (0 ready, 1 action) of icon block of the member icons' sheet, masked as the fight loads it.
+func (e *Engine) memberIcon(block, p int) *asset.Image {
+	return e.LoadPicMasked(e.artNames().MemberIcons, block+p*memberIconAction, e.artNames().IconMask)
+}
+
+// memberIconPic is block b of the member icons' sheet as a picture id (a draft's Icon.Body).
+func (e *Engine) memberIconPic(b byte) rules.PicID {
+	return e.pics.ID(asset.DAXRef{File: e.artNames().MemberIcons + ".DAX", Block: int(b), Frame: asset.NoFrame})
+}
+
+// memberIconByte is memberIconPic's inverse.
+func (e *Engine) memberIconByte(id rules.PicID) (byte, bool) {
+	for b := range memberIconAction {
+		if id != "" && e.memberIconPic(byte(b)) == id {
+			return byte(b), true
+		}
+	}
+	return 0, false
 }

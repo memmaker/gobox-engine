@@ -51,6 +51,13 @@ func (e *Engine) iconEditorState(edit *iconEdit) *game.IconEditor {
 	c := e.iconPics(edit.who)
 	amiga := e.iconAmiga()
 	k := &game.IconEditor{Large: c.Size == 2, Custom: c.PNG != nil, IconPNG: c.PNG}
+	if sheet := e.artNames().MemberIcons; sheet != "" { // a whole picture (BR1: CustomizeIcon picks one of CHARS): its two poses, nothing to compose
+		k.Whole = true
+		for p := range 2 {
+			k.Poses[p] = framePicture(e.memberIcon(c.Body, p), 0, int(e.artNames().IconMask))
+		}
+		return k
+	}
 	for p := range 2 {
 		if im := e.icons[0xC][p]; c.PNG == nil && im != nil { // a PNG: the front cuts its poses
 			w := im.Width * 8

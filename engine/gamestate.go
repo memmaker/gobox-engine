@@ -546,7 +546,10 @@ func (e *Engine) iconState(id rules.CharID, m *game.Member) {
 	if ic.Size == 2 { // the T files' blocks follow the S ones' by 0x40 (LoadIconPic)
 		off = 0x40
 	}
-	if e.artNames().MemberIcons != "" { // a whole picture: the fight's unit carries it (Unit.Art), no head and body to compose
+	if e.artNames().MemberIcons != "" { // a whole picture: the sheet's poses, no head and body to compose
+		for p := range m.IconPoses {
+			m.IconPoses[p] = framePicture(e.memberIcon(ic.Body, p), 0, int(e.artNames().IconMask))
+		}
 		return
 	}
 	m.Icon, m.IconColors = map[string]int{"head": ic.Head + off, "body": ic.Body + off}, nil
