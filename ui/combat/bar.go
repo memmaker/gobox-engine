@@ -22,6 +22,9 @@ import (
 // bottom rows instead.
 const (
 	face    = 64 // an icon's side, and the button face's at scale 2
+
+	// ItemIconSize is the side of an item's own icon on a button face (Board's Icons): drawn 1:1 in its middle.
+	ItemIconSize = 60
 	promptH = 2  // a margin over the buttons, at scale 1
 	labelH  = 14 // the hovered button's word under them, at scale 1
 )
@@ -473,10 +476,10 @@ func barPixels(glyph func(byte) [8]byte, items []barItem, hover, w, h, k int, ic
 		// proportion; then scaled as one to the button (so their relation holds)
 		f := image.NewRGBA(image.Rect(0, 0, face, face))
 		draw.Draw(f, f.Bounds(), image.NewUniform(th.Panel), image.Point{}, draw.Src)
-		if ic, own := iconPicture(th.Series, it.word()), icons[it.Kind]; own != nil { // the item's own icon (the inventory's atlas cell), 3x in the middle
+		if ic, own := iconPicture(th.Series, it.word()), icons[it.Kind]; own != nil { // the item's own icon at ItemIconSize, 1:1 in the middle
 			b := own.Bounds()
-			s := (face - 3*b.Dx()) / 2
-			xdraw.NearestNeighbor.Scale(f, image.Rect(s, s, s+3*b.Dx(), s+3*b.Dy()), own, b, draw.Over, nil)
+			at := image.Pt(face-b.Dx(), face-b.Dy()).Div(2)
+			draw.Draw(f, b.Sub(b.Min).Add(at), own, b.Min, draw.Over)
 		} else if ic != nil {
 			draw.Draw(f, f.Bounds(), ic, ic.Bounds().Min, draw.Over)
 		} else {

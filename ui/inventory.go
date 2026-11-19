@@ -78,11 +78,14 @@ type inventory struct {
 	dollAt  image.Rectangle
 	face    image.Rectangle // the portrait on the canvas, when facePNG is drawn over it at the window's resolution
 	facePNG image.Image
-	panelAt image.Rectangle // the last panel on the canvas, drawn again over facePNG
-	hover   image.Point     // the pointer (canvas)
-	mouseAt image.Point     // the pointer (screen), as last seen
-	member  int             // the member whose items are up
-	count   int             // party members
+	panelAt image.Rectangle         // the last panel on the canvas, drawn again over facePNG
+	iconsOn []shownIcon             // the item icons on the canvas, drawn over it at the window's resolution
+	fits    map[iconFit]*image.RGBA // iconAt's pictures
+	hiIcons map[iconFit]*gpu.Image  // the shown icons on the GPU, by size
+	hover   image.Point             // the pointer (canvas)
+	mouseAt image.Point             // the pointer (screen), as last seen
+	member  int                     // the member whose items are up
+	count   int                     // party members
 
 	carry     *carried    // the stack on the cursor (a click picked it up), nil for none
 	held      bool        // the left button was down last frame

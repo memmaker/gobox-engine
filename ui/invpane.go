@@ -8,11 +8,13 @@ import (
 	"fmt"
 	"gobox/asset"
 	"gobox/game"
+	"gobox/gpu"
 	"gobox/rules"
 	"image"
 	"image/color"
 	"image/draw"
 	"image/png"
+	"math"
 	"strconv"
 	"strings"
 
@@ -235,18 +237,90 @@ func (inv *inventory) iconImage(k rules.ItemID) image.Image {
 	}).SubImage(image.Rectangle{at, at.Add(image.Pt(c, c))})
 }
 
-// drawIcon draws the item's atlas cell scaled to iconSlot, in the middle of r (cut to r).
-func (inv *inventory) drawIcon(k rules.ItemID, r image.Rectangle) {
+// iconAt is the item's atlas cell fitted to an n pixel square (nil: none), the one scaling every screen's item icon
+// goes through: by whole pixels when those nearly fill it (crisp pixel art), else Catmull-Rom, which shrinks a series'
+// large cell (Buck Rogers' 64) smoothly where nearest neighbour dropped most of its pixels.
+func (inv *inventory) iconAt(k rules.ItemID, n int) image.Image {
 	ic := inv.iconImage(k)
-	if ic == nil {
+	if ic == nil || n <= 0 {
+		return nil
+	}
+	key := iconFit{k, n}
+	if m, ok := inv.fits[key]; ok {
+		return m
+	}
+	if inv.fits == nil || len(inv.fits) > 512 { // the items and sizes on show; a resize brings new sizes
+		inv.fits = map[iconFit]*image.RGBA{}
+	}
+	m := image.NewRGBA(image.Rect(0, 0, n, n))
+	b := ic.Bounds()
+	at := fit(b, m.Rect)
+	var sc xdraw.Scaler = xdraw.CatmullRom
+	if s := wholeScale(b.Dx(), b.Dy(), n, n); s > 0 {
+		w, h := s*b.Dx(), s*b.Dy()
+		at, sc = image.Rect((n-w)/2, (n-h)/2, (n-w)/2+w, (n-h)/2+h), xdraw.NearestNeighbor
+	}
+	sc.Scale(m, at, ic, b, xdraw.Src, nil)
+	inv.fits[key] = m
+	return m
+}
+
+// iconFit is an iconAt picture's key: the item's base kind at n pixels square.
+type iconFit struct {
+	base rules.ItemID
+	n    int
+}
+
+// shownIcon is an item icon on the inventory canvas: drawn over it at the window's resolution (drawShownIcons), its
+// iconSlot square cell cut to clip.
+type shownIcon struct {
+	base       rules.ItemID
+	cell, clip image.Rectangle
+}
+
+// drawIcon puts the item's icon in an iconSlot square in the middle of r (cut to r): drawShownIcons draws it at the
+// window's resolution, not the canvas's.
+func (inv *inventory) drawIcon(k rules.ItemID, r image.Rectangle) {
+	if inv.iconImage(k) == nil {
 		inv.text("?", r.Min.X+r.Dx()/2-4, r.Min.Y+r.Dy()/2-4, gray)
 		return
 	}
 	at := r.Min.Add(image.Pt(r.Dx()-iconSlot, r.Dy()-iconSlot).Div(2))
 	cell := image.Rectangle{at, at.Add(image.Pt(iconSlot, iconSlot))}
-	m := image.NewRGBA(cell)
-	xdraw.NearestNeighbor.Scale(m, cell, ic, ic.Bounds(), xdraw.Src, nil)
-	draw.Draw(inv.px, cell.Intersect(r), m, cell.Intersect(r).Min, draw.Over)
+	inv.iconsOn = append(inv.iconsOn, shownIcon{k, cell, cell.Intersect(r)})
+}
+
+// drawShownIcons draws the canvas's icons onto dst at the canvas's scale kx, ky, each from its atlas cell at that size
+// (iconAt), cut to its clip.
+func (inv *inventory) drawShownIcons(dst *gpu.Image, kx, ky float64) {
+	n := int(math.Round(iconSlot * min(kx, ky)))
+	if inv.hiIcons == nil || len(inv.hiIcons) > 512 {
+		for _, g := range inv.hiIcons {
+			g.Deallocate()
+		}
+		inv.hiIcons = map[iconFit]*gpu.Image{}
+	}
+	for _, s := range inv.iconsOn {
+		key := iconFit{s.base, n}
+		g, ok := inv.hiIcons[key]
+		if !ok {
+			g = gpu.NewImageFromImage(inv.iconAt(s.base, n))
+			inv.hiIcons[key] = g
+		}
+		scr := func(r image.Rectangle) image.Rectangle {
+			return image.Rect(int(math.Round(float64(r.Min.X)*kx)), int(math.Round(float64(r.Min.Y)*ky)),
+				int(math.Round(float64(r.Max.X)*kx)), int(math.Round(float64(r.Max.Y)*ky)))
+		}
+		cell, clip := scr(s.cell), scr(s.clip)
+		cell.Max = cell.Min.Add(image.Pt(n, n))
+		vis := clip.Intersect(cell)
+		if vis.Empty() {
+			continue
+		}
+		op := &gpu.DrawImageOptions{}
+		op.GeoM.Translate(float64(vis.Min.X), float64(vis.Min.Y))
+		dst.DrawImage(g.SubImage(vis.Sub(cell.Min)).(*gpu.Image), op)
+	}
 }
 
 // text draws s in the game's font at (x, y).

@@ -59,7 +59,7 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note) {
 			if it == nil {
 				continue
 			}
-			if ic := p.inv.iconImage(it.Base); ic != nil {
+			if ic := p.inv.iconAt(it.Base, combat.ItemIconSize); ic != nil {
 				n := p.inv.icon(it.Base)
 				if p.battle.Icons == nil {
 					p.battle.Icons = map[combat.Kind]image.Image{}

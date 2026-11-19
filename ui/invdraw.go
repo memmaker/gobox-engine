@@ -141,7 +141,7 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note) bool {
 		inv.w, inv.h, inv.px = w, h, image.NewRGBA(image.Rect(0, 0, w, h))
 	}
 	inv.fill(inv.px.Rect, color.RGBA{A: 255})
-	inv.lines = inv.lines[:0]
+	inv.lines, inv.iconsOn = inv.lines[:0], inv.iconsOn[:0]
 	bottom := (ch - 2) * 8 // the boxes' inner bottom: under them the menu row
 
 	// the member: name, portrait between the arrows, hit points (the shop: its goods)
@@ -270,16 +270,22 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note) bool {
 
 	// onto the whole screen
 	inv.kx, inv.ky = p.fit(dst, inv.img, inv.w, inv.h)
+	over := false           // something drawn at the window's resolution under the last panel
 	if inv.facePNG != nil { // the PNG portrait at the window's resolution, as the cards
 		op := &gpu.DrawImageOptions{}
 		op.GeoM.Translate(float64(inv.face.Min.X)*inv.kx, float64(inv.face.Min.Y)*inv.ky)
 		dst.DrawImage(p.hiFace(inv.facePNG, int(float64(inv.face.Dx())*inv.kx)), op)
-		if r := inv.panelAt; r.Overlaps(inv.face) { // the tooltip or question stays on top
-			op := &gpu.DrawImageOptions{}
-			op.GeoM.Translate(float64(r.Min.X), float64(r.Min.Y))
-			op.GeoM.Scale(inv.kx, inv.ky)
-			dst.DrawImage(inv.img.SubImage(r).(*gpu.Image), op)
-		}
+		over = inv.panelAt.Overlaps(inv.face)
+	}
+	inv.drawShownIcons(dst, inv.kx, inv.ky) // the item icons at the window's resolution, as the portrait
+	for _, s := range inv.iconsOn {
+		over = over || inv.panelAt.Overlaps(s.clip)
+	}
+	if r := inv.panelAt; over { // the tooltip or question stays on top
+		op := &gpu.DrawImageOptions{}
+		op.GeoM.Translate(float64(r.Min.X), float64(r.Min.Y))
+		op.GeoM.Scale(inv.kx, inv.ky)
+		dst.DrawImage(inv.img.SubImage(r).(*gpu.Image), op)
 	}
 	inv.askAt = nil
 	if box != nil { // the question: the standard menu, over everything

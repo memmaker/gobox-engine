@@ -44,7 +44,7 @@ func (p *Presenter) identDone() bool {
 
 // drawIdentified draws the reveal's pop-up over dst.
 func (p *Presenter) drawIdentified(dst *gpu.Image, glyph func(byte) [8]byte, it *InvItem) {
-	const title, hint, iconH = "* Identified! *", "Splendid!", 2 * iconSlot // the icon at a whole 2x, so every atlas pixel stays square and even
+	const title, hint, iconH = "* Identified! *", "Splendid!", 2 * iconSlot // the icon at twice its slot (iconAt)
 	w := max(len(title), len(it.Name), len(hint))
 	for _, l := range it.Look {
 		w = max(w, len(l)+2)
@@ -60,17 +60,9 @@ func (p *Presenter) drawIdentified(dst *gpu.Image, glyph func(byte) [8]byte, it 
 		DrawText(m, glyph, title[i:i+1], x0+8*i, 8, asset.EGARGBA(sparkle[i%len(sparkle)]))
 	}
 	y := 24
-	if ic := p.inv.iconImage(it.Base); ic != nil { // the icon on the pop-up's black
-		b := ic.Bounds()
-		iw, ih := iconH, iconH // any atlas cell, scaled to the box
-		at := image.Rect((cw*8-iw)/2, y, (cw*8+iw)/2, y+ih)
-		for py := range ih {
-			for px := range iw {
-				if c := ic.At(b.Min.X+px*b.Dx()/iw, b.Min.Y+py*b.Dy()/ih); alpha(c) {
-					m.Set(at.Min.X+px, at.Min.Y+py, c)
-				}
-			}
-		}
+	if ic := p.inv.iconAt(it.Base, iconH); ic != nil { // the icon on the pop-up's black
+		at := image.Rect((cw*8-iconH)/2, y, (cw*8+iconH)/2, y+iconH)
+		draw.Draw(m, at, ic, image.Point{}, draw.Over)
 	}
 	y += iconH + 8
 	DrawText(m, glyph, it.Name, centre(it.Name), y, asset.EGARGBA(inkYellow))
