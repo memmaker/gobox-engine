@@ -25,7 +25,8 @@
 - `sound/`, `soundtrack/`, `speech/`: the Pool's sound sources; BR has none yet.
 - BR2 `journal/`: no source (Open item in REFACTOR.md).
 
-## Left to delete outside this repository
-- `~/Projects/buckrogers-go`, `~/Projects/buckrogers2-go`, `~/Projects/buckrogers-core` (the old repos; the goldens were
-  made on `buckrogers-go` branch `golden/one-rng`, see the README of the goldens first).
-- `~/Projects/rulesxxvc-history.bundle`.
+## The old repositories
+`buckrogers-go`, `buckrogers2-go` and `buckrogers-core` are deleted (2026-11-21). Their full histories, including
+`buckrogers-go` branch `golden/one-rng` where the goldens were made, are git bundles in `~/Projects/re-archive/buckrogers/`.
+The BR1 and BR2 remaster renders moved to `data/br1/extras/remaster` and `data/br2/extras/remaster`.
+`rulesxxvc-history.bundle` is in `~/Projects/re-archive/`.
