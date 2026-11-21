@@ -19,7 +19,7 @@ var savedState = map[string]string{
 	"loot":   "a fight's: the handles of its loot",
 	"morale": "a fight's (CheckMorale)", "hpPercent": "a fight's", "terms": "a fight's: BeginFight's", "moveBonus": "a fight's",
 	"duelist": "a fight's", "tactics": "a fight's", "round": "a fight's", "combatRound": "a fight's: a game is saved outside a fight", "combatEndRound": "a fight's: a game is saved outside a fight", "initiative": "a fight's", "fight": "a fight's",
-	"arena": "a fight's", "ground": "a fight's, as rules1e's is not saved", "space": "a ship fight's",
+	"arena": "a fight's", "ground": "a fight's, as rules1e's is not saved", "space": "a ship fight's", "treatPending": "a fight's: a game is saved outside a fight", "injuries": "a fight's: the after-fight treatment, asked inside one",
 	"cloning":   "between a NewGroup and its Spawns, inside one script command",
 	"lastActor": "a fight's: the character who acted last (the solo fight's test)",
 	"held":      "the copies a Modify sheet holds until Keep or Exit: the party menu's, no game is saved under it",

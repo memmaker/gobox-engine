@@ -192,6 +192,7 @@ func (s shipRules) BeginShips(e rules.ShipEncounter, rng *rules.RNG) (rules.Ship
 	f := &shipFight{ships: [2]xxvc.ShipRecord{r.partyShip(), foe}, reporting: true, firingSlot: -1, damageSlot: -1,
 		dying: map[rules.CharID]int{}, foeID: e.Foe + firstShipRecord, rng: rng}
 	f.exp = shipExperience[e.Foe]
+	r.treatPending = true // shipcbt.pas 1282: set when the fight ends with postCombatMode NORMAL, which the script's start made it
 	for _, id := range r.order {
 		if c := r.chars[id]; c != nil && c.team() {
 			f.crew = append(f.crew, id)
@@ -299,8 +300,7 @@ func (s shipRules) ShipVerdict(rules.ShipFight) rules.Verdict {
 // EndShips is ShipCombat's end: the party's jury-rigs come off, zone 0 keeps
 // the enemy ship for the scripts, and unless the party boarded, RepairShip
 // shares the experience and repairs.
-// ponytail: PostCombat's DetermineCombatResults and TreatInjuries (before
-// RepairShip, drawing from the same RandSeed) are not ported for ship fights.
+// The engine runs TreatInjuries before it (postcbt.pas PostCombat's order, one stream).
 func (s shipRules) EndShips(_ rules.ShipFight, rng *rules.RNG) rules.FightResult {
 	r := s.r
 	f := r.space
@@ -1360,10 +1360,7 @@ func (r *Rules) repairShip(f *shipFight) uint16 {
 	repairSkills := [6]SkillNo{RepairHull, RepairElectrical, RepairMechanical, RepairLifeSupport, 0, RepairEngine}
 	repairDice := [6]int{20, 4, 4, 8, 0, 12}
 	okay := func(id rules.CharID) bool { return r.chars[id].Status == StOkay }
-	made := func(c *Character, n SkillNo) bool {
-		g, _ := SkillCheck([]int8{skillValue(c, n)}, rules.Normal, f.rng)
-		return g >= rules.Made
-	}
+	made := func(c *Character, n SkillNo) bool { return r.skillMade(f.rng, c, n, rules.Normal) }
 	for i := range s.Status {
 		if i == sysFuel || s.Status[i] >= s.Maximum[i] {
 			continue

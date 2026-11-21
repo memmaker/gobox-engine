@@ -101,6 +101,7 @@ func caseName(e ast.Expr) string {
 // A name that gains a hook must leave this list (the test says so).
 var notAnswered = map[string]bool{
 	"Aid":           true,
+	"Antidote":      true,
 	"Appraise":      true,
 	"ChooseAlign":   true,
 	"ChooseClass":   true,
@@ -158,6 +159,7 @@ var notAnswered = map[string]bool{
 	"SkillDamage":   true,
 	"StashItems":    true,
 	"TakeItems":     true,
+	"TreatInjuries": true,
 	"KnownFact":     true,
 	"MemoFact":      true,
 }

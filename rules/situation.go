@@ -243,6 +243,7 @@ type FightResult struct {
 	Verdict Verdict      // how it ended: won, fled, lost; FightOn for neither (por: treasure found)
 	ShipEnd ShipEnd      // a ship fight's ending in full (the ground fight's is ShipNotOver)
 	Foes    bool         // there were foes to beat (por's "The party has won.")
+	Treat   bool         // a treatment of injuries pends: TreatInjuries goes before the rest of the fight's after-effects (BR)
 	Shared  bool         // hired NPCs took their shares of the money (por hiredShare's page)
 	Sharers []CharID     // who took one
 	// AttackedAlly: the party attacked an ally in the fight (por's script word).

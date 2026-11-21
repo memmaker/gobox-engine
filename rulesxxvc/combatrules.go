@@ -65,6 +65,7 @@ func (r *Rules) BeginFight(f rules.Fight, _ *rules.RNG) rules.Outcome {
 	r.tactics = [2]bool{}
 	r.moveBonus = int(f.Terms.PartyMove)
 	r.terms = f.Terms
+	r.treatPending = r.hasBothSides(f)  // combat.pas CombatMain: isTreatmentPending once both sides have members
 	r.hpPercent = r.hostileHpPercent(f) // combatst.pas setup
 	r.duelist = rules.NoChar
 	if f.Terms.Duel {
@@ -344,6 +345,7 @@ func (r *Rules) EndFight(f rules.Fight, _ *rules.RNG) rules.FightResult {
 		}
 	}
 	res.Verdict = verdict
+	res.Treat = r.treatPending
 	for _, id := range ids { // PostCombatCreatureCleanup: a hostile in the fight is an outcome to report (hasOutcomeToReport; the zone's preservesHostiles is not modelled)
 		if c := r.chars[id]; c != nil && !c.team() {
 			res.Foes = true
@@ -407,6 +409,13 @@ func (r *Rules) EndFight(f rules.Fight, _ *rules.RNG) rules.FightResult {
 	}
 	r.fight = nil
 	return res
+}
+
+// hasBothSides is combat.pas CombatMain's test: a team member and a hostile one are in the fight.
+func (r *Rules) hasBothSides(f rules.Fight) bool {
+	ids := r.fighters(f)
+	return slices.ContainsFunc(ids, func(id rules.CharID) bool { return r.chars[id].team() }) &&
+		slices.ContainsFunc(ids, func(id rules.CharID) bool { return !r.chars[id].team() })
 }
 
 // dropMonsters takes the hostile characters out of the party list and the ruleset (PostCombatCreatureCleanup).

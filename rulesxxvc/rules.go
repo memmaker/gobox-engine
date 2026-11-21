@@ -119,6 +119,9 @@ type Rules struct {
 	ship     *xxvc.ShipRecord // zone0 partyShip; nil until the first ship fight loads record 50
 	foeSaved SavedFoe         // zone0's last enemy ship
 	space    *shipFight       // the ship fight going on
+	// isTreatmentPending (a fight began; TreatInjuries clears it) and the treatment under way (treat.go).
+	treatPending bool
+	injuries     *treatRun
 
 	// The session the engine keeps through typed kinds (session.go).
 	party       []rules.CharID // the party in marching order (JoinParty); the others in chars are the roster's or a fight's

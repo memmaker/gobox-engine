@@ -63,6 +63,10 @@ func (r *Rules) Resolve(s rules.Situation, a rules.Action, rng *rules.RNG) (rule
 	case rules.EnterPhase:
 		r.phase = a.Phase // the shop sells, buys and reloads only in its phase
 		return rules.Outcome{}, nil
+	case rules.TreatInjuries:
+		return r.treatInjuries(a, rng), nil
+	case rules.Antidote:
+		return r.antidote(a)
 	case rules.TakeItems:
 		r.takeItems(a)
 		return rules.Outcome{}, nil

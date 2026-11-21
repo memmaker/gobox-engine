@@ -14,6 +14,7 @@ const (
 	RepairHull        SkillNo = 5
 	JuryRig           SkillNo = 6
 	RepairComputer    SkillNo = 15
+	FirstAid          SkillNo = 13
 	TreatLight        SkillNo = 17
 	TreatSerious      SkillNo = 18
 	TreatCritical     SkillNo = 19
